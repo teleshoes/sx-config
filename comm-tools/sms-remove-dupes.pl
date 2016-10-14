@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 sub main(@){
-  for my $file(`ls`){
+  for my $file(`ls *.sms`){
     chomp $file;
     my $contents = `cat $file`;
     my $ok = {};
