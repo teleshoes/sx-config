@@ -3,22 +3,27 @@ use strict;
 use warnings;
 
 sub main(@){
-  for my $file(`ls *.sms`){
+  for my $file(`ls *.call`){
     chomp $file;
     next if -l $file;
     my $contents = `cat $file`;
     my $ok = {};
     my %lineNums;
     my $lineNum=1;
-    while($contents =~ /^([0-9+]+),(\d+),(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d),"((?:[^"\n]|""|\n)*)"/mgi){
-      my ($num, $dir, $date, $msg) = ($1, $2, $3, $4);
-      my $line = "$num,$dir,$date,\"$msg\"";
+    my $dateRe = '\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d';
+    while($contents =~ /^([^,]+),\s*([0-9+]+),(\d+),($dateRe),($dateRe)$/mgi){
+      my ($path, $num, $dir, $startDate, $endDate) = ($1, $2, $3, $4, $5);
+      my $line = "$path, $num,$dir,$startDate,$endDate";
 
-      my $sex = `date --date="$date" +%s`;
-      chomp $sex;
-      my $minSex = $sex % (60*60);
+      my $startSex = `date --date="$startDate" +%s`;
+      chomp $startSex;
+      my $endSex = `date --date="$endDate" +%s`;
+      chomp $endSex;
+      my $dur = $endSex - $startSex;
 
-      my $key = "$num-$dir-$minSex-$msg";
+      my $minSex = $startSex % (60*60);
+
+      my $key = "$num-$dir-$minSex-$dur";
       my $arr;
       if(defined $$ok{$key}){
         $arr = $$ok{$key};
@@ -31,9 +36,10 @@ sub main(@){
         line => $line,
         num => $num,
         dir => $dir,
-        msg => $msg,
-        date => $date,
-        sex => $sex,
+        dur => $dur,
+        startDate => $startDate,
+        endDate => $endDate,
+        sex => $startSex,
         minSex => $minSex,
       };
     }
