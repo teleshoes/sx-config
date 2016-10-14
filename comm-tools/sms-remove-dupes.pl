@@ -7,7 +7,7 @@ sub main(@){
     chomp $file;
     my $contents = `cat $file`;
     my $ok = {};
-    while($contents =~ /^(\d+),(\d+),(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d),"((?:[^"\n]|""|\n)*)"/mgi){
+    while($contents =~ /^([0-9+]+),(\d+),(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d),"((?:[^"\n]|""|\n)*)"/mgi){
       my ($num, $dir, $date, $msg) = ($1, $2, $3, $4);
       my $line = "$num,$dir,$date,\"$msg\"";
 
