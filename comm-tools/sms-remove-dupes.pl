@@ -40,25 +40,38 @@ sub main(@){
     my @goodEntries;
     for my $key(sort keys %$ok){
       my @entries = @{$$ok{$key}};
-      my $goodEntry = undef;
-      my $minSex = undef;
-      my $maxSex = undef;
+      my @buckets;
       for my $e(@entries){
-        if(not defined $goodEntry or $$e{sex} < $$goodEntry{sex}){
-          $goodEntry = $e;
+        my $bucket = undef;
+        for my $b(@buckets){
+          my $isOk = 1;
+          for my $bucketEntry(@$b){
+            my $sexDiff = $$e{sex} - $$bucketEntry{sex};
+            $sexDiff = 0-$sexDiff if $sexDiff < 0;
+            if($sexDiff > 60*60*6){
+              $isOk = 0;
+              last;
+            }
+          }
+          if($isOk){
+            $bucket = $b;
+            last;
+          }
         }
-        if(not defined $minSex or $$e{sex} < $minSex){
-          $minSex = $$e{sex};
+        if(not defined $bucket){
+          $bucket = [];
+          push @buckets, $bucket;
         }
-        if(not defined $maxSex or $$e{sex} > $maxSex){
-          $maxSex = $$e{sex};
-        }
+        push @$bucket, $e;
       }
-      if($maxSex - $minSex > 60*60*6){
-        my $line = ${$entries[0]}{line};
-        print STDERR "huge separation: $line\n";
+      if(@buckets > 1){
+        print STDERR "warn: lotta buckets ${${$buckets[0]}[0]}{line}\n";
       }
-      push @goodEntries, $goodEntry;
+      for my $bucket(@buckets){
+        my @sortedEntries = sort {$$a{sex} <=> $$b{sex}} @$bucket;
+        my $firstEntry = $sortedEntries[0];
+        push @goodEntries, $firstEntry;
+      }
     }
     my @goodLines = map {$$_{line}} @goodEntries;
     @goodLines = sort {$lineNums{$a} <=> $lineNums{$b}} @goodLines;
