@@ -7,6 +7,8 @@ sub main(@){
     chomp $file;
     my $contents = `cat $file`;
     my $ok = {};
+    my %lineNums;
+    my $lineNum=1;
     while($contents =~ /^([0-9+]+),(\d+),(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d),"((?:[^"\n]|""|\n)*)"/mgi){
       my ($num, $dir, $date, $msg) = ($1, $2, $3, $4);
       my $line = "$num,$dir,$date,\"$msg\"";
@@ -23,6 +25,7 @@ sub main(@){
         $arr = [];
         $$ok{$key} = $arr;
       }
+      $lineNums{$line} = $lineNum++;
       push @$arr, {
         line => $line,
         num => $num,
@@ -56,11 +59,10 @@ sub main(@){
       }
       push @goodEntries, $goodEntry;
     }
-    @goodEntries = sort {$$a{sex} <=> $$b{sex} || $$a{dir} <=> $$b{dir}} @goodEntries;
+    my @goodLines = map {$$_{line}} @goodEntries;
+    @goodLines = sort {$lineNums{$a} <=> $lineNums{$b}} @goodLines;
     open FH, "> $file";
-    for my $entry(@goodEntries){
-      print FH "$$entry{line}\n";
-    }
+    print FH "$_\n" foreach @goodLines;
     close FH;
   }
 }
