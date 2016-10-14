@@ -5,6 +5,7 @@ use warnings;
 sub main(@){
   for my $file(`ls *.sms`){
     chomp $file;
+    next if -l $file;
     my $contents = `cat $file`;
     my $ok = {};
     my %lineNums;
