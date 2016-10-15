@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=restart-wifi
-Comment=restart-wifi
-Icon=restart-wifi
-Exec=restart-wifi
-Type=Application

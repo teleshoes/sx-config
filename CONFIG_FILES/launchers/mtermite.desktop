@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=MTermite
-Comment=Terminal Emulator for MeeGo
-Icon=icon-l-terminal
-Exec=/opt/mtermite/bin/mtermite -n -e bash
-Type=Application
-Categories=Development;

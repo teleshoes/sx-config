@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=call-log
-Comment=callbackuprestore parser
-Icon=call-log
-Exec=term 'call-log --update | less -R'
-Type=Application

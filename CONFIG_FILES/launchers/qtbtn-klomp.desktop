@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=qtbtn-klomp
-Comment=QT Button menu for klomp
-Icon=icon-m-content-playlist-inverse
-Exec=n9-qtbtn klomp
-Type=Application
