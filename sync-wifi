@@ -2,274 +2,154 @@
 use strict;
 use warnings;
 
-sub addWifiFromNet();
-sub clearAllWifi();
-sub getExisting();
-sub getWifiGconf($$$$);
+sub readWinfoNetworks();
+sub setNetworkPriorities(@);
+sub formatConfig();
+sub formatNetwork($);
+sub formatNetworkWpa($$$);
+sub formatNetworkWep($$$);
+sub formatNetworkNone($$);
+sub run(@);
 
-sub getGconfCmds($);
-sub gconfGetCmd($);
-sub gconfSetCmd($$$;$);
-sub listInt($);
-sub listString($);
-sub ssidListInt($);
-sub wpaPskListInt($$);
-sub randHex($);
-sub randomId();
-sub runCmdN9(@);
-sub runBT(@);
-
-my $usage = "Usage:
-  $0 -g
-    print all wifi networks on the phone
-  $0
-    remove all wifi networks from the phone and replace with net
-";
-
-my $rootDir = '/system/osso/connectivity/IAP';
-my $noAutoFile = "$ENV{HOME}/Code/n9/wifi-noauto";
-my $TRUE = ['true', 'bool'];
-my $FALSE = ['false', 'bool'];
-
-my $wifiAtts = {
-  name => [""],
-  wlan_ssid => listInt [],
-  EAP_wpa_preshared_key => undef,
-  EAP_wpa_preshared_passphrase => undef,
-  wlan_wepkey1 => undef,
-
-  http_check_status => ["no_login"],
-  proxytype => ["NONE"],
-  wlan_hidden => $FALSE,
-  wlan_security => undef,
-  type => ["WLAN_INFRA"],
-  autoconnect => $TRUE,
-  ipv4_type => ["AUTO"],
-};
-my $gprsAtts = {
-  name => [""],
-  gprs_accesspointname => [""],
-  sim_imsi => [""],
-  gprs_username => [""],
-  gprs_password => [""],
-  type => ["GPRS"],
-  autoconnect => $TRUE,
-  ask_password => $FALSE,
-  first_time_dialog_shown => $TRUE,
-  ipv4_autodns => $TRUE,
-  ipv4_type => ["AUTO"],
-};
+my @configArr = (
+  [ctrl_interface         => "/data/misc/wifi/sockets"],
+  [disable_scan_offload   => "1"],
+  [update_config          => "1"],
+  [device_name            => "cm_klte"],
+  [manufacturer           => "samsung"],
+  [model_name             => "SM-G900T"],
+  [model_number           => "SM-G900T"],
+  [serial_number          => "fca3d35b"],
+  [device_type            => "10-0050F204-5"],
+  [config_methods         => "physical_display virtual_push_button"],
+  [p2p_disabled           => "1"],
+  [external_sim           => "1"],
+);
+my @configKeys = map {$$_[0]} @configArr;
+my %config = map {$$_[0] => $$_[1]} @configArr;
 
 sub main(@){
-  my $get;
-  if(@_ == 1 and $_[0] =~ /^(-g)$/){
-    $get = shift;
-  }
-  die $usage if @_ > 0;
+  my @networks = readWinfoNetworks();
+  @networks = setNetworkPriorities @networks;
 
-  if(defined $get){
-    my $networks = getExisting();
-    my $sortByName = sub{$$networks{$a}{name} cmp $$networks{$b}{name}};
-    for my $id(sort $sortByName keys %$networks){
-      if($$networks{$id}{type} eq "WLAN_INFRA"){
-        my $name = $$networks{$id}{name};
-        my $wpa = $$networks{$id}{EAP_wpa_preshared_passphrase};
-        my $wep = $$networks{$id}{wlan_wepkey1};
-        my $key;
-        $key = "WPA: $wpa" if not defined $key and defined $wpa;
-        $key = "WEP: $wep" if not defined $key and defined $wep;
-        $key = "NONE" if not defined $key;
-        print "$name => $key\n";
-      }
-    }
-  }else{
-    print "clearing all wifi networks\n";
-    clearAllWifi();
-    print "\n\n";
-    print "adding wifi networks from net\n";
-    addWifiFromNet();
+  my $wpaSupplicant = "";
+  for my $key(@configKeys){
+    $wpaSupplicant .= "$key=$config{$key}\n";
   }
+
+  for my $network(@networks){
+    $wpaSupplicant .= "\n" . formatNetwork $network;
+  }
+
+  my $tmpFile = "/tmp/setup-wifi-$config{device_name}-wpa_supplicant.conf";
+  open FH, "> $tmpFile" or die "Could not write $tmpFile: $!\n";
+  print FH $wpaSupplicant;
+  close FH;
+
+  run "adb", "shell", "svc wifi disable";
+  run "adb", "push", $tmpFile, "/data/misc/wifi/wpa_supplicant.conf";
+  run "adb", "shell", "svc wifi enable";
 }
 
-sub addWifiFromNet(){
-  my @cmds;
-  my %noAuto = map {chomp; $_ => 1} `cat $noAutoFile 2>/dev/null`;
-  for my $ssidName(sort split /\n/, runBT "winfo", "--list-all"){
-    my $info = runBT "winfo", $ssidName;
+sub readWinfoNetworks(){
+  my @networks;
+  my @ssids = sort split /\n/, `winfo --list-all`;
+  for my $ssidName(@ssids){
+    my $info = `winfo "$ssidName"`;
     my $ssid = $1 if $info =~ /^ssid:(.*)$/m;
     my $enc = $1 if $info =~ /^enc:(.*)$/m;
     my $key = $1 if $info =~ /^key:(.*)$/m;
     my $mode = $1 if $info =~ /^mode:(.*)$/m;
     my $auto = $1 if $info =~ /^auto:(.*)$/m;
-    my $autoConnect = $auto =~ /^\d+$/ ? 'true' : 'false';
     if($enc =~ /^(WPA|WEP|NONE)/i and $mode =~ /managed/i){
-      if(defined $noAuto{$ssid}){
-        print "  forcibly disabling autoconnect for $ssid\n";
-        $autoConnect = 'false';
-      }
-      my $wifiCmds = getGconfCmds(getWifiGconf $ssid, $enc, $key, $autoConnect);
-      my $msg = "adding:";
-      $msg .= " SSID='$ssid'";
-      $msg .= " NONE" if $enc =~ /^(NONE)$/i;
-      $msg .= " WEP='$key'" if $enc =~ /^(WEP)$/i;
-      $msg .= " WPA='$key'" if $enc =~ /^(WPA)$/i;
-      $msg .= " auto='$autoConnect'";
-      push @cmds, ["echo", $msg];
-      @cmds = (@cmds, @$wifiCmds);
+      push @networks, {
+        ssid => $ssid,
+        enc  => $enc,
+        key  => $key,
+        auto => $auto,
+      };
     }
   }
-  runCmdN9 @cmds;
+
+  return @networks;
 }
 
-sub clearAllWifi(){
-  my $networks = getExisting();
-  my @cmds;
-  for my $id(keys %$networks){
-    if($$networks{$id}{type} eq "WLAN_INFRA"){
-      my $name = $$networks{$id}{name};
-      $name = '' if not defined $name;
-      push @cmds, ["echo", "deleting $id => $name"];
-      push @cmds, ["gconftool", "--recursive-unset", "$rootDir/$id"];
-    }
-  }
-  runCmdN9 @cmds;
-}
-sub getExisting(){
-  my @iapLines = `n9 -u user -s gconftool -R $rootDir`;
-  my %allAtts = (%$wifiAtts, %$gprsAtts);
+sub setNetworkPriorities(@){
+  my @networks = @_;
 
-  my $id;
-  my $networks = {};
-  my $h4Re = "[a-f0-9]{4}";
-  my $h8Re = "[a-f0-9]{8}";
-  my $h12Re = "[a-f0-9]{12}";
-  my $attRe = join "|", keys %allAtts;
-  for my $line(@iapLines){
-    if($line =~ /^ $rootDir\/($h8Re-$h4Re-$h4Re-$h4Re-$h12Re):$/){
-      $id = $1;
-      $$networks{$id} = {};
-    }elsif(defined $id and $line =~ /^  ($attRe) = (.*)$/){
-      $$networks{$id}{$1} = $2;
-    }
+  my $count = @networks;
+
+  @networks = sort {
+    my $aAuto = $$a{auto} =~ /^\d+$/ ? $$a{auto} : $count;
+    my $bAuto = $$b{auto} =~ /^\d+$/ ? $$b{auto} : $count;
+
+    return $aAuto <=> $bAuto || $$a{ssid} cmp $$b{ssid};
+  } @networks;
+
+  #higher number is higher priority
+  @networks = reverse @networks;
+
+  my $i=1;
+  for my $network(@networks){
+    $$network{priority} = $i++;
   }
-  for my $id(keys %$networks){
-    delete $$networks{$id} if not defined $$networks{$id}{name};
-  }
-  return $networks;
+
+  return @networks;
 }
 
-sub getWifiGconf($$$$){
-  my ($ssid, $enc, $key, $auto) = @_;
-  my $id = randomId;
-  my $dir = "$rootDir/$id";
-
-  my $gconf = {};
-  for my $att(keys %$wifiAtts){
-    $$gconf{"$dir/$att"} = $$wifiAtts{$att} if defined $$wifiAtts{$att};
+sub formatConfig(){
+  my $format = "";
+  for my $key(@configKeys){
+    $format .= "$key=$config{$key}\n";
   }
-  $$gconf{"$dir/name"} = [$ssid];
-  $$gconf{"$dir/wlan_ssid"} = ssidListInt $ssid;
-  if($enc =~ /WPA/i){
-  $$gconf{"$dir/wlan_security"} = ["WPA_PSK"];
-    $$gconf{"$dir/EAP_wpa_preshared_key"} = wpaPskListInt $ssid, $key;
-    $$gconf{"$dir/EAP_wpa_preshared_passphrase"} = [$key];
-  }elsif($enc =~ /WEP/i){
-    $$gconf{"$dir/wlan_security"} = ["WEP"];
-    $$gconf{"$dir/wlan_wepdefkey"} = [1];
-    $$gconf{"$dir/wlan_wepkey1"} = [$key];
-    $$gconf{"$dir/EAP_wpa_preshared_passphrase"} = [$key];
-  }
-  $$gconf{"$dir/autoconnect"} = $auto =~ /true/i ? $TRUE : $FALSE;
-  return $gconf;
+  return $format;
 }
 
-sub getGconfCmds($){
-  my $gconf = shift;
-  my $cmds = [];
-
-  for my $key(keys %$gconf){
-    my @arr = @{$$gconf{$key}};
-    my $val = shift @arr;
-    my $type = @arr > 0 ? shift @arr : 'string';
-    my $listType = @arr > 0 ? shift @arr : undef;
-    push @$cmds, gconfSetCmd($key, $val, $type, $listType);
+sub formatNetwork($){
+  my $net = shift;
+  if($$net{enc} =~ /^WPA$/){
+    return formatNetworkWpa $$net{ssid}, $$net{key}, $$net{priority};
+  }elsif($$net{enc} =~ /^WEP$/){
+    return formatNetworkWep $$net{ssid}, $$net{key}, $$net{priority};
+  }elsif($$net{enc} =~ /^NONE$/){
+    return formatNetworkNone $$net{ssid}, $$net{priority};
   }
-  return $cmds;
-}
-sub gconfGetCmd($){
-  my $key = shift;
-  $key =~ s/"/\\"/g;
-  return ["gconftool-2", "--get", $key];
-}
-sub gconfSetCmd($$$;$){
-  my ($key, $val, $type, $listType) = @_;
-  $listType =~ s/"/\\"/g if defined $listType;
-  my $cmd = ["gconftool-2", "--set", $key, $val, "--type=$type"];
-  if(lc $type eq 'list'){
-    push @$cmd, "--list-type=$listType";
-  }
-  return $cmd;
 }
 
-sub listInt($){
-  my @list = @{shift()};
-  my $val = '[' . (join ',', @list) . ']';
-  return [$val, 'list', 'int'];
+sub formatNetworkWpa($$$){
+  my ($ssid, $psk, $priority) = @_;
+  return "network={\n"
+    . "\tssid=\"$ssid\"\n"
+    . "\tpsk=\"$psk\"\n"
+    . "\tkey_mgmt=WPA-PSK\n"
+    . "\tpriority=$priority\n"
+    . "}\n"
+    ;
 }
-sub listString($){
-  my @list = @{shift()};
-  my $val = '[' . (join ',', @list) . ']';
-  return [$val, 'list', 'string'];
+sub formatNetworkWep($$$){
+  my ($ssid, $wepKey, $priority) = @_;
+  return "network={\n"
+    . "\tssid=\"$ssid\"\n"
+    . "\tkey_mgmt=NONE\n"
+    . "\tauth_alg=OPEN SHARED\n"
+    . "\twep_key0=$wepKey\n"
+    . "\tpriority=$priority\n"
+    . "}\n"
+    ;
 }
-sub ssidListInt($){
-  my ($ssid) = @_;
-  my @dec;
-  for(my $i=0; $i<length $ssid; $i++){
-    push @dec, ord(substr $ssid, $i, 1);
-  }
-  return listInt(\@dec);
-}
-sub wpaPskListInt($$){
-  my ($ssid, $passphrase) = @_;
-  my $net = runBT "wpa_passphrase", $ssid, $passphrase;
-  if($net =~ /^\s*psk=([0-9a-f]+)\s*$/m){
-    my $psk = $1;
-    my @bytes;
-    for(my $i=0; $i<length $psk; $i+=2){
-      push @bytes, substr $psk, $i, 2;
-    }
-    my @dec = map {sprintf("%d", hex($_))} @bytes;
-    return listInt(\@dec);
-  }
-  return undef;
+sub formatNetworkNone($$){
+  my ($ssid, $priority) = @_;
+  return "network={\n"
+    . "\tssid=\"$ssid\"\n"
+    . "\tkey_mgmt=NONE\n"
+    . "\tpriority=$priority\n"
+    . "}\n"
+    ;
 }
 
-sub randHex($){
-  my $digs = shift;
-  return lc sprintf "%0${digs}X", rand(16**$digs);
-}
-sub randomId(){
-  return join '-', randHex(8), randHex(4), randHex(4), randHex(4), randHex(12);
-}
-
-sub runCmdN9(@){
-  my $cmdStr = '';
-  for my $cmd(@_){
-    for my $word(@$cmd){
-      $word =~ s/"/\""/g;
-      $word = "\"$word\"" if $word =~ /["'` \t\n!><&\$\\]/;
-      $cmdStr .= " $word";
-    }
-    $cmdStr .= "\n";
-  }
-  system "n9", "-s", $cmdStr if $cmdStr !~ /^\s*$/;
-}
-
-sub runBT(@){
-  open FH, "-|", @_;
-  my @lines = <FH>;
-  close FH;
-  return join '', @lines;
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 &main(@ARGV);
