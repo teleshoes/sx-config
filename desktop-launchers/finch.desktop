@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=finch
-Comment=CLI for libpurple
-Icon=pidgin
-Exec=term finch
-Type=Application
