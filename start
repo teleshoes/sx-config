@@ -26,4 +26,14 @@
 #  -(install GApps now as well)
 #  -reboot phone
 
+#**enable devmode**
+#  https://wiki.cyanogenmod.org/w/Doc:_developer_options
+#  -tap build number 7 times in settings => about (fuckers)
+#  -go to developer options:
+#    -enable root access from apps+adb
+#    -enable ADB
+#    -enable ADB over network
+#    -disable debugging notify
+#  maybe: sudo gpasswd -a wolke plugdev
+#  maybe: cp udev rules
 
