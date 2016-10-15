@@ -1,3 +1,19 @@
+#**heimdall**
+#  sudo apt-get install heimdall-flash heimdall-flash-frontend
+#  #download twrp klte recover image
+#  heimdall-frontend
+#  #the cmdline doesnt work for some reason
+#  -voldn + home + power => download-mode
+#  -connect usb
+#  -download the PIT to a localfile
+#  -heimdall-frontent => flasher
+#  -select the pit
+#  -click Add partition
+#  -change to RECOVERY
+#  -select twrp recovery image
+#  -no reboot
+#  -start
+#  -power off phone manually
 
 
 
