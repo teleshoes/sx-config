@@ -15,5 +15,15 @@
 #  -start
 #  -power off phone manually
 
+#**install CM**
+#  -copy CM zip to uSD card, put in phone (copy GApps as well)
+#  -volup + home + power => recovery-mode
+#  -should say TWRP
+#  -backup to uSD card
+#  -wipe normal
+#  -wipe data
+#  -install, select external_sd/cm.zip or sd_card/cm.zip
+#  -(install GApps now as well)
+#  -reboot phone
 
 
