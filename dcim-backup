@@ -4,7 +4,7 @@ use warnings;
 
 my @filetypes = qw(jpg jpeg png mp4);
 
-sub dcimBackup($$);
+sub dcimBackup($$$);
 sub reorganizeBackedUpRemotes($$$$$);
 sub md5sumMaps(\@);
 sub runMd5sum($);
@@ -15,11 +15,12 @@ sub main(@){
   dcimBackup (
     "$ENV{HOME}/Code/s5/backup/DCIM",
     "/mnt/ext-sdcard/DCIM/Camera",
+    "backup",
   );
 }
 
-sub dcimBackup($$){
-  my ($localDCIM, $remoteDCIM) = @_;
+sub dcimBackup($$$){
+  my ($localDCIM, $remoteDCIM, $backupPrefix) = @_;
 
   die "$localDCIM does not exist\n" if not -d $localDCIM;
   chdir $localDCIM;
@@ -52,7 +53,7 @@ sub dcimBackup($$){
   if(@needsBackUp > 0){
     my $now = `date +%Y-%m-%d_%s`;
     chomp $now;
-    my $dir = "$localDCIM/backup_$now";
+    my $dir = "$localDCIM/${backupPrefix}_$now";
     system "mkdir -p $dir";
     system "rsync -avP root@`s5`:$remoteDCIM/*.* $dir/";
     die "failed rsync backup\n" if $? != 0;
