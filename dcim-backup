@@ -2,18 +2,25 @@
 use strict;
 use warnings;
 
-my $localDCIM = "$ENV{HOME}/Code/s5/backup/DCIM";
-my $remoteDCIM = "/mnt/ext-sdcard/DCIM/Camera";
-
 my @filetypes = qw(jpg jpeg png mp4);
 
-sub reorganizeBackedUpRemotes($$$$);
+sub dcimBackup($$);
+sub reorganizeBackedUpRemotes($$$$$);
 sub md5sumMaps(\@);
 sub runMd5sum($);
-sub updateMd5sums();
+sub updateMd5sums($);
 sub wrapQuotes($);
 
 sub main(@){
+  dcimBackup (
+    "$ENV{HOME}/Code/s5/backup/DCIM",
+    "/mnt/ext-sdcard/DCIM/Camera",
+  );
+}
+
+sub dcimBackup($$){
+  my ($localDCIM, $remoteDCIM) = @_;
+
   die "$localDCIM does not exist\n" if not -d $localDCIM;
   chdir $localDCIM;
   print "Getting md5sums of files in root of remote DCIM\n";
@@ -22,7 +29,7 @@ sub main(@){
   print "===all:\n" . join "", @remoteMd5sums;
   print "===\n\n";
 
-  my $localByMd5sum = updateMd5sums;
+  my $localByMd5sum = updateMd5sums($localDCIM);
 
   my ($remoteByMd5sum, $remoteByFile) = md5sumMaps @remoteMd5sums;
 
@@ -36,7 +43,7 @@ sub main(@){
     }
   }
 
-  reorganizeBackedUpRemotes(\@backedUp,
+  reorganizeBackedUpRemotes($remoteDCIM, \@backedUp,
     $localByMd5sum, $remoteByMd5sum, $remoteByFile);
 
   print "\n\n===NEEDS BACKUP:\n" . join "\n", sort @needsBackUp;
@@ -51,14 +58,15 @@ sub main(@){
     die "failed rsync backup\n" if $? != 0;
 
     print "updating local md5sums again and re-reorganizing remote\n";
-    $localByMd5sum = updateMd5sums;
+    $localByMd5sum = updateMd5sums($localDCIM);
 
-    reorganizeBackedUpRemotes(\@needsBackUp,
+    reorganizeBackedUpRemotes($remoteDCIM, \@needsBackUp,
       $localByMd5sum, $remoteByMd5sum, $remoteByFile);
   }
 }
 
-sub reorganizeBackedUpRemotes($$$$){
+sub reorganizeBackedUpRemotes($$$$$){
+  my $remoteDCIM = shift;
   my @backedUpFiles = @{shift()};
   my $localByMd5sum = shift;
   my $remoteByMd5sum = shift;
@@ -124,7 +132,8 @@ sub wrapQuotes($){
   return $s;
 }
 
-sub updateMd5sums(){
+sub updateMd5sums($){
+  my $localDCIM = shift;
   my @lines = `cat $localDCIM/md5sums`;
   my ($byMd5sum, $byFile) = md5sumMaps @lines;
 
