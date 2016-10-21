@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub run(@);
+
+my $dir = "$ENV{HOME}/Code/s5";
+
+sub main(@){
+  my $host = `s5`;
+  chomp $host;
+
+  my $now = `date +'%Y-%m-%d_%s'`;
+  my $backupDir = "$dir/backup/s5-comm-dumps/$now";
+
+  run "mkdir", "-p", $backupDir;
+  run "scp",
+    "$host:/mnt/android-data/data/com.android.providers.telephony/databases/mmssms.db",
+    "$backupDir/",
+  ;
+  run "scp",
+    "$host:/mnt/android-data/data/com.android.providers.contacts/databases/contacts2.db",
+    "$backupDir/",
+  ;
+  run "rsync", "-avP",
+    "$host:/mnt/android-data/data/com.android.providers.telephony/app_parts",
+    "$backupDir/",
+  ;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
