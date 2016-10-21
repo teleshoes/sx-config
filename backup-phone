@@ -21,23 +21,6 @@ sub main(@){
 
   my %preHeads = map {$_ => getGitHead($gitRepos{$_})} keys %gitRepos;
 
-  backup "dcim-backup";
-  backup "sync-pixmirror";
-  backup "sync-pidgin";
-  backup "sync-mydocs";
-  backup "sync-home";
-  backup "sync-dir fbreader backup";
-  backup "sync-dir klomp backup";
-  backup "sync-dir swype backup";
-  backup "sync-dir emumaster backup";
-  backup "sync-dir logs backup";
-  backup "sync-qtodo";
-  backup "sync-mms";
-  backup "mms-to-sms";
-  backup "fetch-contacts";
-  backup "fetch-comm call";
-  backup "fetch-comm sms";
-  system "klomp-sync user@`s5` --nopresync";
 
   my %postHeads = map {$_ => getGitHead($gitRepos{$_})} keys %gitRepos;
   for my $repo(sort keys %gitRepos){
