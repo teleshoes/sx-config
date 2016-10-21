@@ -13,6 +13,7 @@ sub main(@){
       $msg =~ s/\\/\\\\/g;
       $msg =~ s/""/\\"/g;
       $msg =~ s/\n/\\n/g;
+      $msg =~ s/\r/\\r/g;
       my $line = "$num,$dir,$date,\"$msg\"\n";
       print FH $line;
     }
