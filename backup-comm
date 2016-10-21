@@ -4,28 +4,53 @@ use warnings;
 
 sub run(@);
 
-my $dir = "$ENV{HOME}/Code/s5";
+my $host = `echo -n \$(s5 --host)`;
+my $backupDir = "$ENV{HOME}/Code/s5/backup";
+my $dbDir = "$backupDir/backup-dbs";
+my $dbRepo = "$dbDir/repo";
+
+my $dataMountPoint = "/mnt/android-data";
+my $mmssmsDbRemoteFile = "/data/com.android.providers.telephony/databases/mmssms.db";
+my $contactsDbRemoteFile = "/data/com.android.providers.contacts/databases/contacts2.db",
+my $mmsPartsRemoteDir = "/data/com.android.providers.telephony/app_parts",
+
+my $mmsPartsRepo = "$backupDir/backup-mms-parts-repo";
 
 sub main(@){
-  my $host = `s5`;
-  chomp $host;
+  system "s5", "-s", "echo found s5!\n";
+  die "failed" if $? != 0;
 
   my $now = `date +'%Y-%m-%d_%s'`;
-  my $backupDir = "$dir/backup/s5-comm-dumps/$now";
+  chomp $now;
 
-  run "mkdir", "-p", $backupDir;
-  run "scp",
-    "$host:/mnt/android-data/data/com.android.providers.telephony/databases/mmssms.db",
-    "$backupDir/",
-  ;
-  run "scp",
-    "$host:/mnt/android-data/data/com.android.providers.contacts/databases/contacts2.db",
-    "$backupDir/",
-  ;
-  run "rsync", "-avP",
-    "$host:/mnt/android-data/data/com.android.providers.telephony/app_parts",
-    "$backupDir/",
-  ;
+  my $mmssmsDb = "$dbDir/mmssms-$now.db";
+  my $contactsDb = "$dbDir/contacts2-$now.db";
+
+  run "scp", "$host:$dataMountPoint/$mmssmsDbRemoteFile", $mmssmsDb;
+  run "sqlite3", $mmssmsDb,
+    ".output $dbRepo/mmssms-db",
+    ".dump",
+    ;
+  run "cd $dbRepo; git add mmssms-db; git commit -m 'mmssms db automatic commit'";
+
+  run "scp", "$host:$dataMountPoint/$contactsDbRemoteFile", $contactsDb;
+  run "sqlite3", $contactsDb,
+    ".output $dbRepo/contacts-db",
+    ".dump",
+    ;
+  run "cd $dbRepo; git add contacts-db; git commit -m 'contacts db automatic commit'";
+
+  run "rsync", "-avP", "$host:$dataMountPoint/$mmsPartsRemoteDir/", "$mmsPartsRepo/";
+  run "cd $mmsPartsRepo; git add -A; git commit -m 'automatic commit'";
+}
+
+sub getHost(){
+  my $host = `s5`;
+  chomp $host;
+}
+
+sub copyDbToRepo($$){
+  my ($sqliteDb, $repo) = @_;
 }
 
 sub run(@){
