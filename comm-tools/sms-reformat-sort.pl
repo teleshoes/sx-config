@@ -3,6 +3,9 @@ use strict;
 use warnings;
 
 sub main(@){
+
+  #for x in [0-9+]*.sms; do cat $x | LC_ALL=C sort > $x.new; mv $x.new $x; done
+
   for my $file(`ls *.sms`){
     chomp $file;
     next if -l $file;
