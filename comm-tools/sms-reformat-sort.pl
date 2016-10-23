@@ -2,7 +2,11 @@
 use strict;
 use warnings;
 
+my $REPO_DIR = "$ENV{HOME}/Code/s5/backup/backup-sms/repo";
+
 sub main(@){
+  chdir $REPO_DIR;
+  $ENV{PWD} = $REPO_DIR;
 
   #for x in [0-9+]*.sms; do cat $x | LC_ALL=C sort > $x.new; mv $x.new $x; done
 

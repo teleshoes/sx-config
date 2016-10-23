@@ -2,7 +2,12 @@
 use strict;
 use warnings;
 
+my $REPO_DIR = "$ENV{HOME}/Code/s5/backup/backup-call/repo";
+
 sub main(@){
+  chdir $REPO_DIR;
+  $ENV{PWD} = $REPO_DIR;
+
   for my $file(`ls *.call`){
     chomp $file;
     next if -l $file;

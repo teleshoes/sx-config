@@ -2,9 +2,14 @@
 use strict;
 use warnings;
 
+my $REPO_DIR = "$ENV{HOME}/Code/s5/backup/backup-call/repo";
+
 sub undo();
 
 sub main(@){
+  chdir $REPO_DIR;
+  $ENV{PWD} = $REPO_DIR;
+
   if(@_ > 0 and $_[0] =~ /undo/){
     undo();
     exit;

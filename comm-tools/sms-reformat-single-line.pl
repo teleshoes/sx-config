@@ -2,7 +2,12 @@
 use strict;
 use warnings;
 
+my $REPO_DIR = "$ENV{HOME}/Code/s5/backup/backup-sms/repo";
+
 sub main(@){
+  chdir $REPO_DIR;
+  $ENV{PWD} = $REPO_DIR;
+
   for my $file(`ls *.sms`){
     chomp $file;
     next if -l $file;

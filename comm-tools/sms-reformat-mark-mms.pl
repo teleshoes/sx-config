@@ -2,7 +2,11 @@
 use strict;
 use warnings;
 
+my $REPO_DIR = "$ENV{HOME}/Code/s5/backup/backup-sms/repo";
+
 sub main(@){
+  chdir $REPO_DIR;
+  $ENV{PWD} = $REPO_DIR;
 
   my %mms;
   for my $line(`cat all_mms`){
