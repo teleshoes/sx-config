@@ -4,7 +4,6 @@ use warnings;
 
 sub run(@);
 
-my $host = `echo -n \$(s5 --host)`;
 my $backupDir = "$ENV{HOME}/Code/s5/backup";
 my $dbDir = "$backupDir/backup-dbs";
 my $dbRepo = "$dbDir/repo";
@@ -17,8 +16,9 @@ my $mmsPartsRemoteDir = "/data/com.android.providers.telephony/app_parts",
 my $mmsPartsRepo = "$backupDir/backup-mms-parts-repo";
 
 sub main(@){
-  system "s5", "-s", "echo found s5!\n";
-  die "failed" if $? != 0;
+  my $host = `s5`;
+  die "failed to get host" if $? != 0;
+  chomp $host;
 
   my $now = `date +'%Y-%m-%d_%s'`;
   chomp $now;
@@ -42,11 +42,6 @@ sub main(@){
 
   run "rsync", "-avP", "$host:$dataMountPoint/$mmsPartsRemoteDir/", "$mmsPartsRepo/";
   run "cd $mmsPartsRepo; git add -A; git commit -m 'automatic commit'";
-}
-
-sub getHost(){
-  my $host = `s5`;
-  chomp $host;
 }
 
 sub copyDbToRepo($$){
