@@ -78,6 +78,14 @@ sub getSortKey($$){
   my ($type, $entry) = @_;
 
   if($type =~ /sms/){
+    return join "|", (
+      $$entry{num},
+      $$entry{date},
+      $$entry{dateSent},
+      $$entry{source},
+      $$entry{dir},
+      $$entry{body},
+    );
   }elsif($type =~ /call/){
   }else{
     die "invalid type: $type\n";
@@ -137,6 +145,26 @@ sub parseSmsFile($){
   open FH, "< $file" or die "could not read $file\n$!\n";
   my $entries = {};
   while(my $line = <FH>){
+    my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
+    if($line !~ /^([0-9+]+),(\d+),(\d+),(S|M),(OUT|INC),($dateFmtRe),"(.*)"$/){
+      die "invalid sms line: $line";
+    }
+    my ($num, $date, $dateSent, $source, $dir, $dateFmt, $body) =
+      ($1, $2, $3, $4, $5, $6, $7);
+
+    if(not defined $$entries{$num}){
+      $$entries{$num} = [];
+    }
+    push @{$$entries{$num}}, {
+      line => $line,
+      num => $num,
+      date => $date,
+      dateSent => $dateSent,
+      source => $source,
+      dir => $dir,
+      dateFmt => $dateFmt,
+      body => $body,
+    };
   }
   return $entries;
 }
