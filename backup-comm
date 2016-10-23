@@ -4,16 +4,17 @@ use warnings;
 
 sub run(@);
 
-my $backupDir = "$ENV{HOME}/Code/s5/backup";
-my $dbDir = "$backupDir/backup-dbs";
-my $dbRepo = "$dbDir/repo";
+my $BASE_DIR = "$ENV{HOME}/Code/s5";
+my $BACKUP_DIR = "$BASE_DIR/backup";
+my $DB_DIR = "$BACKUP_DIR/backup-dbs";
+my $DB_REPO = "$DB_DIR/repo";
 
-my $dataMountPoint = "/mnt/android-data";
-my $mmssmsDbRemoteFile = "/data/com.android.providers.telephony/databases/mmssms.db";
-my $contactsDbRemoteFile = "/data/com.android.providers.contacts/databases/contacts2.db",
-my $mmsPartsRemoteDir = "/data/com.android.providers.telephony/app_parts",
+my $DATA_MOUNTPOINT = "/mnt/android-data";
+my $MMSSMS_DB_REMOTE_FILE = "/data/com.android.providers.telephony/databases/mmssms.db";
+my $CONTACTS_DB_REMOTE_FILE = "/data/com.android.providers.contacts/databases/contacts2.db",
+my $MMS_PARTS_REMOTE_DIR = "/data/com.android.providers.telephony/app_parts",
 
-my $mmsPartsRepo = "$backupDir/backup-mms-parts-repo";
+my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms-parts-repo";
 
 sub main(@){
   my $host = `s5`;
@@ -23,25 +24,25 @@ sub main(@){
   my $now = `date +'%Y-%m-%d_%s'`;
   chomp $now;
 
-  my $mmssmsDb = "$dbDir/mmssms-$now.db";
-  my $contactsDb = "$dbDir/contacts2-$now.db";
+  my $mmssmsDb = "$DB_DIR/mmssms-$now.db";
+  my $contactsDb = "$DB_DIR/contacts2-$now.db";
 
-  run "scp", "$host:$dataMountPoint/$mmssmsDbRemoteFile", $mmssmsDb;
+  run "scp", "$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
   run "sqlite3", $mmssmsDb,
-    ".output $dbRepo/mmssms-db",
+    ".output $DB_REPO/mmssms-db",
     ".dump",
     ;
-  run "cd $dbRepo; git add mmssms-db; git commit -m 'mmssms db automatic commit'";
+  run "cd $DB_REPO; git add mmssms-db; git commit -m 'mmssms db automatic commit'";
 
-  run "scp", "$host:$dataMountPoint/$contactsDbRemoteFile", $contactsDb;
+  run "scp", "$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
   run "sqlite3", $contactsDb,
-    ".output $dbRepo/contacts-db",
+    ".output $DB_REPO/contacts-db",
     ".dump",
     ;
-  run "cd $dbRepo; git add contacts-db; git commit -m 'contacts db automatic commit'";
+  run "cd $DB_REPO; git add contacts-db; git commit -m 'contacts db automatic commit'";
 
-  run "rsync", "-avP", "$host:$dataMountPoint/$mmsPartsRemoteDir/", "$mmsPartsRepo/";
-  run "cd $mmsPartsRepo; git add -A; git commit -m 'automatic commit'";
+  run "rsync", "-avP", "$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+  run "cd $MMS_PARTS_REPO; git add -A; git commit -m 'automatic commit'";
 }
 
 sub copyDbToRepo($$){
