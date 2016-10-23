@@ -87,6 +87,12 @@ sub getSortKey($$){
       $$entry{body},
     );
   }elsif($type =~ /call/){
+    return join "|", (
+      $$entry{num},
+      $$entry{date},
+      $$entry{dir},
+      $$entry{duration},
+    );
   }else{
     die "invalid type: $type\n";
   }
@@ -173,6 +179,25 @@ sub parseCallFile($){
   open FH, "< $file" or die "could not read $file\n$!\n";
   my $entries = {};
   while(my $line = <FH>){
+    my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
+    if($line !~ /^([0-9+]+),(\d+),(OUT|INC|MIS),($dateFmtRe),\s*(-?)(\d+)h\s*(\d+)m\s(\d+)s$/){
+      die "invalid call line: $line";
+    }
+    my ($num, $date, $dir, $dateFmt, $durSign, $durH, $durM, $durS) =
+      ($1, $2, $3, $4, $5, $6, $7, $8);
+    my $duration = ($durH*60*60 + $durM*60 + $durS) * ($durSign =~ /-/ ? -1 : 1);
+
+    if(not defined $$entries{$num}){
+      $$entries{$num} = [];
+    }
+    push @{$$entries{$num}}, {
+      line => $line,
+      num => $num,
+      date => $date,
+      dir => $dir,
+      dateFmt => $dateFmt,
+      duration => $duration,
+    };
   }
   return $entries;
 }
