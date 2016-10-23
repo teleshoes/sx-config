@@ -2,6 +2,14 @@
 use strict;
 use warnings;
 
+my $localDir = "$ENV{HOME}/Code/s5/backup/DCIM";
+my @backups = (
+  [ $localDir, "/mnt/android-sdcard/DCIM/Camera", "backup_int" ],
+  [ $localDir, "/mnt/sd1/DCIM/Camera",            "backup_sd1" ],
+  [ $localDir, "/mnt/sd2/DCIM/Camera",            "backup_sd2" ],
+  [ $localDir, "/mnt/sd3/DCIM/Camera",            "backup_sd3" ],
+);
+
 my @filetypes = qw(jpg jpeg png mp4);
 
 sub dcimBackup($$$);
@@ -12,11 +20,10 @@ sub updateMd5sums($);
 sub wrapQuotes($);
 
 sub main(@){
-  dcimBackup (
-    "$ENV{HOME}/Code/s5/backup/DCIM",
-    "/mnt/ext-sdcard/DCIM/Camera",
-    "backup",
-  );
+  for my $backup(@backups){
+    my ($localDCIM, $remoteDCIM, $backupPrefix) = @$backup;
+    dcimBackup($localDCIM, $remoteDCIM, $backupPrefix);
+  }
 }
 
 sub dcimBackup($$$){
