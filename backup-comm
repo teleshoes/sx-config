@@ -15,7 +15,7 @@ my $CALL_REPO = "$CALL_DIR/repo";
 
 my $COMM_TOOLS_DIR = "$BASE_DIR/comm-tools";
 my $CMD_ADD_COMM_TO_REPO = "$COMM_TOOLS_DIR/add-comm-to-repo.pl";
-my $CMD_SMS_DB_EXTRACT = "$COMM_TOOLS_DIR/sms-db-extract.pl";
+my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
 my $CMD_CALL_DB_EXTRACT = "$COMM_TOOLS_DIR/call-db-extract.pl";
 
 my $DATA_MOUNTPOINT = "/mnt/android-data";
@@ -43,8 +43,8 @@ sub main(@){
     ;
   run "cd $DB_REPO; git add mmssms-db; git commit -m 'mmssms db automatic commit'";
   my $smsFile = "$SMS_DIR/sms-$now.sms";
-  run "$CMD_SMS_DB_EXTRACT $mmssmsDb > $smsFile";
-  die "error running $CMD_SMS_DB_EXTRACT\n" if $? != 0;
+  run "$CMD_SMS_DB_IMPORTER $smsFile $mmssmsDb --db-to-csv";
+  die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
   run "cd $SMS_REPO; git add *.sms; git commit -m 'automatic commit'";
 
