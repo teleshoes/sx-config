@@ -70,7 +70,7 @@ sub main(@){
   run "$CMD_SMS_DB_IMPORTER $smsFile $mmssmsDb --db-to-csv";
   die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
-  run "cd $SMS_REPO; git add *.sms; git commit -m 'automatic commit'";
+  run "cd $SMS_REPO; git --no-pager diff; git add *.sms; git commit -m 'automatic commit'; git status";
 
   #########################################################
   # parse calls into repo
@@ -80,7 +80,7 @@ sub main(@){
   run "$CMD_CALL_DB_EXTRACT $contactsDb > $callFile";
   die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
-  run "cd $CALL_REPO; git add *.call; git commit -m 'automatic commit'";
+  run "cd $CALL_REPO; git --no-pager diff; git add *.call; git commit -m 'automatic commit'; git status";
 }
 
 sub copyDbToRepo($$){
