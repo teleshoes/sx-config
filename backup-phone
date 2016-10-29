@@ -15,7 +15,7 @@ my %gitRepos = (
 sub main(@){
   die "Usage: $0\n" if @_ != 0;
 
-  print "making sure n9 is ssh-able\n";
+  print "making sure s5 is ssh-able\n";
   system "s5", "-s", "echo found s5!\n";
   die "failed" if $? != 0;
 
