@@ -36,7 +36,7 @@ sub main(@){
   my $mmssmsDb = "$DB_DIR/mmssms-$now.db";
   my $contactsDb = "$DB_DIR/contacts2-$now.db";
 
-  run "scp", "$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
+  run "scp", "root\@$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
   run "sqlite3", $mmssmsDb,
     ".output $DB_REPO/mmssms-db",
     ".dump",
@@ -48,7 +48,7 @@ sub main(@){
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
   run "cd $SMS_REPO; git add *.sms; git commit -m 'automatic commit'";
 
-  run "scp", "$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
+  run "scp", "root\@$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
   run "sqlite3", $contactsDb,
     ".output $DB_REPO/contacts-db",
     ".dump",
