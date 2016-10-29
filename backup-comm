@@ -36,27 +36,46 @@ sub main(@){
   my $mmssmsDb = "$DB_DIR/mmssms-$now.db";
   my $contactsDb = "$DB_DIR/contacts2-$now.db";
 
+  #########################################################
+  # copy raw data (dbs, mms files) phone => computer
+  #########################################################
+  print "\n\n=====COPY RAW DATA\n";
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
+  run "scp", "root\@$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
+  run "rsync", "-avP", "$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+
+  #########################################################
+  # add raw data to repos
+  #########################################################
+  print "\n\n=====ADD RAW DATA TO REPOS\n";
   run "sqlite3", $mmssmsDb,
     ".output $DB_REPO/mmssms-db",
     ".dump",
     ;
   run "cd $DB_REPO; git add mmssms-db; git commit -m 'mmssms db automatic commit'";
-  my $smsFile = "$SMS_DIR/sms-$now.sms";
-  run "$CMD_SMS_DB_IMPORTER $smsFile $mmssmsDb --db-to-csv";
-  die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
-  run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
-  run "cd $SMS_REPO; git add *.sms; git commit -m 'automatic commit'";
 
-  run "scp", "root\@$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
   run "sqlite3", $contactsDb,
     ".output $DB_REPO/contacts-db",
     ".dump",
     ;
   run "cd $DB_REPO; git add contacts-db; git commit -m 'contacts db automatic commit'";
 
-  run "rsync", "-avP", "$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
   run "cd $MMS_PARTS_REPO; git add -A; git commit -m 'automatic commit'";
+
+  #########################################################
+  # parse SMS into repo
+  #########################################################
+  print "\n\n=====PARSE SMS\n";
+  my $smsFile = "$SMS_DIR/sms-$now.sms";
+  run "$CMD_SMS_DB_IMPORTER $smsFile $mmssmsDb --db-to-csv";
+  die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
+  run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
+  run "cd $SMS_REPO; git add *.sms; git commit -m 'automatic commit'";
+
+  #########################################################
+  # parse calls into repo
+  #########################################################
+  print "\n\n=====PARSE CALLS\n";
   my $callFile = "$CALL_DIR/call-$now.call";
   run "$CMD_CALL_DB_EXTRACT $contactsDb > $callFile";
   die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
