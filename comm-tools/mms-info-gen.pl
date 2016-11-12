@@ -28,14 +28,14 @@ sub main(@){
     }
     my $mtime = $1;
     my ($dateMillis, $direction, $from, @to, $subject);
+    my $header = parseHeader $msgDir;
     if(defined $$toFieldByMsgDir{$msgDir}){
       $direction = "OUT";
       $dateMillis = $mtime;
       $from = $MY_NUMBER;
       @to = ($$toFieldByMsgDir{$msgDir});
       $subject = "";
-    }else{
-      my $header = parseHeader $msgDir;
+    }elsif(defined $header){
       if($$header{from} =~ /$MY_NUMBER/){
         $direction = "OUT";
       }else{
@@ -45,6 +45,8 @@ sub main(@){
       $from = $$header{from};
       @to = @{$$header{to}};
       $subject = $$header{subject};
+    }else{
+      die "no header file for $msgDir\n" if not defined $header;
     }
     my $body = parseBody $msgDir;
 
@@ -86,7 +88,7 @@ sub parseHeader($){
   my ($msgDir) = @_;
   my @headerFiles = glob "$MMS_REPO/$msgDir/*header*";
   if(@headerFiles != 1){
-    die "no header file for $msgDir\n";
+    return undef;
   }
   my $headerFile = $headerFiles[0];
   my $header = `cat $headerFile`;
