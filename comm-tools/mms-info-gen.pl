@@ -154,8 +154,9 @@ sub parseBody($){
 sub getAttFiles($){
   my ($msgDir) = @_;
   my @attFiles = glob "$MMS_REPO/$msgDir/*";
-  @attFiles = grep {-f $_ and $_ !~ /(smil\d*|txt|headers?)$/i} @attFiles;
+  @attFiles = grep {-f $_} @attFiles;
   @attFiles = map {s/$MMS_REPO\/$msgDir\///; $_} @attFiles;
+  @attFiles = grep {$_ !~ /(smil\d*|\.txt|headers?)$/i} @attFiles;
   return @attFiles;
 }
 
