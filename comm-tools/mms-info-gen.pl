@@ -71,6 +71,9 @@ sub main(@){
       $info .= "att=$attFile\n";
     }
     $info .= "checksum=$checksum\n";
+    if($msgDir !~ /_$checksum$/){
+      die "$msgDir CHECKSUM=$checksum\n";
+    }
 
     my $infoFile = "$MMS_REPO/$msgDir/info";
     open FH, "> $infoFile" or die "could not write $infoFile\n$!\n";
