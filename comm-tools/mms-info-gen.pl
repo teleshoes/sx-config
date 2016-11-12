@@ -13,7 +13,7 @@ sub parseBody($);
 sub getAttFiles($);
 sub getHardcodedToFieldByMsgDir();
 sub getHardcodedDateSentByMsgDir();
-sub getChecksum($$@);
+sub getChecksum($$$@);
 sub escapeStr($);
 
 sub main(@){
@@ -46,26 +46,16 @@ sub main(@){
       @to = @{$$header{to}};
       $subject = $$header{subject};
     }
+    my $body = parseBody $msgDir;
+
+    $subject = escapeStr $subject;
+    $body = escapeStr $body;
 
     my $dateSentMillis = $$dateSentByMsgDir{$msgDir};
     $dateSentMillis = $dateMillis if not defined $dateSentMillis;
 
-    my $body = parseBody $msgDir;
-    my $text;
-    my @subjectWords = split /\W+/, $subject;
-    for my $word(@subjectWords){
-      if($body !~ /$word/){
-        $text = $subject;
-        $text .= "\n$body" if length $body > 0;
-        last;
-      }
-    }
-    $text = $body if not defined $text;
-
-    $text = escapeStr $text;
-
     my @attFiles = getAttFiles $msgDir;
-    my $checksum = getChecksum $msgDir, $text, @attFiles;
+    my $checksum = getChecksum $msgDir, $subject, $body, @attFiles;
 
     my $info = "";
     $info .= "from=$from\n";
@@ -75,7 +65,8 @@ sub main(@){
     $info .= "dir=$direction\n";
     $info .= "date=$dateMillis\n";
     $info .= "date_sent=$dateSentMillis\n";
-    $info .= "text=\"$text\"\n";
+    $info .= "subject=\"$subject\"\n";
+    $info .= "body=\"$body\"\n";
     for my $attFile(@attFiles){
       $info .= "att=$attFile\n";
     }
@@ -191,12 +182,13 @@ sub getHardcodedDateSentByMsgDir(){
   return $dateSentByMsgDir;
 }
 
-sub getChecksum($$@){
-  my ($msgDir, $text, @attFiles) = @_;
+sub getChecksum($$$@){
+  my ($msgDir, $subject, $body, @attFiles) = @_;
   my $tmpFile = "/tmp/mms-tmp-file-" . int(time*1000);
 
   open TMPFH, "> $tmpFile";
-  print TMPFH $text;
+  print TMPFH $subject if defined $subject;
+  print TMPFH $body if defined $body;
   for my $file(sort @attFiles){
     my $filePath = "$MMS_REPO/$msgDir/$file";
     die "$filePath not found\n" if not -f $filePath;
