@@ -27,14 +27,20 @@ sub main(@){
       die "malformed dir: $msgDir\n";
     }
     my $mtime = $1;
-    my ($dateMillis, $direction, $from, @to, $subject);
+    my ($dateMillis, $dateSentMillis, $direction, $from, @to, $subject, $body);
     my $header = parseHeader $msgDir;
+    my $infoFile = "$MMS_REPO/$msgDir/info";
     if(defined $$toFieldByMsgDir{$msgDir}){
       $direction = "OUT";
       $dateMillis = $mtime;
       $from = $MY_NUMBER;
       @to = ($$toFieldByMsgDir{$msgDir});
       $subject = "";
+      $subject = escapeStr($subject);
+
+      $body = parseBody $msgDir;
+      $body = escapeStr($body);
+      $dateSentMillis = $$dateSentByMsgDir{$msgDir};
     }elsif(defined $header){
       if($$header{from} =~ /$MY_NUMBER/){
         $direction = "OUT";
@@ -45,16 +51,15 @@ sub main(@){
       $from = $$header{from};
       @to = @{$$header{to}};
       $subject = $$header{subject};
+      $subject = escapeStr($subject);
+
+      $body = parseBody $msgDir;
+      $body = escapeStr($body);
     }else{
       die "no header file for $msgDir\n" if not defined $header;
     }
-    my $body = parseBody $msgDir;
 
-    $subject = escapeStr $subject;
-    $body = escapeStr $body;
-
-    my $dateSentMillis = $$dateSentByMsgDir{$msgDir};
-    $dateSentMillis = $dateMillis if not defined $dateSentMillis;
+    $dateSentMillis = $dateMillis if not defined $dateSentMillis or $dateSentMillis == 0;
 
     my @attFiles = getAttFiles $msgDir;
     my $checksum = getChecksum $msgDir, $subject, $body, @attFiles;
@@ -77,7 +82,6 @@ sub main(@){
       die "$msgDir CHECKSUM=$checksum\n";
     }
 
-    my $infoFile = "$MMS_REPO/$msgDir/info";
     open FH, "> $infoFile" or die "could not write $infoFile\n$!\n";
     print FH $info;
     close FH;
