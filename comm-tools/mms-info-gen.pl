@@ -10,6 +10,7 @@ chomp $MY_NUMBER;
 
 sub parseHeader($);
 sub parseBody($);
+sub parseInfoFile($);
 sub getAttFiles($);
 sub getHardcodedToFieldByMsgDir();
 sub getHardcodedDateSentByMsgDir();
@@ -55,8 +56,17 @@ sub main(@){
 
       $body = parseBody $msgDir;
       $body = escapeStr($body);
+    }elsif(-f $infoFile){
+      my $info = parseInfoFile $infoFile;
+      $direction = $$info{dir};
+      $dateMillis = $$info{date};
+      $dateSentMillis = $$info{date_sent};
+      $from = $$info{from};
+      @to = @{$$info{to}};
+      $subject = $$info{subject};
+      $body = $$info{body};
     }else{
-      die "no header file for $msgDir\n" if not defined $header;
+      die "no header/info file for $msgDir\n" if not defined $header;
     }
 
     $dateSentMillis = $dateMillis if not defined $dateSentMillis or $dateSentMillis == 0;
@@ -153,6 +163,38 @@ sub parseBody($){
   }else{
     die "more than one text file\n" if @textFiles == 0;
   }
+}
+
+sub parseInfoFile($){
+  my ($infoFile) = @_;
+  die "$infoFile does not exist\n" if not -f $infoFile;
+  my $info = {};
+  $$info{to} = [];
+  $$info{att} = [];
+  for my $line(`cat "$infoFile"`){
+    if($line =~ /^from=(.*)$/){
+      $$info{from} = $1;
+    }elsif($line =~ /^to=(.*)$/){
+      push @{$$info{to}}, $1;
+    }elsif($line =~ /^dir=(.*)$/){
+      $$info{dir} = $1;
+    }elsif($line =~ /^date=(.*)$/){
+      $$info{date} = $1;
+    }elsif($line =~ /^date_sent=(.*)$/){
+      $$info{date_sent} = $1;
+    }elsif($line =~ /^subject="(.*)"$/){
+      $$info{subject} = $1;
+    }elsif($line =~ /^body="(.*)"$/){
+      $$info{body} = $1;
+    }elsif($line =~ /^att=(.*)$/){
+      push @{$$info{att}}, $1;
+    }elsif($line =~ /^checksum=(.*)$/){
+      $$info{checksum} = $1;
+    }else{
+      die "malformed info line: $line";
+    }
+  }
+  return $info;
 }
 
 sub getAttFiles($){
