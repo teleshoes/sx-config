@@ -27,6 +27,7 @@ my $MMSSMS_DB_REMOTE_FILE = "/data/com.android.providers.telephony/databases/mms
 my $CONTACTS_DB_REMOTE_FILE = "/data/com.android.providers.contacts/databases/contacts2.db",
 my $MMS_PARTS_REMOTE_DIR = "/data/com.android.providers.telephony/app_parts",
 
+my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
 my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms-parts-repo";
 
 sub main(@){
@@ -78,18 +79,24 @@ sub main(@){
   run "cd $CONTACTS_REPO; git --no-pager diff; git add contacts.vcf; git commit -m 'automatic commit'; git status";
 
   #########################################################
-  # parse SMS into repo
+  # parse SMS+MMS into repo
   #########################################################
-  print "\n\n=====PARSE SMS\n";
+  print "\n\n=====PARSE SMS+MMS\n";
   my $smsFile = "$SMS_DIR/sms-$now.sms";
   run ($CMD_SMS_DB_IMPORTER,
     "--csv-file", $smsFile,
     "--db-file", $mmssmsDb,
+    "--mms-msg-dir", $MMS_MSG_REPO,
+    "--mms-parts-dir", $MMS_PARTS_REPO,
     "export-from-db",
   );
   die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
+  print "SMS REPO\n";
   run "cd $SMS_REPO; git --no-pager diff; git add *.sms; git commit -m 'automatic commit'; git status";
+  print "===\n";
+  print "MMS REPO\n";
+  run "cd $MMS_MSG_REPO; git --no-pager diff; git add -A; git commit -m 'automatic commit'; git status";
 
   #########################################################
   # parse calls into repo
