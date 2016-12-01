@@ -202,7 +202,7 @@ sub getAttFiles($){
   my @attFiles = glob "$MMS_REPO/$msgDir/*";
   @attFiles = grep {-f $_} @attFiles;
   @attFiles = map {s/$MMS_REPO\/$msgDir\///; $_} @attFiles;
-  @attFiles = grep {$_ !~ /(smil\d*|\.txt|headers?)$/i} @attFiles;
+  @attFiles = grep {$_ !~ /(smil\d*|\.txt|headers?|message)$/i} @attFiles;
   @attFiles = grep {$_ !~ /^info$/} @attFiles;
   return @attFiles;
 }
