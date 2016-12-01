@@ -6,13 +6,21 @@ sub run(@);
 
 my $BASE_DIR = "$ENV{HOME}/Code/s5";
 my $BACKUP_DIR = "$BASE_DIR/backup";
+
 my $DB_DIR = "$BACKUP_DIR/backup-dbs";
+my $DB_RAW_DIR = "$DB_DIR/raw";
 my $DB_REPO = "$DB_DIR/repo";
+
 my $SMS_DIR = "$BACKUP_DIR/backup-sms";
+my $SMS_RAW_DIR = "$SMS_DIR/raw";
 my $SMS_REPO = "$SMS_DIR/repo";
+
 my $CALL_DIR = "$BACKUP_DIR/backup-call";
+my $CALL_RAW_DIR = "$CALL_DIR/raw";
 my $CALL_REPO = "$CALL_DIR/repo";
+
 my $CONTACTS_DIR = "$BACKUP_DIR/backup-contacts";
+my $CONTACTS_RAW_DIR = "$CONTACTS_DIR/raw";
 my $CONTACTS_REPO = "$CONTACTS_DIR/repo";
 
 my $COMM_TOOLS_DIR = "$BASE_DIR/comm-tools";
@@ -38,8 +46,8 @@ sub main(@){
   my $now = `date +'%Y-%m-%d_%s'`;
   chomp $now;
 
-  my $mmssmsDb = "$DB_DIR/mmssms-$now.db";
-  my $contactsDb = "$DB_DIR/contacts2-$now.db";
+  my $mmssmsDb = "$DB_RAW_DIR/mmssms-$now.db";
+  my $contactsDb = "$DB_RAW_DIR/contacts2-$now.db";
 
   #########################################################
   # copy raw data (dbs, mms files) phone => computer
@@ -71,7 +79,7 @@ sub main(@){
   # parse contacts into repo
   #########################################################
   print "\n\n=====PARSE CONTACTS\n";
-  my $vcfFile = "$CONTACTS_DIR/$now.vcf";
+  my $vcfFile = "$CONTACTS_RAW_DIR/$now.vcf";
   run "$CMD_CONTACTS_DB_EXTRACT $contactsDb > $vcfFile";
   die "error running $CMD_CONTACTS_DB_EXTRACT\n" if $? != 0;
   run "cp", "-ar", $vcfFile, "$CONTACTS_REPO/contacts.vcf";
@@ -82,7 +90,7 @@ sub main(@){
   # parse SMS+MMS into repo
   #########################################################
   print "\n\n=====PARSE SMS+MMS\n";
-  my $smsFile = "$SMS_DIR/sms-$now.sms";
+  my $smsFile = "$SMS_RAW_DIR/sms-$now.sms";
   run ($CMD_SMS_DB_IMPORTER,
     "--csv-file", $smsFile,
     "--db-file", $mmssmsDb,
@@ -102,7 +110,7 @@ sub main(@){
   # parse calls into repo
   #########################################################
   print "\n\n=====PARSE CALLS\n";
-  my $callFile = "$CALL_DIR/call-$now.call";
+  my $callFile = "$CALL_RAW_DIR/call-$now.call";
   run "$CMD_CALL_DB_EXTRACT $contactsDb > $callFile";
   die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
