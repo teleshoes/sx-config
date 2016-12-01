@@ -21,10 +21,12 @@ my $DB_REPO = "$DB_DIR/repo";
 my $SMS_DIR = "$BACKUP_DIR/backup-sms";
 my $SMS_RAW_DIR = "$SMS_DIR/raw";
 my $SMS_REPO = "$SMS_DIR/repo";
+my $SMS_BY_CONTACT_DIR = "$SMS_DIR/by-contact";
 
 my $CALL_DIR = "$BACKUP_DIR/backup-call";
 my $CALL_RAW_DIR = "$CALL_DIR/raw";
 my $CALL_REPO = "$CALL_DIR/repo";
+my $CALL_BY_CONTACT_DIR = "$CALL_DIR/by-contact";
 
 my $CONTACTS_DIR = "$BACKUP_DIR/backup-contacts";
 my $CONTACTS_RAW_DIR = "$CONTACTS_DIR/raw";
@@ -36,6 +38,7 @@ my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
 my $CMD_CALL_DB_EXTRACT = "$COMM_TOOLS_DIR/call-db-extract.pl";
 my $CMD_CONTACTS_DB_EXTRACT = "$COMM_TOOLS_DIR/contacts-db-extract";
 my $CMD_CONTACTS_SORT = "$COMM_TOOLS_DIR/contacts-sort.pl";
+my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
 my $DATA_MOUNTPOINT = "/mnt/android-data";
 my $MMSSMS_DB_REMOTE_FILE = "/data/com.android.providers.telephony/databases/mmssms.db";
@@ -129,6 +132,15 @@ sub main(@){
   die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
   gitCommit $CALL_REPO, "*.call", "diff", "automatic commit";
+
+  #########################################################
+  # by-contact symlinks
+  #########################################################
+  print "\n\n=====SMS/CALL BY-CONTACT SYMLINKS\n";
+  run "$CMD_CONTACTS_SYMLINKS", "$CONTACTS_REPO/contacts.vcf",
+    "sms", $SMS_REPO, $SMS_BY_CONTACT_DIR;
+  run "$CMD_CONTACTS_SYMLINKS", "$CONTACTS_REPO/contacts.vcf",
+    "call", $CALL_REPO, $CALL_BY_CONTACT_DIR;
 
   #########################################################
   # show git repo summary
