@@ -1,8 +1,10 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Cwd 'abs_path';
 
 sub gitCommit($$$$);
+sub gitAssertRepoDir($);
 sub run(@);
 sub runQuiet(@);
 
@@ -122,7 +124,7 @@ sub main(@){
 sub gitCommit($$$$){
   my ($repoDir, $addArg, $diff, $commitMessage) = @_;
   chdir $repoDir;
-  $ENV{PWD} = $repoDir;
+  gitAssertRepoDir $repoDir;
 
   runQuiet "git", "--no-pager", "diff" if defined $diff and $diff eq "diff";
   runQuiet "git", "add", $addArg;
@@ -139,6 +141,17 @@ sub gitCommit($$$$){
   @status = `git status --short 2>&1`;
   if(@status > 0){
     die "git repo $repoDir has changes or errors: @status";
+  }
+}
+
+sub gitAssertRepoDir($){
+  my ($repoDir) = @_;
+  my $gitDir = `git rev-parse --show-toplevel`;
+  chomp $gitDir;
+  my $absGitDir = abs_path $gitDir;
+  my $absRepoDir = abs_path $repoDir;
+  if($absGitDir ne $absRepoDir){
+    die "git toplevel (\"$gitDir\") does not match expected (\"$repoDir\")";
   }
 }
 
