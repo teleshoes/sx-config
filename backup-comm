@@ -2,7 +2,9 @@
 use strict;
 use warnings;
 
+sub gitCommit($$$$);
 sub run(@);
+sub runQuiet(@);
 
 my $BASE_DIR = "$ENV{HOME}/Code/s5";
 my $BACKUP_DIR = "$BASE_DIR/backup";
@@ -65,15 +67,15 @@ sub main(@){
     ".output $DB_REPO/mmssms-db",
     ".dump",
     ;
-  run "cd $DB_REPO; git add mmssms-db; git commit -m 'mmssms db automatic commit'";
+  gitCommit $DB_REPO, "mmssms-db", "nodiff", "mmssms db automatic commit";
 
   run "sqlite3", $contactsDb,
     ".output $DB_REPO/contacts-db",
     ".dump",
     ;
-  run "cd $DB_REPO; git add contacts-db; git commit -m 'contacts db automatic commit'";
+  gitCommit $DB_REPO, "contacts-db", "nodiff", "contacts db automatic commit";
 
-  run "cd $MMS_PARTS_REPO; git add -A; git commit -m 'automatic commit'";
+  gitCommit $MMS_PARTS_REPO, "-A", "nodiff", "automatic commit";
 
   #########################################################
   # parse contacts into repo
@@ -84,7 +86,7 @@ sub main(@){
   die "error running $CMD_CONTACTS_DB_EXTRACT\n" if $? != 0;
   run "cp", "-ar", $vcfFile, "$CONTACTS_REPO/contacts.vcf";
   run "$CMD_CONTACTS_SORT";
-  run "cd $CONTACTS_REPO; git --no-pager diff; git add contacts.vcf; git commit -m 'automatic commit'; git status";
+  gitCommit $CONTACTS_REPO, "contacts.vcf", "diff", "automatic commit";
 
   #########################################################
   # parse SMS+MMS into repo
@@ -101,10 +103,10 @@ sub main(@){
   die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
   print "SMS REPO\n";
-  run "cd $SMS_REPO; git --no-pager diff; git add *.sms; git commit -m 'automatic commit'; git status";
+  gitCommit $SMS_REPO, "*.sms", "diff", "automatic commit";
   print "===\n";
   print "MMS REPO\n";
-  run "cd $MMS_MSG_REPO; git --no-pager diff; git add -A; git commit -m 'automatic commit'; git status";
+  gitCommit $MMS_MSG_REPO, "-A", "diff", "automatic commit";
 
   #########################################################
   # parse calls into repo
@@ -114,7 +116,30 @@ sub main(@){
   run "$CMD_CALL_DB_EXTRACT $contactsDb > $callFile";
   die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
-  run "cd $CALL_REPO; git --no-pager diff; git add *.call; git commit -m 'automatic commit'; git status";
+  gitCommit $CALL_REPO, "*.call", "diff", "automatic commit";
+}
+
+sub gitCommit($$$$){
+  my ($repoDir, $addArg, $diff, $commitMessage) = @_;
+  chdir $repoDir;
+  $ENV{PWD} = $repoDir;
+
+  runQuiet "git", "--no-pager", "diff" if defined $diff and $diff eq "diff";
+  runQuiet "git", "add", $addArg;
+
+  my @status = `git status --short 2>&1`;
+  for my $line(@status){
+    die "unexpected git status: @status" if $line !~ /^(M|A)\s/;
+  }
+
+  if(@status > 0){
+    runQuiet "git", "commit", "-m", $commitMessage;
+  }
+
+  @status = `git status --short 2>&1`;
+  if(@status > 0){
+    die "git repo $repoDir has changes or errors: @status";
+  }
 }
 
 sub copyDbToRepo($$){
@@ -123,7 +148,13 @@ sub copyDbToRepo($$){
 
 sub run(@){
   print "@_\n";
+  runQuiet @_;
+}
+sub runQuiet(@){
   system @_;
+  if($? != 0){
+    die "\n\nERROR: $_[0]\n";
+  }
 }
 
 &main(@ARGV);
