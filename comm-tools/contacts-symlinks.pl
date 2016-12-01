@@ -53,7 +53,7 @@ sub main(@){
   die "not a directory: $srcDir\n" if not -d $srcDir;
   die "not a directory: $destDir\n" if not -d $destDir;
 
-  run "rm", "-f", glob "$destDir/*.$fileType";
+  runQuiet "rm", "-f", glob "$destDir/*.$fileType";
 
   my $contacts = getContactsFromVcf $vcfFile;
   my @srcFiles = glob "$srcDir/*.$fileType";
@@ -77,8 +77,8 @@ sub relSymlink($$){
   my $destDir = $destFile;
   $destDir =~ s/\/[^\/]*$//;
   my $relSrcFile = File::Spec->abs2rel($srcFile, $destDir);
-  run "ln", "-s", $relSrcFile, $destFile;
-  run "touch", "-h", "-r", $srcFile, $destFile;
+  runQuiet "ln", "-s", $relSrcFile, $destFile;
+  runQuiet "touch", "-h", "-r", $srcFile, $destFile;
 }
 
 sub getContactsFromVcf($){
