@@ -3,7 +3,10 @@ use strict;
 use warnings;
 use Cwd 'abs_path';
 
+sub gitHead($);
 sub gitCommit($$$$);
+sub gitGetCommitsSince($$);
+sub gitStatCommit($$);
 sub gitAssertRepoDir($);
 sub run(@);
 sub runQuiet(@);
@@ -60,6 +63,13 @@ sub main(@){
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
   run "rsync", "-avP", "$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+
+  #########################################################
+  # prepare git repo summary
+  #########################################################
+  my @allRepos = ($DB_REPO, $MMS_PARTS_REPO, $CONTACTS_REPO,
+    $SMS_REPO, $MMS_MSG_REPO, $CALL_REPO);
+  my %oldRepoHeads = map {$_ => gitHead $_} @allRepos;
 
   #########################################################
   # add raw data to repos
@@ -119,6 +129,23 @@ sub main(@){
   die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
   gitCommit $CALL_REPO, "*.call", "diff", "automatic commit";
+
+  #########################################################
+  # show git repo summary
+  #########################################################
+  print "\n\n=====GIT REPO SUMMARY\n";
+  my %newRepoHeads = map {$_ => gitHead $_} @allRepos;
+  for my $repo(keys %oldRepoHeads){
+    my $oldHead = $oldRepoHeads{$repo};
+    my $newHead = $newRepoHeads{$repo};
+    if($oldHead ne $newHead){
+      my @commits = gitGetCommitsSince $repo, $oldHead;
+      die "error listing commits since $oldHead\n" if @commits == 0;
+      for my $commit(reverse @commits){
+        print gitStatCommit($repo, $commit);
+      }
+    }
+  }
 }
 
 sub gitCommit($$$$){
@@ -142,6 +169,44 @@ sub gitCommit($$$$){
   if(@status > 0){
     die "git repo $repoDir has changes or errors: @status";
   }
+}
+
+sub gitHead($){
+  my ($repoDir) = @_;
+  chdir $repoDir;
+  gitAssertRepoDir $repoDir;
+
+  my $head = `git rev-parse HEAD`;
+  chomp $head;
+  die "invalid commit: $head\n" if $head !~ /^[0-9a-f]{40}$/;
+  return $head;
+
+  my @status = `git status --short 2>&1`;
+  if(@status > 0){
+    die "git repo $repoDir has changes or errors: @status";
+  }
+}
+
+sub gitGetCommitsSince($$){
+  my ($repoDir, $commit) = @_;
+  chdir $repoDir;
+  gitAssertRepoDir $repoDir;
+
+  my @commits = `git rev-list $commit..HEAD`;
+  chomp foreach @commits;
+  for my $commit(@commits){
+    die "invalid output of rev-list: $commit\n" if $commit !~ /^[0-9a-f]{40}$/;
+  }
+  return @commits;
+}
+
+sub gitStatCommit($$){
+  my ($repoDir, $commit) = @_;
+  chdir $repoDir;
+  gitAssertRepoDir $repoDir;
+
+  my $stat = `git show $commit --format='' --stat`;
+  return $stat;
 }
 
 sub gitAssertRepoDir($){
