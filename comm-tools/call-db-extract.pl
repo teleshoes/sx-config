@@ -21,8 +21,8 @@ sub main(@){
   my @tclLines = <FH>;
   close FH;
   for my $line(@tclLines){
-    if($line !~ /^"([0-9 ()\-\+]+)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
-      die "invalid SMS row: $line";
+    if($line !~ /^"([0-9 ()\-\+]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
+      die "invalid call db row: $line";
     }
     my ($number, $dateMillisex, $durSex, $type) = ($1, $2, $3, $4, $5);
     my $dir;
@@ -40,6 +40,11 @@ sub main(@){
     $number =~ s/[^0-9+]//g;
     #remove US country code (remove leading + and/or 1 if followed by 10 digits)
     $number =~ s/^\+?1?(\d{10})$/$1/;
+
+    if($number eq ""){
+      print STDERR "EMPTY NUMBER: USING '+++'\n";
+      $number = '+++';
+    }
 
     my $sex = int($dateMillisex/1000);
     my $dateFmt = `date --date \@$sex +'%Y-%m-%d %H:%M:%S'`;
