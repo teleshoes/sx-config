@@ -6,12 +6,6 @@ sub backup($);
 
 my $dir = "$ENV{HOME}/Code/s5";
 
-my %gitRepos = (
-  "1sms"      => "$dir/backup/backup-sms/repo",
-  "2call"     => "$dir/backup/backup-call/repo",
-  "3contacts" => "$dir/backup/backup-contacts/repo",
-);
-
 sub main(@){
   die "Usage: $0\n" if @_ != 0;
 
@@ -19,25 +13,8 @@ sub main(@){
   system "s5", "-s", "echo found s5!\n";
   die "failed" if $? != 0;
 
-  my %preHeads = map {$_ => getGitHead($gitRepos{$_})} keys %gitRepos;
-
   backup "dcim-backup";
   backup "backup-comm";
-
-  my %postHeads = map {$_ => getGitHead($gitRepos{$_})} keys %gitRepos;
-  for my $repo(sort keys %gitRepos){
-    if($preHeads{$repo} ne $postHeads{$repo}){
-      print "\nrepo $repo updated:\n";
-      system "cd $gitRepos{$repo}; git --no-pager show HEAD";
-    }
-  }
-}
-
-sub getGitHead($){
-  my $dir = shift;
-  my $h = `cd $dir; git rev-parse HEAD`;
-  chomp $h;
-  return $h;
 }
 
 sub backup($){
