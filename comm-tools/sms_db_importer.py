@@ -1,5 +1,16 @@
 #!/usr/bin/python
-import argparse, codecs, re, sys, time, sqlite3, os.path, hashlib, glob, filecmp
+import argparse
+import codecs
+from enum import Enum
+import filecmp
+import glob
+import hashlib
+import os.path
+import re
+import sqlite3
+import subprocess
+import sys
+import time
 
 VERBOSE = False
 NO_COMMIT = False
@@ -23,6 +34,9 @@ argHelp = { 'COMMAND':          ( 'import-to-db\n'
           , '--no-commit':      ( 'do not actually save changes, no SQL commit')
           , '--limit':          ( 'limit to the most recent <LIMIT> messages')
           }
+
+SMS_DIR = Enum('SMS_DIR', ['OUT', 'INC'])
+MMS_DIR = Enum('MMS_DIR', ['OUT', 'INC', 'NTF'])
 
 class UsageFormatter(argparse.HelpFormatter):
   def __init__(self, prog):
@@ -80,12 +94,12 @@ def main():
         msgDir = args.mms_msg_dir + "/" + dirName
         if not os.path.isdir(msgDir):
           os.mkdir(msgDir)
-        infoFile = open(msgDir + "/" + "info", 'w')
+        infoFile = codecs.open(msgDir + "/" + "info", 'w', 'utf-8')
         infoFile.write(msg.getInfo())
         infoFile.close()
-        for attFile in msg.attFiles:
-          srcFile = args.mms_parts_dir + "/" + attFile
-          destFile = msgDir + "/" + attFile
+        for attName in sorted(msg.attFiles.keys()):
+          srcFile = msg.attFiles[attName]
+          destFile = msgDir + "/" + attName
           if 0 != os.system("cp -ar --reflink '" + srcFile + "' '" + destFile + "'"):
             print "failed to copy " + str(srcFile)
             quit(1)
@@ -110,7 +124,7 @@ def main():
         dirName = mms.getMsgDirName()
         msgDir = args.mms_msg_dir + "/" + dirName
         if not os.path.isdir(msgDir):
-          print "error reading MMS:\n" + mms
+          print "error reading MMS(" + str(msgDir) + ":\n" + str(mms)
           quit(1)
 
         oldChecksum = mms.checksum
@@ -123,10 +137,10 @@ def main():
           quit(1)
 
         attFilePrefix = dirName
-        for filename in list(mms.attFiles.keys()):
+        for filename in sorted(list(mms.attFiles.keys())):
           srcFile = mms.attFiles[filename]
           # prefix any file that doesnt start with PART_<MILLIS>
-          if re.match(r'^PART_\d{13}_', filename):
+          if re.match(r'^PART_\d{13}', filename):
             destFile = args.mms_parts_dir + "/" + filename
           else:
             destFile = args.mms_parts_dir + "/" + attFilePrefix + "_" + filename
@@ -178,17 +192,24 @@ class Text:
       + "," + str(self.date_millis)
       + "," + str(date_sent_millis)
       + "," + self.sms_mms_type
-      + "," + self.direction
+      + "," + self.getDirectionStr()
       + "," + self.date_format
       + "," + "\"" + escapeStr(self.body) + "\""
     )
-  def isDirOut(self):
-    if self.direction == "OUT":
-      return True
-    elif self.direction == "INC":
-      return False
-    else:
+  def isOutgoing(self):
+    return self.isDir(SMS_DIR.OUT)
+  def isIncoming(self):
+    return self.isDir(SMS_DIR.INC)
+  def isDirection(self, smsDir):
+    self.assertDirectionValid()
+    return self.direction == smsDir
+  def getDirectionStr(self):
+    self.assertDirectionValid()
+    return self.direction.name
+  def assertDirectionValid(self):
+    if self.direction not in SMS_DIR:
       print "invalid SMS direction: " + str(self.direction)
+      quit(1)
   def __unicode__(self):
     return self.toCsv()
   def __str__(self):
@@ -226,7 +247,6 @@ class MMS:
     self.direction = None
     self.date_format = None
     self.subject = None
-    self.isNotificationInd = False
 
     self.parts = []
     self.body = None
@@ -250,7 +270,13 @@ class MMS:
         if "/" in filename:
           print "filename contains path sep '/': " + filename
           quit(1)
-        unprefixedFilename = re.sub(r'^\d+_([0-9+]+-)*[0-9+]+_(INC|OUT)_[0-9a-f]{32}_', '', filename)
+        prefixRegex = re.compile(''
+          + r'^\d+_'
+          + r'([0-9+]+-)*[0-9+]+_'
+          + r'(' + '|'.join(sorted(MMS_DIR.__members__.keys())) + r')_'
+          + r'[0-9a-f]{32}_'
+          )
+        unprefixedFilename = prefixRegex.sub('', filename)
         attName = unprefixedFilename
         localFilepath = self.mms_parts_dir + "/" + filename
         self.attFiles[attName] = localFilepath
@@ -263,10 +289,10 @@ class MMS:
   def generateChecksum(self):
     md5 = hashlib.md5()
     if self.subject != None:
-      md5.update(self.subject.encode("utf-8"))
+      md5.update(escapeStr(self.subject.encode("utf-8")))
     if self.body != None:
-      md5.update(self.body.encode("utf-8"))
-    for attName in self.attFiles.keys():
+      md5.update(escapeStr(self.body.encode("utf-8")))
+    for attName in sorted(self.attFiles.keys()):
       md5.update("\n" + attName + "\n")
       filepath = self.attFiles[attName]
       if not os.path.isfile(filepath):
@@ -280,12 +306,12 @@ class MMS:
     dirName = ""
     dirName += str(self.date_millis)
     dirName += "_"
-    if self.isDirOut():
+    if self.isOutgoing():
       dirName += "-".join(self.to_numbers)
-    else:
+    elif self.isIncoming():
       dirName += str(self.from_number)
     dirName += "_"
-    dirName += str(self.direction)
+    dirName += self.getDirectionStr()
     dirName += "_"
     dirName += str(self.checksum)
     return dirName
@@ -297,22 +323,29 @@ class MMS:
     info += "from=" + str(self.from_number) + "\n"
     for to_number in self.to_numbers:
       info += "to=" + str(to_number) + "\n"
-    info += "dir=" + str(self.direction) + "\n"
+    info += "dir=" + self.getDirectionStr() + "\n"
     info += "date=" + str(self.date_millis) + "\n"
     info += "date_sent=" + str(date_sent_millis) + "\n"
-    info += "subject=\"" + escapeStr(str(self.subject)) + "\"\n"
-    info += "body=\"" + escapeStr(str(self.body)) + "\"\n"
-    for attName in self.attFiles.keys():
+    info += "subject=\"" + escapeStr(self.subject) + "\"\n"
+    info += "body=\"" + escapeStr(self.body) + "\"\n"
+    for attName in sorted(self.attFiles.keys()):
       info += "att=" + str(attName) + "\n"
     info += "checksum=" + str(self.checksum) + "\n"
     return info
-  def isDirOut(self):
-    if self.direction == "OUT":
-      return True
-    elif self.direction == "INC":
-      return False
-    else:
+  def isOutgoing(self):
+    return self.isDirection(MMS_DIR.OUT)
+  def isIncoming(self):
+    return self.isDirection(MMS_DIR.INC) or self.isDirection(MMS_DIR.NTF)
+  def isDirection(self, mmsDir):
+    self.assertDirectionValid()
+    return self.direction == mmsDir
+  def getDirectionStr(self):
+    self.assertDirectionValid()
+    return self.direction.name
+  def assertDirectionValid(self):
+    if self.direction not in MMS_DIR:
       print "invalid MMS direction: " + str(self.direction)
+      quit(1)
   def __unicode__(self):
     return self.getInfo()
   def __str__(self):
@@ -340,7 +373,15 @@ def readTextsFromCSV(csvFile):
     quit(1)
 
   texts = []
-  rowRegex = re.compile(r'([0-9+]+),(\d+),(\d+),(S|M),(INC|OUT),([^,]*),\"(.*)\"')
+  rowRegex = re.compile(''
+    + r'([0-9+]+),'
+    + r'(\d+),'
+    + r'(\d+),'
+    + r'(S|M),'
+    + r'(' + '|'.join(sorted(SMS_DIR.__members__.keys())) + r'),'
+    + r'([^,]*),'
+    + r'\"(.*)\"'
+    )
   for row in csvContents.splitlines():
     m = rowRegex.match(row)
     if not m or len(m.groups()) != 7:
@@ -350,7 +391,7 @@ def readTextsFromCSV(csvFile):
     date_millis      = m.group(2)
     date_sent_millis = m.group(3)
     sms_mms_type     = m.group(4)
-    direction        = m.group(5)
+    directionStr     = m.group(5)
     date_format      = m.group(6)
     body             = unescapeStr(m.group(7)).decode('utf-8')
 
@@ -358,7 +399,7 @@ def readTextsFromCSV(csvFile):
                      , date_millis
                      , date_sent_millis
                      , sms_mms_type
-                     , direction
+                     , SMS_DIR.__members__[directionStr]
                      , date_format
                      , body
                      ))
@@ -380,9 +421,9 @@ def readTextsFromAndroid(db_file):
     sms_mms_type = "S"
     dir_type = row[3]
     if dir_type == 2:
-      direction = "OUT"
+      direction = SMS_DIR.OUT
     elif dir_type == 1:
-      direction = "INC"
+      direction = SMS_DIR.INC
     else:
       print "INVALID SMS DIRECTION TYPE: " + str(dir_type)
       quit(1)
@@ -428,7 +469,10 @@ def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
       elif key == "date_sent":
         mms.date_sent_millis = long(val)
       elif key == "dir":
-        mms.direction = val
+        if val not in MMS_DIR.__members__:
+          print "invalid MMS direction: " + str(val)
+          quit(1)
+        mms.direction = MMS_DIR.__members__[val]
       elif key == "subject":
         mms.subject = unescapeStr(val).decode('utf-8')
       elif key == "body":
@@ -462,15 +506,12 @@ def readMMSFromAndroid(db_file, mms_parts_dir):
     if subject == None:
       subject = ""
 
-    isNotificationInd = False
-
     if dir_type_mms == 128:
-      direction = "OUT"
-    elif dir_type_mms == 130:
-      direction = "INC"
-      isNotificationInd = True
+      direction = MMS_DIR.OUT
     elif dir_type_mms == 132:
-      direction = "INC"
+      direction = MMS_DIR.INC
+    elif dir_type_mms == 130:
+      direction = MMS_DIR.NTF
     else:
       print "INVALID MMS DIRECTION TYPE: " + str(dir_type_mms)
       quit(1)
@@ -484,7 +525,6 @@ def readMMSFromAndroid(db_file, mms_parts_dir):
     msg.direction = direction
     msg.date_format = date_format
     msg.subject = subject
-    msg.isNotificationInd = isNotificationInd
 
     msgs[msg_id] = msg
 
@@ -548,14 +588,7 @@ def readMMSFromAndroid(db_file, mms_parts_dir):
     elif is_recipient_addr:
       msg.to_numbers.append(cleanNumber(number))
 
-  mmsMessages = []
-  for msg in msgs.values():
-    if msg.isNotificationInd:
-      print "IGNORING NOTIFICATION_IND: " + str(msg)
-    else:
-      mmsMessages.append(msg)
-
-  return mmsMessages
+  return msgs.values()
 
 def getDbTableNames(db_file):
   cur = sqlite3.connect(db_file).cursor()
@@ -617,10 +650,10 @@ def importMessagesToDb(texts, mmsMessages, db_file):
 
   for mms in mmsMessages:
     numbers = []
-    if mms.isDirOut():
+    if mms.isOutgoing():
       for toNumber in mms.to_numbers:
         numbers.append(toNumber)
-    else:
+    elif mms.isIncoming():
       numbers.append(mms.from_number)
 
     for number in numbers:
@@ -642,6 +675,16 @@ def importMessagesToDb(texts, mmsMessages, db_file):
         , [contactId])
       threadId = c.fetchone()[0]
 
+      if mms.isDirection(MMS_DIR.OUT):
+        m_type = 128
+        retr_st = None
+      elif mms.isDirection(MMS_DIR.INC):
+        m_type = 132
+        retr_st = 128
+      elif mms.isDirection(MMS_DIR.NTF):
+        m_type = 130
+        retr_st = None
+
       insertRow(c, "pdu", { "thread_id":   threadId
                           , "date":        int(mms.date_millis / 1000)
                           , "date_sent":   int(mms.date_sent_millis / 1000)
@@ -654,7 +697,7 @@ def importMessagesToDb(texts, mmsMessages, db_file):
                           , "ct_l":        None
                           , "exp":         None
                           , "m_cls":       None
-                          , "m_type":      128 if mms.isDirOut() else 132
+                          , "m_type":      m_type
                           , "v":           18
                           , "m_size":      None
                           , "pri":         None
@@ -663,7 +706,7 @@ def importMessagesToDb(texts, mmsMessages, db_file):
                           , "resp_st":     None
                           , "st":          None
                           , "tr_id":       None
-                          , "retr_st":     None if mms.isDirOut() else 128
+                          , "retr_st":     retr_st
                           , "retr_txt":    None
                           , "retr_txt_cs": None
                           , "read_status": None
@@ -695,40 +738,12 @@ def importMessagesToDb(texts, mmsMessages, db_file):
                              })
 
       nextContentId = 0
-      for attName in mms.attFiles.keys():
+      for attName in sorted(mms.attFiles.keys()):
         localFilepath = mms.attFiles[attName]
         filename = re.sub(r'^.*/', '', localFilepath)
         remoteFilepath = REMOTE_MMS_PARTS_DIR + "/" + filename
 
-        if re.match(r'^.*\.(jpg|jpeg)$', attName, re.IGNORECASE):
-          contentType = "image/jpeg"
-        elif re.match(r'^.*\.(png)$', attName, re.IGNORECASE):
-          contentType = "image/png"
-        elif re.match(r'^.*\.(gif)$', attName, re.IGNORECASE):
-          contentType = "image/gif"
-        elif re.match(r'^.*\.(wav)$', attName, re.IGNORECASE):
-          contentType = "audio/wav"
-        elif re.match(r'^.*\.(flac)$', attName, re.IGNORECASE):
-          contentType = "audio/flac"
-        elif re.match(r'^.*\.(ogg)$', attName, re.IGNORECASE):
-          contentType = "audio/ogg"
-        elif re.match(r'^.*\.(mp3|mp2|m2a|mpga)$', attName, re.IGNORECASE):
-          contentType = "audio/mpeg"
-        elif re.match(r'^.*\.(mp4)$', attName, re.IGNORECASE):
-          contentType = "video/mp4"
-        elif re.match(r'^.*\.(mkv)$', attName, re.IGNORECASE):
-          contentType = "video/x-matroska"
-        elif re.match(r'^.*\.(webm)$', attName, re.IGNORECASE):
-          contentType = "video/webm"
-        elif re.match(r'^.*\.(mpg|mpeg|m1v|m2v)$', attName, re.IGNORECASE):
-          contentType = "video/mpeg"
-        elif re.match(r'^.*\.(avi)$', attName, re.IGNORECASE):
-          contentType = "video/avi"
-        elif re.match(r'^.*\.(3gp)$', attName, re.IGNORECASE):
-          contentType = "video/3gpp"
-        else:
-          print "unknown file type: " + attName
-          quit(1)
+        contentType = guessContentType(attName, localFilepath)
 
         insertRow(c, "part", { "mid":   msgId
                              , "seq":   0
@@ -798,9 +813,9 @@ def importMessagesToDb(texts, mmsMessages, db_file):
       print "updated thread: " + str(c.fetchone())
       print "adding entry to message db: " + str(txt)
 
-    if txt.isDirOut():
+    if txt.isDirection(SMS_DIR.OUT):
       dir_type = 2
-    else:
+    elif txt.isDirection(SMS_DIR.INC):
       dir_type = 1
 
     #add message to sms table
@@ -827,6 +842,24 @@ def importMessagesToDb(texts, mmsMessages, db_file):
 
   print "\n\nfinished:\n" + statusMsg
 
+  print "\n\nupdating dates on threads:\n"
+  c.execute(""
+    + " update threads set date="
+    + "   ifnull ("
+    + "     nullif ("
+    + "       (select max("
+    + "         ifnull(mms_date_millis, 0),"
+    + "         ifnull(sms_date_millis, 0))"
+    + "       from ( select max(pdu.date)*1000 as mms_date_millis"
+    + "              from pdu where pdu.thread_id = threads._id and pdu.date"
+    + "            ),"
+    + "            ( select max(sms.date) as sms_date_millis"
+    + "              from sms where sms.thread_id = threads._id"
+    + "            )"
+    + "       ), 0)"
+    + "     , threads.date)"
+    )
+
   if VERBOSE:
     print "\n\nthreads: "
     for row in c.execute('SELECT * FROM threads'):
@@ -838,6 +871,48 @@ def importMessagesToDb(texts, mmsMessages, db_file):
 
   c.close()
   conn.close()
+
+def guessContentType(filename, filepath):
+  if re.match(r'^.*\.(jpg|jpeg)$', filename, re.IGNORECASE):
+    contentType = "image/jpeg"
+  elif re.match(r'^.*\.(png)$', filename, re.IGNORECASE):
+    contentType = "image/png"
+  elif re.match(r'^.*\.(gif)$', filename, re.IGNORECASE):
+    contentType = "image/gif"
+  elif re.match(r'^.*\.(wav)$', filename, re.IGNORECASE):
+    contentType = "audio/wav"
+  elif re.match(r'^.*\.(flac)$', filename, re.IGNORECASE):
+    contentType = "audio/flac"
+  elif re.match(r'^.*\.(ogg)$', filename, re.IGNORECASE):
+    contentType = "audio/ogg"
+  elif re.match(r'^.*\.(mp3|mp2|m2a|mpga)$', filename, re.IGNORECASE):
+    contentType = "audio/mpeg"
+  elif re.match(r'^.*\.(mp4)$', filename, re.IGNORECASE):
+    contentType = "video/mp4"
+  elif re.match(r'^.*\.(mkv)$', filename, re.IGNORECASE):
+    contentType = "video/x-matroska"
+  elif re.match(r'^.*\.(webm)$', filename, re.IGNORECASE):
+    contentType = "video/webm"
+  elif re.match(r'^.*\.(mpg|mpeg|m1v|m2v)$', filename, re.IGNORECASE):
+    contentType = "video/mpeg"
+  elif re.match(r'^.*\.(avi)$', filename, re.IGNORECASE):
+    contentType = "video/avi"
+  elif re.match(r'^.*\.(3gp)$', filename, re.IGNORECASE):
+    contentType = "video/3gpp"
+  else:
+    mimeType = result = subprocess.check_output([ "file"
+                                                , "--mime"
+                                                , "--brief"
+                                                , filepath
+                                                ])
+    mimeType = re.sub(r';.*', '', mimeType)
+    if re.match(r'^[a-z0-9]+/[a-z0-9\-.]+$', mimeType):
+      return mimeType
+    else:
+      print "unknown file type: " + filepath
+      quit(1)
+
+  return contentType
 
 if __name__ == '__main__':
   main()
