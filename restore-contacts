@@ -2,21 +2,22 @@
 use strict;
 use warnings;
 
-my $repo = "$ENV{HOME}/Code/n9/backup/backup-contacts/repo";
+my $repo = "$ENV{HOME}/Code/s5/backup/backup-contacts/repo";
 
 sub run(@);
 
 sub main(@){
-  my $host = `n9`;
-  chomp $host;
+  my $vcfFile = "contacts-" . time . ".vcf";
+  run "adb", "push", "$repo/contacts.vcf", "/sdcard/$vcfFile";
 
-  my $file = "contacts.vcf";
-  die "$repo/$file not found\n" if not -e "$repo/$file";
-
-  run "scp", "$repo/$file", "root\@$host:/tmp";
-  run "n9", "-s", "source /etc/profile; vcardconverter /tmp/$file";
-
-  print "you may want to now run merge contacts and delete unnamed\n";
+  run "adb", "shell",
+    "am",
+    "start",
+    "-t", "text/x-vcard",
+    "-d", "file:///sdcard/$vcfFile",
+    "-a", "android.intent.action.VIEW",
+    "com.android.contacts",
+    ;
 }
 
 sub run(@){
