@@ -44,6 +44,7 @@ sub main(@){
     my @entries = parseRepoFileFlat $type, $file;
     my @recent;
     for my $entry(reverse @entries){
+      next if defined $$entry{source} and $$entry{source} eq "M";
       my $diffMillis = $nowMillis - $$entry{date};
       if($diffMillis < 0){
         die "future entry: $$entry{line}\n";
