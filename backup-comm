@@ -33,6 +33,7 @@ my $CONTACTS_RAW_DIR = "$CONTACTS_DIR/raw";
 my $CONTACTS_REPO = "$CONTACTS_DIR/repo";
 
 my $COMM_TOOLS_DIR = "$BASE_DIR/comm-tools";
+my $CMD_SQLITE_DUMP = "$COMM_TOOLS_DIR/sqlite-dump.pl";
 my $CMD_ADD_COMM_TO_REPO = "$COMM_TOOLS_DIR/add-comm-to-repo.pl";
 my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
 my $CMD_CALL_DB_EXTRACT = "$COMM_TOOLS_DIR/call-db-extract.pl";
@@ -78,16 +79,12 @@ sub main(@){
   # add raw data to repos
   #########################################################
   print "\n\n=====ADD RAW DATA TO REPOS\n";
-  run "sqlite3", $mmssmsDb,
-    ".output $DB_REPO/mmssms-db",
-    ".dump",
-    ;
+  run "rm", "-f", "$DB_REPO/mmssms-db";
+  run "$CMD_SQLITE_DUMP", $mmssmsDb, "$DB_REPO/mmssms-db";
   gitCommit $DB_REPO, "mmssms-db", "nodiff", "mmssms db automatic commit";
 
-  run "sqlite3", $contactsDb,
-    ".output $DB_REPO/contacts-db",
-    ".dump",
-    ;
+  run "rm", "-f", "$DB_REPO/contacts-db";
+  run "$CMD_SQLITE_DUMP", $contactsDb, "$DB_REPO/contacts-db";
   gitCommit $DB_REPO, "contacts-db", "nodiff", "contacts db automatic commit";
 
   gitCommit $MMS_PARTS_REPO, "-A", "nodiff", "automatic commit";
