@@ -21,7 +21,7 @@ sub main(@){
   my @tclLines = <FH>;
   close FH;
   for my $line(@tclLines){
-    if($line !~ /^"([0-9 ()\-\+]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
+    if($line !~ /^"([0-9 ()\-\+\*#]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
       die "invalid call db row: $line";
     }
     my ($number, $dateMillisex, $durSex, $type) = ($1, $2, $3, $4, $5);
