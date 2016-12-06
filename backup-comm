@@ -144,7 +144,7 @@ sub main(@){
   #########################################################
   print "\n\n=====GIT REPO SUMMARY\n";
   my %newRepoHeads = map {$_ => gitHead $_} @allRepos;
-  for my $repo(keys %oldRepoHeads){
+  for my $repo(@allRepos){
     my $oldHead = $oldRepoHeads{$repo};
     my $newHead = $newRepoHeads{$repo};
     if($oldHead ne $newHead){
