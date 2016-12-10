@@ -36,15 +36,10 @@ sub main(@){
       die "invalid call type: $line";
     }
 
-    #remove everything but digits and +
-    $number =~ s/[^0-9+]//g;
+    #remove everything but digits, +, *, and #
+    $number =~ s/[^0-9+*#]//g;
     #remove US country code (remove leading + and/or 1 if followed by 10 digits)
     $number =~ s/^\+?1?(\d{10})$/$1/;
-
-    if($number eq ""){
-      print STDERR "EMPTY NUMBER: USING '+++'\n";
-      $number = '+++';
-    }
 
     my $sex = int($dateMillisex/1000);
     my $dateFmt = `date --date \@$sex +'%Y-%m-%d %H:%M:%S'`;
