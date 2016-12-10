@@ -26,9 +26,9 @@ sub main(@){
   die $usage if @_ != 2 or $_[0] !~ /(sms|call)/;
   my ($type, $file) = @_;
   my $entries = parseFile $type, $file;
-  for my $num(sort keys %$entries){
-    my @newEntries = @{$$entries{$num}};
-    my @repoEntries = readRepoFile $type, $num;
+  for my $fileName(sort keys %$entries){
+    my @newEntries = @{$$entries{$fileName}};
+    my @repoEntries = readRepoFile $type, $fileName;
 
     my %allEntriesBySortKey;
 
@@ -70,7 +70,7 @@ sub main(@){
     }
 
     my @sortedEntries = map {$allEntriesBySortKey{$_}} sort keys %allEntriesBySortKey;
-    writeRepoFile($type, $num, @sortedEntries);
+    writeRepoFile($type, $fileName, @sortedEntries);
   }
 }
 
@@ -99,12 +99,12 @@ sub getSortKey($$){
 }
 
 sub readRepoFile($$){
-  my ($type, $num) = @_;
+  my ($type, $fileName) = @_;
   my $repoFile;
   if($type =~ /sms/){
-    $repoFile = "$SMS_REPO_DIR/$num.sms";
+    $repoFile = "$SMS_REPO_DIR/$fileName.sms";
   }elsif($type =~ /call/){
-    $repoFile = "$CALL_REPO_DIR/$num.call";
+    $repoFile = "$CALL_REPO_DIR/$fileName.call";
   }else{
     die "invalid type: $type\n";
   }
@@ -116,18 +116,27 @@ sub readRepoFile($$){
   if(@numsInRepoFile == 0){
     return ();
   }
-  if(@numsInRepoFile != 1 or $numsInRepoFile[0] ne $num){
-    die "different number in repo file: @numsInRepoFile\n";
+  if($fileName ne "+++"){
+    #except for the misc +++ file,
+    #  all files should have exactly one number,
+    #  and it should exactly match the file name
+    if(@numsInRepoFile != 1 or $numsInRepoFile[0] ne $fileName){
+      die "different number in repo file: @numsInRepoFile\n";
+    }
   }
-  return @{$$repoEntries{$num}};
+  my @entries;
+  for my $num(@numsInRepoFile){
+    @entries = (@entries, @{$$repoEntries{$num}});
+  }
+  return @entries;
 }
 sub writeRepoFile($$@){
-  my ($type, $num, @entries) = @_;
+  my ($type, $fileName, @entries) = @_;
   my $repoFile;
   if($type =~ /sms/){
-    $repoFile = "$SMS_REPO_DIR/$num.sms";
+    $repoFile = "$SMS_REPO_DIR/$fileName.sms";
   }elsif($type =~ /call/){
-    $repoFile = "$CALL_REPO_DIR/$num.call";
+    $repoFile = "$CALL_REPO_DIR/$fileName.call";
   }else{
     die "invalid type: $type\n";
   }
@@ -152,16 +161,22 @@ sub parseSmsFile($){
   my $entries = {};
   while(my $line = <FH>){
     my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
-    if($line !~ /^([0-9+]+),(\d+),(\d+),(S|M),(OUT|INC),($dateFmtRe),"(.*)"$/){
+    if($line !~ /^([0-9+*#]*),(\d+),(\d+),(S|M),(OUT|INC),($dateFmtRe),"(.*)"$/){
       die "invalid sms line: $line";
     }
     my ($num, $date, $dateSent, $source, $dir, $dateFmt, $body) =
       ($1, $2, $3, $4, $5, $6, $7);
 
-    if(not defined $$entries{$num}){
-      $$entries{$num} = [];
+    #empty numbers and weird numbers go in "+++.sms"
+    my $fileName = $num;
+    if($fileName eq "" or $fileName =~ /[^0-9+]/){
+      $fileName = "+++";
     }
-    push @{$$entries{$num}}, {
+
+    if(not defined $$entries{$fileName}){
+      $$entries{$fileName} = [];
+    }
+    push @{$$entries{$fileName}}, {
       line => $line,
       num => $num,
       date => $date,
@@ -180,17 +195,23 @@ sub parseCallFile($){
   my $entries = {};
   while(my $line = <FH>){
     my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
-    if($line !~ /^([0-9+]+),(\d+),(OUT|INC|MIS),($dateFmtRe),\s*(-?)(\d+)h\s*(\d+)m\s(\d+)s$/){
+    if($line !~ /^([0-9+*#]*),(\d+),(OUT|INC|MIS),($dateFmtRe),\s*(-?)(\d+)h\s*(\d+)m\s(\d+)s$/){
       die "invalid call line: $line";
     }
     my ($num, $date, $dir, $dateFmt, $durSign, $durH, $durM, $durS) =
       ($1, $2, $3, $4, $5, $6, $7, $8);
     my $duration = ($durH*60*60 + $durM*60 + $durS) * ($durSign =~ /-/ ? -1 : 1);
 
-    if(not defined $$entries{$num}){
-      $$entries{$num} = [];
+    #empty numbers and weird numbers go in "+++.call"
+    my $fileName = $num;
+    if($fileName eq "" or $fileName =~ /[^0-9+]/){
+      $fileName = "+++";
     }
-    push @{$$entries{$num}}, {
+
+    if(not defined $$entries{$fileName}){
+      $$entries{$fileName} = [];
+    }
+    push @{$$entries{$fileName}}, {
       line => $line,
       num => $num,
       date => $date,
