@@ -43,6 +43,7 @@ my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
 my $DATA_MOUNTPOINT = "/mnt/android-data";
 my $MMSSMS_DB_REMOTE_FILE = "user_de/0/com.android.providers.telephony/databases/mmssms.db";
+my $CALLLOG_DB_REMOTE_FILE = "data/com.android.providers.contacts/databases/calllog.db";
 my $CONTACTS_DB_REMOTE_FILE = "data/com.android.providers.contacts/databases/contacts2.db",
 my $MMS_PARTS_REMOTE_DIR = "user_de/0/com.android.providers.telephony/app_parts",
 
@@ -58,6 +59,7 @@ sub main(@){
   chomp $now;
 
   my $mmssmsDb = "$DB_RAW_DIR/mmssms-$now.db";
+  my $calllogDb = "$DB_RAW_DIR/calllog-$now.db";
   my $contactsDb = "$DB_RAW_DIR/contacts2-$now.db";
 
   #########################################################
@@ -65,6 +67,7 @@ sub main(@){
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
+  run "scp", "root\@$host:$DATA_MOUNTPOINT/$CALLLOG_DB_REMOTE_FILE", $calllogDb;
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
   run "rsync", "-avP", "$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
@@ -82,6 +85,10 @@ sub main(@){
   run "rm", "-f", "$DB_REPO/mmssms-db";
   run "$CMD_SQLITE_DUMP", $mmssmsDb, "$DB_REPO/mmssms-db";
   gitCommit $DB_REPO, "mmssms-db", "nodiff", "mmssms db automatic commit";
+
+  run "rm", "-f", "$DB_REPO/calllog-db";
+  run "$CMD_SQLITE_DUMP", $calllogDb, "$DB_REPO/calllog-db";
+  gitCommit $DB_REPO, "calllog-db", "nodiff", "calllog db automatic commit";
 
   run "rm", "-f", "$DB_REPO/contacts-db";
   run "$CMD_SQLITE_DUMP", $contactsDb, "$DB_REPO/contacts-db";
