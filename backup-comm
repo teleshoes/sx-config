@@ -42,9 +42,9 @@ my $CMD_CONTACTS_SORT = "$COMM_TOOLS_DIR/contacts-sort.pl";
 my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
 my $DATA_MOUNTPOINT = "/mnt/android-data";
-my $MMSSMS_DB_REMOTE_FILE = "/data/com.android.providers.telephony/databases/mmssms.db";
-my $CONTACTS_DB_REMOTE_FILE = "/data/com.android.providers.contacts/databases/contacts2.db",
-my $MMS_PARTS_REMOTE_DIR = "/data/com.android.providers.telephony/app_parts",
+my $MMSSMS_DB_REMOTE_FILE = "user_de/0/com.android.providers.telephony/databases/mmssms.db";
+my $CONTACTS_DB_REMOTE_FILE = "data/com.android.providers.contacts/databases/contacts2.db",
+my $MMS_PARTS_REMOTE_DIR = "user_de/0/com.android.providers.telephony/app_parts",
 
 my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
 my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms-parts-repo";
