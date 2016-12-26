@@ -113,7 +113,7 @@ sub main(@){
   print "\n\n=====PARSE SMS+MMS\n";
   my $smsFile = "$SMS_RAW_DIR/sms-$now.sms";
   run ($CMD_SMS_DB_IMPORTER,
-    "--csv-file", $smsFile,
+    "--sms-csv-file", $smsFile,
     "--db-file", $mmssmsDb,
     "--mms-msg-dir", $MMS_MSG_REPO,
     "--mms-parts-dir", $MMS_PARTS_REPO,
