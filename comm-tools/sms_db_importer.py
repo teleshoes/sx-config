@@ -14,17 +14,18 @@ import time
 
 VERBOSE = False
 NO_COMMIT = False
-REMOTE_MMS_PARTS_DIR = "/data/user/0/com.android.providers.telephony/app_parts"
+REMOTE_MMS_PARTS_DIR = "/data/user_de/0/com.android.providers.telephony/app_parts"
+REMOTE_MMS_PARTS_REGEX = r'/data/user\w*/\d+/com.android.providers.telephony/app_parts'
 
 argHelp = { 'COMMAND':          ( 'import-to-db\n'
-                                + '  extract SMS from <CSV_FILE>\n'
+                                + '  extract SMS from <SMS_CSV_FILE>\n'
                                 + '  and output to <DB_FILE>\n'
                                 + '\n'
                                 + 'export-from-db\n'
                                 + '  extract SMS/MMS from <DB_FILE> and <MMS_PARTS_DIR>\n'
-                                + '  and output to <CSV_FILE> and <MMS_MSG_DIR>\n'
+                                + '  and output to <SMS_CSV_FILE> and <MMS_MSG_DIR>\n'
                                 )
-          , '--csv-file':       ( 'CSV file to import-from/export-to')
+          , '--sms-csv-file':   ( 'SMS CSV file to import-from/export-to')
           , '--db-file':        ( 'pre-existing mmssms.db file to import-to/export-from')
           , '--mms-parts-dir':  ( 'local copy of app_parts dir to import-to/expot-from\n'
                                 + '  ' + REMOTE_MMS_PARTS_DIR + '\n'
@@ -51,8 +52,8 @@ def main():
     description='Import/export messages to/from android MMS/SMS database file.',
     formatter_class=UsageFormatter)
   parser.add_argument('COMMAND',           help=argHelp['COMMAND'])
-  parser.add_argument('--csv-file',        help=argHelp['--csv-file'])
   parser.add_argument('--db-file',         help=argHelp['--db-file'])
+  parser.add_argument('--sms-csv-file',    help=argHelp['--sms-csv-file'])
   parser.add_argument('--mms-parts-dir',   help=argHelp['--mms-parts-dir'], default="./app_parts")
   parser.add_argument('--mms-msg-dir',     help=argHelp['--mms-msg-dir'],   default="./mms_messages")
   parser.add_argument('--verbose', '-v',   help=argHelp['--verbose'],       action='store_true')
@@ -64,22 +65,21 @@ def main():
   VERBOSE = args.verbose
   NO_COMMIT = args.no_commit
 
-  if args.csv_file == None:
-    parser.print_help()
-    print "\n--csv-file is required"
-    quit(1)
   if args.db_file == None:
     parser.print_help()
     print "\n--db-file is required"
     quit(1)
 
   if args.COMMAND == "export-from-db":
-    texts = readTextsFromAndroid(args.db_file)
-    print "read " + str(len(texts)) + " SMS messages from " + args.db_file
-    f = codecs.open(args.csv_file, 'w', 'utf-8')
-    for txt in texts:
-      f.write(txt.toCsv() + "\n")
-    f.close()
+    if args.sms_csv_file == None:
+      print "skipping SMS export, no <SMS_CSV_FILE> for writing to"
+    else:
+      texts = readTextsFromAndroid(args.db_file)
+      print "read " + str(len(texts)) + " SMS messages from " + args.db_file
+      f = codecs.open(args.sms_csv_file, 'w', 'utf-8')
+      for txt in texts:
+        f.write(txt.toCsv() + "\n")
+      f.close()
 
     if not os.path.isdir(args.mms_msg_dir):
       print "skipping MMS export, no <MMS_MSG_DIR> for writing to"
@@ -106,10 +106,21 @@ def main():
           attFileCount += 1
       print "copied " + str(attFileCount) + " files from " + args.mms_parts_dir
   elif args.COMMAND == "import-to-db":
-    print "Reading texts from CSV file:"
-    starttime = time.time()
-    texts = readTextsFromCSV(args.csv_file)
-    print "finished in {0} seconds, {1} messages read".format( (time.time()-starttime), len(texts) )
+    texts = []
+    if args.sms_csv_file == None or not os.path.isfile(args.sms_csv_file):
+      print "skipping SMS import, no <SMS_CSV_FILE> for reading from"
+    else:
+      print "Reading texts from CSV file:"
+      starttime = time.time()
+      texts = readTextsFromCSV(args.sms_csv_file)
+      print "finished in {0} seconds, {1} messages read".format( (time.time()-starttime), len(texts) )
+
+      print "sorting all {0} texts by date".format(len(texts))
+      texts = sorted(texts, key=lambda text: text.date_millis)
+
+      if args.limit > 0:
+        print "saving only the last {0} messages".format( args.limit )
+        texts = texts[ (-args.limit) : ]
 
     mmsMessages = []
     if not os.path.isdir(args.mms_msg_dir):
@@ -158,13 +169,6 @@ def main():
 
       print "read " + str(len(mmsMessages)) + " MMS messages"
       print "copied " + str(attFileCount) + " files to " + args.mms_parts_dir
-
-    print "sorting all {0} texts by date".format( len(texts) )
-    texts = sorted(texts, key=lambda text: text.date_millis)
-
-    if args.limit > 0:
-      print "saving only the last {0} messages".format( args.limit )
-      texts = texts[ (-args.limit) : ]
 
     print "Saving changes into Android DB (mmssms.db), "+str(args.db_file)
     importMessagesToDb(texts, mmsMessages, args.db_file)
@@ -266,7 +270,7 @@ class MMS:
         self.body = p.body
       elif p.filepath != None:
         filename = p.filepath
-        filename = re.sub('^' + REMOTE_MMS_PARTS_DIR + '/', '', filename)
+        filename = re.sub('^' + REMOTE_MMS_PARTS_REGEX + '/', '', filename)
         if "/" in filename:
           print "filename contains path sep '/': " + filename
           quit(1)
