@@ -47,7 +47,7 @@ my $CONTACTS_DB_REMOTE_FILE = "data/com.android.providers.contacts/databases/con
 my $MMS_PARTS_REMOTE_DIR = "user_de/0/com.android.providers.telephony/app_parts",
 
 my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
-my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms-parts-repo";
+my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms/parts-repo";
 
 sub main(@){
   my $host = `s5`;
