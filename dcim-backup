@@ -32,7 +32,7 @@ sub dcimBackup($$$){
   die "$localDCIM does not exist\n" if not -d $localDCIM;
   chdir $localDCIM;
   print "Getting md5sums of files in root of remote DCIM\n";
-  my @remoteMd5sums = `s5 md5sum $remoteDCIM/*.* 2>/dev/null`;
+  my @remoteMd5sums = `s5 -u root md5sum $remoteDCIM/*.* 2>/dev/null`;
 
   print "===all:\n" . join "", @remoteMd5sums;
   print "===\n\n";
@@ -106,7 +106,7 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $cmd = join '', @$cmdChunk;
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
-      system "s5", $cmd;
+      system "s5", "-u", "root", $cmd;
       die "failed reorganizing remotes\n" if $? != 0;
     }
   }
