@@ -69,7 +69,7 @@ sub main(@){
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
-  run "scp", "root\@$host:$DATA_MOUNTPOINT/$CALLLOG_DB_REMOTE_FILE", $calllogDb;
+  tryrun "scp", "root\@$host:$DATA_MOUNTPOINT/$CALLLOG_DB_REMOTE_FILE", $calllogDb;
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
   run "rsync", "-avP", "$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
@@ -88,9 +88,11 @@ sub main(@){
   run "$CMD_SQLITE_DUMP", $mmssmsDb, "$DB_REPO/mmssms-db";
   gitCommit $DB_REPO, "mmssms-db", "nodiff", "mmssms db automatic commit";
 
-  run "rm", "-f", "$DB_REPO/calllog-db";
-  run "$CMD_SQLITE_DUMP", $calllogDb, "$DB_REPO/calllog-db";
-  gitCommit $DB_REPO, "calllog-db", "nodiff", "calllog db automatic commit";
+  if(-f $calllogDb){
+    run "rm", "-f", "$DB_REPO/calllog-db";
+    run "$CMD_SQLITE_DUMP", $calllogDb, "$DB_REPO/calllog-db";
+    gitCommit $DB_REPO, "calllog-db", "nodiff", "calllog db automatic commit";
+  }
 
   run "rm", "-f", "$DB_REPO/contacts-db";
   run "$CMD_SQLITE_DUMP", $contactsDb, "$DB_REPO/contacts-db";
