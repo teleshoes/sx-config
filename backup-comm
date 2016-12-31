@@ -136,7 +136,9 @@ sub main(@){
   #########################################################
   print "\n\n=====PARSE CALLS\n";
   my $callFile = "$CALL_RAW_DIR/call-$now.call";
-  run "$CMD_CALL_DB_EXTRACT $calllogDb > $callFile";
+  my $dbForCalls = -f $calllogDb ? $calllogDb : $contactsDb;
+
+  run "$CMD_CALL_DB_EXTRACT $dbForCalls > $callFile";
   die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
   gitCommit $CALL_REPO, "*.call", "diff", "automatic commit";
