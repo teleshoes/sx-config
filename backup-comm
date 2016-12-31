@@ -10,6 +10,8 @@ sub gitStatCommit($$);
 sub gitAssertRepoDir($);
 sub run(@);
 sub runQuiet(@);
+sub tryrun(@);
+sub wrapRun($$@);
 
 my $BASE_DIR = "$ENV{HOME}/Code/s5";
 my $BACKUP_DIR = "$BASE_DIR/backup";
@@ -241,12 +243,19 @@ sub copyDbToRepo($$){
 }
 
 sub run(@){
-  print "@_\n";
-  runQuiet @_;
+  wrapRun 1, 1, @_;
 }
 sub runQuiet(@){
-  system @_;
-  if($? != 0){
+  wrapRun 0, 1, @_;
+}
+sub tryrun(@){
+  wrapRun 1, 0, @_;
+}
+sub wrapRun($$@){
+  my ($printCmd, $failOnError, @cmd) = @_;
+  print "@cmd\n" if $printCmd;
+  system @cmd;
+  if($failOnError and $? != 0){
     die "\n\nERROR: $_[0]\n";
   }
 }
