@@ -71,7 +71,7 @@ sub main(@){
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$MMSSMS_DB_REMOTE_FILE", $mmssmsDb;
   tryrun "scp", "root\@$host:$DATA_MOUNTPOINT/$CALLLOG_DB_REMOTE_FILE", $calllogDb;
   run "scp", "root\@$host:$DATA_MOUNTPOINT/$CONTACTS_DB_REMOTE_FILE", $contactsDb;
-  run "rsync", "-avP", "$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+  run "rsync", "-avP", "root\@$host:$DATA_MOUNTPOINT/$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
   #########################################################
   # prepare git repo summary
