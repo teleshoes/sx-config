@@ -32,6 +32,10 @@ sub main(@){
       $dir = "INC";
     }elsif($type == 3){
       $dir = "MIS";
+    }elsif($type == 5){
+      $dir = "REJ";
+    }elsif($type == 6){
+      $dir = "BLK";
     }else{
       die "invalid call type: $line";
     }
