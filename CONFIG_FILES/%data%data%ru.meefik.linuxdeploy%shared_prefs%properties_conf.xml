@@ -7,7 +7,7 @@
     <string name="vnc_display">0</string>
     <string name="vnc_depth">16</string>
     <string name="arch">armhf</string>
-    <string name="user_password">631a921e</string>
+    <string name="user_password">d</string>
     <boolean name="x11_sdl" value="false" />
     <string name="init_level">3</string>
     <boolean name="is_gui" value="false" />
