@@ -23,7 +23,7 @@
     <string name="target_path">/mnt/media_rw/a253ae8b-ee66-4e4b-a737-faa1d54f8337</string>
     <string name="graphics">vnc</string>
     <string name="method">chroot</string>
-    <string name="include">bootstrap</string>
+    <string name="include">bootstrap extra/ssh</string>
     <string name="ssh_port">22</string>
     <string name="init">run-parts</string>
     <boolean name="fb_refresh" value="true" />
@@ -37,7 +37,7 @@
     <string name="desktop">lxde</string>
     <string name="init_path">/etc/rc.local</string>
     <string name="suite">jessie</string>
-    <boolean name="is_ssh" value="false" />
+    <boolean name="is_ssh" value="true" />
     <string name="fb_dev">/dev/graphics/fb0</string>
     <string name="fb_display">0</string>
     <string name="fs_type">auto</string>
