@@ -15,12 +15,12 @@
     <string name="fb_args">-dpi 100 -sharevts vt0</string>
     <string name="disk_size">0</string>
     <string name="mounts"></string>
-    <string name="target_type">file</string>
+    <string name="target_type">directory</string>
     <string name="source_path">http://ftp.debian.org/debian/</string>
     <string name="vnc_dpi">75</string>
     <string name="user_name">android</string>
     <string name="vnc_height">1080</string>
-    <string name="target_path">${EXTERNAL_STORAGE}/linux.img</string>
+    <string name="target_path">/mnt/media_rw/a253ae8b-ee66-4e4b-a737-faa1d54f8337</string>
     <string name="graphics">vnc</string>
     <string name="method">chroot</string>
     <string name="include">bootstrap</string>
