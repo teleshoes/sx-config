@@ -131,6 +131,23 @@ sub main(@){
   print "MMS REPO\n";
   gitCommit $MMS_MSG_REPO, "-A", "diff", "automatic commit";
 
+  my @msgDirs = glob "$MMS_MSG_REPO/*";
+  my $msgDirCount = @msgDirs;
+  print "touching $msgDirCount MMS message dirs\n";
+  for my $msgDir(@msgDirs){
+    my $dirName = $msgDir;
+    $dirName =~ s/^$MMS_MSG_REPO\/?//;
+    if($dirName =~ /\// or not -d "$MMS_MSG_REPO/$dirName"){
+      die "error parsing mms dir: $msgDir\n";
+    }elsif($dirName =~ /^(\d{13})_/){
+      my $dateMillis = $1;
+      my $dateSex = int($dateMillis/1000);
+      tryrun "touch", $msgDir, "-d", "\@$dateSex";
+    }else{
+      die "invalid MMS dir name: $dirName\n";
+    }
+  }
+
   #########################################################
   # parse calls into repo
   #########################################################
