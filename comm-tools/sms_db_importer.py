@@ -426,22 +426,42 @@ def readTextsFromAndroid(db_file):
     date_sent_millis = long(row[2])
     sms_mms_type = "S"
     dir_type = row[3]
-    if dir_type == 2:
+
+    error = False
+    direction = None
+    if dir_type == 2: #MESSAGE_TYPE_SENT
       direction = SMS_DIR.OUT
-    elif dir_type == 1:
+    elif dir_type == 1: #MESSAGE_TYPE_INBOX
       direction = SMS_DIR.INC
+    elif dir_type == 3: #MESSAGE_TYPE_DRAFT
+      #do not backup drafts
+      pass
+    elif dir_type == 5: #MESSAGE_TYPE_FAILED (failed to send)
+      #no message sent
+      pass
+    elif dir_type == 6: #MESSAGE_TYPE_QUEUED (sending later)
+      #no message sent yet
+      pass
+    elif dir_type == 4: #MESSAGE_TYPE_OUTBOX (sending now)
+      error = True
+    elif dir_type == 0: #MESSAGE_TYPE_ALL
+      error = True
     else:
+      error = True
+
+    if error:
       print "INVALID SMS DIRECTION TYPE: " + str(dir_type)
       quit(1)
-    body = row[4]
-    date_format = time.strftime("%Y-%m-%d %H:%M:%S",
-      time.localtime(date_millis/1000))
+    elif direction != None:
+      body = row[4]
+      date_format = time.strftime("%Y-%m-%d %H:%M:%S",
+        time.localtime(date_millis/1000))
 
-    txt = Text(number, date_millis, date_sent_millis,
-      sms_mms_type, direction, date_format, body)
-    texts.append(txt)
-    if VERBOSE:
-      print str(txt)
+      txt = Text(number, date_millis, date_sent_millis,
+        sms_mms_type, direction, date_format, body)
+      texts.append(txt)
+      if VERBOSE:
+        print str(txt)
   return texts
 
 def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
