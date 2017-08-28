@@ -1,19 +1,28 @@
-ANDROID_MNT_DIR="/mnt/media_rw"
-DEBIAN_MNT_DIR="$ANDROID_MNT_DIR/a253ae8b-ee66-4e4b-a737-faa1d54f8337/mnt"
+SD_FAT_UUID=`blkid -l -s UUID -o value -t LABEL=SD_FAT`
+SD_DATA_UUID=`blkid -l -s UUID -o value -t LABEL=SD_DATA`
+SD_DEB_UUID=`blkid -l -s UUID -o value -t LABEL=SD_DEB`
 
-mkdir "$DEBIAN_MNT_DIR/android-data"
+ANDROID_MNT_DIR="/mnt/media_rw"
+DEBIAN_MNT_DIR="$ANDROID_MNT_DIR/$SD_DEB_UUID/mnt"
+
+set -x
+
+#binds
+mkdir -p "$DEBIAN_MNT_DIR/android-data"
 mount --bind "/data" "$DEBIAN_MNT_DIR/android-data";
 
-mkdir "$DEBIAN_MNT_DIR/android-sdcard"
+mkdir -p "$DEBIAN_MNT_DIR/android-sdcard"
 mount --bind "/sdcard" "$DEBIAN_MNT_DIR/android-sdcard";
 
-for x in `ls $ANDROID_MNT_DIR`; do
-  mkdir "$DEBIAN_MNT_DIR/$x"
-  mount --bind "$ANDROID_MNT_DIR/$x" "$DEBIAN_MNT_DIR/$x";
+for UUID in $SD_FAT_UUID $SD_DATA_UUID $SD_DEB_UUID; do
+  mkdir -p "$DEBIAN_MNT_DIR/$UUID"
+  mount --bind "$ANDROID_MNT_DIR/$UUID" "$DEBIAN_MNT_DIR/$UUID";
 done
 
 #symlinks
-for x in `cd $DEBIAN_MNT_DIR && ls sd*`; do
-  rm /storage/$x
-  ln -s `readlink $DEBIAN_MNT_DIR/$x` /storage/$x
+for DIR in /storage /mnt/media_rw $DEBIAN_MNT_DIR; do
+  rm -f $DIR/sd-*
+  ln -s $SD_FAT_UUID $DIR/sd-fat
+  ln -s $SD_DATA_UUID $DIR/sd-data
+  ln -s $SD_DEB_UUID $DIR/sd-deb
 done
