@@ -5,9 +5,9 @@ use warnings;
 my $localDir = "$ENV{HOME}/Code/s5/backup/DCIM";
 my @backups = (
   [ $localDir, "/mnt/android-sdcard/DCIM/Camera", "backup_int" ],
-  [ $localDir, "/mnt/sd-fat/DCIM/Camera",         "backup_sd-fat" ],
   [ $localDir, "/mnt/sd-data/DCIM/Camera",        "backup_sd-data" ],
-  [ $localDir, "/mnt/sd-deb/DCIM/Camera",         "backup_sd-deb" ],
+# [ $localDir, "/mnt/sd-fat/DCIM/Camera",         "backup_sd-fat" ],
+# [ $localDir, "/mnt/sd-deb/DCIM/Camera",         "backup_sd-deb" ],
 );
 
 my @filetypes = qw(jpg jpeg png mp4);
