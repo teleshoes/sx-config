@@ -16,8 +16,8 @@ sub dcimBackup($$$);
 sub reorganizeBackedUpRemotes($$$$$);
 sub md5sumMaps(\@);
 sub runMd5sum($);
-sub updateMd5sums($);
 sub wrapQuotes($);
+sub updateMd5sums($);
 
 sub main(@){
   for my $backup(@backups){
