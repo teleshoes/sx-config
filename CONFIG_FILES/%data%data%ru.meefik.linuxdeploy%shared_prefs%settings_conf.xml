@@ -20,7 +20,7 @@
     <boolean name="wakelock" value="false" />
     <string name="profile">linux</string>
     <boolean name="is_cli" value="false" />
-    <boolean name="autostart" value="true" />
+    <boolean name="autostart" value="false" />
     <string name="env_dir">/data/user/0/ru.meefik.linuxdeploy/env</string>
     <boolean name="screenlock" value="true" />
     <string name="theme">dark</string>
