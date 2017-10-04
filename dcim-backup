@@ -18,6 +18,7 @@ sub md5sumMaps(\@);
 sub runMd5sum($);
 sub wrapQuotes($);
 sub updateMd5sums($);
+sub remoteDirExists($);
 
 sub main(@){
   for my $backup(@backups){
@@ -29,7 +30,8 @@ sub main(@){
 sub dcimBackup($$$){
   my ($localDCIM, $remoteDCIM, $backupPrefix) = @_;
 
-  die "$localDCIM does not exist\n" if not -d $localDCIM;
+  die "local $localDCIM does not exist\n" if not -d $localDCIM;
+  die "remote $remoteDCIM does not exist\n" if not remoteDirExists $remoteDCIM;
   chdir $localDCIM;
   print "Getting md5sums of files in root of remote DCIM\n";
   my @remoteMd5sums = `s5 -u root md5sum $remoteDCIM/*.* 2>/dev/null`;
@@ -176,6 +178,16 @@ sub updateMd5sums($){
   close FH;
 
   return \%newByMd5sum;
+}
+
+sub remoteDirExists($){
+  my ($dir) = @_;
+  my $out = `s5 -u root 'if [ -d "$dir" ]; then echo exists; fi' 2>/dev/null`;
+  if($out =~ /^exists$/){
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
 &main(@ARGV);
