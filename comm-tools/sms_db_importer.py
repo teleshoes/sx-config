@@ -603,7 +603,7 @@ def readMMSFromAndroid(db_file, mms_parts_dir):
       is_recipient_addr = True
     else:
       print "INVALID MMS ADDRESS DIRECTION: " + str(dir_type_addr) + "\n" + str(row)
-      quit(1)
+      next
 
     if msg_id not in msgs:
       print "INVALID MESSAGE ID FOR ADDRESS: " + str(row)
