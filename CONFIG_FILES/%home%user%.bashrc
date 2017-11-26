@@ -4,13 +4,20 @@
 shopt -s dotglob
 shopt -s extglob
 
+# allow <C-S> in vim
+stty stop undef 2>/dev/null
+
 ssh-add ~/.ssh/id_rsa 2> /dev/null
+
+export QUOTING_STYLE=literal #the fuck? fucken coreutils man
 export HISTTIMEFORMAT="%F %T "
 export HISTSIZE=1000000
 # ignoredups: do not add duplicate history entries
 # ignoredspace: do not add history entries that start with space
 export HISTCONTROL=ignoredups:ignorespace
-export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+
+export GTK_OVERLAY_SCROLLING=0
 
 shopt -s checkwinsize # update LINES and COLUMNS based on window size
 [ -x /usr/bin/lesspipe ] && eval "$(lesspipe)" #less on binary files, e.g. tars
@@ -25,6 +32,8 @@ if [ "$TERM" == "rxvt" ]; then
   p2='echo -ne "\033]0;Terminal: ${PWD/$HOME/~}\007"'
   PROMPT_COMMAND='if [ "$WINDOW_TITLE" ]; then '$p1'; else '$p2'; fi'
 fi
+
+rm -f .viminf*.tmp .recently-used #clean home
 
 ###horrible fucking oracle variables
 if [[ -z "$ORACLE_HOME" ]] && [[ -f /etc/ld.so.conf.d/oracle.conf ]]; then
@@ -78,6 +87,7 @@ if [[ -z "$DISPLAY" ]]; then
     "wolk-desktop"            ) h='@desk' ;;
     "wolke-n9"                ) h='@n9' ;;
     "wolke-n900"              ) h='@n900' ;;
+    "wolke-s5"                ) h='@s5' ;;
     "raspberrypi"             ) h='@raspi' ;;
     "Benjamins-MacBook-Pro"   ) h='@bensmac' ;;
     ci-*.dev.*                ) h='@ci.dev' ;;
@@ -91,7 +101,7 @@ fi
 
 #make a wild guess at the DISPLAY you might want
 if [[ -z "$DISPLAY" ]]; then
-  export DISPLAY=`ps -ef | grep '\(/usr/bin/X\|/usr/lib/xorg/Xorg\)' | grep ' :[0-9] ' -o | grep :[0-9] -o`
+  export DISPLAY=`display-guess`
 fi
 
 u="\u"
@@ -121,6 +131,7 @@ alias time="command time"
 alias mkdir="mkdir -p"
 alias :q='exit'
 alias :r='. /etc/profile; . ~/.bashrc;'
+alias r='stty sane'
 
 function e            { email.pl --print "$@"; }
 function vol          { pulse-vol "$@"; }
@@ -129,11 +140,13 @@ function f            { feh "$@"; }
 function snapshot     { backup --snapshot "$@"; }
 function qgroups-info { backup --info --quick --sort-by=size "$@"; }
 function dus          { du -s * | sort -g "$@"; }
+function dfa          { df --output=avail "$@" | grep -v '^\s*Avail$'; }
 function killjobs     { kill -9 `jobs -p` 2>/dev/null; sleep 0.1; echo; }
 function gvim         { term vim "$@"; }
 function cx           { chmod +x "$@"; }
 function shutdown     { poweroff "$@"; }
 function xmb          { xmonad-bindings "$@"; }
+function ls           { command ls --color=auto "$@"; }
 function l            { ls -Al --color=auto "$@"; }
 function ll           { ls -Al --color=auto "$@"; }
 function ld           { ls -dAl --color=auto "$@"; }
@@ -146,7 +159,28 @@ function podcastle    { ~/Code/escapepod/escape-pod-tool --podcastle "$@"; }
 function pseudopod    { ~/Code/escapepod/escape-pod-tool --pseudopod "$@"; }
 function g            { git "$@"; }
 function gs           { g s "$@"; }
-function mp           { mplayer "$@"; }
+function mp           { mpv "$@"; }
+function mpu          {
+  if [ -z $2 ] ; then local default_quality='best' ; fi
+  livestreamer "$@" $default_quality
+}
+function rename       {
+  pastOptArgs=0
+  ok=1
+  for arg in "$@"
+  do
+    if [[ $pastOptArgs == 1 && $arg == -* ]]; then
+      echo "NOT RUNNING RENAME, $arg MUST BE BEFORE PATTERN"
+      ok=0
+    fi
+    if [[ $arg != -* ]]; then
+      pastOptArgs=1
+    fi
+  done
+  if [[ $ok == 1 ]]; then
+    command rename "$@"
+  fi
+}
 
 function sb           { seedbox "$@"; }
 function sbr          { seedbox -r "$@"; }
@@ -155,7 +189,6 @@ function sbs          { sb-rt-status "$@"; }
 function sbrsync      { seedbox --rsync-revtun "$@"; }
 
 function s            { "$@" & disown; }
-function sx           { "$@" & disown && exit 0; }
 function spawn        { "$@" & disown; }
 function spawnex      { "$@" & disown && exit 0; }
 function spawnexsudo  { gksudo "$@" & disown && exit 0; }
@@ -164,15 +197,23 @@ function m            { maven -Psdm -Pdev -Pfast-tests -Dgwt.compiler.skip=true 
 function mdebug       { mavenDebug -Psdm -Pdev -Dgwt.compiler.skip=true "$@"; }
 function mc           { maven -Psdm -Pdev -Pfast-tests -Dgwt.draftCompile=true clean install "$@"; }
 function mck          { maven checkstyle:check "$@"; }
-function findmvn      { command find "$@" -not -regex '\(^\|.*/\)\(target\|gen\)\($\|/.*\)'; }
-function grepmvn      { command grep "$@" --exclude-dir=target --exclude-dir=gen; }
+function findesh      { command find "$@" -not -regex '\(^\|.*/\)\(target\|gen\)\($\|/.*\)'; }
+function grepesh      { command grep "$@" \
+                            --exclude-dir=.git \
+                            --exclude-dir=target \
+                            --exclude-dir=gen \
+                            --exclude pdf.worker.js.map \
+                            --exclude Words.java \
+                            ;
+                      }
 
 function genservices  { ~/workspace/escribehost/legacy-tools/genservices.pl "$@"; }
 function genibatis    { ~/workspace/escribehost/legacy-tools/genibatis.pl "$@"; }
-function migl         { gvim `~/migs/latest-script` "$@"; }
+function migl         { vim `~/migs/latest-script` "$@"; }
 
 function first        { ls "$@" | head -1; }
 function last         { ls "$@" | tail -1; }
+function apN          { let n=${#@}; "$2" "${@:3:$1-1}" "${!n}" "${@:$1+2:$n-$1-2}"; }
 
 # common typos
 function mkdit        { mkdir "$@"; }
@@ -207,7 +248,7 @@ function mavenDebug() {
 
 function find() {
   if [[ "$PWD" =~ "escribe" ]]; then
-    findmvn "$@"
+    findesh "$@"
   else
     command find "$@"
   fi
@@ -215,7 +256,7 @@ function find() {
 
 function grep() {
   if [[ "$PWD" =~ "escribe" ]]; then
-    grepmvn -s "$@"
+    grepesh -s "$@"
   else
     command grep -s "$@"
   fi
