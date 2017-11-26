@@ -37,3 +37,15 @@
 #  maybe: sudo gpasswd -a wolke plugdev
 #  maybe: cp udev rules
 
+#plug usb
+
+./setup-wifi
+
+#./setup-hostname
+#./setup-ssh
+
+
+./install-initdlight.pl
+./install-linux-deploy.pl
+
+#aokp-rom-settings
