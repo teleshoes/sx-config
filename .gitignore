@@ -1,2 +1,5 @@
-pidgin2.10.7/
 backup-*/
+deb-chroot/
+debdroid*
+perl/
+TWRP/
