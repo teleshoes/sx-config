@@ -450,7 +450,7 @@ def readTextsFromAndroid(db_file):
       error = True
 
     if error:
-      print "INVALID SMS DIRECTION TYPE: " + str(dir_type)
+      print "INVALID SMS DIRECTION TYPE: " + str(dir_type) + "\n" + str(row)
       quit(1)
     elif direction != None:
       body = row[4]
@@ -539,7 +539,7 @@ def readMMSFromAndroid(db_file, mms_parts_dir):
     elif dir_type_mms == 130:
       direction = MMS_DIR.NTF
     else:
-      print "INVALID MMS DIRECTION TYPE: " + str(dir_type_mms)
+      print "INVALID MMS DIRECTION TYPE: " + str(dir_type_mms) + "\n" + str(row)
       quit(1)
 
     date_format = time.strftime("%Y-%m-%d %H:%M:%S",
@@ -602,7 +602,7 @@ def readMMSFromAndroid(db_file, mms_parts_dir):
     elif dir_type_addr == 151:
       is_recipient_addr = True
     else:
-      print "INVALID MMS ADDRESS DIRECTION: " + str(dir_type_addr)
+      print "INVALID MMS ADDRESS DIRECTION: " + str(dir_type_addr) + "\n" + str(row)
       quit(1)
 
     if msg_id not in msgs:
