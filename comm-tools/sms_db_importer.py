@@ -266,7 +266,7 @@ class MMS:
       elif p.body != None:
         if self.body != None:
           print "multiple text parts found for mms: " + str(self)
-          quit(1)
+          self.body += p.body
         self.body = p.body
       elif p.filepath != None:
         filename = p.filepath
