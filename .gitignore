@@ -1,3 +1,6 @@
+apks/
+Heimdall/
+flashing/
 backup-*/
 deb-chroot/
 debdroid*
