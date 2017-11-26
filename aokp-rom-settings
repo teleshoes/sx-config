@@ -1,0 +1,11 @@
+notifications-drawer
+  rows-portrait => 4
+  columns => 4
+  easy-tile-add => true
+  smart-pulldown => no-dismissable
+  quick-pulldown => right
+
+
+status-bar
+  am-pm-style => small
+  battery-status-style => text
