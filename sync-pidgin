@@ -2,8 +2,11 @@
 use strict;
 use warnings;
 
+my $user = "android";
+my $group = "android";
+
 my $localPurpleDir = "$ENV{HOME}/.purple";
-my $remotePurpleDir = "/home/user/.purple";
+my $remotePurpleDir = "/home/$user/.purple";
 
 my @opts = qw(
   -a  --no-owner --no-group
@@ -15,25 +18,25 @@ sub run(@);
 
 sub main(@){
   die "Usage: $0\n" if @_ != 0;
-  my $host = `n9`;
+  my $host = `s5`;
   chomp $host;
 
-  my $rem = "root\@$host:$remotePurpleDir";
+  my $rem = "$user\@$host:$remotePurpleDir";
   my $loc = $localPurpleDir;
 
-  my $remoteUserGroup = "user.users";
+  my $remoteUserGroup = "$user.$group";
   my $localUserGroup = "$ENV{USER}" . "." . `id -gn $ENV{USER}`;
   chomp $localUserGroup;
 
-  my $dirOk = `n9 -s 'test -d $remotePurpleDir && echo success || echo failure'`;
-  chomp $dirOk;
+  my $dirOk = `s5 -s 'test -d $remotePurpleDir && echo success || echo failure'`;
+  $dirOk =~ s/\r|\n//g;
   if($dirOk eq "success"){
     print "$remotePurpleDir exists, syncing just logs\n";
   }elsif($dirOk eq "failure"){
     print "!!$remotePurpleDir does NOT exist, syncing all of purple\n";
     run "rsync", @opts, "--exclude=logs", "$loc/", $rem;
-    run "n9", "-s", "mkdir $remotePurpleDir/logs";
-    run "n9", "-s", "chown -R $remoteUserGroup $remotePurpleDir/";
+    run "s5", "-s", "mkdir $remotePurpleDir/logs";
+    run "s5", "-s", "chown -R $remoteUserGroup $remotePurpleDir/";
   }else{
     die "error detecting $remotePurpleDir\n";
   }
@@ -44,7 +47,7 @@ sub main(@){
   run "rsync", @opts, "$loc/logs/", "$rem/logs";
 
   print "\n\nCHOWN REMOTE\n";
-  run "ssh", "root\@$host", "chown -R $remoteUserGroup $remotePurpleDir/logs";
+  run "ssh", "$user\@$host", "chown -R $remoteUserGroup $remotePurpleDir/logs";
   print "\n\nCHOWN LOCAL\n";
   run "chown", "-R", $localUserGroup, "$localPurpleDir/logs";
 }
