@@ -4,13 +4,13 @@ use warnings;
 
 sub backup($);
 
-my $dir = "$ENV{HOME}/Code/s5";
+my $dir = "$ENV{HOME}/Code/sx";
 
 sub main(@){
   die "Usage: $0\n" if @_ != 0;
 
-  print "making sure s5 is ssh-able\n";
-  system "s5", "-s", "echo found s5!\n";
+  print "making sure sx is ssh-able\n";
+  system "sx", "-s", "echo found sx!\n";
   die "failed" if $? != 0;
 
   backup "dcim-backup";
