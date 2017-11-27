@@ -74,7 +74,7 @@ def main():
     if args.sms_csv_file == None:
       print "skipping SMS export, no <SMS_CSV_FILE> for writing to"
     else:
-      texts = readTextsFromAndroid(args.db_file)
+      texts = readTextsFromCommHistory(args.db_file)
       print "read " + str(len(texts)) + " SMS messages from " + args.db_file
       f = codecs.open(args.sms_csv_file, 'w', 'utf-8')
       for txt in texts:
@@ -411,41 +411,29 @@ def readTextsFromCSV(csvFile):
                      ))
   return texts
 
-def readTextsFromAndroid(db_file):
+def readTextsFromCommHistory(db_file):
   conn = sqlite3.connect(db_file)
   c = conn.cursor()
   i=0
   texts = []
   query = c.execute(
-    'SELECT address, date, date_sent, type, body \
-     FROM sms \
-     ORDER BY _id ASC;')
+    'SELECT remoteUid, startTime, endTime, direction, freeText \
+     FROM events \
+     WHERE type = 2 \
+     ORDER BY id ASC;')
   for row in query:
     number = row[0]
-    date_millis = long(row[1])
-    date_sent_millis = long(row[2])
+    date_sent_millis = long(row[1]) * 1000
+    date_millis = long(row[2]) * 1000
     sms_mms_type = "S"
     dir_type = row[3]
 
     error = False
     direction = None
-    if dir_type == 2: #MESSAGE_TYPE_SENT
+    if dir_type == 2:
       direction = SMS_DIR.OUT
-    elif dir_type == 1: #MESSAGE_TYPE_INBOX
+    elif dir_type == 1:
       direction = SMS_DIR.INC
-    elif dir_type == 3: #MESSAGE_TYPE_DRAFT
-      #do not backup drafts
-      pass
-    elif dir_type == 5: #MESSAGE_TYPE_FAILED (failed to send)
-      #no message sent
-      pass
-    elif dir_type == 6: #MESSAGE_TYPE_QUEUED (sending later)
-      #no message sent yet
-      pass
-    elif dir_type == 4: #MESSAGE_TYPE_OUTBOX (sending now)
-      error = True
-    elif dir_type == 0: #MESSAGE_TYPE_ALL
-      error = True
     else:
       error = True
 
