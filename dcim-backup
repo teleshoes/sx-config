@@ -95,7 +95,7 @@ sub reorganizeBackedUpRemotes($$$$$){
     $dir = wrapQuotes $dir;
     $file = wrapQuotes $file;
     $newRemoteFile = wrapQuotes $newRemoteFile;
-    push @reorganizeCmds, "mkdir -p $dir; mv -n $file $newRemoteFile;\n";
+    push @reorganizeCmds, "mkdir -p $dir; mv $file $newRemoteFile;\n";
   }
   my $total = @reorganizeCmds;
   print "\n\nReorganizing $total remote files to match local\n";
