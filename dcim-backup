@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $user = "root";
+my $user = "nemo";
 
 my $localDir = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @backups = (
