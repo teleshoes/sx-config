@@ -3,6 +3,24 @@ use strict;
 use warnings;
 use Cwd 'abs_path';
 
+my $remoteDir = "/home/nemo/.local/share/commhistory";
+my $localDir = "$ENV{HOME}/Code/sx/backup/sx-comm-dumps";
+my $fmt = `date +%Y%m%d_%s`;
+chomp $fmt;
+my $backupDir = "$localDir/commhistory_$fmt";
+
+my $user = "nemo";
+my $host = `sx`;
+chomp $host;
+
+my @cmd = ("rsync", "-avP", "$user\@$host:$remoteDir/", "$backupDir/");
+print "@cmd\n";
+system @cmd;
+
+print "ABORTING PROCESSING\n";
+exit 0;
+
+
 sub gitHead($);
 sub gitCommit($$$$);
 sub gitGetCommitsSince($$);
