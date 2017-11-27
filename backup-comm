@@ -63,6 +63,8 @@ sub main(@){
   my $tmpDir = "/tmp/comm-dbs-$now";
   my $commhistoryDb = "$DB_RAW_DIR/commhistory-$now.db";
   my $contactsDb = "$DB_RAW_DIR/contacts-$now.db";
+  my $contactsTmpVcf = "/tmp/contacts-$now.vcf";
+  my $localContactsVcf = "$CONTACTS_RAW_DIR/contacts-$now.vcf";
 
   #########################################################
   # copy raw data (dbs, mms files) phone => computer
@@ -90,6 +92,9 @@ sub main(@){
   run "scp", "$user\@$host:$tmpDir/contacts.db", $contactsDb;
   run "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
+  run "ssh", "root\@$host", "vcardconverter -e $contactsTmpVcf";
+  run "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
+
   #########################################################
   # prepare git repo summary
   #########################################################
@@ -111,18 +116,15 @@ sub main(@){
 
   gitCommit $MMS_PARTS_REPO, "-A", "nodiff", "automatic commit";
 
-  die 'ABORTING PROCESSING';
-
   #########################################################
   # parse contacts into repo
   #########################################################
   print "\n\n=====PARSE CONTACTS\n";
-  my $vcfFile = "$CONTACTS_RAW_DIR/$now.vcf";
-  run "$CMD_CONTACTS_DB_EXTRACT $contactsDb > $vcfFile";
-  die "error running $CMD_CONTACTS_DB_EXTRACT\n" if $? != 0;
-  run "cp", "-ar", $vcfFile, "$CONTACTS_REPO/contacts.vcf";
+  run "cp", "-ar", $localContactsVcf, "$CONTACTS_REPO/contacts.vcf";
   run "$CMD_CONTACTS_SORT";
   gitCommit $CONTACTS_REPO, "contacts.vcf", "diff", "automatic commit";
+
+  die 'ABORTING PROCESSING';
 
   #########################################################
   # parse SMS+MMS into repo
