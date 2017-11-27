@@ -60,6 +60,7 @@ sub main(@){
   my $now = `date +'%Y-%m-%d_%s'`;
   chomp $now;
 
+  my $tmpDir = "/tmp/comm-dbs-$now";
   my $commhistoryDb = "$DB_RAW_DIR/commhistory-$now.db";
   my $contactsDb = "$DB_RAW_DIR/contacts-$now.db";
 
@@ -67,8 +68,26 @@ sub main(@){
   # copy raw data (dbs, mms files) phone => computer
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
-  run "scp", "$user\@$host:$COMMHISTORY_DB_REMOTE_DIR/commhistory.db", $commhistoryDb;
-  run "scp", "$user\@$host:$CONTACTS_DB_REMOTE_DIR/contacts.db", $contactsDb;
+  run "ssh", "$user\@$host", "
+    echo preparing sqlite DBs && \
+    mkdir $tmpDir && \
+    \
+    cd $COMMHISTORY_DB_REMOTE_DIR && \
+    cp -ar commhistory.db* $tmpDir/ && \
+    test -f $tmpDir/commhistory.db && \
+    sqlite3 $tmpDir/commhistory.db 'PRAGMA wal_checkpoint' && \
+    test ! -f $tmpDir/commhistory.db-wal && \
+    \
+    cd $CONTACTS_DB_REMOTE_DIR && \
+    cp -ar contacts.db* $tmpDir/ && \
+    test -f $tmpDir/contacts.db && \
+    sqlite3 $tmpDir/contacts.db 'PRAGMA wal_checkpoint' && \
+    test ! -f $tmpDir/contacts.db-wal && \
+    echo success || echo FAILED TO PROCESS SQLITE DBS
+  ";
+
+  run "scp", "$user\@$host:$tmpDir/commhistory.db", $commhistoryDb;
+  run "scp", "$user\@$host:$tmpDir/contacts.db", $contactsDb;
   run "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
   #########################################################
