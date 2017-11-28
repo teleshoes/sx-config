@@ -10,12 +10,13 @@ sub main(@){
   push @cmd, ".mode tcl";
   push @cmd, ""
     . " select"
-    . "   number,"
-    . "   date,"
-    . "   duration,"
-    . "   type"
-    . " from calls"
-    . " order by _id"
+    . "   remoteUid,"
+    . "   startTime,"
+    . "   endTime,"
+    . "   direction"
+    . " from events"
+    . " where type = 3"
+    . " order by id"
     ;
   open FH, "-|", @cmd;
   my @tclLines = <FH>;
@@ -24,18 +25,12 @@ sub main(@){
     if($line !~ /^"([0-9 ()\-\+\*#]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
       die "invalid call db row: $line";
     }
-    my ($number, $dateMillisex, $durSex, $type) = ($1, $2, $3, $4, $5);
-    my $dir;
-    if($type == 2){
-      $dir = "OUT";
-    }elsif($type == 1){
-      $dir = "INC";
-    }elsif($type == 3){
-      $dir = "MIS";
-    }elsif($type == 5){
-      $dir = "REJ";
-    }elsif($type == 6){
-      $dir = "BLK";
+    my ($number, $startDateSex, $endDateSex, $dir) = ($1, $2, $3, $4);
+    my $dirFmt;
+    if($dir == 2){
+      $dirFmt = "OUT";
+    }elsif($dir == 1){
+      $dirFmt = "INC";
     }else{
       die "invalid call type: $line";
     }
@@ -45,9 +40,13 @@ sub main(@){
     #remove US country code (remove leading + and/or 1 if followed by 10 digits)
     $number =~ s/^\+?1?(\d{10})$/$1/;
 
-    my $sex = int($dateMillisex/1000);
+    my $dateMillisex = $startDateSex * 1000;
+
+    my $sex = $startDateSex;
     my $dateFmt = `date --date \@$sex +'%Y-%m-%d %H:%M:%S'`;
     chomp $dateFmt;
+
+    my $durSex = $endDateSex - $startDateSex;
 
     my $isNeg = 0;
     if($durSex < 0){
@@ -64,7 +63,7 @@ sub main(@){
       $durFmt = sprintf " %01dh %02dm %02ds", $h, $m, $s;
     }
 
-    print "$number,$dateMillisex,$dir,$dateFmt,$durFmt\n";
+    print "$number,$dateMillisex,$dirFmt,$dateFmt,$durFmt\n";
   }
 }
 
