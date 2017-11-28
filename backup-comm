@@ -17,6 +17,8 @@ sub wrapRun($$@);
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup";
 
+my $MY_NUMBER_FILE = "$BACKUP_DIR/my_number";
+
 my $DB_DIR = "$BACKUP_DIR/backup-dbs";
 my $DB_RAW_DIR = "$DB_DIR/raw";
 my $DB_REPO = "$DB_DIR/repo";
@@ -130,12 +132,17 @@ sub main(@){
   # parse SMS+MMS into repo
   #########################################################
   print "\n\n=====PARSE SMS+MMS\n";
+  my $myNumber = `cat $MY_NUMBER_FILE`;
+  chomp $myNumber;
+  die "missing/malformed $MY_NUMBER_FILE\n" if $myNumber !~ /^\+?\d+$/;
+
   my $smsFile = "$SMS_RAW_DIR/sms-$now.sms";
   run ($CMD_SMS_DB_IMPORTER,
     "--sms-csv-file", $smsFile,
     "--db-file", $commhistoryDb,
     "--mms-msg-dir", $MMS_MSG_REPO,
     "--mms-parts-dir", $MMS_PARTS_REPO,
+    "--from-number", $myNumber,
     "export-from-db",
   );
   die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
