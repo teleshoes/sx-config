@@ -10,6 +10,11 @@ sub main(@){
 
   my @contacts;
   my @lines = `cat contacts.vcf`;
+
+  for my $line(@lines){
+    $line =~ s/[\r\n]*$/\n/;
+  }
+
   my $cur = undef;
   for my $line(@lines){
     $cur = '' if not defined $cur;
