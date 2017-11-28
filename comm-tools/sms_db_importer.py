@@ -14,8 +14,7 @@ import time
 
 VERBOSE = False
 NO_COMMIT = False
-REMOTE_MMS_PARTS_DIR = "/data/user_de/0/com.android.providers.telephony/app_parts"
-REMOTE_MMS_PARTS_REGEX = r'/data/user\w*/\d+/com.android.providers.telephony/app_parts'
+REMOTE_MMS_PARTS_DIR = "/home/nemo/.local/share/commhistory/data"
 
 argHelp = { 'COMMAND':          ( 'import-to-db\n'
                                 + '  extract SMS from <SMS_CSV_FILE>\n'
@@ -31,6 +30,7 @@ argHelp = { 'COMMAND':          ( 'import-to-db\n'
                                 + '  ' + REMOTE_MMS_PARTS_DIR + '\n'
                                 )
           , '--mms-msg-dir':    ( 'directory of MMS messages to import-from/export-to')
+          , '--from-number':    ( 'default phone number for "from" in outgoing MMS')
           , '--verbose':        ( 'verbose output, slower')
           , '--no-commit':      ( 'do not actually save changes, no SQL commit')
           , '--limit':          ( 'limit to the most recent <LIMIT> messages')
@@ -56,14 +56,16 @@ def main():
   parser.add_argument('--sms-csv-file',    help=argHelp['--sms-csv-file'])
   parser.add_argument('--mms-parts-dir',   help=argHelp['--mms-parts-dir'], default="./app_parts")
   parser.add_argument('--mms-msg-dir',     help=argHelp['--mms-msg-dir'],   default="./mms_messages")
+  parser.add_argument('--from-number',     help=argHelp['--from-number']),
   parser.add_argument('--verbose', '-v',   help=argHelp['--verbose'],       action='store_true')
   parser.add_argument('--no-commit', '-n', help=argHelp['--no-commit'],     action='store_true')
   parser.add_argument('--limit',           help=argHelp['--limit'],         type=int, default=0)
   args = parser.parse_args()
 
-  global VERBOSE, NO_COMMIT
+  global VERBOSE, NO_COMMIT, FROM_NUMBER
   VERBOSE = args.verbose
   NO_COMMIT = args.no_commit
+  FROM_NUMBER = args.from_number
 
   if args.db_file == None:
     parser.print_help()
@@ -86,7 +88,7 @@ def main():
     elif not os.path.isdir(args.mms_parts_dir):
       print "skipping MMS export, no <MMS_PARTS_DIR> to read attachments from"
     else:
-      mmsMessages = readMMSFromAndroid(args.db_file, args.mms_parts_dir)
+      mmsMessages = readMMSFromCommHistory(args.db_file, args.mms_parts_dir)
       print "read " + str(len(mmsMessages)) + " MMS messages from " + args.db_file
       attFileCount = 0
       for msg in mmsMessages:
@@ -251,26 +253,22 @@ class MMS:
     self.direction = None
     self.date_format = None
     self.subject = None
+    self.body = None
 
     self.parts = []
-    self.body = None
     self.attFiles = {}
     self.checksum = None
   def parseParts(self):
-    self.body = None
     self.attFiles = {}
     self.checksum = None
     for p in self.parts:
       if 'smil' in p.part_type:
         pass
-      elif p.body != None:
-        if self.body != None:
-          print "multiple text parts found for mms: " + str(self)
-          self.body += p.body
-        self.body = p.body
       elif p.filepath != None:
-        filename = p.filepath
-        filename = re.sub('^' + REMOTE_MMS_PARTS_REGEX + '/', '', filename)
+        relFilepath = p.filepath
+        relFilepath = re.sub('^' + REMOTE_MMS_PARTS_DIR + '/', '', relFilepath)
+        filename = relFilepath
+        filename = re.sub('^\d+/', '', filename)
         if "/" in filename:
           print "filename contains path sep '/': " + filename
           quit(1)
@@ -282,13 +280,11 @@ class MMS:
           )
         unprefixedFilename = prefixRegex.sub('', filename)
         attName = unprefixedFilename
-        localFilepath = self.mms_parts_dir + "/" + filename
+        localFilepath = self.mms_parts_dir + "/" + relFilepath
         self.attFiles[attName] = localFilepath
       else:
         print "invalid MMS part: " + str(p)
         quit(1)
-    if self.body == None:
-      self.body = ""
     self.checksum = self.generateChecksum()
   def generateChecksum(self):
     md5 = hashlib.md5()
@@ -358,9 +354,7 @@ class MMS:
 class MMSPart:
   def __init__(self):
     self.part_type = None
-    self.filename = None
     self.filepath = None
-    self.body = None
 
 def cleanNumber(number):
   if number == None:
@@ -500,32 +494,37 @@ def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
     mmsMessages.append(mms)
   return mmsMessages
 
-def readMMSFromAndroid(db_file, mms_parts_dir):
+def readMMSFromCommHistory(db_file, mms_parts_dir):
   conn = sqlite3.connect(db_file)
   c = conn.cursor()
   i=0
   texts = []
   query = c.execute(
-    'SELECT _id, date, date_sent, m_type, sub \
-     FROM pdu \
-     ORDER BY _id ASC;')
+    'SELECT id, remoteUid, groupId, startTime, endTime, direction, subject, freeText \
+     FROM Events \
+     WHERE type = 6 \
+     ORDER BY id ASC;')
   msgs = {}
+  event_groups = {}
   for row in query:
-    msg_id = row[0]
-    date_millis = long(row[1]) * 1000
-    date_sent_millis = long(row[2]) * 1000
-    dir_type_mms = row[3]
-    subject = row[4]
+    event_id = row[0]
+    number = row[1]
+    group_id = row[2]
+    date_sent_millis = long(row[3]) * 1000
+    date_millis = long(row[4]) * 1000
+    dir_type_mms = row[5]
+    subject = row[6]
+    body = row[7]
 
     if subject == None:
       subject = ""
+    if body == None:
+      body = ""
 
-    if dir_type_mms == 128:
+    if dir_type_mms == 2:
       direction = MMS_DIR.OUT
-    elif dir_type_mms == 132:
+    elif dir_type_mms == 1:
       direction = MMS_DIR.INC
-    elif dir_type_mms == 130:
-      direction = MMS_DIR.NTF
     else:
       print "INVALID MMS DIRECTION TYPE: " + str(dir_type_mms) + "\n" + str(row)
       quit(1)
@@ -539,71 +538,58 @@ def readMMSFromAndroid(db_file, mms_parts_dir):
     msg.direction = direction
     msg.date_format = date_format
     msg.subject = subject
+    msg.body = body
+    if direction == MMS_DIR.OUT:
+      msg.from_number = cleanNumber(FROM_NUMBER)
+    else:
+      msg.from_number = cleanNumber(number)
 
-    msgs[msg_id] = msg
+
+    msgs[event_id] = msg
+    event_groups[event_id] = group_id
 
   query = c.execute(
-    'SELECT mid, ct, name, _data, text \
-     FROM part \
-     ORDER BY _id ASC;')
+    'SELECT eventId, contentType, path \
+     FROM messageParts \
+     ORDER BY id ASC;')
 
   for row in query:
-    msg_id = row[0]
+    event_id = row[0]
     part_type = row[1]
-    filename = row[2]
-    filepath = row[3]
-    body = row[4]
+    filepath = row[2]
 
-    #skip malformed SMIL, happens for NTF messages
-    if msg_id not in msgs and part_type == "application/smil":
-      continue
-
-    if msg_id not in msgs:
+    if event_id not in msgs:
       print "INVALID MESSAGE ID FOR MMS PART: " + str(row)
       quit(1)
-    msg = msgs[msg_id]
+    msg = msgs[event_id]
 
     part = MMSPart()
     part.part_type = part_type
-    part.filename = filename
     part.filepath = filepath
-    part.body = body
     msg.parts.append(part)
 
   for msg in msgs.values():
     msg.parseParts()
 
   query = c.execute(
-    'SELECT msg_id, address, type \
-     FROM addr \
-     ORDER BY msg_id ASC;')
+    'SELECT id, remoteUids \
+     FROM groups \
+     ORDER BY id ASC;')
 
+  group_numbers = {}
   for row in query:
-    msg_id = row[0]
-    number = row[1]
-    dir_type_addr = row[2]
+    group_id = long(row[0])
+    numbers = row[1]
+    group_numbers[group_id] = numbers
 
-    is_sender_addr = False
-    is_recipient_addr = False
-    if dir_type_addr == 137:
-      is_sender_addr = True
-    elif dir_type_addr == 151:
-      is_recipient_addr = True
-    else:
-      print "INVALID MMS ADDRESS DIRECTION: " + str(dir_type_addr) + "\n" + str(row)
-      next
-
-    if msg_id not in msgs:
-      print "INVALID MESSAGE ID FOR ADDRESS: " + str(row)
+  for event_id in msgs.keys():
+    msg = msgs[event_id]
+    group_id = event_groups[event_id]
+    if group_id not in group_numbers:
+      print "INVALID GROUP ID: " + str(group_id) + "\n" + str(msg)
       quit(1)
-    msg = msgs[msg_id]
-
-    if is_sender_addr:
-      if msg.from_number != None:
-        print "too many sender addresses" + str(row)
-        quit(1)
-      msg.from_number = cleanNumber(number)
-    elif is_recipient_addr:
+    numbers = group_numbers[group_id]
+    for number in numbers.split("|"):
       msg.to_numbers.append(cleanNumber(number))
 
   return msgs.values()
