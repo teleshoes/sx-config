@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $REPO_DIR = "$ENV{HOME}/Code/s5/backup/backup-contacts/repo";
+my $REPO_DIR = "$ENV{HOME}/Code/sx/backup/backup-contacts/repo";
 
 sub main(@){
   chdir $REPO_DIR;
