@@ -12,6 +12,7 @@ sub main(@){
   my @lines = `cat contacts.vcf`;
 
   for my $line(@lines){
+    $line =~ s/^(PHOTO);(ENCODING=b);(TYPE=JPEG):/$1;$3;$2:/;
     $line =~ s/[\r\n]*$/\n/;
   }
 
