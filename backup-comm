@@ -126,8 +126,6 @@ sub main(@){
   run "$CMD_CONTACTS_SORT";
   gitCommit $CONTACTS_REPO, "contacts.vcf", "diff", "automatic commit";
 
-  die 'ABORTING PROCESSING';
-
   #########################################################
   # parse SMS+MMS into repo
   #########################################################
