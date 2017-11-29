@@ -11,10 +11,12 @@ import sqlite3
 import subprocess
 import sys
 import time
+import uuid
 
 VERBOSE = False
 NO_COMMIT = False
 REMOTE_MMS_PARTS_DIR = "/home/nemo/.local/share/commhistory/data"
+LOCAL_UID = "/org/freedesktop/Telepathy/Account/ring/tel/ril_0"
 
 argHelp = { 'COMMAND':          ( 'import-to-db\n'
                                 + '  extract SMS from <SMS_CSV_FILE>\n'
@@ -388,8 +390,8 @@ def readTextsFromCSV(csvFile):
       print "invalid SMS CSV line: " + row
       quit(1)
     number           = m.group(1)
-    date_millis      = m.group(2)
-    date_sent_millis = m.group(3)
+    date_millis      = int(m.group(2))
+    date_sent_millis = int(m.group(3))
     sms_mms_type     = m.group(4)
     directionStr     = m.group(5)
     date_format      = m.group(6)
@@ -630,27 +632,36 @@ def importMessagesToDb(texts, mmsMessages, db_file):
     for toNumber in mms.to_numbers:
       allNumbers.add(toNumber)
 
-  contactIdByNumber = {}
-  canonicalAddressByNumber = {}
-  query = c.execute("SELECT _id, address FROM canonical_addresses;")
+  maxGroupId = 0
+  groupIdByNumber = {}
+  query = c.execute("SELECT id, remoteUids FROM groups;")
   for row in query:
-    contactId = row[0]
-    addr = row[1]
-    number = cleanNumber(addr)
-    contactIdByNumber[number] = contactId
-    canonicalAddressByNumber[number] = addr
+    groupId = long(row[0])
+    numbers = row[1]
+
+    if groupId > maxGroupId:
+      maxGroupId = groupId
+
+    if "|" not in numbers:
+      number = numbers
+      number = cleanNumber(number)
+      groupIdByNumber[number] = groupId
 
   for number in allNumbers:
-    #add canonical addr and thread
-    if not number in contactIdByNumber:
-      insertRow(c, "canonical_addresses", {"address": number})
-      contactId = c.lastrowid
-      insertRow(c, "threads", {"recipient_ids": contactId})
-      contactIdByNumber[number] = contactId
-      canonicalAddressByNumber[number] = number
+    #add new group if necessary
+    if not number in groupIdByNumber:
+      maxGroupId += 1
+      insertRow(c, "groups", { "id": maxGroupId
+                             , "localUid": LOCAL_UID
+                             , "remoteUids": number
+                             , "type": 0
+                             , "chatName": ""
+                             , "lastModified": 0
+                             })
+      groupIdByNumber[number] = maxGroupId
 
       if VERBOSE:
-        print "added new contact addr: " + str(number) + " => " + str(contactId)
+        print "added new group: " + str(number) + " => " + str(groupId)
 
   for mms in mmsMessages:
     numbers = []
@@ -685,91 +696,71 @@ def importMessagesToDb(texts, mmsMessages, db_file):
 
   startTime = time.time()
   count=0
-  contactsSeen = set()
+  groupsSeen = set()
   elapsedS = 0
   smsPerSec = 0
   statusMsg = ""
 
   for txt in texts:
-    contactId = contactIdByNumber[txt.number]
-
-    c.execute(""
-      + " UPDATE threads SET"
-      + "   message_count = message_count + 1,"
-      + "   snippet=?,"
-      + "   'date'=?"
-      + " WHERE recipient_ids=?"
-      , [ txt.body
-        , txt.date_millis
-        , contactId])
-    c.execute(""
-      + " SELECT _id"
-      + " FROM threads"
-      + " WHERE recipient_ids=?"
-      , [contactId])
-    threadId = c.fetchone()[0]
-
-    if VERBOSE:
-      print "thread_id = "+ str(threadId)
-      c.execute(""
-        + " SELECT *"
-        + " FROM threads"
-        + " WHERE _id=?"
-        , [contactId])
-      print "updated thread: " + str(c.fetchone())
-      print "adding entry to message db: " + str(txt)
+    groupId = groupIdByNumber[txt.number]
 
     if txt.isDirection(SMS_DIR.OUT):
       dir_type = 2
+      status_type = 2
     elif txt.isDirection(SMS_DIR.INC):
       dir_type = 1
+      status_type = 0
+
+    messageToken = str(uuid.uuid4())
 
     #add message to sms table
-    insertRow(c, "sms", { "address":     canonicalAddressByNumber[txt.number]
-                        , "date":        txt.date_millis
-                        , "date_sent":   txt.date_sent_millis
-                        , "body":        txt.body
-                        , "thread_id":   threadId
-                        , "type":        dir_type
-                        , "read":        1
-                        , "seen":        1
-                        })
+    insertRow(c, "events", { "type":                  2
+                           , "startTime":             int(txt.date_sent_millis/1000)
+                           , "endTime":               int(txt.date_millis/1000)
+                           , "direction":             dir_type
+                           , "isDraft":               0
+                           , "isRead":                1
+                           , "isMissedCall":          0
+                           , "isEmergencyCall":       0
+                           , "status":                status_type
+                           , "bytesReceived":         0
+                           , "localUid":              LOCAL_UID
+                           , "remoteUid":             txt.number
+                           , "parentId":              ""
+                           , "subject":               ""
+                           , "freeText":              txt.body
+                           , "groupId":               int(groupId)
+                           , "messageToken":          messageToken
+                           , "lastModified":          0
+                           , "vCardFileName":         ""
+                           , "vCardLabel":            ""
+                           , "isDeleted":             ""
+                           , "reportDelivery":        0
+                           , "validityPeriod":        0
+                           , "contentLocation":       ""
+                           , "messageParts":          ""
+                           , "headers":               ""
+                           , "readStatus":            0
+                           , "reportRead":            0
+                           , "reportedReadRequested": 0
+                           , "mmsId":                 ""
+                           , "isAction":              0
+                           , "hasExtraProperties":    0
+                           , "hasMessageParts":       0
+                           })
 
     count += 1
-    contactsSeen.add(contactId)
+    groupsSeen.add(groupId)
     elapsedS = time.time() - startTime
     smsPerSec = int(count / elapsedS + 0.5)
     statusMsg = " {0:6d} SMS for {1:4d} contacts in {2:6.2f}s @ {3:5d} SMS/s".format(
-                  count, len(contactsSeen), elapsedS, smsPerSec)
+                  count, len(groupsSeen), elapsedS, smsPerSec)
 
     if count % 100 == 0:
       sys.stdout.write("\r" + statusMsg)
       sys.stdout.flush()
 
   print "\n\nfinished:\n" + statusMsg
-
-  print "\n\nupdating dates on threads:\n"
-  c.execute(""
-    + " update threads set date="
-    + "   ifnull ("
-    + "     nullif ("
-    + "       (select max("
-    + "         ifnull(mms_date_millis, 0),"
-    + "         ifnull(sms_date_millis, 0))"
-    + "       from ( select max(pdu.date)*1000 as mms_date_millis"
-    + "              from pdu where pdu.thread_id = threads._id and pdu.date"
-    + "            ),"
-    + "            ( select max(sms.date) as sms_date_millis"
-    + "              from sms where sms.thread_id = threads._id"
-    + "            )"
-    + "       ), 0)"
-    + "     , threads.date)"
-    )
-
-  if VERBOSE:
-    print "\n\nthreads: "
-    for row in c.execute('SELECT * FROM threads'):
-      print row
 
   if not NO_COMMIT:
     conn.commit()
