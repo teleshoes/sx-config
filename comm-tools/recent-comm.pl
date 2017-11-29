@@ -7,9 +7,12 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
-my $MIN_ENTRIES = 3;
-my $RECENT_CUTOFF_DAYS = 30;
-my $RECENT_CUTOFF_MILLIS = $RECENT_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+my $SOME_COUNT = 3;
+my $RECENT_SOME_CUTOFF_DAYS = 365;
+my $RECENT_SOME_CUTOFF_MILLIS = $RECENT_SOME_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+
+my $RECENT_ALL_CUTOFF_DAYS = 30;
+my $RECENT_ALL_CUTOFF_MILLIS = $RECENT_ALL_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
 
 sub getSortKey($$);
 
@@ -20,8 +23,8 @@ sub parseCallFile($);
 my $usage = "Usage:
   $0 COMM_TYPE
     print recent comm entries (SMS or calls) from all contacts
-    includes at least $MIN_ENTRIES of the existing entries per contact
-    includes all entries from the last $RECENT_CUTOFF_DAYS days
+      includes all in the last $RECENT_ALL_CUTOFF_DAYS days,
+      plus $SOME_COUNT per contact in the last $RECENT_SOME_CUTOFF_DAYS days
 
   COMM_TYPE
     sms
@@ -49,10 +52,13 @@ sub main(@){
       if($diffMillis < 0){
         die "future entry: $$entry{line}\n";
       }
-      if(@recent >= $MIN_ENTRIES and $diffMillis >= $RECENT_CUTOFF_MILLIS){
-        last;
+      if($diffMillis < $RECENT_ALL_CUTOFF_MILLIS){
+        push @recent, $entry;
+      }elsif($diffMillis < $RECENT_SOME_CUTOFF_MILLIS and @recent < $SOME_COUNT){
+        push @recent, $entry;
+      }else{
+        last; #all entries will be later
       }
-      push @recent, $entry;
     }
     for my $entry(reverse @recent){
       if(defined $$entry{num} and length $$entry{num} > 0){
