@@ -85,16 +85,22 @@ sub parseSmsFile($){
   my $entries = {};
   while(my $line = <FH>){
     my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
-    if($line !~ /^([0-9+]+),(\d+),(\d+),(S|M),(OUT|INC),($dateFmtRe),"(.*)"$/){
+    if($line !~ /^([0-9+*#]*),(\d+),(\d+),(S|M),(OUT|INC),($dateFmtRe),"(.*)"$/){
       die "invalid sms line: $line";
     }
     my ($num, $date, $dateSent, $source, $dir, $dateFmt, $body) =
       ($1, $2, $3, $4, $5, $6, $7);
 
-    if(not defined $$entries{$num}){
-      $$entries{$num} = [];
+    #empty numbers and weird numbers go in "+++.sms"
+    my $fileName = $num;
+    if($fileName eq "" or $fileName =~ /[^0-9+]/){
+      $fileName = "+++";
     }
-    push @{$$entries{$num}}, {
+
+    if(not defined $$entries{$fileName}){
+      $$entries{$fileName} = [];
+    }
+    push @{$$entries{$fileName}}, {
       line => $line,
       num => $num,
       date => $date,
@@ -113,17 +119,23 @@ sub parseCallFile($){
   my $entries = {};
   while(my $line = <FH>){
     my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
-    if($line !~ /^([0-9+]+),(\d+),(OUT|INC|MIS|REJ|BLK),($dateFmtRe),\s*(-?)(\d+)h\s*(\d+)m\s(\d+)s$/){
+    if($line !~ /^([0-9+*#]*),(\d+),(OUT|INC|MIS|REJ|BLK),($dateFmtRe),\s*(-?)(\d+)h\s*(\d+)m\s(\d+)s$/){
       die "invalid call line: $line";
     }
     my ($num, $date, $dir, $dateFmt, $durSign, $durH, $durM, $durS) =
       ($1, $2, $3, $4, $5, $6, $7, $8);
     my $duration = ($durH*60*60 + $durM*60 + $durS) * ($durSign =~ /-/ ? -1 : 1);
 
-    if(not defined $$entries{$num}){
-      $$entries{$num} = [];
+    #empty numbers and weird numbers go in "+++.call"
+    my $fileName = $num;
+    if($fileName eq "" or $fileName =~ /[^0-9+]/){
+      $fileName = "+++";
     }
-    push @{$$entries{$num}}, {
+
+    if(not defined $$entries{$fileName}){
+      $$entries{$fileName} = [];
+    }
+    push @{$$entries{$fileName}}, {
       line => $line,
       num => $num,
       date => $date,
