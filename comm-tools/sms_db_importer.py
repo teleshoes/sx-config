@@ -663,85 +663,13 @@ def importMessagesToDb(texts, mmsMessages, db_file):
     for number in numbers:
       contactId = contactIdByNumber[number]
 
-      c.execute(""
-        + " UPDATE threads SET"
-        + "   message_count = message_count + 1,"
-        + "   snippet=?,"
-        + "   'date'=?"
-        + " WHERE recipient_ids=?"
-        , [ mms.body
-          , mms.date_millis
-          , contactId])
-      c.execute(""
-        + " SELECT _id"
-        + " FROM threads"
-        + " WHERE recipient_ids=?"
-        , [contactId])
-      threadId = c.fetchone()[0]
+      #insertRow(c, "pdu", { "thread_id":   threadId
+      #                    , "date":        int(mms.date_millis / 1000)
+      #                    , "date_sent":   int(mms.date_sent_millis / 1000)
+      #                    , "sub":         mms.subject
+      #                    })
+      #msgId = c.lastrowid
 
-      if mms.isDirection(MMS_DIR.OUT):
-        m_type = 128
-        retr_st = None
-      elif mms.isDirection(MMS_DIR.INC):
-        m_type = 132
-        retr_st = 128
-      elif mms.isDirection(MMS_DIR.NTF):
-        m_type = 130
-        retr_st = None
-
-      insertRow(c, "pdu", { "thread_id":   threadId
-                          , "date":        int(mms.date_millis / 1000)
-                          , "date_sent":   int(mms.date_sent_millis / 1000)
-                          , "msg_box":     1
-                          , "read":        1
-                          , "m_id":        None
-                          , "sub":         mms.subject
-                          , "sub_cs":      None
-                          , "ct_t":        "application/vnd.wap.multipart.related"
-                          , "ct_l":        None
-                          , "exp":         None
-                          , "m_cls":       None
-                          , "m_type":      m_type
-                          , "v":           18
-                          , "m_size":      None
-                          , "pri":         None
-                          , "rr":          None
-                          , "rpt_a":       None
-                          , "resp_st":     None
-                          , "st":          None
-                          , "tr_id":       None
-                          , "retr_st":     retr_st
-                          , "retr_txt":    None
-                          , "retr_txt_cs": None
-                          , "read_status": None
-                          , "ct_cls":      None
-                          , "resp_txt":    None
-                          , "d_tm":        None
-                          , "d_rpt":       None
-                          , "locked":      0
-                          , "sub_id":      1
-                          , "phone_id":    -1
-                          , "seen":        1
-                          , "creator":     None
-                          , "text_only":   1 if len(mms.attFiles) == 0 else 0
-                          })
-      msgId = c.lastrowid
-
-      insertRow(c, "addr", { "msg_id":     msgId
-                           , "contact_id": None  #always null
-                           , "address":    canonicalAddressByNumber[mms.from_number]
-                           , "type":       137   #sender address
-                           , "charset":    3     #? - sometimes the character set is 106
-                           })
-      for toNumber in mms.to_numbers:
-        insertRow(c, "addr", { "msg_id":     msgId
-                             , "contact_id": None  #always null
-                             , "address":    canonicalAddressByNumber[toNumber]
-                             , "type":       151   #recipient address
-                             , "charset":    3     #? - sometimes the character set is 106
-                             })
-
-      nextContentId = 0
       for attName in sorted(mms.attFiles.keys()):
         localFilepath = mms.attFiles[attName]
         filename = re.sub(r'^.*/', '', localFilepath)
@@ -749,37 +677,11 @@ def importMessagesToDb(texts, mmsMessages, db_file):
 
         contentType = guessContentType(attName, localFilepath)
 
-        insertRow(c, "part", { "mid":   msgId
-                             , "seq":   0
-                             , "ct":    contentType
-                             , "name":  filename
-                             , "chset": None
-                             , "cd":    None
-                             , "fn":    None
-                             , "cid":   "<" + str(nextContentId) + ">"
-                             , "cl":    filename
-                             , "ctt_s": None
-                             , "ctt_t": None
-                             , "_data": remoteFilepath
-                             , "text":  None
-                             })
-        nextContentId += 1
-
-      insertRow(c, "part", { "mid":   msgId
-                           , "seq":   0
-                           , "ct":    "text/plain"
-                           , "name":  "body.txt"
-                           , "chset": 3     #? - sometimes the character set is 106
-                           , "cd":    None
-                           , "fn":    None
-                           , "cid":   "<" + str(nextContentId) + ">"
-                           , "cl":    filename
-                           , "ctt_s": None
-                           , "ctt_t": None
-                           , "_data": None
-                           , "text":  mms.body
-                           })
-      nextContentId += 1
+        #insertRow(c, "part", { "mid":   msgId
+        #                     , "ct":    contentType
+        #                     , "name":  filename
+        #                     , "text":  None
+        #                     })
 
   startTime = time.time()
   count=0
