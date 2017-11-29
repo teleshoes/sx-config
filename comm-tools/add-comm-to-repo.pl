@@ -10,6 +10,7 @@ sub getSortKey($$);
 sub readRepoFile($$);
 sub writeRepoFile($$@);
 
+sub stripMillisLine($$);
 sub parseFile($$);
 sub parseSmsFile($);
 sub parseCallFile($);
@@ -31,8 +32,10 @@ sub main(@){
     my @repoEntries = readRepoFile $type, $fileName;
 
     my %allEntriesBySortKey;
+    my %noMillisAllEntriesBySortKey;
 
     my %repoEntriesByLine;
+    my %repoEntriesByLineNoMillis;
     my $latestRepoEntry = undef;
     for my $entry(@repoEntries){
       if(not defined $latestRepoEntry or $$latestRepoEntry{date} < $$entry{date}){
@@ -41,6 +44,9 @@ sub main(@){
       my $line = $$entry{line};
       die "duplicate entry in repo: $line" if defined $repoEntriesByLine{$line};
       $repoEntriesByLine{$line} = $entry;
+
+      my $noMillisLine = stripMillisLine $type, $line;
+      $repoEntriesByLineNoMillis{$noMillisLine} = $entry;
 
       my $sortKey = getSortKey $type, $entry;
       if(defined $allEntriesBySortKey{$sortKey}){
@@ -54,6 +60,10 @@ sub main(@){
       my $line = $$entry{line};
       if(defined $repoEntriesByLine{$line}){
         #ignore exact duplicates from repo
+        next;
+      }
+      if(defined $repoEntriesByLineNoMillis{$line}){
+        #ignore entries that are identical except for milliseconds from repo
         next;
       }
       if(defined $latestRepoEntry and $$entry{date} <= $$latestRepoEntry{date}){
@@ -145,6 +155,20 @@ sub writeRepoFile($$@){
   close FH;
 }
 
+sub stripMillisLine($$){
+  my ($type, $line) = @_;
+  if($type =~ /sms/){
+    if($line !~ s/^([0-9+*#]*),(\d+)\d\d\d,(\d+)\d\d\d,/${1},${2}000,${3}000,/){
+      die "could not remove millis from line: $line";
+    }
+  }
+  if($type =~ /call/){
+    if($line !~ s/^([0-9+*#]*),(\d+)\d\d\d,/${1},${2}000,/){
+      die "could not remove millis from line: $line";
+    }
+  }
+  return $line;
+}
 sub parseFile($$){
   my ($type, $file) = @_;
   if($type =~ /sms/){
