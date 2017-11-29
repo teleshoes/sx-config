@@ -55,7 +55,9 @@ sub main(@){
       push @recent, $entry;
     }
     for my $entry(reverse @recent){
-      print $$entry{line};
+      if(defined $$entry{num} and length $$entry{num} > 0){
+        print $$entry{line};
+      }
     }
   }
 }
