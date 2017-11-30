@@ -14,7 +14,8 @@ sub main(@){
     . "   startTime,"
     . "   endTime,"
     . "   isMissedCall,"
-    . "   direction"
+    . "   direction,"
+    . "   headers"
     . " from events"
     . " where type = 3"
     . " order by id"
@@ -23,12 +24,14 @@ sub main(@){
   my @tclLines = <FH>;
   close FH;
   for my $line(@tclLines){
-    if($line !~ /^"([0-9 ()\-\+\*#]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
+    if($line !~ /^"([0-9 ()\-\+\*#]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"\s*"(\w*)"$/){
       die "invalid call db row: $line";
     }
-    my ($number, $startDateSex, $endDateSex, $isMissed, $dir) = ($1, $2, $3, $4, $5);
+    my ($number, $startDateSex, $endDateSex, $isMissed, $dir, $headers) = ($1, $2, $3, $4, $5, $6);
     my $dirFmt;
-    if($isMissed == 1){
+    if($headers eq "rejected"){ #hack
+      $dirFmt = "REJ";
+    }elsif($isMissed == 1){
       $dirFmt = "MIS";
     }elsif($dir == 2){
       $dirFmt = "OUT";
