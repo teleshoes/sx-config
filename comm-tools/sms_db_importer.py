@@ -805,7 +805,7 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
 
   startTime = time.time()
   count=0
-  groupsSeen = set()
+  numbersSeen = set()
   elapsedS = 0
   smsPerSec = 0
   statusMsg = ""
@@ -934,11 +934,11 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
                            })
 
     count += 1
-    groupsSeen.add(groupId)
+    numbersSeen.add(call.number)
     elapsedS = time.time() - startTime
     callsPerSec = int(count / elapsedS + 0.5)
     statusMsg = " {0:6d} calls for {1:4d} contacts in {2:6.2f}s @ {3:5d} calls/s".format(
-                  count, len(groupsSeen), elapsedS, callsPerSec)
+                  count, len(numbersSeen), elapsedS, callsPerSec)
 
     if count % 100 == 0:
       sys.stdout.write("\r" + statusMsg)
