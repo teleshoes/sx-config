@@ -201,8 +201,8 @@ def main():
     quit(1)
 
 class Text:
-  def __init__( self, number, date_millis, date_sent_millis,
-              sms_mms_type, direction, date_format, body):
+  def __init__(self, number, date_millis, date_sent_millis,
+               sms_mms_type, direction, date_format, body):
     self.number = number
     self.date_millis = date_millis
     self.date_sent_millis = date_sent_millis
@@ -243,7 +243,7 @@ class Text:
     return unicode(self).encode('utf-8')
 
 class Call:
-  def __init__( self, number, date_millis, direction, date_format, duration_format):
+  def __init__(self, number, date_millis, direction, date_format, duration_format):
     self.number = number
     self.date_millis = date_millis
     self.direction = direction
@@ -259,11 +259,9 @@ class Call:
     durHrs = int(m.group(2))
     durMin = int(m.group(3))
     durSec = int(m.group(4))
-
     durationSex = durHrs * 60 * 60 + durMin * 60 + durSec
     if "-" in durNeg:
       durationSex = 0 - durationSex
-
     return durationSex
   def toCsv(self):
     return (""
@@ -488,33 +486,31 @@ def readTextsFromCommHistory(db_file):
      ORDER BY id ASC;')
   for row in query:
     number = row[0]
-    date_sent_millis = long(row[1]) * 1000
-    date_millis = long(row[2]) * 1000
-    sms_mms_type = "S"
+    date_start_millis = long(row[1]) * 1000
+    date_end_millis = long(row[2]) * 1000
     dir_type = row[3]
+    body = row[4]
 
-    error = False
-    direction = None
     if dir_type == 2:
       direction = SMS_DIR.OUT
     elif dir_type == 1:
       direction = SMS_DIR.INC
     else:
-      error = True
-
-    if error:
       print "INVALID SMS DIRECTION TYPE: " + str(dir_type) + "\n" + str(row)
       quit(1)
-    elif direction != None:
-      body = row[4]
-      date_format = time.strftime("%Y-%m-%d %H:%M:%S",
-        time.localtime(date_millis/1000))
 
-      txt = Text(number, date_millis, date_sent_millis,
-        sms_mms_type, direction, date_format, body)
-      texts.append(txt)
-      if VERBOSE:
-        print str(txt)
+    sms_mms_type = "S"
+    date_millis = date_end_millis
+    date_sent_millis = date_start_millis
+
+    date_format = time.strftime("%Y-%m-%d %H:%M:%S",
+      time.localtime(date_millis/1000))
+
+    txt = Text(number, date_millis, date_sent_millis,
+      sms_mms_type, direction, date_format, body)
+    texts.append(txt)
+    if VERBOSE:
+      print str(txt)
   return texts
 
 def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
