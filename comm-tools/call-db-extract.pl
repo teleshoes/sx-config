@@ -13,6 +13,7 @@ sub main(@){
     . "   remoteUid,"
     . "   startTime,"
     . "   endTime,"
+    . "   isMissedCall,"
     . "   direction"
     . " from events"
     . " where type = 3"
@@ -22,12 +23,14 @@ sub main(@){
   my @tclLines = <FH>;
   close FH;
   for my $line(@tclLines){
-    if($line !~ /^"([0-9 ()\-\+\*#]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
+    if($line !~ /^"([0-9 ()\-\+\*#]*)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"\s*"(\d+)"$/){
       die "invalid call db row: $line";
     }
-    my ($number, $startDateSex, $endDateSex, $dir) = ($1, $2, $3, $4);
+    my ($number, $startDateSex, $endDateSex, $isMissed, $dir) = ($1, $2, $3, $4, $5);
     my $dirFmt;
-    if($dir == 2){
+    if($isMissed == 1){
+      $dirFmt = "MIS";
+    }elsif($dir == 2){
       $dirFmt = "OUT";
     }elsif($dir == 1){
       $dirFmt = "INC";
