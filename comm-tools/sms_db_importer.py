@@ -28,7 +28,7 @@ argHelp = { 'COMMAND':          ( 'import-to-db\n'
                                 )
           , '--sms-csv-file':   ( 'SMS CSV file to import-from/export-to')
           , '--call-csv-file':  ( 'calls CSV file to import-from/export-to')
-          , '--db-file':        ( 'pre-existing mmssms.db file to import-to/export-from')
+          , '--db-file':        ( 'pre-existing commhistory.db file to import-to/export-from')
           , '--mms-parts-dir':  ( 'local copy of app_parts dir to import-to/expot-from\n'
                                 + '  ' + REMOTE_MMS_PARTS_DIR + '\n'
                                 )
@@ -193,7 +193,7 @@ def main():
       print "read " + str(len(mmsMessages)) + " MMS messages"
       print "copied " + str(attFileCount) + " files to " + args.mms_parts_dir
 
-    print "Saving changes into Android DB (mmssms.db), "+str(args.db_file)
+    print "Saving changes into Android DB (commhistory.db), "+str(args.db_file)
     importMessagesToDb(texts, calls, mmsMessages, args.db_file)
   else:
     print "invalid <COMMAND>: " + args.COMMAND
