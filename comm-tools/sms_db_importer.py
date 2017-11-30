@@ -27,6 +27,7 @@ argHelp = { 'COMMAND':          ( 'import-to-db\n'
                                 + '  and output to <SMS_CSV_FILE> and <MMS_MSG_DIR>\n'
                                 )
           , '--sms-csv-file':   ( 'SMS CSV file to import-from/export-to')
+          , '--call-csv-file':  ( 'calls CSV file to import-from/export-to')
           , '--db-file':        ( 'pre-existing mmssms.db file to import-to/export-from')
           , '--mms-parts-dir':  ( 'local copy of app_parts dir to import-to/expot-from\n'
                                 + '  ' + REMOTE_MMS_PARTS_DIR + '\n'
@@ -40,6 +41,7 @@ argHelp = { 'COMMAND':          ( 'import-to-db\n'
 
 SMS_DIR = Enum('SMS_DIR', ['OUT', 'INC'])
 MMS_DIR = Enum('MMS_DIR', ['OUT', 'INC', 'NTF'])
+CALL_DIR = Enum('CALL_DIR', ['OUT', 'INC', 'MIS', 'REJ'])
 
 class UsageFormatter(argparse.HelpFormatter):
   def __init__(self, prog):
@@ -56,6 +58,7 @@ def main():
   parser.add_argument('COMMAND',           help=argHelp['COMMAND'])
   parser.add_argument('--db-file',         help=argHelp['--db-file'])
   parser.add_argument('--sms-csv-file',    help=argHelp['--sms-csv-file'])
+  parser.add_argument('--call-csv-file',   help=argHelp['--call-csv-file'])
   parser.add_argument('--mms-parts-dir',   help=argHelp['--mms-parts-dir'], default="./app_parts")
   parser.add_argument('--mms-msg-dir',     help=argHelp['--mms-msg-dir'],   default="./mms_messages")
   parser.add_argument('--from-number',     help=argHelp['--from-number']),
@@ -126,6 +129,22 @@ def main():
         print "saving only the last {0} messages".format( args.limit )
         texts = texts[ (-args.limit) : ]
 
+    calls = []
+    if args.call_csv_file == None or not os.path.isfile(args.call_csv_file):
+      print "skipping calls import, no <CALL_CSV_FILE> for reading from"
+    else:
+      print "Reading calls from CSV file:"
+      starttime = time.time()
+      calls = readCallsFromCSV(args.call_csv_file)
+      print "finished in {0} seconds, {1} messages read".format( (time.time()-starttime), len(calls) )
+
+      print "sorting all {0} calls by date".format(len(calls))
+      calls = sorted(calls, key=lambda call: call.date_millis)
+
+      if args.limit > 0:
+        print "saving only the last {0} messages".format( args.limit )
+        calls = calls[ (-args.limit) : ]
+
     mmsMessages = []
     if not os.path.isdir(args.mms_msg_dir):
       print "skipping MMS import, no <MMS_MSG_DIR> for reading from"
@@ -175,7 +194,7 @@ def main():
       print "copied " + str(attFileCount) + " files to " + args.mms_parts_dir
 
     print "Saving changes into Android DB (mmssms.db), "+str(args.db_file)
-    importMessagesToDb(texts, mmsMessages, args.db_file)
+    importMessagesToDb(texts, calls, mmsMessages, args.db_file)
   else:
     print "invalid <COMMAND>: " + args.COMMAND
     print "  (expected one of 'export-from-db' or 'import-to-db')"
@@ -205,9 +224,9 @@ class Text:
       + "," + "\"" + escapeStr(self.body) + "\""
     )
   def isOutgoing(self):
-    return self.isDir(SMS_DIR.OUT)
+    return self.isDirection(SMS_DIR.OUT)
   def isIncoming(self):
-    return self.isDir(SMS_DIR.INC)
+    return self.isDirection(SMS_DIR.INC)
   def isDirection(self, smsDir):
     self.assertDirectionValid()
     return self.direction == smsDir
@@ -217,6 +236,56 @@ class Text:
   def assertDirectionValid(self):
     if self.direction not in SMS_DIR:
       print "invalid SMS direction: " + str(self.direction)
+      quit(1)
+  def __unicode__(self):
+    return self.toCsv()
+  def __str__(self):
+    return unicode(self).encode('utf-8')
+
+class Call:
+  def __init__( self, number, date_millis, direction, date_format, duration_format):
+    self.number = number
+    self.date_millis = date_millis
+    self.direction = direction
+    self.date_format = date_format
+    self.duration_format = duration_format
+  def getDurationSex(self):
+    durationRegex = re.compile(r'\s*(-?)\s*(\d+)h\s*(\d+)m\s*(\d+)s')
+    m = durationRegex.match(self.duration_format)
+    if not m or len(m.groups()) != 4:
+      print "invalid duration format: " + self.duration_format
+      quit(1)
+    durNeg = m.group(1)
+    durHrs = int(m.group(2))
+    durMin = int(m.group(3))
+    durSec = int(m.group(4))
+
+    durationSex = durHrs * 60 * 60 + durMin * 60 + durSec
+    if "-" in durNeg:
+      durationSex = 0 - durationSex
+
+    return durationSex
+  def toCsv(self):
+    return (""
+      + ""  + cleanNumber(self.number)
+      + "," + str(self.date_millis)
+      + "," + self.getDirectionStr()
+      + "," + self.date_format
+      + "," + self.duration_format
+    )
+  def isOutgoing(self):
+    return self.isDirection(CALL_DIR.OUT)
+  def isIncoming(self):
+    return self.isDirection(CALL_DIR.INC)
+  def isDirection(self, callDir):
+    self.assertDirectionValid()
+    return self.direction == callDir
+  def getDirectionStr(self):
+    self.assertDirectionValid()
+    return self.direction.name
+  def assertDirectionValid(self):
+    if self.direction not in CALL_DIR:
+      print "invalid CALL direction: " + str(self.direction)
       quit(1)
   def __unicode__(self):
     return self.toCsv()
@@ -596,6 +665,42 @@ def readMMSFromCommHistory(db_file, mms_parts_dir):
 
   return msgs.values()
 
+def readCallsFromCSV(csvFile):
+  try:
+    csvFile = open(csvFile, 'r')
+    csvContents = csvFile.read()
+    csvFile.close()
+  except IOError:
+    print "could not read csv file: " + str(csvFile)
+    quit(1)
+
+  texts = []
+  rowRegex = re.compile(''
+    + r'([0-9+]+),'
+    + r'(\d+),'
+    + r'(' + '|'.join(sorted(CALL_DIR.__members__.keys())) + r'),'
+    + r'([^,]*),'
+    + r'(\s*-?\s*\d+h\s*\d+m\s*\d+s)'
+    )
+  for row in csvContents.splitlines():
+    m = rowRegex.match(row)
+    if not m or len(m.groups()) != 5:
+      print "invalid CALL CSV line: " + row
+      quit(1)
+    number           = m.group(1)
+    date_millis      = int(m.group(2))
+    directionStr     = m.group(3)
+    date_format      = m.group(4)
+    duration_format  = m.group(5)
+
+    texts.append(Call( number
+                     , date_millis
+                     , CALL_DIR.__members__[directionStr]
+                     , date_format
+                     , duration_format
+                     ))
+  return texts
+
 def getDbTableNames(db_file):
   cur = sqlite3.connect(db_file).cursor()
   names = cur.execute("SELECT name FROM sqlite_master WHERE type='table'; ")
@@ -611,12 +716,14 @@ def insertRow(cursor, tableName, colVals):
                 + " VALUES (" + ", ".join(valuePlaceHolders) + ")"
                 , values)
 
-def importMessagesToDb(texts, mmsMessages, db_file):
+def importMessagesToDb(texts, calls, mmsMessages, db_file):
   conn = sqlite3.connect(db_file)
   c = conn.cursor()
 
   for txt in texts:
     txt.number = cleanNumber(txt.number)
+  for call in calls:
+    call.number = cleanNumber(call.number)
   for mms in mmsMessages:
     mms.from_number = cleanNumber(mms.from_number)
     toNumbers = []
@@ -627,6 +734,8 @@ def importMessagesToDb(texts, mmsMessages, db_file):
   allNumbers = set()
   for txt in texts:
     allNumbers.add(txt.number)
+  for call in calls:
+    allNumbers.add(call.number)
   for mms in mmsMessages:
     allNumbers.add(mms.from_number)
     for toNumber in mms.to_numbers:
@@ -713,7 +822,7 @@ def importMessagesToDb(texts, mmsMessages, db_file):
 
     messageToken = str(uuid.uuid4())
 
-    #add message to sms table
+    #add message to events table
     insertRow(c, "events", { "type":                  2
                            , "startTime":             int(txt.date_sent_millis/1000)
                            , "endTime":               int(txt.date_millis/1000)
@@ -755,6 +864,81 @@ def importMessagesToDb(texts, mmsMessages, db_file):
     smsPerSec = int(count / elapsedS + 0.5)
     statusMsg = " {0:6d} SMS for {1:4d} contacts in {2:6.2f}s @ {3:5d} SMS/s".format(
                   count, len(groupsSeen), elapsedS, smsPerSec)
+
+    if count % 100 == 0:
+      sys.stdout.write("\r" + statusMsg)
+      sys.stdout.flush()
+
+  startTime = time.time()
+  count=0
+  groupsSeen = set()
+  elapsedS = 0
+  callsPerSec = 0
+  statusMsg = ""
+
+  for call in calls:
+    if call.isDirection(CALL_DIR.OUT):
+      dir_type = 2
+      isMissed = 0
+      headersRejectedHack = ""
+    elif call.isDirection(CALL_DIR.INC):
+      dir_type = 1
+      isMissed = 0
+      headersRejectedHack = ""
+    elif call.isDirection(CALL_DIR.MIS):
+      dir_type = 1
+      isMissed = 1
+      headersRejectedHack = ""
+    elif call.isDirection(CALL_DIR.REJ):
+      dir_type = 1
+      isMissed = 0
+      headersRejectedHack = "rejected"
+
+    startTime = int(call.date_millis/1000)
+    endTime = startTime + call.getDurationSex()
+
+    #add message to events table
+    insertRow(c, "events", { "type":                  3
+                           , "startTime":             startTime
+                           , "endTime":               endTime
+                           , "direction":             dir_type
+                           , "isDraft":               0
+                           , "isRead":                1
+                           , "isMissedCall":          isMissed
+                           , "isEmergencyCall":       0
+                           , "status":                0
+                           , "bytesReceived":         0
+                           , "localUid":              LOCAL_UID
+                           , "remoteUid":             call.number
+                           , "parentId":              ""
+                           , "subject":               ""
+                           , "freeText":              ""
+                           , "groupId":               ""
+                           , "messageToken":          ""
+                           , "lastModified":          startTime
+                           , "vCardFileName":         ""
+                           , "vCardLabel":            ""
+                           , "isDeleted":             ""
+                           , "reportDelivery":        0
+                           , "validityPeriod":        0
+                           , "contentLocation":       ""
+                           , "messageParts":          ""
+                           , "headers":               headersRejectedHack
+                           , "readStatus":            0
+                           , "reportRead":            0
+                           , "reportedReadRequested": 0
+                           , "mmsId":                 ""
+                           , "isAction":              0
+                           , "hasExtraProperties":    0
+                           , "hasMessageParts":       0
+                           })
+
+    count += 1
+    groupsSeen.add(groupId)
+    elapsedS = time.time() - startTime
+    callsPerSec = int(count / elapsedS + 0.5)
+    statusMsg = " {0:6d} calls for {1:4d} contacts in {2:6.2f}s @ {3:5d} calls/s".format(
+                  count, len(groupsSeen), elapsedS, callsPerSec)
 
     if count % 100 == 0:
       sys.stdout.write("\r" + statusMsg)
