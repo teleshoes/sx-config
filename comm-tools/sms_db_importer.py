@@ -88,6 +88,16 @@ def main():
         f.write(txt.toCsv() + "\n")
       f.close()
 
+    if args.call_csv_file == None:
+      print "skipping calls export, no <CALL_CSV_FILE> for writing to"
+    else:
+      calls = readCallsFromCommHistory(args.db_file)
+      print "read " + str(len(calls)) + " calls from " + args.db_file
+      f = codecs.open(args.call_csv_file, 'w', 'utf-8')
+      for call in calls:
+        f.write(call.toCsv() + "\n")
+      f.close()
+
     if not os.path.isdir(args.mms_msg_dir):
       print "skipping MMS export, no <MMS_MSG_DIR> for writing to"
     elif not os.path.isdir(args.mms_parts_dir):
@@ -512,6 +522,58 @@ def readTextsFromCommHistory(db_file):
     if VERBOSE:
       print str(txt)
   return texts
+
+def readCallsFromCommHistory(db_file):
+  conn = sqlite3.connect(db_file)
+  c = conn.cursor()
+  i=0
+  calls = []
+  query = c.execute(
+    'SELECT remoteUid, startTime, endTime, direction, isMissedCall, headers \
+     FROM events \
+     WHERE type = 3 \
+     ORDER BY id ASC;')
+  for row in query:
+    number = row[0]
+    date_start_millis = long(row[1]) * 1000
+    date_end_millis = long(row[2]) * 1000
+    dir_type = row[3]
+    is_missed_call = row[4]
+    headersRejectedHack = row[5]
+
+    if headersRejectedHack != None and "rejected" in headersRejectedHack:
+      direction = CALL_DIR.REJ
+    elif int(is_missed_call) == 1:
+      direction = CALL_DIR.MIS
+    elif dir_type == 2:
+      direction = CALL_DIR.OUT
+    elif dir_type == 1:
+      direction = CALL_DIR.INC
+    else:
+      print "INVALID CALL DIRECTION TYPE: " + str(dir_type) + "\n" + str(row)
+      quit(1)
+
+    date_millis = date_start_millis
+    durationSex = long((date_end_millis - date_start_millis)/1000)
+
+    date_format = time.strftime("%Y-%m-%d %H:%M:%S",
+      time.localtime(date_millis/1000))
+
+    if durationSex < 0:
+      durSign = "-"
+      durationSex = 0 - durationSex
+    else:
+      durSign = " "
+    durHrs = int(durationSex / 60 / 60)
+    durMin = int(durationSex / 60) % 60
+    durSec = int(durationSex) % 60
+    duration_format = "%s%01dh %02dm %02ds" % (durSign, durHrs, durMin, durSec)
+
+    call = Call(number, date_millis, direction, date_format, duration_format)
+    calls.append(call)
+    if VERBOSE:
+      print str(call)
+  return calls
 
 def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
   msgDirs = glob.glob(mmsMsgDir + "/*")
