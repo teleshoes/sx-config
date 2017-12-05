@@ -136,6 +136,18 @@ def main():
     texts = readTextsFromCSV(args.sms_csv_file)
     print "finished in {0} seconds, {1} texts read".format( (time.time()-starttime), len(texts) )
 
+    ignoredMissingNumberCount = 0
+    okMessages = []
+    for txt in texts:
+      if txt.number == None or len(txt.number) == 0:
+        ignoredMissingNumberCount += 1
+      else:
+        okMessages.append(txt)
+    texts = okMessages
+
+    print "ignoring:"
+    print " %5d SMS missing number" % ignoredMissingNumberCount
+
     print "sorting all {0} texts by date".format(len(texts))
     texts = sorted(texts, key=lambda text: text.date_millis)
 
@@ -513,7 +525,7 @@ def readTextsFromCSV(csvFile):
 
   texts = []
   rowRegex = re.compile(''
-    + r'([0-9+]+),'
+    + r'([0-9+]*),'
     + r'(\d+),'
     + r'(\d+),'
     + r'(S|M),'
