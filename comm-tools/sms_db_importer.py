@@ -144,7 +144,7 @@ def main():
       texts = texts[ (-args.limit) : ]
 
     print "Saving texts into commhistory DB: " + str(args.db_file)
-    importMessagesToDb(texts, [], [], args.db_file)
+    importSMSToDb(texts, args.db_file)
   elif args.COMMAND == "import-to-db" and args.call_csv_file != None:
     if not os.path.isfile(args.call_csv_file):
       print "ERROR: no <CALL_CSV_FILE> for reading from"
@@ -162,7 +162,7 @@ def main():
       calls = calls[ (-args.limit) : ]
 
     print "Saving calls into commhistory DB: " + str(args.db_file)
-    importMessagesToDb([], calls, [], args.db_file)
+    importCallsToDb(calls, args.db_file)
   elif args.COMMAND == "import-to-db" and args.mms_msg_dir != None:
     if not os.path.isdir(args.mms_msg_dir):
       print "ERROR: no <MMS_MSG_DIR> for reading from"
@@ -256,7 +256,7 @@ def main():
     print "read " + str(len(mmsMessages)) + " MMS messages"
 
     print "Saving MMS into commhistory DB: " + str(args.db_file)
-    importMessagesToDb([], [], mmsMessages, args.db_file)
+    importMMSToDb(mmsMessages, args.db_file)
   else:
     print "must specify either 'export-from-db' or 'import-to-db',"
     print "  and at least one of:"
@@ -825,30 +825,16 @@ def insertRow(cursor, tableName, colVals):
                 + " VALUES (" + ", ".join(valuePlaceHolders) + ")"
                 , values)
 
-def importMessagesToDb(texts, calls, mmsMessages, db_file):
+def importSMSToDb(texts, db_file):
   conn = sqlite3.connect(db_file)
   c = conn.cursor()
 
   for txt in texts:
     txt.number = cleanNumber(txt.number)
-  for call in calls:
-    call.number = cleanNumber(call.number)
-  for mms in mmsMessages:
-    mms.from_number = cleanNumber(mms.from_number)
-    toNumbers = []
-    for toNumber in mms.to_numbers:
-      toNumbers.append(cleanNumber(toNumber))
-    mms.to_numbers = toNumbers
 
   allNumbers = set()
   for txt in texts:
     allNumbers.add(txt.number)
-  for call in calls:
-    allNumbers.add(call.number)
-  for mms in mmsMessages:
-    allNumbers.add(mms.from_number)
-    for toNumber in mms.to_numbers:
-      allNumbers.add(toNumber)
 
   maxGroupId = 0
   groupIdByNumber = {}
@@ -883,7 +869,7 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
 
   startTime = time.time()
   count=0
-  numbersSeen = set()
+  groupsSeen = set()
   elapsedS = 0
   smsPerSec = 0
   statusMsg = ""
@@ -945,9 +931,25 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
       sys.stdout.write("\r" + statusMsg)
       sys.stdout.flush()
 
+  print "\n\nfinished SMS:\n" + statusMsg
+
+  if not NO_COMMIT:
+    conn.commit()
+    print "changes saved to " + db_file
+
+  c.close()
+  conn.close()
+
+def importCallsToDb(calls, db_file):
+  conn = sqlite3.connect(db_file)
+  c = conn.cursor()
+
+  for call in calls:
+    call.number = cleanNumber(call.number)
+
   startTime = time.time()
   count=0
-  groupsSeen = set()
+  numbersSeen = set()
   elapsedS = 0
   callsPerSec = 0
   statusMsg = ""
@@ -1018,6 +1020,63 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
       sys.stdout.write("\r" + statusMsg)
       sys.stdout.flush()
 
+  print "\n\nfinished calls:\n" + statusMsg
+
+  if not NO_COMMIT:
+    conn.commit()
+    print "changes saved to " + db_file
+
+  c.close()
+  conn.close()
+
+def importMMSToDb(mmsMessages, db_file):
+  conn = sqlite3.connect(db_file)
+  c = conn.cursor()
+
+  for mms in mmsMessages:
+    mms.from_number = cleanNumber(mms.from_number)
+    toNumbers = []
+    for toNumber in mms.to_numbers:
+      toNumbers.append(cleanNumber(toNumber))
+    mms.to_numbers = toNumbers
+
+  allNumbers = set()
+  for mms in mmsMessages:
+    allNumbers.add(mms.from_number)
+    for toNumber in mms.to_numbers:
+      allNumbers.add(toNumber)
+
+  maxGroupId = 0
+  groupIdByNumber = {}
+  query = c.execute("SELECT id, remoteUids FROM groups;")
+  for row in query:
+    groupId = long(row[0])
+    numbers = row[1]
+
+    if groupId > maxGroupId:
+      maxGroupId = groupId
+
+    if "|" not in numbers:
+      number = numbers
+      number = cleanNumber(number)
+      groupIdByNumber[number] = groupId
+
+  for number in allNumbers:
+    #add new group if necessary
+    if not number in groupIdByNumber:
+      maxGroupId += 1
+      insertRow(c, "groups", { "id": maxGroupId
+                             , "localUid": LOCAL_UID
+                             , "remoteUids": number
+                             , "type": 0
+                             , "chatName": ""
+                             , "lastModified": 0
+                             })
+      groupIdByNumber[number] = maxGroupId
+
+      if VERBOSE:
+        print "added new group: " + str(number) + " => " + str(groupId)
+
   for mms in mmsMessages:
     if len(mms.to_numbers) > 1:
       print "ERROR: group-MMS is not supported on sailfish\n" + str(mms)
@@ -1087,7 +1146,7 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
                                    })
       contentId += 1
 
-  print "\n\nfinished:\n" + statusMsg
+  print "\n\nfinished MMS\n"
 
   if not NO_COMMIT:
     conn.commit()
