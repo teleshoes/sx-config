@@ -127,26 +127,31 @@ sub main(@){
   gitCommit $CONTACTS_REPO, "contacts.vcf", "diff", "automatic commit";
 
   #########################################################
-  # parse SMS+MMS into repo
+  # parse SMS+CALLS+MMS into repo
   #########################################################
-  print "\n\n=====PARSE SMS+MMS\n";
+  print "\n\n=====PARSE SMS+CALLS+MMS\n";
   my $myNumber = `cat $MY_NUMBER_FILE`;
   chomp $myNumber;
   die "missing/malformed $MY_NUMBER_FILE\n" if $myNumber !~ /^\+?\d+$/;
 
   my $smsFile = "$SMS_RAW_DIR/sms-$now.sms";
-  run ($CMD_SMS_DB_IMPORTER,
-    "--sms-csv-file", $smsFile,
-    "--db-file", $commhistoryDb,
-    "--mms-msg-dir", $MMS_MSG_REPO,
-    "--mms-parts-dir", $MMS_PARTS_REPO,
-    "--from-number", $myNumber,
-    "export-from-db",
-  );
-  die "error running $CMD_SMS_DB_IMPORTER\n" if $? != 0;
+  my $callFile = "$CALL_RAW_DIR/call-$now.call";
+
+  run $CMD_SMS_DB_IMPORTER, "export-from-db-sms",
+    $commhistoryDb, $smsFile;
+  run $CMD_SMS_DB_IMPORTER, "export-from-db-calls",
+    $commhistoryDb, $callFile;
+  run $CMD_SMS_DB_IMPORTER, "export-from-db-mms",
+    $commhistoryDb, $MMS_MSG_REPO, $MMS_PARTS_REPO, "--from-number", $myNumber;
+
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
+  run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
+
   print "SMS REPO\n";
   gitCommit $SMS_REPO, "*.sms", "diff", "automatic commit";
+  print "===\n";
+  print "CALL REPO\n";
+  gitCommit $CALL_REPO, "*.call", "diff", "automatic commit";
   print "===\n";
   print "MMS REPO\n";
   gitCommit $MMS_MSG_REPO, "-A", "diff", "automatic commit";
@@ -167,17 +172,6 @@ sub main(@){
       die "invalid MMS dir name: $dirName\n";
     }
   }
-
-  #########################################################
-  # parse calls into repo
-  #########################################################
-  print "\n\n=====PARSE CALLS\n";
-  my $callFile = "$CALL_RAW_DIR/call-$now.call";
-
-  run "$CMD_CALL_DB_EXTRACT $commhistoryDb > $callFile";
-  die "error running $CMD_CALL_DB_EXTRACT\n" if $? != 0;
-  run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
-  gitCommit $CALL_REPO, "*.call", "diff", "automatic commit";
 
   #########################################################
   # by-contact symlinks
