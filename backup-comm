@@ -97,7 +97,7 @@ sub main(@){
     sqlite3 $tmpDir/contacts-priv/contacts.db 'PRAGMA wal_checkpoint' && \
     test ! -f $tmpDir/contacts-priv/contacts.db-wal && \
     \
-    echo success || echo FAILED TO PROCESS SQLITE DBS
+    echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
   run "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
