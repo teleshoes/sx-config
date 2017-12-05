@@ -129,7 +129,7 @@ sub main(@){
 
   run "rm", "-f", "$DB_REPO/contacts-priv-db";
   run "$CMD_SQLITE_DUMP", $contactsPrivDb, "$DB_REPO/contacts-priv-db";
-  gitCommit $DB_REPO, "contacts-db", "nodiff", "contacts db automatic commit";
+  gitCommit $DB_REPO, "contacts-priv-db", "nodiff", "contacts priv db automatic commit";
 
   gitCommit $MMS_PARTS_REPO, "-A", "nodiff", "automatic commit";
 
