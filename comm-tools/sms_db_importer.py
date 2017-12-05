@@ -174,6 +174,7 @@ def main():
       ignoredNTFCount = 0
       ignoredGroupCount = 0
       ignoredMissingToCount = 0
+      ignoredMissingFromCount = 0
       okMessages = []
       for mms in mmsMessages:
         if mms.direction == MMS_DIR.NTF:
@@ -182,6 +183,8 @@ def main():
           ignoredGroupCount += 1
         elif len(mms.to_numbers) < 1:
           ignoredMissingToCount += 1
+        elif mms.from_number == None or mms.from_number == "":
+          ignoredMissingFromCount += 1
         else:
           okMessages.append(mms)
       mmsMessages = okMessages
@@ -190,6 +193,7 @@ def main():
       print " %5d NTF MMS" % ignoredNTFCount
       print " %5d group MMS (unsupported on sailfish)" % ignoredGroupCount
       print " %5d MMS missing 'to' number\n" % ignoredMissingToCount
+      print " %5d MMS missing 'from' number\n" % ignoredMissingFromCount
 
       print "sorting all {0} MMS messages by date".format(len(mmsMessages))
       mmsMessages = sorted(mmsMessages, key=lambda mms: mms.date_millis)
