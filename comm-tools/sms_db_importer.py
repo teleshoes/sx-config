@@ -172,16 +172,20 @@ def main():
       mmsMessages = readMMSFromMsgDir(args.mms_msg_dir, args.mms_parts_dir)
 
       ignoredNTFCount = 0
+      ignoredGroupCount = 0
       okMessages = []
       for mms in mmsMessages:
         if mms.direction == MMS_DIR.NTF:
           ignoredNTFCount += 1
+        elif len(mms.to_numbers) > 1:
+          ignoredGroupCount += 1
         else:
           okMessages.append(mms)
       mmsMessages = okMessages
 
       print "ignoring:"
       print " %5d NTF MMS" % ignoredNTFCount
+      print " %5d group MMS (unsupported on sailfish)" % ignoredGroupCount
 
       print "sorting all {0} MMS messages by date".format(len(mmsMessages))
       mmsMessages = sorted(mmsMessages, key=lambda mms: mms.date_millis)
@@ -866,6 +870,9 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
         print "added new group: " + str(number) + " => " + str(groupId)
 
   for mms in mmsMessages:
+    if len(mms.to_numbers) > 1:
+      print "ERROR: group-MMS is not supported on sailfish\n" + str(mms)
+      quit(1)
     to_number = mms.to_numbers[0]
     groupId = groupIdByNumber[to_number]
 
