@@ -18,26 +18,32 @@ NO_COMMIT = False
 REMOTE_MMS_PARTS_DIR = "/home/nemo/.local/share/commhistory/data"
 LOCAL_UID = "/org/freedesktop/Telepathy/Account/ring/tel/ril_0"
 
-argHelp = { 'COMMAND':          ( 'import-to-db\n'
-                                + '  extract SMS from <SMS_CSV_FILE>\n'
-                                + '  and output to <DB_FILE>\n'
-                                + '\n'
-                                + 'export-from-db\n'
-                                + '  extract SMS/MMS from <DB_FILE> and <MMS_PARTS_DIR>\n'
-                                + '  and output to <SMS_CSV_FILE> and <MMS_MSG_DIR>\n'
-                                )
-          , '--sms-csv-file':   ( 'SMS CSV file to import-from/export-to')
-          , '--call-csv-file':  ( 'calls CSV file to import-from/export-to')
-          , '--db-file':        ( 'pre-existing commhistory.db file to import-to/export-from')
-          , '--mms-parts-dir':  ( 'local copy of app_parts dir to import-to/expot-from\n'
-                                + '  ' + REMOTE_MMS_PARTS_DIR + '\n'
-                                )
-          , '--mms-msg-dir':    ( 'directory of MMS messages to import-from/export-to')
-          , '--from-number':    ( 'default phone number for "from" in outgoing MMS')
-          , '--verbose':        ( 'verbose output, slower')
-          , '--no-commit':      ( 'do not actually save changes, no SQL commit')
-          , '--limit':          ( 'limit to the most recent <LIMIT> messages')
-          }
+usage = """Export/Import SMS, call log, and MMS from commhistory database
+Usage:
+  {appName} export-from-db-sms DB_FILE CSV_FILE [OPTS]
+    export SMS messages from DB_FILE to CSV_FILE
+
+  {appName} export-from-db-calls DB_FILE CSV_FILE [OPTS]
+    export call log entries from DB_FILE to CSV_FILE
+
+  {appName} export-from-db-mms DB_FILE MMS_MSG_DIR MMS_PARTS_DIR [OPTS]
+    export MMS messages from DB_FILE to MMS_MSG_DIR, using att files in MMS_PARTS_DIR
+
+  {appName} import-to-db-sms DB_FILE CSV_FILE [OPTS]
+    insert SMS from CSV_FILE into DB_FILE
+
+  {appName} import-to-db-calls DB_FILE CSV_FILE [OPTS]
+    insert call log entries from CSV_FILE into DB_FILE
+
+  {appName} import-to-db-mms DB_FILE MMS_MSG_DIR MMS_PARTS_DIR [OPTS]
+    insert MMS from MMS_MSG_DIR into DB_FILE, and ensure att files in MMS_PARTS_DIR
+
+  OPTS:
+    --from-number     default phone number for "from" in outgoing MMS
+    --limit           only import LIMIT entries into DB_FILE
+    --verbose         verbose output (slower)
+    --no-commit       do not commit changes when inserting into DB_FILE
+""".format(appName=os.path.basename(__file__))
 
 SMS_DIR = Enum('SMS_DIR', ['OUT', 'INC'])
 MMS_DIR = Enum('MMS_DIR', ['OUT', 'INC', 'NTF'])
@@ -50,28 +56,33 @@ MMS_ATT_FILENAME_PREFIX_REGEX = re.compile(''
    + r'[0-9a-f]{32}_'
    )
 
-class UsageFormatter(argparse.HelpFormatter):
-  def __init__(self, prog):
-    argparse.HelpFormatter.__init__(self, prog)
-    self._width = 100
-    self._max_help_position = 40
-  def _split_lines(self, text, width):
-    return text.splitlines()
+def addSubparser(subparsers, cmd, args):
+  p = subparsers.add_parser(cmd)
+  for arg in args:
+    p.add_argument(arg)
+  addOptArgs(p)
+
+def addOptArgs(parser):
+  parser.add_argument('--from-number',),
+  parser.add_argument('--verbose', '-v', action='store_true')
+  parser.add_argument('--no-commit', '-n', action='store_true')
+  parser.add_argument('--limit', type=int, default=0)
+
+class MyArgumentParser(argparse.ArgumentParser):
+  def error(self, message):
+    print usage + "\nERROR: " + message
+    quit(1)
 
 def main():
-  parser = argparse.ArgumentParser(
-    description='Import/export messages to/from android MMS/SMS database file.',
-    formatter_class=UsageFormatter)
-  parser.add_argument('COMMAND',           help=argHelp['COMMAND'])
-  parser.add_argument('--db-file',         help=argHelp['--db-file'])
-  parser.add_argument('--sms-csv-file',    help=argHelp['--sms-csv-file'])
-  parser.add_argument('--call-csv-file',   help=argHelp['--call-csv-file'])
-  parser.add_argument('--mms-parts-dir',   help=argHelp['--mms-parts-dir'])
-  parser.add_argument('--mms-msg-dir',     help=argHelp['--mms-msg-dir'])
-  parser.add_argument('--from-number',     help=argHelp['--from-number']),
-  parser.add_argument('--verbose', '-v',   help=argHelp['--verbose'],       action='store_true')
-  parser.add_argument('--no-commit', '-n', help=argHelp['--no-commit'],     action='store_true')
-  parser.add_argument('--limit',           help=argHelp['--limit'],         type=int, default=0)
+  parser = MyArgumentParser(add_help=False)
+  addOptArgs(parser)
+  subparsers = parser.add_subparsers(dest='COMMAND')
+  addSubparser(subparsers, 'export-from-db-sms', ['DB_FILE', 'CSV_FILE'])
+  addSubparser(subparsers, 'export-from-db-calls', ['DB_FILE', 'CSV_FILE'])
+  addSubparser(subparsers, 'export-from-db-mms', ['DB_FILE', 'MMS_MSG_DIR', 'MMS_PARTS_DIR'])
+  addSubparser(subparsers, 'import-to-db-sms', ['DB_FILE', 'CSV_FILE'])
+  addSubparser(subparsers, 'import-to-db-calls', ['DB_FILE', 'CSV_FILE'])
+  addSubparser(subparsers, 'import-to-db-mms', ['DB_FILE', 'MMS_MSG_DIR', 'MMS_PARTS_DIR'])
   args = parser.parse_args()
 
   global VERBOSE, NO_COMMIT, FROM_NUMBER
@@ -79,40 +90,37 @@ def main():
   NO_COMMIT = args.no_commit
   FROM_NUMBER = args.from_number
 
-  if args.db_file == None:
-    parser.print_help()
-    print "\n--db-file is required"
+  if not os.path.isfile(args.DB_FILE):
+    print "ERROR: commhistory db file " + args.DB_FILE + " does not exist"
     quit(1)
 
-  if args.COMMAND == "export-from-db" and args.sms_csv_file != None:
-    texts = readTextsFromCommHistory(args.db_file)
-    print "read " + str(len(texts)) + " SMS messages from " + args.db_file
-    f = codecs.open(args.sms_csv_file, 'w', 'utf-8')
+  if args.COMMAND == "export-from-db-sms":
+    texts = readTextsFromCommHistory(args.DB_FILE)
+    print "read " + str(len(texts)) + " SMS messages from " + args.DB_FILE
+    f = codecs.open(args.CSV_FILE, 'w', 'utf-8')
     for txt in texts:
       f.write(txt.toCsv() + "\n")
     f.close()
-  elif args.COMMAND == "export-from-db" and args.call_csv_file != None:
-    calls = readCallsFromCommHistory(args.db_file)
-    print "read " + str(len(calls)) + " calls from " + args.db_file
-    f = codecs.open(args.call_csv_file, 'w', 'utf-8')
+  elif args.COMMAND == "export-from-db-calls":
+    calls = readCallsFromCommHistory(args.DB_FILE)
+    print "read " + str(len(calls)) + " calls from " + args.DB_FILE
+    f = codecs.open(args.CSV_FILE, 'w', 'utf-8')
     for call in calls:
       f.write(call.toCsv() + "\n")
     f.close()
-
-  elif args.COMMAND == "export-from-db" and args.mms_msg_dir != None:
-    if not os.path.isdir(args.mms_msg_dir):
+  elif args.COMMAND == "export-from-db-mms":
+    if not os.path.isdir(args.MMS_MSG_DIR):
       print "ERROR: no <MMS_MSG_DIR> for writing to"
       quit(1)
-    elif args.mms_parts_dir == None or not os.path.isdir(args.mms_parts_dir):
+    elif not os.path.isdir(args.MMS_PARTS_DIR):
       print "ERROR: no <MMS_PARTS_DIR> to read attachments from"
       quit(1)
-
-    mmsMessages = readMMSFromCommHistory(args.db_file, args.mms_parts_dir)
-    print "read " + str(len(mmsMessages)) + " MMS messages from " + args.db_file
+    mmsMessages = readMMSFromCommHistory(args.DB_FILE, args.MMS_PARTS_DIR)
+    print "read " + str(len(mmsMessages)) + " MMS messages from " + args.DB_FILE
     attFileCount = 0
     for msg in mmsMessages:
       dirName = msg.getMsgDirName()
-      msgDir = args.mms_msg_dir + "/" + dirName
+      msgDir = args.MMS_MSG_DIR + "/" + dirName
       if not os.path.isdir(msgDir):
         os.mkdir(msgDir)
       infoFile = codecs.open(msgDir + "/" + "info", 'w', 'utf-8')
@@ -125,15 +133,11 @@ def main():
           print "failed to copy " + str(srcFile)
           quit(1)
         attFileCount += 1
-    print "copied " + str(attFileCount) + " files from " + args.mms_parts_dir
-  elif args.COMMAND == "import-to-db" and args.sms_csv_file != None:
-    if not os.path.isfile(args.sms_csv_file):
-      print "ERROR: no <SMS_CSV_FILE> for reading from"
-      quit(1)
-
+    print "copied " + str(attFileCount) + " files from " + args.MMS_PARTS_DIR
+  elif args.COMMAND == "import-to-db-sms":
     print "Reading texts from CSV file:"
     starttime = time.time()
-    texts = readTextsFromCSV(args.sms_csv_file)
+    texts = readTextsFromCSV(args.CSV_FILE)
     print "finished in {0} seconds, {1} texts read".format( (time.time()-starttime), len(texts) )
 
     ignoredMissingNumberCount = 0
@@ -159,15 +163,12 @@ def main():
       print "saving only the last {0} texts".format(args.limit)
       texts = texts[ (-args.limit) : ]
 
-    print "Saving texts into commhistory DB: " + str(args.db_file)
-    importSMSToDb(texts, args.db_file)
-  elif args.COMMAND == "import-to-db" and args.call_csv_file != None:
-    if not os.path.isfile(args.call_csv_file):
-      print "ERROR: no <CALL_CSV_FILE> for reading from"
-
+    print "Saving SMS into commhistory db:" + str(args.DB_FILE)
+    importSMSToDb(texts, args.DB_FILE)
+  elif args.COMMAND == "import-to-db-calls":
     print "Reading calls from CSV file:"
     starttime = time.time()
-    calls = readCallsFromCSV(args.call_csv_file)
+    calls = readCallsFromCSV(args.CSV_FILE)
     print "finished in {0} seconds, {1} calls read".format( (time.time()-starttime), len(calls) )
 
     print "sorting all {0} calls by date".format(len(calls))
@@ -177,18 +178,17 @@ def main():
       print "saving only the last {0} calls".format(args.limit)
       calls = calls[ (-args.limit) : ]
 
-    print "Saving calls into commhistory DB: " + str(args.db_file)
-    importCallsToDb(calls, args.db_file)
-  elif args.COMMAND == "import-to-db" and args.mms_msg_dir != None:
-    if not os.path.isdir(args.mms_msg_dir):
-      print "ERROR: no <MMS_MSG_DIR> for reading from"
+    print "Saving calls into commhistory db:" + str(args.DB_FILE)
+    importCallsToDb(calls, args.DB_FILE)
+  elif args.COMMAND == "import-to-db-mms":
+    if not os.path.isdir(args.MMS_MSG_DIR):
+      print "invalid MMS_MSG_DIR: " + args.MMS_MSG_DIR
       quit(1)
-    elif args.mms_parts_dir == None or not os.path.isdir(args.mms_parts_dir):
-      print "ERROR: no <MMS_PARTS_DIR> to read attachments from"
+    elif not os.path.isdir(args.MMS_PARTS_DIR):
+      print "invalid MMS_PARTS_DIR: " + args.MMS_PARTS_DIR
       quit(1)
-
-    print "reading mms from " + args.mms_msg_dir
-    mmsMessages = readMMSFromMsgDir(args.mms_msg_dir, args.mms_parts_dir)
+    print "reading mms from " + args.MMS_MSG_DIR
+    mmsMessages = readMMSFromMsgDir(args.MMS_MSG_DIR, args.MMS_PARTS_DIR)
 
     ignoredNTFCount = 0
     ignoredGroupCount = 0
@@ -224,7 +224,7 @@ def main():
     print "checking MMS message consistency\n"
     for mms in mmsMessages:
       dirName = mms.getMsgDirName()
-      msgDir = args.mms_msg_dir + "/" + dirName
+      msgDir = args.MMS_MSG_DIR + "/" + dirName
       if not os.path.isdir(msgDir):
         print "error reading MMS(" + str(msgDir) + ":\n" + str(mms)
         quit(1)
@@ -239,7 +239,7 @@ def main():
 
     print "getting sha256 checksums of all att files in parts dir"
     partsDirFilesBySHA256ByFilename = {}
-    for root, dirnames, filenames in os.walk(args.mms_parts_dir):
+    for root, dirnames, filenames in os.walk(args.MMS_PARTS_DIR):
       if ".git" not in root:
         for filename in filenames:
           f = os.path.join(root, filename)
@@ -264,19 +264,16 @@ def main():
           quit(1)
 
         destFile = sha256Files[filename]
-        remoteFile = re.sub('^' + args.mms_parts_dir + '/?', REMOTE_MMS_PARTS_DIR + '/', destFile)
+        remoteFile = re.sub('^' + args.MMS_PARTS_DIR + '/?', REMOTE_MMS_PARTS_DIR + '/', destFile)
 
         mms.attFiles[filename] = destFile
         mms.attFilesRemotePaths[filename] = remoteFile
-
     print "read " + str(len(mmsMessages)) + " MMS messages"
 
-    print "Saving MMS into commhistory DB: " + str(args.db_file)
-    importMMSToDb(mmsMessages, args.db_file)
+    print "Saving MMS into commhistory db:" + str(args.DB_FILE)
+    importMMSToDb(mmsMessages, args.DB_FILE)
   else:
-    print "must specify either 'export-from-db' or 'import-to-db',"
-    print "  and at least one of:"
-    print "  --sms-csv-file --call-csv-file --mms-msg-dir"
+    print "invalid <COMMAND>: " + args.COMMAND
     quit(1)
 
 class Text:
