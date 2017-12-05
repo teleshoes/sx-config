@@ -42,7 +42,6 @@ my $CMD_SQLITE_DUMP = "$COMM_TOOLS_DIR/sqlite-dump.pl";
 my $CMD_ADD_COMM_TO_REPO = "$COMM_TOOLS_DIR/add-comm-to-repo.pl";
 my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
 my $CMD_CALL_DB_EXTRACT = "$COMM_TOOLS_DIR/call-db-extract.pl";
-my $CMD_CONTACTS_DB_EXTRACT = "$COMM_TOOLS_DIR/contacts-db-extract";
 my $CMD_CONTACTS_SORT = "$COMM_TOOLS_DIR/contacts-sort.pl";
 my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
@@ -72,26 +71,28 @@ sub main(@){
   # copy raw data (dbs, mms files) phone => computer
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
-  run "ssh", "$user\@$host", "
+  run "ssh", "root\@$host", "
     echo preparing sqlite DBs && \
-    mkdir $tmpDir && \
     \
     cd $COMMHISTORY_DB_REMOTE_DIR && \
-    cp -ar commhistory.db* $tmpDir/ && \
-    test -f $tmpDir/commhistory.db && \
-    sqlite3 $tmpDir/commhistory.db 'PRAGMA wal_checkpoint' && \
-    test ! -f $tmpDir/commhistory.db-wal && \
+    mkdir -p $tmpDir/commhistory/ && \
+    cp -ar commhistory.db* $tmpDir/commhistory/ && \
+    test -f $tmpDir/commhistory/commhistory.db && \
+    sqlite3 $tmpDir/commhistory/commhistory.db 'PRAGMA wal_checkpoint' && \
+    test ! -f $tmpDir/commhistory/commhistory.db-wal && \
     \
     cd $CONTACTS_DB_REMOTE_DIR && \
-    cp -ar contacts.db* $tmpDir/ && \
-    test -f $tmpDir/contacts.db && \
-    sqlite3 $tmpDir/contacts.db 'PRAGMA wal_checkpoint' && \
-    test ! -f $tmpDir/contacts.db-wal && \
+    mkdir -p $tmpDir/contacts/ && \
+    cp -ar contacts.db* $tmpDir/contacts/ && \
+    test -f $tmpDir/contacts/contacts.db && \
+    sqlite3 $tmpDir/contacts/contacts.db 'PRAGMA wal_checkpoint' && \
+    test ! -f $tmpDir/contacts/contacts.db-wal && \
+    \
     echo success || echo FAILED TO PROCESS SQLITE DBS
   ";
 
-  run "scp", "$user\@$host:$tmpDir/commhistory.db", $commhistoryDb;
-  run "scp", "$user\@$host:$tmpDir/contacts.db", $contactsDb;
+  run "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
+  run "scp", "$user\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
   run "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
   run "ssh", "root\@$host", "vcardconverter -e $contactsTmpVcf";
