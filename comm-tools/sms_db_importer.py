@@ -130,13 +130,13 @@ def main():
       print "Reading texts from CSV file:"
       starttime = time.time()
       texts = readTextsFromCSV(args.sms_csv_file)
-      print "finished in {0} seconds, {1} messages read".format( (time.time()-starttime), len(texts) )
+      print "finished in {0} seconds, {1} texts read".format( (time.time()-starttime), len(texts) )
 
       print "sorting all {0} texts by date".format(len(texts))
       texts = sorted(texts, key=lambda text: text.date_millis)
 
       if args.limit > 0:
-        print "saving only the last {0} messages".format( args.limit )
+        print "saving only the last {0} texts".format(args.limit)
         texts = texts[ (-args.limit) : ]
 
     calls = []
@@ -146,13 +146,13 @@ def main():
       print "Reading calls from CSV file:"
       starttime = time.time()
       calls = readCallsFromCSV(args.call_csv_file)
-      print "finished in {0} seconds, {1} messages read".format( (time.time()-starttime), len(calls) )
+      print "finished in {0} seconds, {1} calls read".format( (time.time()-starttime), len(calls) )
 
       print "sorting all {0} calls by date".format(len(calls))
       calls = sorted(calls, key=lambda call: call.date_millis)
 
       if args.limit > 0:
-        print "saving only the last {0} messages".format( args.limit )
+        print "saving only the last {0} calls".format(args.limit)
         calls = calls[ (-args.limit) : ]
 
     mmsMessages = []
@@ -176,8 +176,7 @@ def main():
         newChecksum = mms.checksum
 
         if oldChecksum != newChecksum:
-          print "mismatched checksum for MMS message"
-          print mms
+          print "mismatched checksum for MMS message\n" + str(mms)
           quit(1)
 
         attFilePrefix = dirName
