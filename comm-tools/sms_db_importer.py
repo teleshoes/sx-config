@@ -881,75 +881,6 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
       if VERBOSE:
         print "added new group: " + str(number) + " => " + str(groupId)
 
-  for mms in mmsMessages:
-    if len(mms.to_numbers) > 1:
-      print "ERROR: group-MMS is not supported on sailfish\n" + str(mms)
-      quit(1)
-    if len(mms.to_numbers) < 1:
-      print "ERROR: mms missing 'to' number\n" + str(mms)
-      quit(1)
-
-    to_number = mms.to_numbers[0]
-    groupId = groupIdByNumber[to_number]
-
-    if mms.isDirection(MMS_DIR.OUT):
-      dir_type = 2
-      status_type = 2
-    elif mms.isDirection(MMS_DIR.INC):
-      dir_type = 1
-      status_type = -1
-    else:
-      print "ERROR: unsupported MMS dir type\n" + str(mms)
-
-    #add message to events table
-    insertRow(c, "events", { "type":                  6
-                           , "startTime":             int(mms.date_sent_millis/1000)
-                           , "endTime":               int(mms.date_millis/1000)
-                           , "direction":             dir_type
-                           , "isDraft":               0
-                           , "isRead":                1
-                           , "isMissedCall":          0
-                           , "isEmergencyCall":       0
-                           , "status":                status_type
-                           , "bytesReceived":         0
-                           , "localUid":              LOCAL_UID
-                           , "remoteUid":             mms.from_number
-                           , "parentId":              ""
-                           , "subject":               mms.subject
-                           , "freeText":              mms.body
-                           , "groupId":               int(groupId)
-                           , "messageToken":          ""
-                           , "lastModified":          int(mms.date_millis/1000)
-                           , "vCardFileName":         ""
-                           , "vCardLabel":            ""
-                           , "isDeleted":             ""
-                           , "reportDelivery":        0
-                           , "validityPeriod":        0
-                           , "contentLocation":       ""
-                           , "messageParts":          ""
-                           , "headers":               "x-mms-to" + to_number
-                           , "readStatus":            0
-                           , "reportRead":            0
-                           , "reportedReadRequested": 0
-                           , "mmsId":                 mms.checksum
-                           , "isAction":              0
-                           })
-    eventId = c.lastrowid
-
-    contentId = 1
-    for attName in sorted(mms.attFiles.keys()):
-      localFilepath = mms.attFiles[attName]
-      remoteFilepath = mms.attFilesRemotePaths[attName]
-
-      contentType = guessContentType(attName, localFilepath)
-
-      insertRow(c, "messageParts", { "eventId":     eventId
-                                   , "contentId":   contentId
-                                   , "contentType": contentType
-                                   , "path":        remoteFilepath
-                                   })
-      contentId += 1
-
   startTime = time.time()
   count=0
   numbersSeen = set()
@@ -1086,6 +1017,75 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
     if count % 100 == 0:
       sys.stdout.write("\r" + statusMsg)
       sys.stdout.flush()
+
+  for mms in mmsMessages:
+    if len(mms.to_numbers) > 1:
+      print "ERROR: group-MMS is not supported on sailfish\n" + str(mms)
+      quit(1)
+    if len(mms.to_numbers) < 1:
+      print "ERROR: mms missing 'to' number\n" + str(mms)
+      quit(1)
+
+    to_number = mms.to_numbers[0]
+    groupId = groupIdByNumber[to_number]
+
+    if mms.isDirection(MMS_DIR.OUT):
+      dir_type = 2
+      status_type = 2
+    elif mms.isDirection(MMS_DIR.INC):
+      dir_type = 1
+      status_type = -1
+    else:
+      print "ERROR: unsupported MMS dir type\n" + str(mms)
+
+    #add message to events table
+    insertRow(c, "events", { "type":                  6
+                           , "startTime":             int(mms.date_sent_millis/1000)
+                           , "endTime":               int(mms.date_millis/1000)
+                           , "direction":             dir_type
+                           , "isDraft":               0
+                           , "isRead":                1
+                           , "isMissedCall":          0
+                           , "isEmergencyCall":       0
+                           , "status":                status_type
+                           , "bytesReceived":         0
+                           , "localUid":              LOCAL_UID
+                           , "remoteUid":             mms.from_number
+                           , "parentId":              ""
+                           , "subject":               mms.subject
+                           , "freeText":              mms.body
+                           , "groupId":               int(groupId)
+                           , "messageToken":          ""
+                           , "lastModified":          int(mms.date_millis/1000)
+                           , "vCardFileName":         ""
+                           , "vCardLabel":            ""
+                           , "isDeleted":             ""
+                           , "reportDelivery":        0
+                           , "validityPeriod":        0
+                           , "contentLocation":       ""
+                           , "messageParts":          ""
+                           , "headers":               "x-mms-to" + to_number
+                           , "readStatus":            0
+                           , "reportRead":            0
+                           , "reportedReadRequested": 0
+                           , "mmsId":                 mms.checksum
+                           , "isAction":              0
+                           })
+    eventId = c.lastrowid
+
+    contentId = 1
+    for attName in sorted(mms.attFiles.keys()):
+      localFilepath = mms.attFiles[attName]
+      remoteFilepath = mms.attFilesRemotePaths[attName]
+
+      contentType = guessContentType(attName, localFilepath)
+
+      insertRow(c, "messageParts", { "eventId":     eventId
+                                   , "contentId":   contentId
+                                   , "contentType": contentType
+                                   , "path":        remoteFilepath
+                                   })
+      contentId += 1
 
   print "\n\nfinished:\n" + statusMsg
 
