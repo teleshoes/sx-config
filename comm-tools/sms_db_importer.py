@@ -143,7 +143,7 @@ def main():
       print "saving only the last {0} texts".format(args.limit)
       texts = texts[ (-args.limit) : ]
 
-    print "Saving calls into commhistory DB: " + str(args.db_file)
+    print "Saving texts into commhistory DB: " + str(args.db_file)
     importMessagesToDb(texts, [], [], args.db_file)
   elif args.COMMAND == "import-to-db" and args.call_csv_file != None:
     if not os.path.isfile(args.call_csv_file):
