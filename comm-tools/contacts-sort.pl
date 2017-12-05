@@ -11,10 +11,15 @@ sub main(@){
   my @contacts;
   my @lines = `cat contacts.vcf`;
 
+  my @newLines;
   for my $line(@lines){
-    $line =~ s/^(PHOTO);(ENCODING=b);(TYPE=JPEG):/$1;$3;$2:/;
-    $line =~ s/[\r\n]*$/\n/;
+    my $newLine = $line;
+    $newLine =~ s/^(PHOTO);(ENCODING=b);(TYPE=JPEG):/$1;$3;$2:/;
+    $newLine =~ s/[\r\n]*$/\n/;
+    next if $newLine =~ /^REV:\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ$/;
+    push @newLines, $newLine;
   }
+  @lines = @newLines;
 
   my $cur = undef;
   for my $line(@lines){
