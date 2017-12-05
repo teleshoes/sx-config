@@ -66,8 +66,8 @@ def main():
   parser.add_argument('--db-file',         help=argHelp['--db-file'])
   parser.add_argument('--sms-csv-file',    help=argHelp['--sms-csv-file'])
   parser.add_argument('--call-csv-file',   help=argHelp['--call-csv-file'])
-  parser.add_argument('--mms-parts-dir',   help=argHelp['--mms-parts-dir'], default="./app_parts")
-  parser.add_argument('--mms-msg-dir',     help=argHelp['--mms-msg-dir'],   default="./mms_messages")
+  parser.add_argument('--mms-parts-dir',   help=argHelp['--mms-parts-dir'])
+  parser.add_argument('--mms-msg-dir',     help=argHelp['--mms-msg-dir'])
   parser.add_argument('--from-number',     help=argHelp['--from-number']),
   parser.add_argument('--verbose', '-v',   help=argHelp['--verbose'],       action='store_true')
   parser.add_argument('--no-commit', '-n', help=argHelp['--no-commit'],     action='store_true')
