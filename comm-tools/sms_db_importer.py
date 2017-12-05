@@ -171,6 +171,18 @@ def main():
       print "reading mms from " + args.mms_msg_dir
       mmsMessages = readMMSFromMsgDir(args.mms_msg_dir, args.mms_parts_dir)
 
+      ignoredNTFCount = 0
+      okMessages = []
+      for mms in mmsMessages:
+        if mms.direction == MMS_DIR.NTF:
+          ignoredNTFCount += 1
+        else:
+          okMessages.append(mms)
+      mmsMessages = okMessages
+
+      print "ignoring:"
+      print " %5d NTF MMS" % ignoredNTFCount
+
       print "sorting all {0} MMS messages by date".format(len(mmsMessages))
       mmsMessages = sorted(mmsMessages, key=lambda mms: mms.date_millis)
 
