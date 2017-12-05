@@ -911,8 +911,6 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
                            , "reportedReadRequested": 0
                            , "mmsId":                 ""
                            , "isAction":              0
-                           , "hasExtraProperties":    0
-                           , "hasMessageParts":       0
                            })
 
     count += 1
@@ -986,8 +984,6 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
                            , "reportedReadRequested": 0
                            , "mmsId":                 ""
                            , "isAction":              0
-                           , "hasExtraProperties":    0
-                           , "hasMessageParts":       0
                            })
 
     count += 1
