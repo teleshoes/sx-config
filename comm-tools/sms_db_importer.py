@@ -1093,7 +1093,9 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
   conn.close()
 
 def guessContentType(filename, filepath):
-  if re.match(r'^.*\.(jpg|jpeg)$', filename, re.IGNORECASE):
+  if re.match(r'^.*\.(txt)$', filename, re.IGNORECASE):
+    contentType = "text/plain;charset=utf-8"
+  elif re.match(r'^.*\.(jpg|jpeg)$', filename, re.IGNORECASE):
     contentType = "image/jpeg"
   elif re.match(r'^.*\.(png)$', filename, re.IGNORECASE):
     contentType = "image/png"
