@@ -84,179 +84,183 @@ def main():
     print "\n--db-file is required"
     quit(1)
 
-  if args.COMMAND == "export-from-db":
-    if args.sms_csv_file == None:
-      print "skipping SMS export, no <SMS_CSV_FILE> for writing to"
-    else:
-      texts = readTextsFromCommHistory(args.db_file)
-      print "read " + str(len(texts)) + " SMS messages from " + args.db_file
-      f = codecs.open(args.sms_csv_file, 'w', 'utf-8')
-      for txt in texts:
-        f.write(txt.toCsv() + "\n")
-      f.close()
+  if args.COMMAND == "export-from-db" and args.sms_csv_file != None:
+    texts = readTextsFromCommHistory(args.db_file)
+    print "read " + str(len(texts)) + " SMS messages from " + args.db_file
+    f = codecs.open(args.sms_csv_file, 'w', 'utf-8')
+    for txt in texts:
+      f.write(txt.toCsv() + "\n")
+    f.close()
+  elif args.COMMAND == "export-from-db" and args.call_csv_file != None:
+    calls = readCallsFromCommHistory(args.db_file)
+    print "read " + str(len(calls)) + " calls from " + args.db_file
+    f = codecs.open(args.call_csv_file, 'w', 'utf-8')
+    for call in calls:
+      f.write(call.toCsv() + "\n")
+    f.close()
 
-    if args.call_csv_file == None:
-      print "skipping calls export, no <CALL_CSV_FILE> for writing to"
-    else:
-      calls = readCallsFromCommHistory(args.db_file)
-      print "read " + str(len(calls)) + " calls from " + args.db_file
-      f = codecs.open(args.call_csv_file, 'w', 'utf-8')
-      for call in calls:
-        f.write(call.toCsv() + "\n")
-      f.close()
-
+  elif args.COMMAND == "export-from-db" and args.mms_msg_dir != None:
     if not os.path.isdir(args.mms_msg_dir):
-      print "skipping MMS export, no <MMS_MSG_DIR> for writing to"
-    elif not os.path.isdir(args.mms_parts_dir):
-      print "skipping MMS export, no <MMS_PARTS_DIR> to read attachments from"
-    else:
-      mmsMessages = readMMSFromCommHistory(args.db_file, args.mms_parts_dir)
-      print "read " + str(len(mmsMessages)) + " MMS messages from " + args.db_file
-      attFileCount = 0
-      for msg in mmsMessages:
-        dirName = msg.getMsgDirName()
-        msgDir = args.mms_msg_dir + "/" + dirName
-        if not os.path.isdir(msgDir):
-          os.mkdir(msgDir)
-        infoFile = codecs.open(msgDir + "/" + "info", 'w', 'utf-8')
-        infoFile.write(msg.getInfo())
-        infoFile.close()
-        for attName in sorted(msg.attFiles.keys()):
-          srcFile = msg.attFiles[attName]
-          destFile = msgDir + "/" + attName
-          if 0 != os.system("cp -ar --reflink '" + srcFile + "' '" + destFile + "'"):
-            print "failed to copy " + str(srcFile)
-            quit(1)
-          attFileCount += 1
-      print "copied " + str(attFileCount) + " files from " + args.mms_parts_dir
-  elif args.COMMAND == "import-to-db":
-    texts = []
-    if args.sms_csv_file == None or not os.path.isfile(args.sms_csv_file):
-      print "skipping SMS import, no <SMS_CSV_FILE> for reading from"
-    else:
-      print "Reading texts from CSV file:"
-      starttime = time.time()
-      texts = readTextsFromCSV(args.sms_csv_file)
-      print "finished in {0} seconds, {1} texts read".format( (time.time()-starttime), len(texts) )
+      print "ERROR: no <MMS_MSG_DIR> for writing to"
+      quit(1)
+    elif args.mms_parts_dir == None or not os.path.isdir(args.mms_parts_dir):
+      print "ERROR: no <MMS_PARTS_DIR> to read attachments from"
+      quit(1)
 
-      print "sorting all {0} texts by date".format(len(texts))
-      texts = sorted(texts, key=lambda text: text.date_millis)
+    mmsMessages = readMMSFromCommHistory(args.db_file, args.mms_parts_dir)
+    print "read " + str(len(mmsMessages)) + " MMS messages from " + args.db_file
+    attFileCount = 0
+    for msg in mmsMessages:
+      dirName = msg.getMsgDirName()
+      msgDir = args.mms_msg_dir + "/" + dirName
+      if not os.path.isdir(msgDir):
+        os.mkdir(msgDir)
+      infoFile = codecs.open(msgDir + "/" + "info", 'w', 'utf-8')
+      infoFile.write(msg.getInfo())
+      infoFile.close()
+      for attName in sorted(msg.attFiles.keys()):
+        srcFile = msg.attFiles[attName]
+        destFile = msgDir + "/" + attName
+        if 0 != os.system("cp -ar --reflink '" + srcFile + "' '" + destFile + "'"):
+          print "failed to copy " + str(srcFile)
+          quit(1)
+        attFileCount += 1
+    print "copied " + str(attFileCount) + " files from " + args.mms_parts_dir
+  elif args.COMMAND == "import-to-db" and args.sms_csv_file != None:
+    if not os.path.isfile(args.sms_csv_file):
+      print "ERROR: no <SMS_CSV_FILE> for reading from"
+      quit(1)
 
-      if args.limit > 0:
-        print "saving only the last {0} texts".format(args.limit)
-        texts = texts[ (-args.limit) : ]
+    print "Reading texts from CSV file:"
+    starttime = time.time()
+    texts = readTextsFromCSV(args.sms_csv_file)
+    print "finished in {0} seconds, {1} texts read".format( (time.time()-starttime), len(texts) )
 
-    calls = []
-    if args.call_csv_file == None or not os.path.isfile(args.call_csv_file):
-      print "skipping calls import, no <CALL_CSV_FILE> for reading from"
-    else:
-      print "Reading calls from CSV file:"
-      starttime = time.time()
-      calls = readCallsFromCSV(args.call_csv_file)
-      print "finished in {0} seconds, {1} calls read".format( (time.time()-starttime), len(calls) )
+    print "sorting all {0} texts by date".format(len(texts))
+    texts = sorted(texts, key=lambda text: text.date_millis)
 
-      print "sorting all {0} calls by date".format(len(calls))
-      calls = sorted(calls, key=lambda call: call.date_millis)
+    if args.limit > 0:
+      print "saving only the last {0} texts".format(args.limit)
+      texts = texts[ (-args.limit) : ]
 
-      if args.limit > 0:
-        print "saving only the last {0} calls".format(args.limit)
-        calls = calls[ (-args.limit) : ]
+    print "Saving calls into commhistory DB: " + str(args.db_file)
+    importMessagesToDb(texts, [], [], args.db_file)
+  elif args.COMMAND == "import-to-db" and args.call_csv_file != None:
+    if not os.path.isfile(args.call_csv_file):
+      print "ERROR: no <CALL_CSV_FILE> for reading from"
 
-    mmsMessages = []
+    print "Reading calls from CSV file:"
+    starttime = time.time()
+    calls = readCallsFromCSV(args.call_csv_file)
+    print "finished in {0} seconds, {1} calls read".format( (time.time()-starttime), len(calls) )
+
+    print "sorting all {0} calls by date".format(len(calls))
+    calls = sorted(calls, key=lambda call: call.date_millis)
+
+    if args.limit > 0:
+      print "saving only the last {0} calls".format(args.limit)
+      calls = calls[ (-args.limit) : ]
+
+    print "Saving calls into commhistory DB: " + str(args.db_file)
+    importMessagesToDb([], calls, [], args.db_file)
+  elif args.COMMAND == "import-to-db" and args.mms_msg_dir != None:
     if not os.path.isdir(args.mms_msg_dir):
-      print "skipping MMS import, no <MMS_MSG_DIR> for reading from"
-    elif not os.path.isdir(args.mms_parts_dir):
-      print "skipping MMS import, no <MMS_PARTS_DIR> to write attachments to"
-    else:
-      print "reading mms from " + args.mms_msg_dir
-      mmsMessages = readMMSFromMsgDir(args.mms_msg_dir, args.mms_parts_dir)
+      print "ERROR: no <MMS_MSG_DIR> for reading from"
+      quit(1)
+    elif args.mms_parts_dir == None or not os.path.isdir(args.mms_parts_dir):
+      print "ERROR: no <MMS_PARTS_DIR> to read attachments from"
+      quit(1)
 
-      ignoredNTFCount = 0
-      ignoredGroupCount = 0
-      ignoredMissingToCount = 0
-      ignoredMissingFromCount = 0
-      okMessages = []
-      for mms in mmsMessages:
-        if mms.direction == MMS_DIR.NTF:
-          ignoredNTFCount += 1
-        elif len(mms.to_numbers) > 1:
-          ignoredGroupCount += 1
-        elif len(mms.to_numbers) < 1:
-          ignoredMissingToCount += 1
-        elif mms.from_number == None or mms.from_number == "":
-          ignoredMissingFromCount += 1
-        else:
-          okMessages.append(mms)
-      mmsMessages = okMessages
+    print "reading mms from " + args.mms_msg_dir
+    mmsMessages = readMMSFromMsgDir(args.mms_msg_dir, args.mms_parts_dir)
 
-      print "ignoring:"
-      print " %5d NTF MMS" % ignoredNTFCount
-      print " %5d group MMS (unsupported on sailfish)" % ignoredGroupCount
-      print " %5d MMS missing 'to' number\n" % ignoredMissingToCount
-      print " %5d MMS missing 'from' number\n" % ignoredMissingFromCount
+    ignoredNTFCount = 0
+    ignoredGroupCount = 0
+    ignoredMissingToCount = 0
+    ignoredMissingFromCount = 0
+    okMessages = []
+    for mms in mmsMessages:
+      if mms.direction == MMS_DIR.NTF:
+        ignoredNTFCount += 1
+      elif len(mms.to_numbers) > 1:
+        ignoredGroupCount += 1
+      elif len(mms.to_numbers) < 1:
+        ignoredMissingToCount += 1
+      elif mms.from_number == None or mms.from_number == "":
+        ignoredMissingFromCount += 1
+      else:
+        okMessages.append(mms)
+    mmsMessages = okMessages
 
-      print "sorting all {0} MMS messages by date".format(len(mmsMessages))
-      mmsMessages = sorted(mmsMessages, key=lambda mms: mms.date_millis)
+    print "ignoring:"
+    print " %5d NTF MMS" % ignoredNTFCount
+    print " %5d group MMS (unsupported on sailfish)" % ignoredGroupCount
+    print " %5d MMS missing 'to' number\n" % ignoredMissingToCount
+    print " %5d MMS missing 'from' number\n" % ignoredMissingFromCount
 
-      if args.limit > 0:
-        print "saving only the last {0} MMS messages".format(args.limit)
-        mmsMessages = mmsMessages[ (-args.limit) : ]
+    print "sorting all {0} MMS messages by date".format(len(mmsMessages))
+    mmsMessages = sorted(mmsMessages, key=lambda mms: mms.date_millis)
 
-      print "checking MMS message consistency\n"
-      for mms in mmsMessages:
-        dirName = mms.getMsgDirName()
-        msgDir = args.mms_msg_dir + "/" + dirName
-        if not os.path.isdir(msgDir):
-          print "error reading MMS(" + str(msgDir) + ":\n" + str(mms)
-          quit(1)
+    if args.limit > 0:
+      print "saving only the last {0} MMS messages".format(args.limit)
+      mmsMessages = mmsMessages[ (-args.limit) : ]
 
-        oldChecksum = mms.checksum
-        mms.generateChecksum()
-        newChecksum = mms.checksum
+    print "checking MMS message consistency\n"
+    for mms in mmsMessages:
+      dirName = mms.getMsgDirName()
+      msgDir = args.mms_msg_dir + "/" + dirName
+      if not os.path.isdir(msgDir):
+        print "error reading MMS(" + str(msgDir) + ":\n" + str(mms)
+        quit(1)
 
-        if oldChecksum != newChecksum:
-          print "mismatched checksum for MMS message\n" + str(mms)
-          quit(1)
+      oldChecksum = mms.checksum
+      mms.generateChecksum()
+      newChecksum = mms.checksum
 
-      print "getting sha256 checksums of all att files in parts dir"
-      partsDirFilesBySHA256ByFilename = {}
-      for root, dirnames, filenames in os.walk(args.mms_parts_dir):
-        if ".git" not in root:
-          for filename in filenames:
-            f = os.path.join(root, filename)
-            sha256 = hashlib.sha256(open(f, 'rb').read()).hexdigest()
-            if sha256 not in partsDirFilesBySHA256ByFilename:
-              partsDirFilesBySHA256ByFilename[sha256] = {}
-            unprefixedFilename = MMS_ATT_FILENAME_PREFIX_REGEX.sub('', filename)
-            partsDirFilesBySHA256ByFilename[sha256][unprefixedFilename] = f
+      if oldChecksum != newChecksum:
+        print "mismatched checksum for MMS message\n" + str(mms)
+        quit(1)
 
-      print "matching up att files from msg dir against parts dir by checksum"
-      for mms in mmsMessages:
-        for filename in sorted(list(mms.attFiles.keys())):
-          srcFile = mms.attFiles[filename]
-          sha256 = hashlib.sha256(open(srcFile, 'rb').read()).hexdigest()
-
+    print "getting sha256 checksums of all att files in parts dir"
+    partsDirFilesBySHA256ByFilename = {}
+    for root, dirnames, filenames in os.walk(args.mms_parts_dir):
+      if ".git" not in root:
+        for filename in filenames:
+          f = os.path.join(root, filename)
+          sha256 = hashlib.sha256(open(f, 'rb').read()).hexdigest()
           if sha256 not in partsDirFilesBySHA256ByFilename:
-            print "ERROR: att missing from parts dir for mms\n" + str(mms)
-            quit(1)
-          sha256Files = partsDirFilesBySHA256ByFilename[sha256]
-          if filename not in sha256Files:
-            print "ERROR: att missing from parts dir for mms\n" + str(mms)
-            quit(1)
+            partsDirFilesBySHA256ByFilename[sha256] = {}
+          unprefixedFilename = MMS_ATT_FILENAME_PREFIX_REGEX.sub('', filename)
+          partsDirFilesBySHA256ByFilename[sha256][unprefixedFilename] = f
 
-          destFile = sha256Files[filename]
-          remoteFile = re.sub('^' + args.mms_parts_dir + '/?', REMOTE_MMS_PARTS_DIR + '/', destFile)
+    print "matching up att files from msg dir against parts dir by checksum"
+    for mms in mmsMessages:
+      for filename in sorted(list(mms.attFiles.keys())):
+        srcFile = mms.attFiles[filename]
+        sha256 = hashlib.sha256(open(srcFile, 'rb').read()).hexdigest()
 
-          mms.attFiles[filename] = destFile
-          mms.attFilesRemotePaths[filename] = remoteFile
+        if sha256 not in partsDirFilesBySHA256ByFilename:
+          print "ERROR: att missing from parts dir for mms\n" + str(mms)
+          quit(1)
+        sha256Files = partsDirFilesBySHA256ByFilename[sha256]
+        if filename not in sha256Files:
+          print "ERROR: att missing from parts dir for mms\n" + str(mms)
+          quit(1)
 
-      print "read " + str(len(mmsMessages)) + " MMS messages"
+        destFile = sha256Files[filename]
+        remoteFile = re.sub('^' + args.mms_parts_dir + '/?', REMOTE_MMS_PARTS_DIR + '/', destFile)
 
-    print "Saving changes into Android DB (commhistory.db), "+str(args.db_file)
-    importMessagesToDb(texts, calls, mmsMessages, args.db_file)
+        mms.attFiles[filename] = destFile
+        mms.attFilesRemotePaths[filename] = remoteFile
+
+    print "read " + str(len(mmsMessages)) + " MMS messages"
+
+    print "Saving MMS into commhistory DB: " + str(args.db_file)
+    importMessagesToDb([], [], mmsMessages, args.db_file)
   else:
-    print "invalid <COMMAND>: " + args.COMMAND
-    print "  (expected one of 'export-from-db' or 'import-to-db')"
+    print "must specify either 'export-from-db' or 'import-to-db',"
+    print "  and at least one of:"
+    print "  --sms-csv-file --call-csv-file --mms-msg-dir"
     quit(1)
 
 class Text:
