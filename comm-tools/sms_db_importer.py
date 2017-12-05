@@ -43,6 +43,13 @@ SMS_DIR = Enum('SMS_DIR', ['OUT', 'INC'])
 MMS_DIR = Enum('MMS_DIR', ['OUT', 'INC', 'NTF'])
 CALL_DIR = Enum('CALL_DIR', ['OUT', 'INC', 'MIS', 'REJ'])
 
+MMS_ATT_FILENAME_PREFIX_REGEX = re.compile(''
+   + r'^\d+_'
+   + r'([0-9+]+-)*[0-9+]+_'
+   + r'(' + '|'.join(sorted(MMS_DIR.__members__.keys())) + r')_'
+   + r'[0-9a-f]{32}_'
+   )
+
 class UsageFormatter(argparse.HelpFormatter):
   def __init__(self, prog):
     argparse.HelpFormatter.__init__(self, prog)
@@ -163,7 +170,8 @@ def main():
     else:
       print "reading mms from " + args.mms_msg_dir
       mmsMessages = readMMSFromMsgDir(args.mms_msg_dir, args.mms_parts_dir)
-      attFileCount = 0
+
+      print "checking MMS message consistency\n"
       for mms in mmsMessages:
         dirName = mms.getMsgDirName()
         msgDir = args.mms_msg_dir + "/" + dirName
@@ -179,28 +187,39 @@ def main():
           print "mismatched checksum for MMS message\n" + str(mms)
           quit(1)
 
-        attFilePrefix = dirName
+      print "getting sha256 checksums of all att files in parts dir"
+      partsDirFilesBySHA256ByFilename = {}
+      for root, dirnames, filenames in os.walk(args.mms_parts_dir):
+        if ".git" not in root:
+          for filename in filenames:
+            f = os.path.join(root, filename)
+            sha256 = hashlib.sha256(open(f, 'rb').read()).hexdigest()
+            if sha256 not in partsDirFilesBySHA256ByFilename:
+              partsDirFilesBySHA256ByFilename[sha256] = {}
+            unprefixedFilename = MMS_ATT_FILENAME_PREFIX_REGEX.sub('', filename)
+            partsDirFilesBySHA256ByFilename[sha256][unprefixedFilename] = f
+
+      print "matching up att files from msg dir against parts dir by checksum"
+      for mms in mmsMessages:
         for filename in sorted(list(mms.attFiles.keys())):
           srcFile = mms.attFiles[filename]
-          # prefix any file that doesnt start with PART_<MILLIS>
-          if re.match(r'^PART_\d{13}', filename):
-            destFile = args.mms_parts_dir + "/" + filename
-          else:
-            destFile = args.mms_parts_dir + "/" + attFilePrefix + "_" + filename
+          sha256 = hashlib.sha256(open(srcFile, 'rb').read()).hexdigest()
 
-          if os.path.isfile(destFile):
-            if not filecmp.cmp(srcFile, destFile, shallow=False):
-              print "ERROR: attFile exists in parts dir already and is different"
-              quit(1)
-
-          if 0 != os.system("cp -ar --reflink '" + srcFile + "' '" + destFile + "'"):
-            print "failed to copy " + str(srcFile)
+          if sha256 not in partsDirFilesBySHA256ByFilename:
+            print "ERROR: att missing from parts dir for mms\n" + str(mms)
             quit(1)
+          sha256Files = partsDirFilesBySHA256ByFilename[sha256]
+          if filename not in sha256Files:
+            print "ERROR: att missing from parts dir for mms\n" + str(mms)
+            quit(1)
+
+          destFile = sha256Files[filename]
+          remoteFile = re.sub('^' + args.mms_parts_dir, REMOTE_MMS_PARTS_DIR, destFile)
+
           mms.attFiles[filename] = destFile
-          attFileCount += 1
+          mms.attFilesRemotePaths[filename] = remoteFile
 
       print "read " + str(len(mmsMessages)) + " MMS messages"
-      print "copied " + str(attFileCount) + " files to " + args.mms_parts_dir
 
     print "Saving changes into Android DB (commhistory.db), "+str(args.db_file)
     importMessagesToDb(texts, calls, mmsMessages, args.db_file)
@@ -335,9 +354,11 @@ class MMS:
 
     self.parts = []
     self.attFiles = {}
+    self.attFilesRemotePaths = {}
     self.checksum = None
   def parseParts(self):
     self.attFiles = {}
+    self.attFilesRemotePaths = {}
     self.checksum = None
     for p in self.parts:
       if 'smil' in p.part_type:
@@ -350,16 +371,11 @@ class MMS:
         if "/" in filename:
           print "filename contains path sep '/': " + filename
           quit(1)
-        prefixRegex = re.compile(''
-          + r'^\d+_'
-          + r'([0-9+]+-)*[0-9+]+_'
-          + r'(' + '|'.join(sorted(MMS_DIR.__members__.keys())) + r')_'
-          + r'[0-9a-f]{32}_'
-          )
-        unprefixedFilename = prefixRegex.sub('', filename)
+        unprefixedFilename = MMS_ATT_FILENAME_PREFIX_REGEX.sub('', filename)
         attName = unprefixedFilename
         localFilepath = self.mms_parts_dir + "/" + relFilepath
         self.attFiles[attName] = localFilepath
+        self.attFilesRemotePaths[attName] = p.filepath
       else:
         print "invalid MMS part: " + str(p)
         quit(1)
@@ -617,6 +633,7 @@ def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
         attName = val
         filepath = msgDir + "/" + val
         mms.attFiles[attName] = filepath
+        mms.attFilesRemotePaths[attName] = REMOTE_MMS_PARTS_DIR + "/" + attName
       elif key == "checksum":
         mms.checksum = val
     mmsMessages.append(mms)
@@ -830,35 +847,66 @@ def importMessagesToDb(texts, calls, mmsMessages, db_file):
         print "added new group: " + str(number) + " => " + str(groupId)
 
   for mms in mmsMessages:
-    numbers = []
-    if mms.isOutgoing():
-      for toNumber in mms.to_numbers:
-        numbers.append(toNumber)
-    elif mms.isIncoming():
-      numbers.append(mms.from_number)
+    to_number = mms.to_numbers[0]
+    groupId = groupIdByNumber[to_number]
 
-    for number in numbers:
-      contactId = contactIdByNumber[number]
+    if mms.isDirection(MMS_DIR.OUT):
+      dir_type = 2
+      status_type = 2
+    elif mms.isDirection(MMS_DIR.INC):
+      dir_type = 1
+      status_type = -1
+    else:
+      print "ERROR: unsupported MMS dir type\n" + str(mms)
 
-      #insertRow(c, "pdu", { "thread_id":   threadId
-      #                    , "date":        int(mms.date_millis / 1000)
-      #                    , "date_sent":   int(mms.date_sent_millis / 1000)
-      #                    , "sub":         mms.subject
-      #                    })
-      #msgId = c.lastrowid
+    #add message to events table
+    insertRow(c, "events", { "type":                  6
+                           , "startTime":             int(mms.date_sent_millis/1000)
+                           , "endTime":               int(mms.date_millis/1000)
+                           , "direction":             dir_type
+                           , "isDraft":               0
+                           , "isRead":                1
+                           , "isMissedCall":          0
+                           , "isEmergencyCall":       0
+                           , "status":                status_type
+                           , "bytesReceived":         0
+                           , "localUid":              LOCAL_UID
+                           , "remoteUid":             mms.from_number
+                           , "parentId":              ""
+                           , "subject":               mms.subject
+                           , "freeText":              mms.body
+                           , "groupId":               int(groupId)
+                           , "messageToken":          ""
+                           , "lastModified":          int(mms.date_millis/1000)
+                           , "vCardFileName":         ""
+                           , "vCardLabel":            ""
+                           , "isDeleted":             ""
+                           , "reportDelivery":        0
+                           , "validityPeriod":        0
+                           , "contentLocation":       ""
+                           , "messageParts":          ""
+                           , "headers":               "x-mms-to" + to_number
+                           , "readStatus":            0
+                           , "reportRead":            0
+                           , "reportedReadRequested": 0
+                           , "mmsId":                 mms.checksum
+                           , "isAction":              0
+                           })
+    eventId = c.lastrowid
 
-      for attName in sorted(mms.attFiles.keys()):
-        localFilepath = mms.attFiles[attName]
-        filename = re.sub(r'^.*/', '', localFilepath)
-        remoteFilepath = REMOTE_MMS_PARTS_DIR + "/" + filename
+    contentId = 1
+    for attName in sorted(mms.attFiles.keys()):
+      localFilepath = mms.attFiles[attName]
+      remoteFilepath = mms.attFilesRemotePaths[attName]
 
-        contentType = guessContentType(attName, localFilepath)
+      contentType = guessContentType(attName, localFilepath)
 
-        #insertRow(c, "part", { "mid":   msgId
-        #                     , "ct":    contentType
-        #                     , "name":  filename
-        #                     , "text":  None
-        #                     })
+      insertRow(c, "messageParts", { "eventId":     eventId
+                                   , "contentId":   contentId
+                                   , "contentType": contentType
+                                   , "path":        remoteFilepath
+                                   })
+      contentId += 1
 
   startTime = time.time()
   count=0
