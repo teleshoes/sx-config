@@ -943,7 +943,7 @@ def importSMSToDb(texts, db_file):
       sys.stdout.write("\r" + statusMsg)
       sys.stdout.flush()
 
-  print "\n\nfinished SMS:\n" + statusMsg
+  print "\n\nfinished:\n" + statusMsg
 
   if not NO_COMMIT:
     conn.commit()
@@ -1032,7 +1032,7 @@ def importCallsToDb(calls, db_file):
       sys.stdout.write("\r" + statusMsg)
       sys.stdout.flush()
 
-  print "\n\nfinished calls:\n" + statusMsg
+  print "\n\nfinished:\n" + statusMsg
 
   if not NO_COMMIT:
     conn.commit()
@@ -1051,6 +1051,13 @@ def importMMSToDb(mmsMessages, db_file):
   allNumbers = set([mms.from_number for mms in mmsMessages])
   allNumbers.update([to_number for mms in mmsMessages for to_number in mms.to_numbers])
   groupIdByNumber = ensureGroupNumbersInserted(c, allNumbers)
+
+  startTime = time.time()
+  count=0
+  groupsSeen = set()
+  elapsedS = 0
+  mmsPerSec = 0
+  statusMsg = ""
 
   for mms in mmsMessages:
     if len(mms.to_numbers) > 1:
@@ -1121,7 +1128,18 @@ def importMMSToDb(mmsMessages, db_file):
                                    })
       contentId += 1
 
-  print "\n\nfinished MMS\n"
+    count += 1
+    groupsSeen.add(groupId)
+    elapsedS = time.time() - startTime
+    mmsPerSec = int(count / elapsedS + 0.5)
+    statusMsg = " {0:6d} MMS for {1:4d} contacts in {2:6.2f}s @ {3:5d} MMS/s".format(
+                  count, len(groupsSeen), elapsedS, mmsPerSec)
+
+    if count % 100 == 0:
+      sys.stdout.write("\r" + statusMsg)
+      sys.stdout.flush()
+
+  print "\n\nfinished:\n" + statusMsg
 
   if not NO_COMMIT:
     conn.commit()
