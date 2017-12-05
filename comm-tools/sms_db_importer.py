@@ -245,7 +245,7 @@ def main():
             quit(1)
 
           destFile = sha256Files[filename]
-          remoteFile = re.sub('^' + args.mms_parts_dir, REMOTE_MMS_PARTS_DIR, destFile)
+          remoteFile = re.sub('^' + args.mms_parts_dir + '/?', REMOTE_MMS_PARTS_DIR + '/', destFile)
 
           mms.attFiles[filename] = destFile
           mms.attFilesRemotePaths[filename] = remoteFile
