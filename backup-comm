@@ -47,6 +47,7 @@ my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
 my $COMMHISTORY_DB_REMOTE_DIR = "/home/nemo/.local/share/commhistory";
 my $CONTACTS_DB_REMOTE_DIR = "/home/nemo/.local/share/system/Contacts/qtcontacts-sqlite";
+my $CONTACTS_PRIV_DB_REMOTE_DIR = "/home/nemo/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
 my $MMS_PARTS_REMOTE_DIR = "/home/nemo/.local/share/commhistory/data";
 
 my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
@@ -64,6 +65,7 @@ sub main(@){
   my $tmpDir = "/tmp/comm-dbs-$now";
   my $commhistoryDb = "$DB_RAW_DIR/commhistory-$now.db";
   my $contactsDb = "$DB_RAW_DIR/contacts-$now.db";
+  my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv-$now.db";
   my $contactsTmpVcf = "/tmp/contacts-$now.vcf";
   my $localContactsVcf = "$CONTACTS_RAW_DIR/contacts-$now.vcf";
 
@@ -88,11 +90,19 @@ sub main(@){
     sqlite3 $tmpDir/contacts/contacts.db 'PRAGMA wal_checkpoint' && \
     test ! -f $tmpDir/contacts/contacts.db-wal && \
     \
+    cd $CONTACTS_PRIV_DB_REMOTE_DIR && \
+    mkdir -p $tmpDir/contacts-priv/ && \
+    cp -a contacts.db* $tmpDir/contacts-priv/ && \
+    test -f $tmpDir/contacts-priv/contacts.db && \
+    sqlite3 $tmpDir/contacts-priv/contacts.db 'PRAGMA wal_checkpoint' && \
+    test ! -f $tmpDir/contacts-priv/contacts.db-wal && \
+    \
     echo success || echo FAILED TO PROCESS SQLITE DBS
   ";
 
   run "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
   run "scp", "$user\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
+  run "scp", "$user\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
   run "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
   run "ssh", "root\@$host", "vcardconverter -e $contactsTmpVcf";
@@ -115,6 +125,10 @@ sub main(@){
 
   run "rm", "-f", "$DB_REPO/contacts-db";
   run "$CMD_SQLITE_DUMP", $contactsDb, "$DB_REPO/contacts-db";
+  gitCommit $DB_REPO, "contacts-db", "nodiff", "contacts db automatic commit";
+
+  run "rm", "-f", "$DB_REPO/contacts-priv-db";
+  run "$CMD_SQLITE_DUMP", $contactsPrivDb, "$DB_REPO/contacts-priv-db";
   gitCommit $DB_REPO, "contacts-db", "nodiff", "contacts db automatic commit";
 
   gitCommit $MMS_PARTS_REPO, "-A", "nodiff", "automatic commit";
