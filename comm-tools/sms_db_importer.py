@@ -273,6 +273,8 @@ class Text:
     self.direction = direction
     self.date_format = date_format
     self.body = body
+  def cleanNumber(self):
+    self.number = cleanNumber(self.number)
   def toCsv(self):
     date_sent_millis = self.date_sent_millis
     if date_sent_millis == 0:
@@ -312,6 +314,8 @@ class Call:
     self.direction = direction
     self.date_format = date_format
     self.duration_format = duration_format
+  def cleanNumber(self):
+    self.number = cleanNumber(self.number)
   def getDurationSex(self):
     durationRegex = re.compile(r'\s*(-?)\s*(\d+)h\s*(\d+)m\s*(\d+)s')
     m = durationRegex.match(self.duration_format)
@@ -391,6 +395,12 @@ class MMS:
     self.attFiles = {}
     self.attFilesRemotePaths = {}
     self.checksum = None
+  def cleanNumbers(self):
+    self.from_number = cleanNumber(self.from_number)
+    toNumbers = []
+    for toNumber in self.to_numbers:
+      toNumbers.append(cleanNumber(toNumber))
+    self.to_numbers = toNumbers
   def parseParts(self):
     self.attFiles = {}
     self.attFilesRemotePaths = {}
@@ -825,47 +835,49 @@ def insertRow(cursor, tableName, colVals):
                 + " VALUES (" + ", ".join(valuePlaceHolders) + ")"
                 , values)
 
+def ensureGroupNumbersInserted(cursor, numbers):
+  groupIdByNumber = {}
+  query = cursor.execute("SELECT id, remoteUids FROM groups;")
+  maxGroupId = 0
+  for row in query:
+    groupId = long(row[0])
+    remoteUids = row[1]
+
+    if groupId > maxGroupId:
+      maxGroupId = groupId
+
+    if "|" not in remoteUids:
+      number = remoteUids
+      number = cleanNumber(number)
+      groupIdByNumber[number] = groupId
+
+  for number in numbers:
+    #add new group if necessary
+    if not number in groupIdByNumber:
+      maxGroupId += 1
+      insertRow(cursor, "groups", { "id": maxGroupId
+                                  , "localUid": LOCAL_UID
+                                  , "remoteUids": number
+                                  , "type": 0
+                                  , "chatName": ""
+                                  , "lastModified": 0
+                                  })
+      groupIdByNumber[number] = maxGroupId
+
+      if VERBOSE:
+        print "added new group: " + str(number) + " => " + str(groupId)
+
+  return groupIdByNumber
+
 def importSMSToDb(texts, db_file):
   conn = sqlite3.connect(db_file)
   c = conn.cursor()
 
   for txt in texts:
-    txt.number = cleanNumber(txt.number)
+    txt.cleanNumber()
 
-  allNumbers = set()
-  for txt in texts:
-    allNumbers.add(txt.number)
-
-  maxGroupId = 0
-  groupIdByNumber = {}
-  query = c.execute("SELECT id, remoteUids FROM groups;")
-  for row in query:
-    groupId = long(row[0])
-    numbers = row[1]
-
-    if groupId > maxGroupId:
-      maxGroupId = groupId
-
-    if "|" not in numbers:
-      number = numbers
-      number = cleanNumber(number)
-      groupIdByNumber[number] = groupId
-
-  for number in allNumbers:
-    #add new group if necessary
-    if not number in groupIdByNumber:
-      maxGroupId += 1
-      insertRow(c, "groups", { "id": maxGroupId
-                             , "localUid": LOCAL_UID
-                             , "remoteUids": number
-                             , "type": 0
-                             , "chatName": ""
-                             , "lastModified": 0
-                             })
-      groupIdByNumber[number] = maxGroupId
-
-      if VERBOSE:
-        print "added new group: " + str(number) + " => " + str(groupId)
+  allNumbers = set([txt.number for txt in texts])
+  groupIdByNumber = ensureGroupNumbersInserted(c, allNumbers)
 
   startTime = time.time()
   count=0
@@ -945,7 +957,7 @@ def importCallsToDb(calls, db_file):
   c = conn.cursor()
 
   for call in calls:
-    call.number = cleanNumber(call.number)
+    call.cleanNumber()
 
   startTime = time.time()
   count=0
@@ -1034,48 +1046,11 @@ def importMMSToDb(mmsMessages, db_file):
   c = conn.cursor()
 
   for mms in mmsMessages:
-    mms.from_number = cleanNumber(mms.from_number)
-    toNumbers = []
-    for toNumber in mms.to_numbers:
-      toNumbers.append(cleanNumber(toNumber))
-    mms.to_numbers = toNumbers
+    mms.cleanNumbers()
 
-  allNumbers = set()
-  for mms in mmsMessages:
-    allNumbers.add(mms.from_number)
-    for toNumber in mms.to_numbers:
-      allNumbers.add(toNumber)
-
-  maxGroupId = 0
-  groupIdByNumber = {}
-  query = c.execute("SELECT id, remoteUids FROM groups;")
-  for row in query:
-    groupId = long(row[0])
-    numbers = row[1]
-
-    if groupId > maxGroupId:
-      maxGroupId = groupId
-
-    if "|" not in numbers:
-      number = numbers
-      number = cleanNumber(number)
-      groupIdByNumber[number] = groupId
-
-  for number in allNumbers:
-    #add new group if necessary
-    if not number in groupIdByNumber:
-      maxGroupId += 1
-      insertRow(c, "groups", { "id": maxGroupId
-                             , "localUid": LOCAL_UID
-                             , "remoteUids": number
-                             , "type": 0
-                             , "chatName": ""
-                             , "lastModified": 0
-                             })
-      groupIdByNumber[number] = maxGroupId
-
-      if VERBOSE:
-        print "added new group: " + str(number) + " => " + str(groupId)
+  allNumbers = set([mms.from_number for mms in mmsMessages])
+  allNumbers.update([to_number for mms in mmsMessages for to_number in mms.to_numbers])
+  groupIdByNumber = ensureGroupNumbersInserted(c, allNumbers)
 
   for mms in mmsMessages:
     if len(mms.to_numbers) > 1:
