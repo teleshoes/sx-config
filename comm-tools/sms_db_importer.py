@@ -171,6 +171,13 @@ def main():
       print "reading mms from " + args.mms_msg_dir
       mmsMessages = readMMSFromMsgDir(args.mms_msg_dir, args.mms_parts_dir)
 
+      print "sorting all {0} MMS messages by date".format(len(mmsMessages))
+      mmsMessages = sorted(mmsMessages, key=lambda mms: mms.date_millis)
+
+      if args.limit > 0:
+        print "saving only the last {0} MMS messages".format(args.limit)
+        mmsMessages = mmsMessages[ (-args.limit) : ]
+
       print "checking MMS message consistency\n"
       for mms in mmsMessages:
         dirName = mms.getMsgDirName()
