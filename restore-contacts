@@ -2,22 +2,26 @@
 use strict;
 use warnings;
 
-my $repo = "$ENV{HOME}/Code/s5/backup/backup-contacts/repo";
+my $repo = "$ENV{HOME}/Code/sx/backup/backup-contacts/repo";
 
 sub run(@);
 
 sub main(@){
-  my $vcfFile = "contacts-" . time . ".vcf";
-  run "adb", "push", "$repo/contacts.vcf", "/sdcard/$vcfFile";
+  my $user = "nemo";
+  my $host = `sx`;
+  die "failed to get host" if $? != 0;
+  chomp $host;
 
-  run "adb", "shell",
-    "am",
-    "start",
-    "-t", "text/x-vcard",
-    "-d", "file:///sdcard/$vcfFile",
-    "-a", "android.intent.action.VIEW",
-    "com.android.contacts",
-    ;
+  my $now = `date +'%Y-%m-%d_%s'`;
+  chomp $now;
+
+  my $vcfFile = "contacts-$now.vcf";
+
+  run "scp", "$repo/contacts.vcf", "$user\@$host:/tmp/$vcfFile";
+  run "ssh", "$user\@$host", "
+    devel-su -p vcardconverter /tmp/$vcfFile && \
+    echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
+  ";
 }
 
 sub run(@){
