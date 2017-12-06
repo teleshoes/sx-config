@@ -156,7 +156,7 @@ sub main(@){
   run $CMD_SMS_DB_IMPORTER, "export-from-db-calls",
     $commhistoryDb, $callFile;
   run $CMD_SMS_DB_IMPORTER, "export-from-db-mms",
-    $commhistoryDb, $MMS_MSG_REPO, $MMS_PARTS_REPO, "--from-number", $myNumber;
+    $commhistoryDb, $MMS_MSG_REPO, $MMS_PARTS_REPO, "--my-number", $myNumber;
 
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
