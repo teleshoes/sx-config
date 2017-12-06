@@ -1080,14 +1080,15 @@ def importMMSToDb(mmsMessages, db_file):
       quit(1)
 
     to_number = mms.to_numbers[0]
-    groupId = groupIdByNumber[to_number]
 
     if mms.isDirection(MMS_DIR.OUT):
       dir_type = 2
       status_type = 2
+      groupId = groupIdByNumber[to_number]
     elif mms.isDirection(MMS_DIR.INC):
       dir_type = 1
       status_type = -1
+      groupId = groupIdByNumber[mms.from_number]
     else:
       print "ERROR: unsupported MMS dir type\n" + str(mms)
 
