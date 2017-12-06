@@ -57,6 +57,12 @@ sub main(@){
     chown $user.$user $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
     echo success || ( echo FAILED TO REPLACE COMMHISTORY DB && exit 1 )
   ";
+
+  print "RESTARTING PHONE! ok? [y/N] ";
+  my $line = <STDIN>;
+  if($line =~ /y|Y/){
+    run "ssh", "root\@$host", "reboot";
+  }
 }
 
 sub run(@){
