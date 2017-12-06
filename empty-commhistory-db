@@ -19,3 +19,4 @@ CREATE INDEX messageparts_eventId ON MessageParts (eventId);
 CREATE TRIGGER messageparts_flag_insert AFTER INSERT ON MessageParts   BEGIN     UPDATE Events SET hasMessageParts=1 WHERE id=NEW.eventId;   END;
 CREATE TRIGGER messageparts_flag_delete AFTER DELETE ON MessageParts   WHEN (SELECT COUNT(*) FROM MessageParts WHERE eventId=OLD.eventId) = 0   BEGIN     UPDATE Events SET hasMessageParts=0 WHERE id=OLD.eventId;   END;
 COMMIT;
+PRAGMA user_version=4;
