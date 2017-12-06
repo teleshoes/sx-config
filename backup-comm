@@ -286,10 +286,6 @@ sub gitAssertRepoDir($){
   }
 }
 
-sub copyDbToRepo($$){
-  my ($sqliteDb, $repo) = @_;
-}
-
 sub run(@){
   wrapRun 1, 1, @_;
 }
