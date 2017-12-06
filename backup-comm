@@ -219,8 +219,11 @@ sub gitCommit($$$$){
   chdir $repoDir;
   gitAssertRepoDir $repoDir;
 
-  runQuiet "git", "--no-pager", "diff" if defined $diff and $diff eq "diff";
   runQuiet "git", "add", $addArg;
+  if(defined $diff and $diff eq "diff"){
+    runQuiet "git", "--no-pager", "diff";
+    runQuiet "git", "--no-pager", "diff", "--cached";
+  }
 
   my @status = `git status --short 2>&1`;
   for my $line(@status){
