@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Cwd 'abs_path';
+
+sub run(@);
+
+my $BASE_DIR = "$ENV{HOME}/Code/sx";
+my $BACKUP_DIR = "$BASE_DIR/backup";
+my $EMPTY_COMMHISTORY_DB_DUMP = "$BASE_DIR/empty-commhistory-db";
+
+my $COMM_TOOLS_DIR = "$BASE_DIR/comm-tools";
+my $CMD_RECENT_COMM = "$COMM_TOOLS_DIR/recent-comm.pl";
+my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
+
+my $COMMHISTORY_DB_REMOTE_DIR = "/home/nemo/.local/share/commhistory";
+my $MMS_PARTS_REMOTE_DIR = "/home/nemo/.local/share/commhistory/data";
+
+my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
+my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms/parts-repo";
+
+sub main(@){
+  my $user = "nemo";
+  my $host = `sx`;
+  die "failed to get host" if $? != 0;
+  chomp $host;
+
+  my $now = `date +'%Y-%m-%d_%s'`;
+  chomp $now;
+
+  my $commhistoryDb = "$BASE_DIR/recent-$now-commhistory.db";
+  my $recentSms = "$BASE_DIR/recent-$now.sms";
+  my $recentCalls = "$BASE_DIR/recent-$now.call";
+
+  run "cat $EMPTY_COMMHISTORY_DB_DUMP | sqlite3 $commhistoryDb";
+  run "$CMD_RECENT_COMM --sms > $recentSms";
+  run "$CMD_RECENT_COMM --calls > $recentCalls";
+
+  run "$CMD_SMS_DB_IMPORTER import-to-db-sms $commhistoryDb $recentSms";
+  run "$CMD_SMS_DB_IMPORTER import-to-db-calls $commhistoryDb $recentCalls";
+  run "$CMD_SMS_DB_IMPORTER import-to-db-mms $commhistoryDb $MMS_MSG_REPO $MMS_PARTS_REPO";
+
+  my $remoteCommhistoryDb = "/tmp/recent-$now-commhistory.db";
+  run "scp", $commhistoryDb, "$user\@$host:$remoteCommhistoryDb";
+
+  run "rsync", "-avP", "--exclude=.git",
+    "$MMS_PARTS_REPO/",
+    "$user\@$host:$MMS_PARTS_REMOTE_DIR/";
+
+  my $backupDir = "$COMMHISTORY_DB_REMOTE_DIR/commhistory-backup-$now";
+  run "ssh", "root\@$host", "
+    mkdir $backupDir && \
+    chown $user.$user $backupDir && \
+    mv $COMMHISTORY_DB_REMOTE_DIR/commhistory.db* $backupDir && \
+    mv $remoteCommhistoryDb $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
+    chown $user.$user $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
+    echo success || ( echo FAILED TO REPLACE COMMHISTORY DB && exit 1 )
+  ";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+  die "\n\nERROR: $_[0]\n" if $? != 0;
+}
+
+&main(@ARGV);
