@@ -39,7 +39,7 @@ Usage:
     insert MMS from MMS_MSG_DIR into DB_FILE, and ensure att files in MMS_PARTS_DIR
 
   OPTS:
-    --from-number     default phone number for "from" in outgoing MMS
+    --my-number       default phone number for "from" in OUT-MMS and "to" in INC-MMS
     --limit           only import LIMIT entries into DB_FILE
     --verbose         verbose output (slower)
     --no-commit       do not commit changes when inserting into DB_FILE
@@ -63,7 +63,7 @@ def addSubparser(subparsers, cmd, args):
   addOptArgs(p)
 
 def addOptArgs(parser):
-  parser.add_argument('--from-number',),
+  parser.add_argument('--my-number',),
   parser.add_argument('--verbose', '-v', action='store_true')
   parser.add_argument('--no-commit', '-n', action='store_true')
   parser.add_argument('--limit', type=int, default=0)
@@ -85,10 +85,10 @@ def main():
   addSubparser(subparsers, 'import-to-db-mms', ['DB_FILE', 'MMS_MSG_DIR', 'MMS_PARTS_DIR'])
   args = parser.parse_args()
 
-  global VERBOSE, NO_COMMIT, FROM_NUMBER
+  global VERBOSE, NO_COMMIT, MY_NUMBER
   VERBOSE = args.verbose
   NO_COMMIT = args.no_commit
-  FROM_NUMBER = args.from_number
+  MY_NUMBER = args.my_number
 
   if not os.path.isfile(args.DB_FILE):
     print "ERROR: commhistory db file " + args.DB_FILE + " does not exist"
@@ -742,11 +742,6 @@ def readMMSFromCommHistory(db_file, mms_parts_dir):
     msg.date_format = date_format
     msg.subject = subject
     msg.body = body
-    if direction == MMS_DIR.OUT:
-      msg.from_number = cleanNumber(FROM_NUMBER)
-    else:
-      msg.from_number = cleanNumber(number)
-
 
     msgs[event_id] = msg
     event_groups[event_id] = group_id
@@ -791,9 +786,13 @@ def readMMSFromCommHistory(db_file, mms_parts_dir):
     if group_id not in group_numbers:
       print "INVALID GROUP ID: " + str(group_id) + "\n" + str(msg)
       quit(1)
-    numbers = group_numbers[group_id]
-    for number in numbers.split("|"):
-      msg.to_numbers.append(cleanNumber(number))
+    groupNumber = group_numbers[group_id]
+    if msg.direction == MMS_DIR.OUT:
+      msg.from_number = cleanNumber(MY_NUMBER)
+      msg.to_numbers.append(cleanNumber(groupNumber))
+    elif msg.direction == MMS_DIR.INC:
+      msg.from_number = cleanNumber(groupNumber)
+      msg.to_numbers.append(cleanNumber(MY_NUMBER))
 
   return msgs.values()
 
