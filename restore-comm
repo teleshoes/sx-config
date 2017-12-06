@@ -52,6 +52,7 @@ sub main(@){
     mkdir $backupDir && \
     chown $user.$user $backupDir && \
     mv $COMMHISTORY_DB_REMOTE_DIR/commhistory.db* $backupDir && \
+    gzip $backupDir/commhistory.db*
     mv $remoteCommhistoryDb $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
     chown $user.$user $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
     echo success || ( echo FAILED TO REPLACE COMMHISTORY DB && exit 1 )
