@@ -5,9 +5,9 @@ CREATE TABLE Events (   id INTEGER PRIMARY KEY AUTOINCREMENT,   type INTEGER,   
 CREATE TABLE EventProperties (   eventId INTEGER,   key TEXT,   value BLOB,   FOREIGN KEY (eventId) REFERENCES Events(id) ON DELETE CASCADE,   PRIMARY KEY (eventId, key) ON CONFLICT REPLACE );
 CREATE TABLE MessageParts (   id INTEGER PRIMARY KEY AUTOINCREMENT,   eventId INTEGER,   contentId TEXT,   contentType TEXT,   path TEXT,   FOREIGN KEY (eventId) REFERENCES Events(id) ON DELETE SET NULL );
 DELETE FROM sqlite_sequence;
-INSERT INTO sqlite_sequence VALUES('Events',1);
-INSERT INTO sqlite_sequence VALUES('Groups',1);
-INSERT INTO sqlite_sequence VALUES('MessageParts',1);
+INSERT INTO sqlite_sequence VALUES('Events',0);
+INSERT INTO sqlite_sequence VALUES('Groups',0);
+INSERT INTO sqlite_sequence VALUES('MessageParts',0);
 CREATE INDEX events_remoteUid ON Events (remoteUid);
 CREATE INDEX events_type ON Events (type);
 CREATE INDEX events_messageToken ON Events (messageToken);
