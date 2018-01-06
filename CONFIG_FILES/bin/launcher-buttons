@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use File::Basename;
 
+my $user = "nemo";
+
 my %replacements = (
   'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
   'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
@@ -93,7 +95,7 @@ my @config = qw(
 
 my $activeDir = '/usr/share/applications';
 my $allDir = '/opt/app-launchers';
-my $confFileDest = '/home/nemo/.config/lipstick/applications.menu';
+my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
 sub addMissingPrefix($$);
 sub getValidDesktopNames();
