@@ -38,6 +38,23 @@ my @extraIncludePatterns = qw(
   voicecall-ui-openurl.desktop
 );
 
+my $defaultIconName = "icon-launcher-folder-14";
+
+#arbitrary depth nested dirs, with icons
+#  if icon name is blank 'dir%name%[', use the default
+#e.g.:
+#  appname0-launcher
+#  dir%FolderName%folder-icon-name[
+#    appname1-launcher
+#    appname2-launcher
+#    appname3-launcher
+#    dir%SubFolder%icon-bird-nest[
+#      appname4-launcher
+#    ]
+#  ]
+#  appname5-launcher
+#  appname6-launcher
+
 my @config = qw(
   voicecall-ui
   jolla-messages
@@ -95,12 +112,13 @@ my @config = qw(
 
 my $activeDir = '/usr/share/applications';
 my $allDir = '/opt/app-launchers';
+my $directoryFileDir = "/home/$user/.config/lipstick/";
 my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
 sub addMissingPrefix($$);
 sub getValidDesktopNames();
 sub createAppDesktopFiles(@);
-sub writeLauncherButtonsConfFile(@);
+sub writeLipstickConfig(@);
 sub run(@);
 
 #in case running in a gui terminal
@@ -127,13 +145,15 @@ sub main(@){
 
   my @validDesktopNames = getValidDesktopNames();
 
-  my @apps = @config;
-  @apps = map {defined $replacements{$_} ? $replacements{$_} : $_} @apps;
-  @apps = addMissingPrefixes([@apps], [@validDesktopNames]);
+  my @configItems = @config;
+  @configItems = map {defined $replacements{$_} ? $replacements{$_} : $_} @configItems;
+  @configItems = addMissingPrefixes([@configItems], [@validDesktopNames]);
 
-  my @missing = createAppDesktopFiles(@apps);
+  my @appNames = grep {$_ !~ /(^dir%.*%.*\[$)|(^\]$)/} @configItems;
 
-  writeLauncherButtonsConfFile(@apps);
+  my @missing = createAppDesktopFiles(@appNames);
+
+  writeLipstickConfig(@configItems);
 
   run "pkill lipstick";
 
@@ -195,17 +215,45 @@ sub createAppDesktopFiles(@){
   return @missing;
 }
 
-sub writeLauncherButtonsConfFile(@){
-  my @apps = @_;
+sub writeLipstickConfig(@){
+  my @config = @_;
   my $xml = "";
   $xml .= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
   $xml .= "<Menu>\n";
-  $xml .= "    <Name>\n";
-  $xml .= "    </Name>\n";
-  for my $app(@apps){
-    $xml .= "    <Filename>$app.desktop</Filename>\n";
+  $xml .= "    <Name></Name>\n";
+  my $depth = 1;
+  my $indent = "    " x $depth;
+  my %dirs;
+  for my $configItem(@config){
+    if($configItem =~ /^dir%(.*)%(.*)\[$/){
+      my ($dirName, $icon) = ($1, $2);
+      $icon = $defaultIconName if $icon eq "";
+      my $dirFilePath = "$directoryFileDir/dir-$dirName.directory";
+      $xml .= "$indent<Menu>\n";
+      $xml .= "$indent    <Name>$dirName</Name>\n";
+      $xml .= "$indent    <Directory>$dirFilePath</Directory>\n";
+      $dirs{$dirFilePath} = $icon;
+      $depth++;
+      $indent = "    " x $depth;
+    }elsif($configItem =~ /^\]$/){
+      $depth--;
+      $indent = "    " x $depth;
+      $xml .= "$indent</Menu>\n"
+    }else{
+      $xml .= "$indent<Filename>$configItem.desktop</Filename>\n";
+    }
   }
   $xml .= "</Menu>\n";
+
+  run "rm $directoryFileDir/*.directory";
+  for my $dirFilePath(sort keys %dirs){
+    my $icon = $dirs{$dirFilePath};
+    my $content = "[Desktop Entry]\nIcon=$icon\n";
+    open FH, "> $dirFilePath" or die "Couldnt write to $dirFilePath\n";
+    print FH $content;
+    close FH;
+    run "chown", "$user.$user", $dirFilePath;
+  }
 
   open FH, "> $confFileDest" or die "Couldnt write to $confFileDest\n";
   print FH $xml;
