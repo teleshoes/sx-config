@@ -4,9 +4,13 @@ use warnings;
 use File::Basename;
 
 my %replacements = (
-  'emumaster' => 'diskgallery',
-  'settings' => 'duicontrolpanel',
-  'grob' => 'browser',
+  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity'
+  'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
+  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity'
+  'fdroid'         => 'apkd_launcher_org_matkie_fdroid-org_fdroid_fdroid_FDroid',
+  'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
+  'store-aptoide'  => 'apkd_launcher_com_aptoide_partners-com_aptoide_partners_StartPartner'
+  'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
 );
 
 my @extraIncludePatterns = qw(
@@ -14,91 +18,91 @@ my @extraIncludePatterns = qw(
 );
 
 my @config = qw(
-  call-history
-  messaging-ui
-  mtermite
-  heliumreborn
+  voicecall-ui
+  jolla-messages
+  fingerterm
+  sailfish-browser
 
-  finch
-  klomp
-  cameraplus
-  settings
+  -finch
+  harbour-unplayer
+  jolla-camera
+  jolla-settings
 
-  nokia-drive-qml
-  contacts
-  clock
-  FBReader
+  google-maps
+  jolla-contacts
+  jolla-clock
+  cool-reader
 
-  qtbtn-klomp
-  qtemail
-  contact-emily
-  meeseepics
+  -qtbtn-klomp
+  -qtemail
+  -contact-emily
+  jolla-gallery
 
   dir-tools[
-    qtbtn-power
-    toggleBT
-    joikuspot
-    calc
+    -qtbtn-power
+    -toggleBT
+    tether-on
+    jolla-calculator
 
-    restart-wifi
-    dontgosleep
-    screenshotmee
-    dropcache-mdn
-    dcim-reindex
-    restart-messaging-ui
+    -restart-wifi
+    -dontgosleep
+    -screenshotmee
+    -dropcache-mdn
+    -dcim-reindex
+    -restart-messaging-ui
   ]
   dir-useful[
-    qtodo
-    brujula
-    mms-picviewer
-    teatime
+    -qtodo
+    -brujula
+    -mms-picviewer
+    -teatime
 
-    index-office
-    qtbigtext
-    coffee
-    maps
+    -index-office
+    -qtbigtext
+    -coffee
+    -maps
   ]
   dir-cute[
-    stellarium-n9
-    emumaster
-    vmpkn9
-    qml2048
+    stellarium
+    -emumaster
+    -vmpkn9
+    -qml2048
 
-    passant
-    xmcr
-    dingmee
+    -passant
+    -xmcr
+    -dingmee
   ]
   dir-lirr+junk[
-    lirr_fdl_pen
-    lirr_pen_fdl
-    lirr_cpg_rvc
-    lirr_rvc_cpg
-    lirr_cpg_pen
-    lirr_pen_cpg
-    lirrtraintime
+    -lirr_fdl_pen
+    -lirr_pen_fdl
+    -lirr_cpg_rvc
+    -lirr_rvc_cpg
+    -lirr_cpg_pen
+    -lirr_pen_cpg
+    lirr-traintime
 
-    call-log
-    call-log-all
-    transmission
-    modrana
-    mail
-    contact-coocoo
-    browser
-    fennec
-    MeeFox
-    dfilebrowser
-    camera-ui
-    trojita-tp
-    NokiaPt
-    accountsui
-    btinput-terminal
-    btinput
-    gallery
-    calendar
-    ovistoreclient
-    pidgin
-    n9-button-monitor
-    billboard-ui
+    -call-log
+    -call-log-all
+    -transmission
+    harbour-modrana
+    jolla-email
+    -contact-coocoo
+    -browser
+    -fennec
+    -MeeFox
+    -dfilebrowser
+    -camera-ui
+    -trojita-tp
+    -NokiaPt
+    -accountsui
+    -btinput-terminal
+    -btinput
+    -gallery
+    jolla-calendar
+    store-client
+    -pidgin
+    -n9-button-monitor
+    -billboard-ui
   ]
 );
 
