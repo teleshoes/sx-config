@@ -4,17 +4,18 @@ use warnings;
 use File::Basename;
 
 my %replacements = (
-  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity'
+  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
   'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
-  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity'
+  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity',
   'fdroid'         => 'apkd_launcher_org_matkie_fdroid-org_fdroid_fdroid_FDroid',
   'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
-  'store-aptoide'  => 'apkd_launcher_com_aptoide_partners-com_aptoide_partners_StartPartner'
+  'store-aptoide'  => 'apkd_launcher_com_aptoide_partners-com_aptoide_partners_StartPartner',
+  'aptoide'        => 'apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity',
   'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
+  'awful-piano'    => 'apkd_launcher_com_gismart_realpianofree-com_gismart_piano_GoogleFreeActivity',
 );
 
 my @extraIncludePatterns = qw(
-  web-search-*.desktop
 );
 
 my @config = qw(
@@ -23,7 +24,7 @@ my @config = qw(
   fingerterm
   sailfish-browser
 
-  -finch
+  tether-on
   harbour-unplayer
   jolla-camera
   jolla-settings
@@ -33,77 +34,43 @@ my @config = qw(
   jolla-clock
   cool-reader
 
-  -qtbtn-klomp
-  -qtemail
-  -contact-emily
+  stellarium
+  lirr-traintime
+  harbour-modrana
   jolla-gallery
 
-  dir-tools[
-    -qtbtn-power
-    -toggleBT
-    tether-on
-    jolla-calculator
+  tkts
+  jolla-calculator
+  harbour-ipaddress
+  jolla-calendar
 
-    -restart-wifi
-    -dontgosleep
-    -screenshotmee
-    -dropcache-mdn
-    -dcim-reindex
-    -restart-messaging-ui
-  ]
-  dir-useful[
-    -qtodo
-    -brujula
-    -mms-picviewer
-    -teatime
+  chrome
+  filecase
+  harbour-warehouse
+  fdroid
 
-    -index-office
-    -qtbigtext
-    -coffee
-    -maps
-  ]
-  dir-cute[
-    stellarium
-    -emumaster
-    -vmpkn9
-    -qml2048
+  awful-piano
+  store-client
+  aptoide
+  store-aptoide
 
-    -passant
-    -xmcr
-    -dingmee
-  ]
-  dir-lirr+junk[
-    -lirr_fdl_pen
-    -lirr_pen_fdl
-    -lirr_cpg_rvc
-    -lirr_rvc_cpg
-    -lirr_cpg_pen
-    -lirr_pen_cpg
-    lirr-traintime
+  jolla-email
+  harbour-file-browser
+  jolla-mediaplayer
+  sailfish-office
 
-    -call-log
-    -call-log-all
-    -transmission
-    harbour-modrana
-    jolla-email
-    -contact-coocoo
-    -browser
-    -fennec
-    -MeeFox
-    -dfilebrowser
-    -camera-ui
-    -trojita-tp
-    -NokiaPt
-    -accountsui
-    -btinput-terminal
-    -btinput
-    -gallery
-    jolla-calendar
-    store-client
-    -pidgin
-    -n9-button-monitor
-    -billboard-ui
-  ]
+  jolla-notes
+  sailfish-tutorial
+  okboard
+  harbour-dolphin-settings
+
+  harbour-hungermeter
+  harbour-batterylog
+  harbour-sailphoto
+  harbour-webcat
+
+  patchmanager
+  sailfish-weather
 );
 
 for my $entry(@config){
@@ -113,10 +80,6 @@ for my $entry(@config){
 }
 
 my @quickLaunch = qw(
-  call-history
-  messaging-ui
-  browser
-  cameraplus
 );
 
 
