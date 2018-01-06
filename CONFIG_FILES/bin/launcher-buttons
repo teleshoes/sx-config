@@ -15,7 +15,25 @@ my %replacements = (
   'awful-piano'    => 'apkd_launcher_com_gismart_realpianofree-com_gismart_piano_GoogleFreeActivity',
 );
 
+#desktop files with no launchers
 my @extraIncludePatterns = qw(
+  csd.desktop
+  jolla-calendar-import.desktop
+  jolla-camera-lockscreen.desktop
+  jolla-camera-viewfinder.desktop
+  jolla-contacts-import.desktop
+  jolla-gallery-openfile.desktop
+  jolla-gallery-playvideostream.desktop
+  jolla-mediaplayer-openfile.desktop
+  jolla-messages-openurl.desktop
+  jolla-notes-import.desktop
+  new-mail.desktop
+  open-url.desktop
+  ovpn-import.desktop
+  sailfish-office-openfile.desktop
+  simkit.desktop
+  store-client-install.desktop
+  voicecall-ui-openurl.desktop
 );
 
 my @config = qw(
