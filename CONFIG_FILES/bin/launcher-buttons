@@ -3,43 +3,6 @@ use strict;
 use warnings;
 use File::Basename;
 
-my $user = "nemo";
-
-my %replacements = (
-  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
-  'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
-  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity',
-  'fdroid'         => 'apkd_launcher_org_matkie_fdroid-org_fdroid_fdroid_FDroid',
-  'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
-  'store-aptoide'  => 'apkd_launcher_com_aptoide_partners-com_aptoide_partners_StartPartner',
-  'aptoide'        => 'apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity',
-  'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
-  'awful-piano'    => 'apkd_launcher_com_gismart_realpianofree-com_gismart_piano_GoogleFreeActivity',
-);
-
-#desktop files with no launchers
-my @extraIncludePatterns = qw(
-  csd.desktop
-  jolla-calendar-import.desktop
-  jolla-camera-lockscreen.desktop
-  jolla-camera-viewfinder.desktop
-  jolla-contacts-import.desktop
-  jolla-gallery-openfile.desktop
-  jolla-gallery-playvideostream.desktop
-  jolla-mediaplayer-openfile.desktop
-  jolla-messages-openurl.desktop
-  jolla-notes-import.desktop
-  new-mail.desktop
-  open-url.desktop
-  ovpn-import.desktop
-  sailfish-office-openfile.desktop
-  simkit.desktop
-  store-client-install.desktop
-  voicecall-ui-openurl.desktop
-);
-
-my $defaultIconName = "icon-launcher-folder-14";
-
 my @config = qw(
   voicecall-ui
   jolla-messages
@@ -112,6 +75,41 @@ my @config = qw(
 #  appname6-launcher
 ########################################################
 
+my %replacements = (
+  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
+  'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
+  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity',
+  'fdroid'         => 'apkd_launcher_org_matkie_fdroid-org_fdroid_fdroid_FDroid',
+  'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
+  'store-aptoide'  => 'apkd_launcher_com_aptoide_partners-com_aptoide_partners_StartPartner',
+  'aptoide'        => 'apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity',
+  'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
+  'awful-piano'    => 'apkd_launcher_com_gismart_realpianofree-com_gismart_piano_GoogleFreeActivity',
+);
+
+#desktop files with no launchers
+my @extraIncludePatterns = qw(
+  csd.desktop
+  jolla-calendar-import.desktop
+  jolla-camera-lockscreen.desktop
+  jolla-camera-viewfinder.desktop
+  jolla-contacts-import.desktop
+  jolla-gallery-openfile.desktop
+  jolla-gallery-playvideostream.desktop
+  jolla-mediaplayer-openfile.desktop
+  jolla-messages-openurl.desktop
+  jolla-notes-import.desktop
+  new-mail.desktop
+  open-url.desktop
+  ovpn-import.desktop
+  sailfish-office-openfile.desktop
+  simkit.desktop
+  store-client-install.desktop
+  voicecall-ui-openurl.desktop
+);
+
+my $user = "nemo";
+my $defaultIconName = "icon-launcher-folder-14";
 my $activeDir = '/usr/share/applications';
 my $allDir = '/opt/app-launchers';
 my $directoryFileDir = "/home/$user/.config/lipstick/";
