@@ -91,47 +91,22 @@ my @config = qw(
   sailfish-weather
 );
 
-for my $entry(@config){
-  if(defined $replacements{$entry}){
-    $entry = $replacements{$entry};
-  }
-}
-
-my @quickLaunch = qw(
-);
-
-
-my %apps;
-my %appDirs;
-my %dirs;
-my %dirNames;
-
 my $activeDir = '/usr/share/applications';
 my $allDir = '/opt/app-launchers';
-my $directoryDir = '/home/user/.local/share/applications';
-my $quickLaunchDir = '/home/user/.local/share/applications';
-my $confFileDest = '/home/user/.config/meegotouchhome-nokia/launcherbuttons.data';
+my $confFileDest = '/home/nemo/.config/lipstick/applications.menu';
 
-sub run(@);
-sub appendHarmattans();
-sub parseConfig();
+sub addMissingPrefix($$);
 sub getValidDesktopNames();
-sub launcherPath($);
-sub createAppDesktopFiles();
-sub createDirDesktopFiles();
-sub createQuickLauncherDesktopFiles();
-sub getAppData();
-sub getDirData();
-sub getQuickLauncherData();
-sub getData();
-sub writeLauncherButtonsData($);
+sub createAppDesktopFiles(@);
+sub writeLauncherButtonsConfFile(@);
+sub run(@);
 
 #in case running in a gui terminal
 $SIG{HUP} = sub { print STDERR "Caught a sighup $!" };
 
 sub main(@){
-  if(`which n9` ne "" and `hostname` ne `n9`){
-    my $host = `n9`;
+  if(`which sx` ne "" and `hostname` ne `sx`){
+    my $host = `sx`;
     chomp $host;
     my $name = basename $0;
     print "copying to the device\n";
@@ -140,7 +115,7 @@ sub main(@){
     exec "ssh", "root\@$host", "/tmp/$name", @_;
   }
 
-  ensureRoot();
+  die "must be run as root\n" if `whoami` ne "root\n";
 
   if(@_ == 1 and $_[0] eq '-g'){
     print getValidDesktopNames();
@@ -148,77 +123,45 @@ sub main(@){
   }
   die "Usage: $0   or  $0 -g\n" if @_ > 0;
 
-  run "/sbin/initctl stop xsession/mthome";
-  appendHarmattans();
-  parseConfig();
-  my @missing = createAppDesktopFiles();
-  createDirDesktopFiles();
-  createQuickLauncherDesktopFiles();
+  my @validDesktopNames = getValidDesktopNames();
 
-  my $data = getData();
-  run "killall meegotouchhome";
-  writeLauncherButtonsData($data);
-  run "/sbin/initctl start xsession/mthome";
+  my @apps = @config;
+  @apps = map {defined $replacements{$_} ? $replacements{$_} : $_} @apps;
+  @apps = addMissingPrefixes([@apps], [@validDesktopNames]);
+
+  my @missing = createAppDesktopFiles(@apps);
+
+  writeLauncherButtonsConfFile(@apps);
+
+  run "pkill lipstick";
 
   print "\n\n\n\nMISSING: @missing\n" if @missing > 0;
 }
 
-sub ensureRoot(){
-  if(`whoami` ne "root\n"){
-    print "rerunning as root\n";
-    exec "sudo", $0, @ARGV;
-  }
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
-}
-
-sub appendHarmattans(){
-  my %harmattans;
-  for my $valid(getValidDesktopNames()){
-    if($valid =~ m/^(.*)_harmattan$/){
-      $harmattans{$1} = 1
+sub addMissingPrefixes($$){
+  my ($apps, $validDesktopNames) = @_;
+  my %jollas;
+  my %harbours;
+  for my $valid(@$validDesktopNames){
+    if($valid =~ m/^jolla-(.*)$/){
+      $jollas{$1} = 1
+    }
+    if($valid =~ m/^harbour-(.*)$/){
+      $harbours{$1} = 1
     }
   }
-  for(my $i=0; $i<@config; $i++){
-    if(defined $harmattans{$config[$i]}){
-      $config[$i] .= "_harmattan";
-      print "appending '_harmattan' to $config[$i]\n";
+  my @newApps;
+  for my $app(@$apps){
+    if(defined $jollas{$app}){
+      $app = "jolla-$app";
+      print "prepending 'jolla-' to $app\n";
+    }elsif(defined $harbours{$app}){
+      $app = "harbour-$app";
+      print "prepending 'harbour-' to $app\n";
     }
+    push @newApps, $app;
   }
-  for(my $i=0; $i<@quickLaunch; $i++){
-    if(defined $harmattans{$config[$i]}){
-      $quickLaunch[$i] .= "_harmattan";
-      print "appending '_harmattan' to $quickLaunch[$i]\n";
-    }
-  }
-}
-
-sub parseConfig(){
-  my $index = 0;
-  my $nextDir = 1;
-  for(my $i=0; $i<@config; $i++){
-    my $item = $config[$i];
-    if($item =~ /^dir-(.*)\[$/){
-      my $dirName = $1;
-      $dirs{$nextDir} = $index++;
-      $dirNames{$nextDir} = $dirName;
-
-      my $dirIndex = 0;
-      while(++$i<@config and $config[$i] ne ']'){
-        my $app = $config[$i];
-        $appDirs{$app} = $nextDir;
-        $apps{$app} = $dirIndex++;
-      }
-
-      $nextDir++;
-    }else{
-      my $app = $config[$i];
-      $apps{$app} = $index++;
-    }
-  }
+  return @newApps;
 }
 
 sub getValidDesktopNames(){
@@ -230,22 +173,15 @@ sub getValidDesktopNames(){
   return @names;
 }
 
-sub launcherPath($){
-  my $path = shift;
-  $path =~ s/^\///;
-  $path =~ s/\//\\/g;
-  return $path;
-}
-
-
-sub createAppDesktopFiles(){
+sub createAppDesktopFiles(@){
+  my @appNames = @_;
   run "mkdir", "-p", $allDir;
   my @active = glob "$activeDir/*.desktop";
   run "rsync", "-avP", "--ignore-existing", @active, $allDir;
   run "rm -rf $activeDir";
   run "mkdir", "-p", $activeDir;
   my @missing;
-  for my $app(keys %apps){
+  for my $app(@appNames){
     run "cp", "-a", "$allDir/$app.desktop", $activeDir;
     push @missing, $app if $? != 0;
   }
@@ -257,84 +193,26 @@ sub createAppDesktopFiles(){
   return @missing;
 }
 
-sub createDirDesktopFiles(){
-  run "rm $directoryDir/*.directory";
-  for my $dir(sort keys %dirs){
-    my $dirName = $dirNames{$dir};
-    my $content = ''
-      . "[Desktop Entry]\n"
-      . "Type=Directory\n"
-      . "Name=$dirName\n"
-      . "X-MeeGo-Folder-Index=$dir\n"
-      . "Icon=icon-l-default-application\n"
-      . "OnlyShowIn=X-MeeGo;\n"
-      ;
-    my $fileName = "$directoryDir/folder$dir.directory";
-    open FH, "> $fileName" or die "Couldnt write to $fileName\n";
-    print FH $content;
-    close FH;
+sub writeLauncherButtonsConfFile(@){
+  my @apps = @_;
+  my $xml = "";
+  $xml .= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+  $xml .= "<Menu>\n";
+  $xml .= "    <Name>\n";
+  $xml .= "    </Name>\n";
+  for my $app(@apps){
+    $xml .= "    <Filename>$app.desktop</Filename>\n";
   }
-  run "chown", "user.users", "-R", $directoryDir;
-}
-
-sub createQuickLauncherDesktopFiles(){
-  run "rm $quickLaunchDir/*.desktop";
-  for(my $i=0; $i<@quickLaunch; $i++){
-    my $qlFile = "$quickLaunchDir/quicklaunchbar$i.desktop";
-    run "ln", "-s", "$activeDir/$quickLaunch[$i].desktop", $qlFile;
-  }
-  run "chown", "user.users", "-R", $quickLaunchDir;
-}
-
-
-sub getAppData(){
-  my $data = '';
-  for my $app(sort keys %apps){
-    my $index = $apps{$app};
-    my $dir = $appDirs{$app};
-    $dir = 0 if not defined $dir;
-
-    my $desktopFile = "$activeDir/$app.desktop";
-    $data .= launcherPath($desktopFile) . "=launcher/$dir/$index\n";
-  }
-  return $data;
-}
-
-sub getDirData(){
-  my $data = '';
-  for my $dir(sort keys %dirs){
-    my $dirName = $dirNames{$dir};
-    my $index = $dirs{$dir};
-    my $desktopFile = "$directoryDir/folder$dir.directory";
-    $data .= launcherPath($desktopFile) . "=launcher/0/$index\n";
-  }
-  return $data;
-}
-
-sub getQuickLauncherData(){
-  my $data = '';
-  for(my $i=0; $i<@quickLaunch; $i++){
-    my $desktopFile = "$quickLaunchDir/quicklaunchbar$i.desktop";
-    $data .= launcherPath($desktopFile) . "=quicklaunchbar/$i\n";
-  }
-  return $data;
-}
-
-sub getData(){
-  my $data = "[DesktopEntries]\n";
-  $data .= getDirData();
-  $data .= getQuickLauncherData();
-  $data .= getAppData();
-  return $data;
-}
-
-sub writeLauncherButtonsData($){
-  my $data = shift;
-  print $data;
+  $xml .= "</Menu>\n";
 
   open FH, "> $confFileDest" or die "Couldnt write to $confFileDest\n";
-  print FH $data;
+  print FH $xml;
   close FH;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 &main(@ARGV);
