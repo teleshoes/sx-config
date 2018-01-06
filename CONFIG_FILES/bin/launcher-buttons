@@ -40,21 +40,6 @@ my @extraIncludePatterns = qw(
 
 my $defaultIconName = "icon-launcher-folder-14";
 
-#arbitrary depth nested dirs, with icons
-#  if icon name is blank 'dir%name%[', use the default
-#e.g.:
-#  appname0-launcher
-#  dir%FolderName%folder-icon-name[
-#    appname1-launcher
-#    appname2-launcher
-#    appname3-launcher
-#    dir%SubFolder%icon-bird-nest[
-#      appname4-launcher
-#    ]
-#  ]
-#  appname5-launcher
-#  appname6-launcher
-
 my @config = qw(
   voicecall-ui
   jolla-messages
@@ -109,6 +94,23 @@ my @config = qw(
   patchmanager
   sailfish-weather
 );
+
+########################################################
+#arbitrary depth nested dirs, with icons
+#  if icon name is blank 'dir%name%[', use the defaultIconName
+#e.g.:
+#  appname0-launcher
+#  dir%FolderName%folder-icon-name[
+#    appname1-launcher
+#    appname2-launcher
+#    appname3-launcher
+#    dir%SubFolder%icon-bird-nest[
+#      appname4-launcher
+#    ]
+#  ]
+#  appname5-launcher
+#  appname6-launcher
+########################################################
 
 my $activeDir = '/usr/share/applications';
 my $allDir = '/opt/app-launchers';
