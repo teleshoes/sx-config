@@ -117,8 +117,9 @@ my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
 sub rearrangeLauncherButtons();
 sub ensureExecScriptOnDevice(@);
+sub getAppNamesInDir($);
+sub getValidAppNames();
 sub addMissingPrefix($$);
-sub getValidDesktopNames();
 sub createAppDesktopFiles(@);
 sub writeLipstickConfig(@);
 sub run(@);
@@ -152,7 +153,7 @@ sub main(@){
   die "must be run as root\n" if `whoami` ne "root\n";
 
   if($cmd eq "get"){
-    print getValidDesktopNames();
+    print map {"$_\n"} getValidAppNames();
   }elsif($cmd eq "rearrange"){
     rearrangeLauncherButtons();
   }else{
@@ -161,11 +162,11 @@ sub main(@){
 }
 
 sub rearrangeLauncherButtons(){
-  my @validDesktopNames = getValidDesktopNames();
+  my @validAppNames = getValidAppNames();
 
   my @configItems = @config;
   @configItems = map {defined $replacements{$_} ? $replacements{$_} : $_} @configItems;
-  @configItems = addMissingPrefixes([@configItems], [@validDesktopNames]);
+  @configItems = addMissingPrefixes([@configItems], [@validAppNames]);
 
   my @appNames = grep {$_ !~ /(^dir%.*%.*\[$)|(^\]$)/} @configItems;
 
@@ -191,11 +192,25 @@ sub ensureExecScriptOnDevice(@){
   }
 }
 
+sub getAppNamesInDir($){
+  my ($dir) = @_;
+  my @desktopFiles = glob "$dir/*.desktop";
+  my @appNames = map {/\/([^\/]+)\.desktop$/} @desktopFiles;
+  return @appNames;
+}
+
+sub getValidAppNames(){
+  my %okAppNames;
+  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $allDir);
+  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $activeDir);
+  return sort keys %okAppNames;
+}
+
 sub addMissingPrefixes($$){
-  my ($apps, $validDesktopNames) = @_;
+  my ($apps, $validAppNames) = @_;
   my %jollas;
   my %harbours;
-  for my $valid(@$validDesktopNames){
+  for my $valid(@$validAppNames){
     if($valid =~ m/^jolla-(.*)$/){
       $jollas{$1} = 1
     }
@@ -215,15 +230,6 @@ sub addMissingPrefixes($$){
     push @newApps, $app;
   }
   return @newApps;
-}
-
-sub getValidDesktopNames(){
-  my @names = `ls $activeDir/*.desktop $allDir/*.desktop`;
-  for my $name(@names){
-    $name =~ s/.desktop$//;
-    $name =~ s/^.*\///;
-  }
-  return @names;
 }
 
 sub createAppDesktopFiles(@){
