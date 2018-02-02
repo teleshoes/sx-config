@@ -136,12 +136,18 @@ my $usage = "Usage:
   $0 -g
     print a list of all app names from all desktop files
       in $allDir and $activeDir
+
+  $0 --inactive
+    print app names of desktop files that
+      are in $allDir and are not in $activeDir
 ";
 
 sub main(@){
   my $cmd;
   if(@_ == 1 and $_[0] =~ /^(-g)$/){
     $cmd = "get";
+  }elsif(@_ == 1 and $_[0] =~ /^(--inactive)$/){
+    $cmd = "inactive";
   }elsif(@_ == 0){
     $cmd = "rearrange";
   }else{
@@ -154,6 +160,11 @@ sub main(@){
 
   if($cmd eq "get"){
     print map {"$_\n"} getValidAppNames();
+  }elsif($cmd eq "inactive"){
+    my @allAppNames = getAppNamesInDir $allDir;
+    my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $activeDir;
+    my @inactive = grep {not defined $okActiveAppNames{$_}} @allAppNames;
+    print map {"$_\n"} @inactive;
   }elsif($cmd eq "rearrange"){
     rearrangeLauncherButtons();
   }else{
