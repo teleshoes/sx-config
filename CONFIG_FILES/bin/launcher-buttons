@@ -282,7 +282,7 @@ sub writeLipstickConfig(@){
   }
   $xml .= "</Menu>\n";
 
-  run "rm $directoryFileDir/*.directory";
+  run "rm -f $directoryFileDir/*.directory";
   for my $dirFilePath(sort keys %dirs){
     my $icon = $dirs{$dirFilePath};
     my $content = "[Desktop Entry]\nIcon=$icon\n";
