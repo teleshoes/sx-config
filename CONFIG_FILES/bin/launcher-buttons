@@ -7,7 +7,7 @@ my @config = qw(
   voicecall-ui
   jolla-messages
   fingerterm
-  sailfish-browser
+  chrome
 
   tether-on
   harbour-unplayer
@@ -29,7 +29,7 @@ my @config = qw(
   harbour-ipaddress
   jolla-calendar
 
-  chrome
+  harbour-sailphoto
   filecase
   harbour-warehouse
   fdroid
@@ -49,9 +49,9 @@ my @config = qw(
   okboard
   harbour-dolphin-settings
 
+  sailfish-browser
   harbour-hungermeter
   harbour-batterylog
-  harbour-sailphoto
   harbour-webcat
 
   patchmanager
