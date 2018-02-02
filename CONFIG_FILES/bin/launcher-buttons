@@ -115,6 +115,8 @@ my $allDir = '/opt/app-launchers';
 my $directoryFileDir = "/home/$user/.config/lipstick";
 my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
+sub rearrangeLauncherButtons();
+sub ensureExecScriptOnDevice(@);
 sub addMissingPrefix($$);
 sub getValidDesktopNames();
 sub createAppDesktopFiles(@);
@@ -124,25 +126,41 @@ sub run(@);
 #in case running in a gui terminal
 $SIG{HUP} = sub { print STDERR "Caught a sighup $!" };
 
+my $usage = "Usage:
+  $0
+    re-arrange launcher buttons and launcher dirs, potentially removing some
+      backs up desktop files to $allDir
+      before changing $activeDir and lipstick
+
+  $0 -g
+    print a list of all app names from all desktop files
+      in $allDir and $activeDir
+";
+
 sub main(@){
-  if(`which sx` ne "" and `hostname` ne `sx`){
-    my $host = `sx`;
-    chomp $host;
-    my $name = basename $0;
-    print "copying to the device\n";
-    system "scp", $0, "root\@$host:/tmp/$name";
-    print "rerunning on the device\n";
-    exec "ssh", "root\@$host", "/tmp/$name", @_;
+  my $cmd;
+  if(@_ == 1 and $_[0] =~ /^(-g)$/){
+    $cmd = "get";
+  }elsif(@_ == 0){
+    $cmd = "rearrange";
+  }else{
+    die $usage;
   }
+
+  ensureExecScriptOnDevice(@_);
 
   die "must be run as root\n" if `whoami` ne "root\n";
 
-  if(@_ == 1 and $_[0] eq '-g'){
+  if($cmd eq "get"){
     print getValidDesktopNames();
-    exit 0;
+  }elsif($cmd eq "rearrange"){
+    rearrangeLauncherButtons();
+  }else{
+    die "invalid command: $cmd\n";
   }
-  die "Usage: $0   or  $0 -g\n" if @_ > 0;
+}
 
+sub rearrangeLauncherButtons(){
   my @validDesktopNames = getValidDesktopNames();
 
   my @configItems = @config;
@@ -158,6 +176,19 @@ sub main(@){
   run "pkill lipstick";
 
   print "\n\n\n\nMISSING: @missing\n" if @missing > 0;
+}
+
+sub ensureExecScriptOnDevice(@){
+  my @args = @_;
+  if(`which sx 2>/dev/null` ne "" and `hostname` ne `sx`){
+    my $host = `sx`;
+    chomp $host;
+    my $name = basename $0;
+    print "copying to the device\n";
+    system "scp", $0, "root\@$host:/tmp/$name";
+    print "rerunning on the device\n";
+    exec "ssh", "root\@$host", "/tmp/$name", @args;
+  }
 }
 
 sub addMissingPrefixes($$){
