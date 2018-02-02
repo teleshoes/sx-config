@@ -112,7 +112,7 @@ my $user = "nemo";
 my $defaultIconName = "icon-launcher-folder-14";
 my $activeDir = '/usr/share/applications';
 my $allDir = '/opt/app-launchers';
-my $directoryFileDir = "/home/$user/.config/lipstick/";
+my $directoryFileDir = "/home/$user/.config/lipstick";
 my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
 sub addMissingPrefix($$);
