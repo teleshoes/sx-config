@@ -170,13 +170,20 @@ sub rearrangeLauncherButtons(){
 
   my @appNames = grep {$_ !~ /(^dir%.*%.*\[$)|(^\]$)/} @configItems;
 
-  my @missing = createAppDesktopFiles(@appNames);
+  createAppDesktopFiles(@appNames);
 
   writeLipstickConfig(@configItems);
 
   run "pkill lipstick";
 
-  print "\n\n\n\nMISSING: @missing\n" if @missing > 0;
+  my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $activeDir;
+
+  my @missing;
+  for my $appName(@appNames){
+    push @missing, $appName if not defined $okActiveAppNames{$appName};
+  }
+
+  print "\n\nMISSING (not installed): @missing\n" if @missing > 0;
 }
 
 sub ensureExecScriptOnDevice(@){
@@ -239,17 +246,14 @@ sub createAppDesktopFiles(@){
   run "rsync", "-avP", "--ignore-existing", @active, $allDir;
   run "rm -rf $activeDir";
   run "mkdir", "-p", $activeDir;
-  my @missing;
   for my $app(@appNames){
     run "cp", "-a", "$allDir/$app.desktop", $activeDir;
-    push @missing, $app if $? != 0;
   }
   for my $pattern(@extraIncludePatterns){
     for my $file(glob "$allDir/$pattern"){
       run "cp", "-a", $file, $activeDir;
     }
   }
-  return @missing;
 }
 
 sub writeLipstickConfig(@){
