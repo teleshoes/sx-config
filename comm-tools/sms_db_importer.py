@@ -756,6 +756,10 @@ def readMMSFromCommHistory(db_file, mms_parts_dir):
     part_type = row[1]
     filepath = row[2]
 
+    if event_id == None:
+      print "WARNING: MMS part missing eventId (msg likely deleted): " + str(row)
+      continue
+
     if event_id not in msgs:
       print "INVALID MESSAGE ID FOR MMS PART: " + str(row)
       quit(1)
