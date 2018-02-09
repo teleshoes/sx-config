@@ -1091,6 +1091,7 @@ def importMMSToDb(mmsMessages, db_file):
       groupId = groupIdByNumber[mms.from_number]
     else:
       print "ERROR: unsupported MMS dir type\n" + str(mms)
+      quit(1)
 
     #add message to events table
     insertRow(c, "events", { "type":                  6
