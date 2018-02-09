@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=tether-on
+Exec=fingerterm -e 'su -c tether-on.pl'
+Icon=icon-m-upload
