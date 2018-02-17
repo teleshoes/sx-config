@@ -9,7 +9,6 @@ my @backups = (
   [ $localDir, "/home/nemo/Pictures/Camera",            "backup_int_sailfish"],
   [ $localDir, "/home/nemo/Videos/Camera",              "backup_int_sailfish_vid"],
   [ $localDir, "/home/nemo/Videos/Camera/.recording",   "backup_int_sailfish_vid_RECORDING"],
-  [ $localDir, "/home/nemo/Videos/Camera",              "backup_int_sailfish_vid_LOOSE"],
 );
 
 my @filetypes = qw(jpg jpeg png mp4);
