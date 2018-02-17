@@ -25,7 +25,7 @@ systemd-cat -t mount-sd /bin/echo "Called to ${ACTION} ${DEVNAME}"
 
 if [ "$ACTION" = "add" ]; then
 
-    eval "$(/sbin/blkid -c /dev/null -o export /dev/$2)"
+    eval "$(/sbin/blkid -c /dev/null -o export /dev/${DEVNAME})"
 
     if [ -z "${TYPE}" ]; then
 
@@ -87,10 +87,22 @@ if [ "$ACTION" = "add" ]; then
 	    mount ${DEVNAME} $MNT/${UUID} -o $MOUNT_OPTS || /bin/rmdir $MNT/${UUID}
 	    ;;
     esac
+
+    if [ -n "${LABEL}" ]; then
+        if [ -h "$MNT/{$LABEL}" ]; then
+            rm "$MNT/{$LABEL}"
+        fi
+        if [ ! -e "$MNT/{$LABEL}" ]; then
+            ln -s "${UUID}" "$MNT/${LABEL}"
+        fi
+    fi
+
     test -d $MNT/${UUID} && touch $MNT/${UUID}
     systemd-cat -t mount-sd /bin/echo "Finished ${ACTION}ing ${DEVNAME} of type ${TYPE} at $MNT/${UUID}"
 
 else
+    eval "$(/sbin/blkid -c /dev/null -o export /dev/${DEVNAME})"
+
     DIR=$(grep -w ${DEVNAME} /proc/mounts | cut -d \  -f 2)
     if [ -n "${DIR}" ] ; then
         if [ "${DIR##$MNT}" = "${DIR}" ]; then
@@ -98,6 +110,11 @@ else
             exit 0
         fi
         umount $DIR || umount -l $DIR
+        if [ -n "${LABEL}" ]; then
+            if [ -h "$MNT/{$LABEL}" ]; then
+                rm "$MNT/{$LABEL}"
+            fi
+        fi
         systemd-cat -t mount-sd /bin/echo "Finished ${ACTION}ing ${DEVNAME} at ${DIR}"
     fi
 fi
