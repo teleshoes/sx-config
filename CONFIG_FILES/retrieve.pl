@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $host = `n9`;
+my $host = `sx`;
 my $user = "root";
 
 sub main(@){
