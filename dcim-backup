@@ -6,8 +6,8 @@ my $user = "nemo";
 
 my $localDir = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @backups = (
-  [ $localDir, "/media/sdcard/sd-data/Pictures/Camera", "backup_sd-data_sf"],
-  [ $localDir, "/media/sdcard/sd-data/Videos/Camera",   "backup_sd-data_sf_vid"],
+  [ $localDir, "/media/sdcard/phone/Pictures/Camera",   "backup_sd-phone_sf"],
+  [ $localDir, "/media/sdcard/phone/Videos/Camera",     "backup_sd-phone_sf_vid"],
   [ $localDir, "/home/nemo/Pictures/Camera",            "backup_int_sf"],
   [ $localDir, "/home/nemo/Videos/Camera",              "backup_int_sf_vid"],
   [ $localDir, "/home/nemo/Videos/Camera/.recording",   "backup_int_sf_vid_RECORDING"],
