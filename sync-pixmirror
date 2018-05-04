@@ -10,26 +10,32 @@ my $localPixmirror = "$ENV{HOME}/Code/n9/backup/DCIM-pixmirror";
 my $remotePixmirror = "/home/user/MyDocs/DCIM-pixmirror";
 my $remoteSym = "/home/user/pixmirror";
 
+sub run(@);
+
+sub main(@){
+  print "making dir remotely\n";
+  system "n9u", "-s", "
+    set -x
+    mkdir -p $remotePixmirror
+    rm $remoteSym 2>/dev/null
+    ln -s $remotePixmirror $remoteSym
+  ";
+
+  run "pixmirror", "--size=$targetSize", "--orient", $localDCIM, $localPixmirror;
+  die "pixmirror failed\n" if $? != 0;
+
+  my $host = `n9`;
+  chomp $host;
+  run "rsync", "-avP", "--del",
+    "$localPixmirror/",
+    "user\@$host:$remotePixmirror";
+  die "rsync failed\n" if $? != 0;
+  run "n9", "symlink-pixmirror";
+}
+
 sub run(@){
   print "@_\n";
   system @_;
 }
 
-print "making dir remotely\n";
-system "n9u", "-s", "
-  set -x
-  mkdir -p $remotePixmirror
-  rm $remoteSym 2>/dev/null
-  ln -s $remotePixmirror $remoteSym
-";
-
-run "pixmirror", "--size=$targetSize", "--orient", $localDCIM, $localPixmirror;
-die "pixmirror failed\n" if $? != 0;
-
-my $host = `n9`;
-chomp $host;
-run "rsync", "-avP", "--del",
-  "$localPixmirror/",
-  "user\@$host:$remotePixmirror";
-die "rsync failed\n" if $? != 0;
-run "n9", "symlink-pixmirror";
+&main(@ARGV);
