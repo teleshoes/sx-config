@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $targetSize = "854x480";
+my $targetSize = "1920x1080";
 
 my $localDCIM = "$ENV{HOME}/Code/sx/backup/DCIM";
 my $localPixmirror = "$ENV{HOME}/Code/sx/backup/DCIM-pixmirror";
