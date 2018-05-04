@@ -13,17 +13,20 @@ my $remoteSym = "/home/nemo/pixmirror";
 sub run(@);
 
 sub main(@){
-  print "making dir remotely\n";
+  my $host = `sx`;
+  chomp $host;
+
+  print "\n\n=====making pixmirror remote dirs\n";
   run "sx", "
     mkdir -p $remotePixmirror
     rm -f $remoteSym
     ln -s $remotePixmirror $remoteSym
   ";
 
+  print "\n\n=====running pixmirror locally\n";
   run "pixmirror", "--size=$targetSize", "--orient", $localDCIM, $localPixmirror;
 
-  my $host = `sx`;
-  chomp $host;
+  print "\n\n=====syncing pixmirror local=>remote\n";
   run "rsync", "-avP", "--del",
     "$localPixmirror/",
     "nemo\@$host:$remotePixmirror";
