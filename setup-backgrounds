@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $srcBGDir = "$ENV{HOME}/.cache/backgrounds";
+my $destBGDir = "/usr/share/backgrounds";
+my @bgDirNames = qw(sx sx-ambience);
+
+sub run(@);
+
+sub main(@){
+  my $host = `sx`;
+  chomp $host;
+
+  run "sx", "-u", "root", "mkdir -p $destBGDir";
+
+  for my $bgDirName(@bgDirNames){
+    run "rsync", "-avP", "--del", "--no-owner", "--no-group",
+      "$srcBGDir/$bgDirName/", "root\@$host:$destBGDir/$bgDirName/";
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+  die "\"@_\" failed\n" if $? != 0;
+}
+
+&main(@ARGV);
