@@ -21,20 +21,19 @@ sub main(@){
   ";
 
   run "pixmirror", "--size=$targetSize", "--orient", $localDCIM, $localPixmirror;
-  die "pixmirror failed\n" if $? != 0;
 
   my $host = `sx`;
   chomp $host;
   run "rsync", "-avP", "--del",
     "$localPixmirror/",
     "nemo\@$host:$remotePixmirror";
-  die "rsync failed\n" if $? != 0;
   run "sx", "symlink-pixmirror";
 }
 
 sub run(@){
   print "@_\n";
   system @_;
+  die "FAILED: \"@_\"\n" if $? != 0;
 }
 
 &main(@ARGV);
