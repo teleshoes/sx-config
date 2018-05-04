@@ -4,33 +4,32 @@ use warnings;
 
 my $targetSize = "854x480";
 
-my $localDCIM = "$ENV{HOME}/Code/n9/backup/DCIM";
-my $localPixmirror = "$ENV{HOME}/Code/n9/backup/DCIM-pixmirror";
+my $localDCIM = "$ENV{HOME}/Code/sx/backup/DCIM";
+my $localPixmirror = "$ENV{HOME}/Code/sx/backup/DCIM-pixmirror";
 
-my $remotePixmirror = "/home/user/MyDocs/DCIM-pixmirror";
-my $remoteSym = "/home/user/pixmirror";
+my $remotePixmirror = "/media/sdcard/phone/DCIM-pixmirror";
+my $remoteSym = "/home/nemo/pixmirror";
 
 sub run(@);
 
 sub main(@){
   print "making dir remotely\n";
-  system "n9u", "-s", "
-    set -x
+  run "sx", "
     mkdir -p $remotePixmirror
-    rm $remoteSym 2>/dev/null
+    rm -f $remoteSym
     ln -s $remotePixmirror $remoteSym
   ";
 
   run "pixmirror", "--size=$targetSize", "--orient", $localDCIM, $localPixmirror;
   die "pixmirror failed\n" if $? != 0;
 
-  my $host = `n9`;
+  my $host = `sx`;
   chomp $host;
   run "rsync", "-avP", "--del",
     "$localPixmirror/",
-    "user\@$host:$remotePixmirror";
+    "nemo\@$host:$remotePixmirror";
   die "rsync failed\n" if $? != 0;
-  run "n9", "symlink-pixmirror";
+  run "sx", "symlink-pixmirror";
 }
 
 sub run(@){
