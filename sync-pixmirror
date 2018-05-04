@@ -1,16 +1,20 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Spec;
 
 my $targetSize = "1920x1080";
 
 my $localDCIM = "$ENV{HOME}/Code/sx/backup/DCIM";
 my $localPixmirror = "$ENV{HOME}/Code/sx/backup/DCIM-pixmirror";
+my $localByDateDir = "/tmp/sync-pixmirror-bydate";
 
 my $remotePixmirror = "/media/sdcard/phone/DCIM-pixmirror";
+my $remotePixmirrorByDate = "/media/sdcard/phone/DCIM-pixmirror-bydate";
 my $remoteSym = "/home/nemo/pixmirror";
 
 sub run(@);
+sub runQuiet(@);
 
 sub main(@){
   my $host = `sx`;
@@ -30,11 +34,47 @@ sub main(@){
   run "rsync", "-avP", "--del",
     "$localPixmirror/",
     "nemo\@$host:$remotePixmirror";
-  run "sx", "symlink-pixmirror";
+
+  print "\n\n=====making bydate-subdirs locally\n";
+  run "rm", "-r", $localByDateDir if -d $localByDateDir;
+  run "mkdir", "-p", "$localByDateDir/";
+
+  for my $dir(glob "$localPixmirror/????-??-??_*"){
+    if($dir !~ /^(?:.*\/)?(\d\d\d\d)-(\d\d)-(\d\d)_(.+)$/){
+      die "malformed dir: $dir\n";
+    }
+    my ($y, $m, $d, $title) = ($1, $2, $3, $4);
+    my $subDir = "${y}/${m}";
+    my $dirName = "${y}-${m}-${d}_${title}";
+
+    my $remoteSrcAbsDir = "$remotePixmirror/$dirName";
+    my $remoteRelBaseDir = "$remotePixmirrorByDate/$subDir";
+
+    my $remoteSrcRelDir = File::Spec->abs2rel($remoteSrcAbsDir, $remoteRelBaseDir);
+
+    my $localDestDir = "$localByDateDir/$subDir/$dirName";
+
+    runQuiet "mkdir", "-p", "$localByDateDir/$subDir/";
+    runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
+
+    runQuiet "touch", "-h", "$localByDateDir/${y}/${m}/${dirName}", "-r", $dir;
+    runQuiet "touch", "-h", "$localByDateDir/${y}/${m}", "-r", $dir;
+    runQuiet "touch", "-h", "$localByDateDir/${y}", "-r", $dir;
+    runQuiet "touch", "-h", "$localByDateDir", "-r", $dir;
+  }
+
+  print "\n\n=====syncing bydate-subdirs local=>remote\n";
+  run "rsync", "-avP", "--del",
+    "$localByDateDir/",
+    "nemo\@$host:$remotePixmirrorByDate";
 }
 
 sub run(@){
   print "@_\n";
+  system @_;
+  die "FAILED: \"@_\"\n" if $? != 0;
+}
+sub runQuiet(@){
   system @_;
   die "FAILED: \"@_\"\n" if $? != 0;
 }
