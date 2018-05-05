@@ -29,6 +29,7 @@ sub main(@){
 
   print "\n\n=====running pixmirror locally\n";
   run "pixmirror", "--size=$targetSize", "--orient", $localDCIM, $localPixmirror;
+  run "touch", "$localPixmirror/.nomedia" if not -f "$localPixmirror/.nomedia";
 
   print "\n\n=====syncing pixmirror local=>remote\n";
   run "rsync", "-avP", "--del",
@@ -56,6 +57,8 @@ sub main(@){
 
     runQuiet "mkdir", "-p", "$localByDateDir/$subDir/";
     runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
+
+    runQuiet "touch", "$localByDateDir/.nomedia", "-r", $dir;
 
     runQuiet "touch", "-h", "$localByDateDir/${y}/${m}/${dirName}", "-r", $dir;
     runQuiet "touch", "-h", "$localByDateDir/${y}/${m}", "-r", $dir;
