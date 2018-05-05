@@ -15,6 +15,7 @@ sub main(@){
 
   backup "dcim-backup";
   backup "backup-comm";
+  backup "sync-pixmirror";
 }
 
 sub backup($){
