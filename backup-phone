@@ -14,8 +14,8 @@ sub main(@){
   die "failed" if $? != 0;
 
   backup "dcim-backup";
-  backup "backup-comm";
   backup "sync-pixmirror";
+  backup "backup-comm";
 }
 
 sub backup($){
