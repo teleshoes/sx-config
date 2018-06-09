@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 my $srcBGDir = "$ENV{HOME}/.cache/backgrounds";
-my $destBGDir = "/usr/share/backgrounds";
+my $destBGDir = "/home/nemo/Backgrounds";
 my @bgDirNames = qw(sx sx-ambience);
 
 sub run(@);
