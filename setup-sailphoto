@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $sdcard = "/media/sdcard/nemo/phone";
+my $home = "/home/nemo";
+
+my @dirs = (
+  "$home/Pictures",
+  "$home/Pictures/screenshots",
+  "$sdcard/phone/sheet_music/sheet_1080p",
+  "$sdcard/Pictures/Camera",
+  "$sdcard/DCIM-pixmirror-bydate",
+  "$sdcard/xbestddr",
+  "$sdcard/xgnuplotddr",
+);
+
+sub main(@){
+  my @cmds = ("sailphoto-dir --clear");
+  for my $dir(@dirs){
+    push @cmds, "sailphoto-dir --add $dir";
+  }
+  system "sx", join "; ", @cmds;
+}
+
+&main(@ARGV);
