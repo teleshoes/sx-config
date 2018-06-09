@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $SAILPHOTO_DIR = "/home/nemo/.local/share/harbour-sailphoto";
+my $DB_GLOB = "$SAILPHOTO_DIR/Vfilelist/QML/OfflineStorage/Databases/*.sqlite";
+
+my $usage = "Usage:
+  --add DIR
+    add DIR to sqlite table 'setting' in DB $DB_GLOB
+
+  --clear
+    delete all values in sqlite table 'setting' in DB $DB_GLOB
+";
+
+sub main(@){
+  my $sql;
+  if(@_ == 2 and $_[0] =~ /^(--add)$/){
+    my $dir = $_[1];
+    $dir =~ s/'/''/g;
+    $sql = "insert into setting (location) values('$dir')";
+  }elsif(@_ == 1 and $_[0] =~ /^(--clear)$/){
+    $sql = "delete from setting";
+  }
+  my @dbs = glob $DB_GLOB;
+  die "error: db not found $DB_GLOB\n" if @dbs < 1;
+  die "error: more than one db found\n@dbs\n" if @dbs > 1;
+  my $db = $dbs[0];
+
+  my @cmd = ("sqlite3", $db, $sql);
+  print "@cmd\n";
+  exec @cmd;
+}
+
+&main(@ARGV);
