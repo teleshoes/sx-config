@@ -5,7 +5,7 @@ use Time::HiRes qw(time);
 use List::Util qw(max);
 use File::Basename qw(basename);
 
-my $wallpaperDir = "/usr/share/backgrounds/sx-ambience";
+my $wallpaperDir = "/home/nemo/Backgrounds/sx-ambience";
 my $ambienceDir = "/usr/share/ambience";
 
 my @ambienceOrder = qw(seconds ada neko silent);
