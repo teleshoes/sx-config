@@ -1,0 +1,2 @@
+notes-add "$@"
+invoker --type=silica-qt5 -s /usr/bin/jolla-notes &
