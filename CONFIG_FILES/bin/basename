@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $basenameExec = "/bin/basename";
+$basenameExec = "/usr/bin/basename" if not -x $basenameExec;
+
+my $usage = "Usage:
+  $0 FILE [SUFFIX]
+    run '$basenameExec FILE [SUFFIX]'
+
+  $0 [OPTS] FILE [FILE ..]
+    run '$basenameExec FILE' once for each FILE and concatenate the output
+
+    OPTS:
+      -a | --multiple
+        does nothing, basename is run as many times as there are files given
+
+      -s SUFFIX | --suffix SUFFIX | --suffix=SUFFIX
+        run '$basenameExec FILE SUFFIX' instead
+
+      --zero
+        replace all newlines in output with NUL character
+";
+
+sub main(@){
+  my @args;
+  my ($suffix, $zero);
+
+  #imitate stupid basename syntax
+  if(@_ == 2 and -e $_[1] and not -e $_[1]){
+    $suffix = $_[1];
+    @args = ($_[0]);
+    @_ = ();
+  }
+
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-a|--multiple)$/){
+      #ignore, each NAME is treated separately
+    }elsif($arg =~ /^--suffix=(.*)$/){
+      $suffix = $1;
+    }elsif($arg =~ /^(-s|--suffix)$/ and @_ > 0){
+      $suffix = shift;
+    }elsif($arg =~ /^(--zero)$/){
+      $zero = 1;
+    }else{
+      push @args, $arg;
+    }
+  }
+
+  my $exitStatus = 0;
+  for my $arg(@args){
+    my @cmd = ($basenameExec, $arg);
+    push @cmd, $suffix if defined $suffix;
+
+    open FH, "-|", @cmd or die "could not run \"@cmd\"\n$!\n";
+    my $output = join '', <FH>;
+    close FH;
+
+    if($zero){
+      $output =~ s/\n/\0/g;
+    }
+    print $output;
+  }
+}
+
+&main(@ARGV);
