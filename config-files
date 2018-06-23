@@ -2,22 +2,35 @@
 use strict;
 use warnings;
 
-my $type = shift;
-$type = 'all' if not defined $type;
+my $ipmagicName = "sx";
+
 my $okTypes = join "|", qw(boing bin remove all);
-die "Usage: $0 [$okTypes]\n" if @_ > 0 or $type !~ /^($okTypes)$/;
 
-my $src = 'CONFIG_FILES';
-my $dest = '/opt/CONFIG_FILES';
-my $host = `n9`;
-chomp $host;
+sub main(@){
+  my $type;
+  if(@_ == 0){
+    $type = "all";
+  }elsif(@_ == 1 and $_[0] =~ /^($okTypes)$/){
+    $type = $_[0];
+  }else{
+    die "Usage: $0 [$okTypes]\n";
+  }
 
-system 'rsync',
-  '-a', '--no-owner', '--no-group',
-  '--del',
-  '-v', '--progress',
-  "$src/", "root\@$host:$dest";
+  my $host = `ipmagic $ipmagicName`;
+  chomp $host;
 
-system 'ssh', "root\@$host", "chown root.root -R $dest";
+  my $src = 'CONFIG_FILES';
+  my $dest = '/opt/CONFIG_FILES';
 
-system 'ssh', "root\@$host", "$dest/config-overwrite.pl $type";
+  system 'rsync',
+    '-a', '--no-owner', '--no-group',
+    '--del',
+    '-v', '--progress',
+    "$src/", "root\@$host:$dest";
+
+  system 'ssh', "root\@$host", "chown root.root -R $dest";
+
+  system 'ssh', "root\@$host", "$dest/config-overwrite.pl $type";
+}
+
+&main(@ARGV);

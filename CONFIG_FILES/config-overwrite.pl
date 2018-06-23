@@ -2,40 +2,25 @@
 use strict;
 use warnings;
 
-my $hostName = "wolke-n9";
+my $hostName = "wolke-sx";
 
 my $DIR = '/opt/CONFIG_FILES';
-my $user = "user";
+my $user = "nemo";
 my ($login,$pass,$uid,$gid) = getpwnam($user);
-my $binTarget = '/usr/bin';
-my $iconsTarget = '/usr/share/themes/blanco/meegotouch/icons';
-my $launchersTarget = '/opt/app-launchers';
+my $binTarget = '/usr/local/bin';
 
 my @rsyncOpts = qw(
   -a  --no-owner --no-group
   --out-format=%n
 );
 
-my $bgDir = '/usr/share/themes/blanco/meegotouch/images/backgrounds';
 my %symlinksToReplace = map {$_ => 1} (
-  "$bgDir/meegotouch-desktop-bg-events.jpg",
-  "$bgDir/meegotouch-desktop-bg-launcher.jpg",
-  "$bgDir/meegotouch-desktop-bg-switcher.jpg",
-  "/root/.bashrc",
 );
 
 my %changedTriggers = (
-  "/usr/share/backgrounds" =>  'reload-wallpaper',
-  "$bgDir/meegotouch-desktop-bg-events.jpg" => 'reload-wallpaper',
-  "$bgDir/meegotouch-desktop-bg-launcher.jpg" => 'reload-wallpaper',
-  "$bgDir/meegotouch-desktop-bg-switcher.jpg" => 'reload-wallpaper',
-  "/home/user/.config/ProfileMatic/rules.conf" =>
-    "initctl restart apps/profilematicd",
-  "/var/lib/bluetooth" => "initctl restart xsession/bluetoothd",
-  #"/home/user/.profiled/custom.ini" => "reload-profile"
 );
 
-my $okTypes = join "|", qw(boing bin icons launchers remove all);
+my $okTypes = join "|", qw(boing bin remove all);
 
 my $usage = "Usage: $0 [$okTypes]\n";
 
@@ -82,14 +67,6 @@ sub main(@){
     print "\n ---handling bin files...\n";
     overwriteFile "$DIR/bin/", "$binTarget/", 0;
   }
-  if($type =~ /^(icons|all)$/){
-    print "\n ---handling icon files...\n";
-    overwriteFile "$DIR/icons/", "$iconsTarget/", 0;
-  }
-  if($type =~ /^(launchers|all)$/){
-    print "\n ---handling icon files...\n";
-    overwriteFile "$DIR/launchers/", "$launchersTarget/", 0;
-  }
 
   if($type =~ /^(remove|all)$/){
     print "\n ---removing files to remove...\n";
@@ -114,7 +91,7 @@ sub overwriteFile($$$){
   $parentDir =~ s/\/[^\/]*$//;
   system "mkdir", "-p", $parentDir;
 
-  print "\n%%% $dest\n";
+  print "\n   %%% $dest\n";
   my @rsyncCmd = ("rsync", @rsyncOpts);
   push @rsyncCmd, "--del" if $del;
   if(-l $src){
