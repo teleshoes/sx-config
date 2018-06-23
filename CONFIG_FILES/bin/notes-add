@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $DIR="$ENV{HOME}/.local/share/jolla-notes/QML/OfflineStorage/Databases";
+my $DB_FILE="$DIR/8b63c31a7656301b3f7bcbbfef8a2b6f.sqlite";
+
+sub main(@){
+  if(@_ != 1 or $_[0] =~ /^(-h|--help)$/){
+    die "Usage: $0 NOTE\n";
+  }
+  my $note = $_[0];
+
+  $note =~ s/'/''/g;
+  my $sql = ""
+    . "insert into notes ( pagenr, body )"
+    . "  select IFNULL(1+max(pagenr), 1), '$note' from notes"
+    . ";";
+  system "sqlite3", $DB_FILE, $sql;
+}
+
+&main(@ARGV);
