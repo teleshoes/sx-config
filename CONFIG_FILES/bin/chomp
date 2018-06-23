@@ -1,3 +1,0 @@
-#!/bin/bash
-val=$($@)
-echo -n $val

@@ -1,5 +1,0 @@
-#!/bin/bash
-set -x
-initctl reload xsession/mthemedaemon
-initctl restart xsession/mthome
-initctl restart xsession/sysuid

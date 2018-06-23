@@ -1,6 +1,0 @@
-#!/bin/bash
-ip=`twipc --fetch`
-echo IP: $ip
-url="$ip:9091/transmission"
-echo URL: $url
-/opt/fennec/lib/fennec-11.0/fennec $url

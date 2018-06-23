@@ -1,1 +1,0 @@
-daemonizer n9-email $((30 * 60 * 1000)) '/opt/qtemail/bin/email.pl --update --folder=inbox'
