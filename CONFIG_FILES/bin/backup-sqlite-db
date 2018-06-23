@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+sub run(@);
+
+sub main(@){
+  my $usage = "Usage: $0 DB_BASE_FILE DEST_GZIP_FILE\n";
+  die $usage if @_ > 0 and $_[0] =~ /^(-h|--help)$/;
+  die $usage if @_ != 2;
+
+  my ($db, $destGzipFile) = @_;
+
+  die $usage if not -f $db;
+
+  my $nowMillis = int(time * 1000.0);
+  my $tmpDir = "/tmp/commhistory-$nowMillis";
+
+  print "\n\ncopying commhistory DB (+wal/shm) to $tmpDir\n";
+  my @commhistoryDbFiles = glob "$db*";
+  run "mkdir", "-p", $tmpDir;
+  run "cp", "-ar", @commhistoryDbFiles, "$tmpDir/";
+  run "sync";
+
+  print "\n\ncheckpoint-ing copy of DB\n";
+  run "sqlite3", "$tmpDir/commhistory.db", "PRAGMA wal_checkpoint";
+
+  my @newDbFiles = glob "$tmpDir/*";
+  if(@newDbFiles != 1){
+    die "extra files: @newDbFiles\n";
+  }
+  my $newDbFile = $newDbFiles[0];
+
+  print "\n\ngzip-ing copy of DB\n";
+  run "gzip", "--fast", $newDbFile;
+
+  my $newDbGzipFile = "$newDbFile.gz";
+  die "$newDbGzipFile does not exist\n" if not -f $newDbGzipFile;
+
+  print "\n\nmoving to dest file\n";
+  run "mv", $newDbGzipFile, $destGzipFile;
+  die "$destGzipFile does not exist\n" if not -f $destGzipFile;
+
+  run "rmdir", $tmpDir;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+  die "error running '@_'\n" if $? != 0;
+}
+
+&main(@ARGV);
