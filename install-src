@@ -11,6 +11,7 @@ sub install($$$);
 
 sub main(@){
   install "net", "https://github.com/teleshoes/net", "./install.pl";
+  install "lirrtraintime", "https://github.com/teleshoes/lirrtraintime", "./install.sh";
 }
 
 sub install($$$){
