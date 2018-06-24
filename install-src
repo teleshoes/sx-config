@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+my $user = "nemo";
+
+my $srcDir = "/home/$user/Code";
+
+sub install($$$);
+
+sub main(@){
+}
+
+sub install($$$){
+  my ($repoName, $repo, $cmd) = @_;
+  print "\n\n\ninstalling $repoName\n";
+  system "ipmagic", $ipmagicName, "-s", ""
+    . " set -x"
+    . " && rm -rf $srcDir/$repoName"
+    . " && mkdir -p $srcDir"
+    . " && git clone $repo $srcDir/$repoName"
+    . " && cd $srcDir/$repoName"
+    . " && echo -ne \"=====\\n=====\\n=====\\n\""
+    . " && $cmd"
+    ;
+}
+
+&main(@ARGV);
