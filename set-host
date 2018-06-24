@@ -1,2 +1,1 @@
-adb root
-adb shell setprop net.hostname `s5 --host`
+ipmagic sx -u root -s hostname `ipmagic sx`
