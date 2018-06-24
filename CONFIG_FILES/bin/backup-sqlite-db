@@ -14,17 +14,22 @@ sub main(@){
 
   die $usage if not -f $db;
 
-  my $nowMillis = int(time * 1000.0);
-  my $tmpDir = "/tmp/commhistory-$nowMillis";
+  if($db !~ /^.*\/([^\/]+)\.db$/){
+    die "db '$db' must end in .db\n";
+  }
+  my $dbName = $1;
 
-  print "\n\ncopying commhistory DB (+wal/shm) to $tmpDir\n";
-  my @commhistoryDbFiles = glob "$db*";
+  my $nowMillis = int(time * 1000.0);
+  my $tmpDir = "/tmp/$dbName-$nowMillis";
+
+  print "\n\ncopying $dbName DB (+wal/shm) to $tmpDir\n";
+  my @dbFiles = glob "$db*";
   run "mkdir", "-p", $tmpDir;
-  run "cp", "-ar", @commhistoryDbFiles, "$tmpDir/";
+  run "cp", "-ar", @dbFiles, "$tmpDir/";
   run "sync";
 
   print "\n\ncheckpoint-ing copy of DB\n";
-  run "sqlite3", "$tmpDir/commhistory.db", "PRAGMA wal_checkpoint";
+  run "sqlite3", "$tmpDir/$dbName.db", "PRAGMA wal_checkpoint";
 
   my @newDbFiles = glob "$tmpDir/*";
   if(@newDbFiles != 1){
