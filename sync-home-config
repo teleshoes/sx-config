@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+my $user = "nemo";
+
+my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
+my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
+my @USRLOCALBIN_EXECS = qw(
+  alarm
+  sslvpn
+  term
+  ipmagic
+);
+
+my $HOMEBIN_LOCAL_DIR = "$ENV{HOME}/bin";
+my $HOMEBIN_REMOTE_DIR = "/home/nemo/bin";
+my @HOMEBIN_EXECS = qw(
+  alert
+  ddrname
+  display-guess
+  escribe-hosts
+  gpg-sym
+  lirr_train_time
+  loop
+  pidgin-logs
+  pix
+  revtun
+  sb-rt-status
+  sbcam
+  scoreddr
+  screen-cmd
+  seedbox
+  speedtest
+  transmission-webui
+);
+
+sub main(@){
+  die "Usage: $0\n" if @_ > 0;
+  my $host = `ipmagic $ipmagicName`;
+  chomp $host;
+
+  my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
+  system "rsync", "-avP", @usrlocalbinFiles, "root\@$host:$USRLOCALBIN_REMOTE_DIR/";
+
+  my @homebinFiles = map {"$HOMEBIN_LOCAL_DIR/$_"} @HOMEBIN_EXECS;
+  system "rsync", "-avP", @homebinFiles, "$user\@$host:$HOMEBIN_REMOTE_DIR/";
+
+  system "ipmagic", $ipmagicName, "-u", "root", "
+    rmdir /root/bin 2>/dev/null;
+    rm -f /root/bin;
+    ln -s /home/$user/bin/ /root/bin;
+  ";
+}
+
+&main(@ARGV);
