@@ -10,6 +10,7 @@ my $srcDir = "/home/$user/Code";
 sub install($$$);
 
 sub main(@){
+  install "net", "https://github.com/teleshoes/net", "./install.pl";
 }
 
 sub install($$$){
