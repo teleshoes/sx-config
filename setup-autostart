@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $emailDelayMillis = 30 * 60 * 1000;
+my $emailTimeoutMillis = 15 * 60 * 1000;
+
+my $startupScriptFile = "/usr/local/bin/autostart";
+my $startupScriptContents = "#!/bin/sh
+PATH=/home/nemo/bin:\$PATH
+
+/usr/local/bin/screen-daemon email-daemon \\
+  --start $emailDelayMillis $emailTimeoutMillis \\
+  /opt/qtemail/bin/email.pl --update --folder=inbox | tee /tmp/log
+";
+
+
+my @systemdSymlinks = qw(
+  /home/nemo/.config/systemd/user/auto-start.service
+  /home/nemo/.config/systemd/user/user-session.target.wants/auto-start.service
+);
+
+my $systemdServiceFile = "/usr/lib/systemd/user/auto-start.service";
+my $systemdServiceContents = "[Unit]
+Description=Auto-start stuff after lipstick
+Requires=lipstick.service
+After=lipstick.service
+
+[Service]
+Type=oneshot
+ExecStart=$startupScriptFile
+RemainAfterExit=yes
+
+[Install]
+WantedBy=user-session.target
+";
+
+sub writeRemoteFile($$$$);
+
+sub main(@){
+  my $host = `sx`;
+  chomp $host;
+
+  writeRemoteFile $host, "root", $startupScriptFile, $startupScriptContents;
+  system "ssh", "root\@$host", "
+    chmod a+x $startupScriptFile
+    chown root.root $startupScriptFile
+  ";
+
+  writeRemoteFile $host, "root", $systemdServiceFile, $systemdServiceContents;
+  system "ssh", "root\@$host", "
+    chown nemo.nemo $systemdServiceFile
+  ";
+
+  for my $symlink(@systemdSymlinks){
+    system "ssh", "nemo\@$host", "
+      rm -f $symlink
+      ln -s $systemdServiceFile $symlink
+    ";
+  }
+}
+
+sub writeRemoteFile($$$$){
+  my ($host, $userName, $destFile, $contents) = @_;
+  my $tmpFile = "/tmp/$0-" . int(time * 1000.0);
+  open FH, "> $tmpFile" or die "Could not write to $tmpFile\n";
+  print FH $contents;
+  close FH;
+  system "rsync", "-avP", $tmpFile, "$userName\@$host:$destFile";
+}
+
+&main(@ARGV);
