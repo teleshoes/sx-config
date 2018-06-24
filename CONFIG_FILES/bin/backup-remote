@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Time::HiRes qw(time);
 
 my @sshOpts = map {("-o", $_)} (
   "LogLevel=ERROR",
@@ -9,22 +10,29 @@ my @sshOpts = map {("-o", $_)} (
   "StrictHostKeyChecking=no",
 );
 
+my $user = "nemo";
+
 my $maxTimeout = 30;
 my $secretsFile = "$ENV{HOME}/.secrets";
 my @configKeys = ("revtun.portfile");
 my $remoteUser = "wolke";
 my $remoteHost = "wolke-nuc";
 
-my $backupDir = "~/backup-n9";
-my $dcimDir = "/home/user/MyDocs/DCIM";
+my $backupDir = "~/backup-sx";
 
-my $billboardFile = "/home/user/.cache/billboard_02_backup.txt";
-my $lastSuccessFile = "/home/user/.cache/backup-last-success";
+my $dcimDir = "/media/sdcard/phone/Pictures/Camera";
+my %sqliteDbs = (
+  commhistory => "/home/$user/.local/share/commhistory/commhistory.db",
+);
+
+my $lastSuccessFile = "/home/$user/.cache/backup-last-success";
 
 sub ensureConnection($);
 sub getLocalPort($);
 sub getDCIMSummary();
-sub billboardMsg($);
+sub createNotification();
+sub notificationMsg($$);
+sub removeNotification($);
 sub sshCmd($@);
 sub rsyncCmd($$$);
 sub readSecrets();
@@ -40,40 +48,42 @@ sub main(@){
   run "date";
   run "bat";
 
+  my $id = createNotification();
+
   ######
-  billboardMsg sprintf "BAK-CNXN: %s", nowHrMin();
+  notificationMsg $id, sprintf "BAK-CNXN: %s", nowHrMin();
   my $config = readSecrets();
-  run "sudo", "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
-  run "sudo", "screen-cmd", "revtun", "-r", "--unsafe", "--local";
+  run "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
+  run "screen-cmd", "revtun", "-r", "--unsafe", "--local";
   ensureConnection($config);
   run sshCmd($config, "mkdir", "-p", $backupDir);
   ######
 
   ######
-  billboardMsg sprintf "BAK-DCIM: %s %s", getDCIMSummary(), nowHrMin();
+  notificationMsg $id, sprintf "BAK-DCIM: %s %s", getDCIMSummary(), nowHrMin();
   run rsyncCmd($config, "$dcimDir/", "$backupDir/DCIM"),
     "--exclude=/*/";
   ######
 
   ######
-  billboardMsg sprintf "BAK-CALL: %s", nowHrMin();
-  my $callFile = "/tmp/backup-call-tmp";
-  run "backup-comm-n9e", "call", $callFile;
-  run rsyncCmd($config, $callFile, $backupDir);
+  notificationMsg $id, sprintf "BAK-DBS: %s", nowHrMin();
+  my $sqliteDbsDestDir = "/tmp/backup-sqlite-dbs";
+  run "rm", "-rf", $sqliteDbsDestDir;
+  run "mkdir", "-p", $sqliteDbsDestDir;
+  for my $dbName(sort keys %sqliteDbs){
+    my $destGzipFile = "$sqliteDbsDestDir/$dbName.gz";
+    run "backup-sqlite-db", $sqliteDbs{$dbName}, $destGzipFile;
+  }
+  run rsyncCmd($config, "$sqliteDbsDestDir/", $backupDir);
   ######
 
   ######
-  billboardMsg sprintf "BAK-SMS : %s", nowHrMin();
-  my $smsFile = "/tmp/backup-sms-tmp";
-  run "backup-comm-n9e", "sms", $smsFile;
-  run rsyncCmd($config, $smsFile, $backupDir);
-  #######
-
-  ######
-  billboardMsg sprintf "%28s", "b\@" . nowHrMin();
-  run "sudo", "screen-cmd", "-q", "revtun", "--unsafe", "--local";
+  notificationMsg $id, sprintf "%28s", "b\@" . nowHrMin();
+  run "screen-cmd", "-q", "revtun", "--unsafe", "--local";
   system "echo " . nowHrMin() . " > $lastSuccessFile";
   ######
+
+  removeNotification $id;
 
   run "date";
   run "bat";
@@ -115,7 +125,7 @@ sub getDCIMSummary(){
   my $dcimSizeMiB;
   my $dcimDu = `du -bc $dcimDir/*.* 2>/dev/null | tail -1`;
   if($dcimDu =~ /^(\d+)\s*total$/){
-    $dcimSizeMiB = int($1/1024/1024 + 0.5) . "M";
+    $dcimSizeMiB = int($1/1024/1024 + 0.5);
   }else{
     $dcimSizeMiB = "???";
   }
@@ -127,20 +137,22 @@ sub getDCIMSummary(){
   return sprintf "%03dM %03df", $dcimSizeMiB, $dcimCount;
 }
 
-sub billboardMsg($){
-  my ($msg) = @_;
-  if(not defined $msg or $msg =~ /^\s*$/){
-    run "rm", "-f", $billboardFile;
+sub createNotification(){
+  my $out = `notificationtool -A backup -o add`;
+  if($out =~ /^Created notification with id (\d+)$/){
+    return $1;
   }else{
-    $msg =~ s/\n+$//;
-    $msg =~ s/\n/ /g;
-    $msg = "$msg\n";
-
-    open FH, "> $billboardFile" or fail "Could not write $billboardFile: $!\n";
-    print FH $msg;
-    close FH;
+    print STDERR "could not get notification ID\n";
+    return 28758; #chosen by fair dice roll, guaranteed random
   }
-  run "billboard-refresh";
+}
+sub notificationMsg($$){
+  my ($id, $msg) = @_;
+  system "notificationtool", "-A", "backup", "-o", "update", "-i", $id, $msg;
+}
+sub removeNotification($){
+  my ($id) = @_;
+  system "notificationtool", "-o", "remove", "-i", $id;
 }
 
 sub sshCmd($@){
@@ -217,7 +229,8 @@ sub fail($){
 
   my $lastSuccess = `cat $lastSuccessFile 2>/dev/null`;
   my $now = nowHrMin;
-  billboardMsg sprintf "%28s", "!$now \@b$lastSuccess";
+  my $id = createNotification();
+  notificationMsg $id, sprintf "BACKUP FAILED %s (%s)", $now, $lastSuccess;
 
   die "$msg\n";
 }
