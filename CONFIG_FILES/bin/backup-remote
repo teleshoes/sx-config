@@ -21,6 +21,7 @@ my $remoteHost = "wolke-nuc";
 my $backupDir = "~/backup-sx";
 
 my $dcimDir = "/media/sdcard/phone/Pictures/Camera";
+my $mmsPartsDir = "/home/$user/.local/share/commhistory/data";
 my %sqliteDbs = (
   commhistory => "/home/$user/.local/share/commhistory/commhistory.db",
   contacts => "/home/$user/.local/share/system/Contacts/qtcontacts-sqlite/contacts.db",
@@ -76,6 +77,11 @@ sub main(@){
     run "backup-sqlite-db", $sqliteDbs{$dbName}, $destGzipFile;
   }
   run rsyncCmd($config, "$sqliteDbsDestDir/", $backupDir);
+  ######
+
+  ######
+  notificationMsg $id, sprintf "BAK-MMS: %s", nowHrMin();
+  run rsyncCmd($config, "$mmsPartsDir/", "$backupDir/mms-parts-dir/");
   ######
 
   ######
