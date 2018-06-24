@@ -23,6 +23,7 @@ my $backupDir = "~/backup-sx";
 my $dcimDir = "/media/sdcard/phone/Pictures/Camera";
 my %sqliteDbs = (
   commhistory => "/home/$user/.local/share/commhistory/commhistory.db",
+  contacts => "/home/$user/.local/share/system/Contacts/qtcontacts-sqlite/contacts.db",
 );
 
 my $lastSuccessFile = "/home/$user/.cache/backup-last-success";
