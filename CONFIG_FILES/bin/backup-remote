@@ -50,6 +50,10 @@ sub main(@){
   run "date";
   run "bat";
 
+  sleep 3;
+
+  system "execPing";
+
   my $id = createNotification();
 
   ######
