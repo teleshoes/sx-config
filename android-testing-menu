@@ -1,1 +1,0 @@
-adb shell am broadcast -a android.provider.Telephony.SECRET_CODE -d android_secret_code://4636
