@@ -3,12 +3,19 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
+my $backupDelayMillis = 120 * 60 * 1000;
+my $backupTimeoutMillis = 30 * 60 * 1000;
+
 my $emailDelayMillis = 30 * 60 * 1000;
 my $emailTimeoutMillis = 15 * 60 * 1000;
 
 my $startupScriptFile = "/usr/local/bin/autostart";
 my $startupScriptContents = "#!/bin/sh
 PATH=/home/nemo/bin:\$PATH
+
+/usr/local/bin/screen-daemon backup-daemon \\
+  --start $backupDelayMillis $backupTimeoutMillis \\
+  backup-remote
 
 /usr/local/bin/screen-daemon email-daemon \\
   --start $emailDelayMillis $emailTimeoutMillis \\
