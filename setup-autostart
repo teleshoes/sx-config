@@ -13,11 +13,11 @@ my $startupScriptFile = "/usr/local/bin/autostart";
 my $startupScriptContents = "#!/bin/sh
 PATH=/home/nemo/bin:\$PATH
 
-/usr/local/bin/screen-daemon backup-daemon \\
+/home/nemo/bin/screen-daemon backup-daemon \\
   --start $backupDelayMillis $backupTimeoutMillis \\
   backup-remote
 
-/usr/local/bin/screen-daemon email-daemon \\
+/home/nemo/bin/screen-daemon email-daemon \\
   --start $emailDelayMillis $emailTimeoutMillis \\
   /opt/qtemail/bin/email.pl --update --folder=inbox | tee /tmp/log
 ";
