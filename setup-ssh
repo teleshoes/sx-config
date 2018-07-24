@@ -1,0 +1,6 @@
+IPMAGIC_NAME="sx"
+
+ipmagic $IPMAGIC_NAME -s 'su -c "echo PermitRootLogin yes >> /etc/ssh/sshd_config"'
+ipmagic $IPMAGIC_NAME -s 'su -c "systemctl restart sshd"'
+pubkeys $IPMAGIC_NAME
+pubkeys $IPMAGIC_NAME-root
