@@ -15,6 +15,10 @@ sub tryrunIpmagicRoot(@);
 
 my %packages = (
   "1-essential" => [qw(
+    perl perl-CPAN
+    man-db git gnupg2 sudo tar vim wget zypper
+    lipstick-qt5-tools
+    harbour-warehouse
   )],
 
   "2-build" => [qw(
