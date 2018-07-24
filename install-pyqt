@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+sub run(@);
+
+my $expect = '
+set timeout -1
+
+spawn pkill packagekitd
+
+spawn zypper install pyqt
+
+expect "Solution 2: break pyqt" {
+  expect "Choose from above solutions by number"
+  send -- "2\n"
+}
+
+expect "Continue?"
+send -- "y\n"
+
+expect eof
+';
+
+sub main(@){
+  run "ipmagic", $ipmagicName, "-u", "root",
+    "expect <<HEREDOC\n$expect\nHEREDOC";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
