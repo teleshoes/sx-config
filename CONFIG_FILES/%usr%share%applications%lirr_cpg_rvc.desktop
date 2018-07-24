@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=cpg=>rvc
+Comment=LIRR train time
+Icon=lirr_cpg_rvc
+Exec=/opt/lirrtraintime/bin/lirr_train_time -b cpg rvc
+Type=Application
