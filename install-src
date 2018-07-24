@@ -9,9 +9,33 @@ my $srcDir = "/home/$user/Code";
 
 sub install($$$);
 
+my %INSTALLS = (
+  lirrtraintime  => ["https://github.com/teleshoes/lirrtraintime", "./install.sh"],
+  net            => ["https://github.com/teleshoes/net",           "./install.pl"],
+);
+
+my @INSTALL_NAMES = sort keys %INSTALLS;
+my %REPOS = map {$_ => ${$INSTALLS{$_}}[0]} @INSTALL_NAMES;
+my %CMDS = map {$_ => ${$INSTALLS{$_}}[1]} @INSTALL_NAMES;
+
+my $repoFmt = join '', map {sprintf "      %-20s => %s\n", $_, $REPOS{$_}} @INSTALL_NAMES;
+
+my $usage = "Usage:
+  $0 [NAME NAME ..]
+    install from named repos (if no repos are named, default is install all)
+
+    NAME => REPO:\n$repoFmt
+";
+
 sub main(@){
-  install "net", "https://github.com/teleshoes/net", "./install.pl";
-  install "lirrtraintime", "https://github.com/teleshoes/lirrtraintime", "./install.sh";
+  die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+
+  my @names = @_;
+  @names = @INSTALL_NAMES if @_ == 0;
+  for my $name(@names){
+    die "$usage\n\nunknown repo name: $name\n" if not defined $REPOS{$name};
+    install $name, $REPOS{$name}, $CMDS{$name};
+  }
 }
 
 sub install($$$){
