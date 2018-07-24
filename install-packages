@@ -33,6 +33,46 @@ my %groupsByAlias = map {$groupAliases{$_} => $_} @groups;
 die "first character of group must be unique\n" if %groupAliases != %groupsByAlias;
 
 my @openrepos = qw(
+  alina
+  Ancelad
+  anig
+  balta
+  basil
+  BillyHalley
+  CepiPerez
+  coderus
+  djselbeck
+  eber42
+  ellefj
+  equeim
+  fravaccaro
+  gexc
+  hbp
+  HuyliGun
+  krnlyng
+  llelectronics
+  MartinK
+  M1KE___
+  mike7b4
+  Matsav
+  MSameer
+  NielDK
+  osetr
+  r0kk3rz
+  rgrnetalk
+  ROZZ
+  saberaltria
+  Sailbook
+  sailfish_browser_nightly
+  sailfish_lib
+  Schturman
+  Sfiet_Konstantin
+  taixzo
+  tmi
+  vasvlad
+  virgi
+  wdehoog
+  xerxes2
 );
 
 my @keyUrls = qw(
