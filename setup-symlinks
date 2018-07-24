@@ -9,6 +9,11 @@ my $user = "nemo";
 sub run(@);
 
 my %SYMLINKS = (
+  "1sdcard" => {
+    dir => "/media/sdcard",
+    src => "*-*-*-*-*",
+    dest => "phone",
+  },
 );
 my @SYMLINK_NAMES = sort keys %SYMLINKS;
 my %DIR = map {$_ => $SYMLINKS{$_}{dir}} @SYMLINK_NAMES;
