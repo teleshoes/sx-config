@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use File::Spec;
 
+my $ipmagicName = "sx";
+
 my $targetSize = "1920x1080";
 
 my $localDCIM = "$ENV{HOME}/Code/sx/backup/DCIM";
@@ -17,11 +19,11 @@ sub run(@);
 sub runQuiet(@);
 
 sub main(@){
-  my $host = `sx`;
+  my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
   print "\n\n=====making pixmirror remote dirs\n";
-  run "sx", "
+  run "ipmagic", $ipmagicName, "
     mkdir -p $remotePixmirror
     rm -f $remoteSym
     ln -s $remotePixmirror $remoteSym
