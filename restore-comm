@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Cwd 'abs_path';
 
+my $ipmagicName = "sx";
+
 sub run(@);
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
@@ -21,7 +23,7 @@ my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms/parts-repo";
 
 sub main(@){
   my $user = "nemo";
-  my $host = `sx`;
+  my $host = `ipmagic $ipmagicName`;
   die "failed to get host" if $? != 0;
   chomp $host;
 
