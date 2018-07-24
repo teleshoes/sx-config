@@ -1,0 +1,24 @@
+#flashing
+#  -check bootloader unlockable:
+#    *#*#7378423#*#* to access the service menu.
+#    Tap Service info > Configuration > Rooting Status.
+#    If 'Bootloader unlock allowed' says Yes, good.
+#    If not, throw phone in garbage.
+#  -maybe downgrade phone to 6.0.1 marshmallow to extract DRM keys
+#    or maybe not
+#  -upgrade phone to latest android
+#  -enable 'Allow OEM Unlock' and 'USB Debugging' in developer tools in android menu
+#  -get an unlock code from
+#    https://developer.sony.com/develop/open-devices/get-started/unlock-bootloader/
+#  -unlock phone with fastboot
+#  -download sony binary img AOSP v13+ loire
+#  -run ./flash.sh | tee log
+
+# settings -> developer tools -> developer mode
+# settings -> developer tools -> remote connection
+# settings -> developer tools -> set password for ssh and root acccess -> d -> save
+# settings -> developer tools -> show reboot option on top menu
+
+# open terminal
+# devel-su #d
+# passwd #d
