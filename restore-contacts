@@ -2,13 +2,15 @@
 use strict;
 use warnings;
 
+my $ipmagicName = "sx";
+
 my $repo = "$ENV{HOME}/Code/sx/backup/backup-contacts/repo";
 
 sub run(@);
 
 sub main(@){
   my $user = "nemo";
-  my $host = `sx`;
+  my $host = `ipmagic $ipmagicName`;
   die "failed to get host" if $? != 0;
   chomp $host;
 
