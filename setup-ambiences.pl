@@ -5,6 +5,8 @@ use Time::HiRes qw(time);
 use List::Util qw(max);
 use File::Basename qw(basename);
 
+my $ipmagicName = "sx";
+
 my $wallpaperDir = "/home/nemo/Backgrounds/sx-ambience";
 my $ambienceDir = "/usr/share/ambience";
 
@@ -75,10 +77,10 @@ sub main(@){
       ;
   }
 
-  my $host = `sx`;
+  my $host = `$ipmagicName`;
   chomp $host;
 
-  run "sx", "-u", "root", "mv $ambienceDir $ambienceDir-bak$nowMillis";
+  run "ipmagic", $ipmagicName, "-u", "root", "mv $ambienceDir $ambienceDir-bak$nowMillis";
   run "rsync", "-avP", "--no-owner", "--no-group", "$tmpAmbienceDir/", "root\@$host:$ambienceDir/";
   my @cmds = (
     "rm -rf /home/nemo/.local/share/system/privileged/Ambienced/",
@@ -88,7 +90,7 @@ sub main(@){
   for my $file(@preloadConfFiles){
     push @cmds, "echo $preloadAmbience > $preloadDir/$file";
   }
-  run "sx", "-u", "root", join ";\n", @cmds;
+  run "ipmagic", $ipmagicName, "-u", "root", join ";\n", @cmds;
   print "\n";
 
   print "try each of these, as nemo, in order, to attempt to see changes:\n";
