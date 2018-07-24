@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+my $reposDir = "$ENV{HOME}/Code/sx/repos";
+
+sub installPackages($@);
+sub installRepos(@);
+sub run(@);
+sub tryrun(@);
+sub runIpmagicRoot(@);
+sub tryrunIpmagicRoot(@);
+
+my %packages = (
+  "1-essential" => [qw(
+  )],
+
+  "2-build" => [qw(
+  )],
+
+  "3-patches" => [qw(
+  )],
+
+  "4-apps" => [qw(
+  )],
+);
+
+my @groups = sort keys %packages;
+my %groupAliases = map {$_ => substr($_, 0, 1)} @groups;
+my %groupsByAlias = map {$groupAliases{$_} => $_} @groups;
+die "first character of group must be unique\n" if %groupAliases != %groupsByAlias;
+
+my @openrepos = qw(
+);
+
+my @keyUrls = qw(
+  http://sailfish.openrepos.net/openrepos.key
+);
+
+my $groupCmdFmt = join "      ", map {
+  "$_ | $groupAliases{$_}\n        use pkcon to install package group $_\n"
+} @groups;
+
+my $usage = "Usage:
+  $0 [COMMAND COMMAND ..]
+    run COMMANDs as below. if none are given, do all in order
+
+    COMMAND:
+      keys
+        use rpm to import keys
+      repos
+        use ssu to install openrepos repositories
+      repo-<OPENREPOS_USERNAME>
+        use ssu to install a single openrepos repository
+      refresh
+        use pkcon to update package lists from repos
+      refresh-<OPENREPOS_USERNAME>
+        use zypper to update package lists for a single repo
+        CAUTION: before running zypper, kills packagekitd
+      $groupCmdFmt
+";
+
+sub main(@){
+  die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+
+  my @commands = @_;
+  if(@commands == 0){
+    @commands = ("keys", "repos", "refresh", @groups);
+  }
+
+  for my $command(@commands){
+    print "\n\n\n";
+    print "=====$command\n";
+    if($command =~ /^keys$/){
+      for my $url(@keyUrls){
+        runIpmagicRoot "rpm", "--import", $url;
+      }
+    }elsif($command =~ /^repos$/){
+      installRepos(@openrepos);
+    }elsif($command =~ /^repo-(\w+)$/){
+      installRepos($1);
+    }elsif($command =~ /^refresh$/){
+      runIpmagicRoot "pkcon", "refresh";
+    }elsif($command =~ /^refresh-(\w+)$/){
+      tryrunIpmagicRoot "pkill", "packagekitd";
+      runIpmagicRoot "zypper", "refresh", "openrepos-$1";
+    }elsif(defined $groupAliases{$command} or defined $groupsByAlias{$command}){
+      my $group;
+      if(defined $groupAliases{$command}){
+        $group = $command;
+      }elsif(defined $groupsByAlias{$command}){
+        $group = $groupsByAlias{$command};
+      }
+      my @packages = @{$packages{$group}};
+      if(@packages > 0){
+        runIpmagicRoot "pkcon", "-y", "install", @packages;
+      }
+    }else{
+      die "$usage\nunknown command: $command\n";
+    }
+    print "=====\n";
+  }
+}
+
+sub installRepos(@){
+  for my $repo(@_){
+    my $repoName = "openrepos-$repo";
+    my $url = "http://sailfish.openrepos.net/$repo/personal/main";
+    runIpmagicRoot "ssu", "addrepo", $repoName, $url;
+  }
+}
+
+sub run(@){
+  tryrun @_;
+  die "ERROR: \"@_\" failed\n" if $? != 0;
+}
+sub tryrun(@){
+  print "@_\n";
+  system @_;
+}
+sub runIpmagicRoot(@){
+  run "ipmagic", $ipmagicName, "-u", "root", @_;
+}
+sub tryrunIpmagicRoot(@){
+  tryrun "ipmagic", $ipmagicName, "-u", "root", @_;
+}
+
+&main(@ARGV);
