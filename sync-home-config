@@ -9,9 +9,9 @@ my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
 my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
 my @USRLOCALBIN_EXECS = qw(
   alarm
-  sslvpn
-  term
   ipmagic
+  term
+  vpn
 );
 
 my $HOMEBIN_LOCAL_DIR = "$ENV{HOME}/bin";
