@@ -7,6 +7,13 @@ my $ipmagicName = "sx";
 sub run(@);
 
 my %MODULES = (
+  qtemail => [qw(
+    Net::SSLeay
+    Mail::IMAPClient
+    IO::Socket::SSL
+    Date::Parse
+    MIME::Parser
+  )],
 );
 my @GROUPS = sort keys %MODULES;
 
