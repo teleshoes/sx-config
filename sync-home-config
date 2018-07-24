@@ -8,8 +8,11 @@ my $user = "nemo";
 my @HOME_RSYNC_FILES = qw(
   .bashrc
   .gitconfig
+  .gpg
+  .secrets
   .vimrc
 
+  .config/qtemail/
   .vim/
 );
 
