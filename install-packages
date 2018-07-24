@@ -61,6 +61,13 @@ my %packages = (
     qt5-qmake qt5-qtcore qt5-qtgui qt5-qtdeclarative-tool-qml
     qt5-qtdeclarative-qtquick qt5-qtopengl qt5-qtnetwork qt5-qtwidgets
   )],
+
+  "6-weather" => [qw(
+    harbour-meecast
+    harbour-meecast-daemon
+    harbour-meecast-event
+    harbour-meecast-lockscreen
+  )],
 );
 
 my @groups = sort keys %packages;
