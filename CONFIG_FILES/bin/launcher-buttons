@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use File::Basename;
 
+my $ipmagicName = "sx";
+
 my @config = qw(
   voicecall-ui
   jolla-messages
@@ -214,8 +216,12 @@ sub rearrangeLauncherButtons(){
 
 sub ensureExecScriptOnDevice(@){
   my @args = @_;
-  if(`which sx 2>/dev/null` ne "" and `hostname` ne `sx`){
-    my $host = `sx`;
+  my $targetHost = `ipmagic $ipmagicName 2>/dev/null`;
+  chomp $targetHost;
+  my $actualHost = `hostname`;
+  chomp $actualHost;
+  if(length $targetHost > 0 and $targetHost ne $actualHost){
+    my $host = `ipmagic $ipmagicName`;
     chomp $host;
     my $name = basename $0;
     print "copying to the device\n";
