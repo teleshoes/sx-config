@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+sub run(@);
+
+my %MODULES = (
+);
+my @GROUPS = sort keys %MODULES;
+
+my $modulesFmt = join '', map {"    $_ => @{$MODULES{$_}}\n"} @GROUPS;
+
+my $usage = "Usage:
+  $0 [MODULE_GROUP MODULE_GROUP ..]
+    install cpan module groups indicated
+      (default is to install all if none are given)
+
+    \n$modulesFmt
+";
+
+sub main(@){
+  die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+
+  my @groups = @_;
+  @groups = @GROUPS if @_ == 0;
+  for my $group(@groups){
+    die "$usage\n\nunknown module group: $group\n" if not defined $MODULES{$group};
+    my @modules = @{$MODULES{$group}};
+
+    run "ipmagic", $ipmagicName, "cpan install @modules";
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
