@@ -69,6 +69,11 @@ sub main(@){
     system "rsync", "-avP", "$ENV{HOME}/$file", "$user\@$host:~/$file";
     system "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
   }
+
+  system "ipmagic", $ipmagicName, "-u", "root", "
+    sed -i 's/›/>/g' /home/nemo/.vimrc
+    sed -i 's/›/>/g' /root/.vimrc
+  ";
 }
 
 &main(@ARGV);
