@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 
+my $ipmagicName = "sx";
+
 sub backup($);
 
 my $dir = "$ENV{HOME}/Code/sx";
@@ -9,8 +11,8 @@ my $dir = "$ENV{HOME}/Code/sx";
 sub main(@){
   die "Usage: $0\n" if @_ != 0;
 
-  print "making sure sx is ssh-able\n";
-  system "sx", "-s", "echo found sx!\n";
+  print "making sure $ipmagicName is ssh-able\n";
+  system "ipmagic", $ipmagicName, "-s", "echo found sx!\n";
   die "failed" if $? != 0;
 
   backup "dcim-backup";
