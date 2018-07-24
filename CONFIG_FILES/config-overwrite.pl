@@ -89,7 +89,13 @@ sub overwriteFile($$$){
 
   my $parentDir = $dest;
   $parentDir =~ s/\/[^\/]*$//;
-  system "mkdir", "-p", $parentDir;
+  if(not -d $parentDir){
+    if($parentDir =~ /^\/home\/$user/){
+      system "sudo", "-u", "nemo", "mkdir", "-p", $parentDir;
+    }else{
+      system "mkdir", "-p", $parentDir;
+    }
+  }
 
   print "\n   %%% $dest\n";
   my @rsyncCmd = ("rsync", @rsyncOpts);
