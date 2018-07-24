@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+my $user = "nemo";
+
+sub run(@);
+
+my %SYMLINKS = (
+);
+my @SYMLINK_NAMES = sort keys %SYMLINKS;
+my %DIR = map {$_ => $SYMLINKS{$_}{dir}} @SYMLINK_NAMES;
+my %SRC = map {$_ => $SYMLINKS{$_}{src}} @SYMLINK_NAMES;
+my %DEST = map {$_ => $SYMLINKS{$_}{dest}} @SYMLINK_NAMES;
+
+my $symlinksFmt = join '', map {"    $_: $SRC{$_} => $DEST{$_}\n"} @SYMLINK_NAMES;
+
+my $usage = "Usage:
+  $0 [SYMLINK_NAME ..]
+    set up symlinks for the indicated symlink names
+      (default is to set up all if none are given)
+
+    \n$symlinksFmt
+";
+
+sub main(@){
+  die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+
+  my @commands;
+
+  my @names = @_;
+  @names = @SYMLINK_NAMES if @_ == 0;
+  for my $name(@names){
+    die "$usage\n\nunknown symlink name: $name\n" if not defined $SYMLINKS{$name};
+    my $sym = $SYMLINKS{$name};
+
+    my $cmd = "cd $$sym{dir} && rm -f $$sym{dest} && ln -s $$sym{src} $$sym{dest}";
+    push @commands, $cmd;
+  }
+
+
+  my $cmdFmt = join "", map {"  sh -c \"$_\";\n"} @commands;
+  run "ipmagic", $ipmagicName, "\n$cmdFmt";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
