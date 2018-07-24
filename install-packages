@@ -22,6 +22,7 @@ my %packages = (
   )],
 
   "2-build" => [qw(
+    cmake gcc gcc-c++
   )],
 
   "3-patches" => [qw(
