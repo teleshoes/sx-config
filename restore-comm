@@ -68,7 +68,7 @@ sub main(@){
 sub run(@){
   print "@_\n";
   system @_;
-  die "\n\nERROR: $_[0]\n" if $? != 0;
+  die "\n\nERROR: command failed \"@_\"\n" if $? != 0;
 }
 
 &main(@ARGV);
