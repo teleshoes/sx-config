@@ -1,1 +1,4 @@
-ipmagic sx -u root -s hostname `ipmagic sx`
+IPMAGIC_NAME="sx"
+HOST=$(ipmagic $IPMAGIC_NAME)
+
+ipmagic $IPMAGIC_NAME -u root -s hostname $HOST
