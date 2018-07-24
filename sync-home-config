@@ -5,6 +5,9 @@ use warnings;
 my $ipmagicName = "sx";
 my $user = "nemo";
 
+my @HOME_RSYNC_FILES = qw(
+);
+
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
 my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
 my @USRLOCALBIN_EXECS = qw(
@@ -53,6 +56,11 @@ sub main(@){
     rm -f /root/bin;
     ln -s /home/$user/bin/ /root/bin;
   ";
+
+  for my $file(@HOME_RSYNC_FILES){
+    system "rsync", "-avP", "$ENV{HOME}/$file", "$user\@$host:~/$file";
+    system "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
+  }
 }
 
 &main(@ARGV);
