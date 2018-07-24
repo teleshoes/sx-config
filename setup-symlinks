@@ -14,6 +14,11 @@ my %SYMLINKS = (
     src => "*-*-*-*-*",
     dest => "phone",
   },
+  "2escapepod" => {
+    dir => "/home/$user",
+    src => "/media/sdcard/phone/escape_pod",
+    dest => "escape_pod",
+  },
 );
 my @SYMLINK_NAMES = sort keys %SYMLINKS;
 my %DIR = map {$_ => $SYMLINKS{$_}{dir}} @SYMLINK_NAMES;
