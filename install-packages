@@ -39,6 +39,21 @@ my %packages = (
   )],
 
   "4-apps" => [qw(
+    filecase
+    GeoIP
+    harbour-gpsinfo
+    harbour-jboyadvance
+    harbour-modrana
+    harbour-saera
+    harbour-sailbook
+    harbour-sailphoto
+    harbour-spring
+    harbour-unplayer
+    harbour-webcat
+    mupen64plus
+    stellarium
+    thumbterm
+    toeterm
   )],
 );
 
