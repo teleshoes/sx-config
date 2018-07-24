@@ -6,6 +6,11 @@ my $ipmagicName = "sx";
 my $user = "nemo";
 
 my @HOME_RSYNC_FILES = qw(
+  .bashrc
+  .gitconfig
+  .vimrc
+
+  .vim/
 );
 
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
