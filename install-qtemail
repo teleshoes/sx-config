@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+my $DIR = "$ENV{HOME}/Code/sx";
+
+sub run(@);
+
+sub main(@){
+  print "NOTE: only runs other scripts\n";
+
+  print "\n\n===installing package deps\n";
+  run "$DIR/install-packages 5-qtemail";
+
+  print "\n\n===running config files (fixes gzip+make in CPAN)\n";
+  run "$DIR/config-files";
+
+  print "\n\n===running CPAN installs\n";
+  run "$DIR/install-cpan", "qtemail";
+
+  print "\n\n===installing pyqt with zypper+expect\n";
+  run "$DIR/install-pyqt";
+
+  print "\n\n===installing qtemail from src\n";
+  run "$DIR/install-src qtemail";
+
+  print "\n\n===setting up symlink ~/.cache/email => sdcard\n";
+  run "$DIR/setup-symlinks 3qtemail";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
