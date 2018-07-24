@@ -2,3 +2,4 @@ IPMAGIC_NAME="sx"
 HOST=$(ipmagic $IPMAGIC_NAME)
 
 ipmagic $IPMAGIC_NAME -u root -s hostname $HOST
+ipmagic $IPMAGIC_NAME -u root -s "echo $HOST > /etc/hostname"
