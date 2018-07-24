@@ -6,13 +6,15 @@ my $srcBGDir = "$ENV{HOME}/.cache/backgrounds";
 my $destBGDir = "/home/nemo/Backgrounds";
 my @bgDirNames = qw(sx sx-ambience);
 
+my $ipmagicName = "sx";
+
 sub run(@);
 
 sub main(@){
-  my $host = `sx`;
+  my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
-  run "sx", "-u", "root", "mkdir -p $destBGDir";
+  run "ipmagic", $ipmagicName, "-u", "root", "mkdir -p $destBGDir";
 
   for my $bgDirName(@bgDirNames){
     run "rsync", "-avP", "--del", "--no-owner", "--no-group",
