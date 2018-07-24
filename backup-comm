@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use Cwd 'abs_path';
 
+my $ipmagicName = "sx";
+my $user = "nemo";
+
 sub gitHead($);
 sub gitCommit($$$$);
 sub gitGetCommitsSince($$);
@@ -54,7 +57,7 @@ my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms/parts-repo";
 
 sub main(@){
   my $user = "nemo";
-  my $host = `sx`;
+  my $host = `ipmagic $ipmagicName`;
   die "failed to get host" if $? != 0;
   chomp $host;
 
