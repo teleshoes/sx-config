@@ -26,6 +26,16 @@ my %packages = (
   )],
 
   "3-patches" => [qw(
+    harbour-maxvol
+    okboard-full
+    patchmanager
+    patchutils
+    remorse-accept-patch
+    sailfishos-disable-volume-warning
+    sailfishos-patch-autocaps
+    sailfishos-remorse-items-timeout
+    sailfishos-uirotate-free
+    settings-orientation-control
   )],
 
   "4-apps" => [qw(
