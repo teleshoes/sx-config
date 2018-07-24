@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
+my $ipmagicName = "sx";
+
 my $backupDelayMillis = 120 * 60 * 1000;
 my $backupTimeoutMillis = 30 * 60 * 1000;
 
@@ -46,7 +48,7 @@ WantedBy=user-session.target
 sub writeRemoteFile($$$$);
 
 sub main(@){
-  my $host = `sx`;
+  my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
   writeRemoteFile $host, "root", $startupScriptFile, $startupScriptContents;
