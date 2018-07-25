@@ -54,6 +54,15 @@ my @config = qw(
   sailfish-weather
   harbour-sailbook
   qtemail
+
+  lirr_cpg_pen
+  lirr_cpg_rvc
+  lirr_fdl_pen
+  lirr_pen_cpg
+
+  lirr_pen_fdl
+  lirr_rvc_cpg
+  lirrgui
 );
 
 ########################################################
@@ -80,6 +89,7 @@ my %replacements = (
   'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
   'aptoide'        => 'apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity',
   'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
+  'lirrgui'        => 'lirrtraintime',
 );
 
 #desktop files with no launchers
