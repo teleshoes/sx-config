@@ -41,7 +41,6 @@ my %packages = (
 
   "4-apps" => [qw(
     filecase
-    GeoIP
     harbour-gpsinfo
     harbour-jboyadvance
     harbour-modrana
