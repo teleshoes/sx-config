@@ -50,7 +50,6 @@ my @config = qw(
   sailfish-browser
   harbour-webcat
 
-  patchmanager
   sailfish-weather
   harbour-sailbook
   qtemail
