@@ -63,6 +63,9 @@ my @config = qw(
   lirr_pen_fdl
   lirr_rvc_cpg
   lirrgui
+
+  thumbterm
+  toeterm
 );
 
 ########################################################
