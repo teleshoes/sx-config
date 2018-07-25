@@ -36,10 +36,8 @@ my @config = qw(
   harbour-warehouse
   fdroid
 
-  awful-piano
   store-client
   aptoide
-  store-aptoide
 
   jolla-email
   harbour-file-browser
@@ -84,10 +82,8 @@ my %replacements = (
   'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity',
   'fdroid'         => 'apkd_launcher_org_matkie_fdroid-org_fdroid_fdroid_FDroid',
   'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
-  'store-aptoide'  => 'apkd_launcher_com_aptoide_partners-com_aptoide_partners_StartPartner',
   'aptoide'        => 'apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity',
   'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
-  'awful-piano'    => 'apkd_launcher_com_gismart_realpianofree-com_gismart_piano_GoogleFreeActivity',
 );
 
 #desktop files with no launchers
