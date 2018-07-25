@@ -22,3 +22,33 @@
 # open terminal
 # devel-su #d
 # passwd #d
+
+./setup-ssh #twice for some reason
+./setup-ssh
+
+./set-host
+
+./install-packages
+
+./config-files
+
+./sync-home-config
+./setup-symlinks
+
+./restore-contacts
+./restore-comm
+
+./setup-backgrounds
+./setup-ambiences
+./setup-sailphoto
+
+./install-cpan
+./install-pyqt
+
+./install-src
+
+./install-rpms
+
+./install-apks
+
+./setup-autostart
