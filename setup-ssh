@@ -1,6 +1,16 @@
 IPMAGIC_NAME="sx"
+HOST=$(ipmagic $IPMAGIC_NAME)
 
 ipmagic $IPMAGIC_NAME -s 'su -c "echo PermitRootLogin yes >> /etc/ssh/sshd_config"'
 ipmagic $IPMAGIC_NAME -s 'su -c "systemctl restart sshd"'
+
+ipmagic $IPMAGIC_NAME -s "
+  set -x
+  if [ ! -f ~/.ssh/$HOST.pub ]; then
+    ssh-keygen -t rsa
+    mv ~/.ssh/id_rsa.pub ~/.ssh/$HOST.pub
+  fi
+"
+
 pubkeys $IPMAGIC_NAME
 pubkeys $IPMAGIC_NAME-root
