@@ -28,6 +28,7 @@ my @config = qw(
 
   tkts
   jolla-calculator
+  openrepos-myipaddress
   jolla-calendar
 
   harbour-sailphoto
