@@ -20,6 +20,7 @@ my %packages = (
     expect
     lipstick-qt5-tools
     harbour-warehouse
+    whois
   )],
 
   "2-build" => [qw(
@@ -89,6 +90,7 @@ my @openrepos = qw(
   eber42
   ellefj
   equeim
+  Feathers_McGraw
   fravaccaro
   gexc
   hbp
