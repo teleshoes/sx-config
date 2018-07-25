@@ -53,6 +53,7 @@ my @config = qw(
   patchmanager
   sailfish-weather
   harbour-sailbook
+  qtemail
 );
 
 ########################################################
