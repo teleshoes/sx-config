@@ -12,7 +12,7 @@ my @config = qw(
   chrome
 
   tether-on
-  harbour-unplayer
+  unplayer
   jolla-camera
   jolla-settings
 
@@ -23,7 +23,7 @@ my @config = qw(
 
   stellarium
   lirr-traintime
-  harbour-modrana
+  modrana
   jolla-gallery
 
   tkts
@@ -31,9 +31,9 @@ my @config = qw(
   openrepos-myipaddress
   jolla-calendar
 
-  harbour-sailphoto
+  sailphoto
   filecase
-  harbour-warehouse
+  warehouse
 
   store-client
   aptoide
@@ -45,9 +45,9 @@ my @config = qw(
   okboard
 
   sailfish-browser
-  harbour-webcat
+  webcat
 
-  harbour-sailbook
+  sailbook
   qtemail
 
   lirr_cpg_pen
