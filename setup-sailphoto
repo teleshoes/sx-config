@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 
+my $ipmagicName = "sx";
+
 my $sdcard = "/media/sdcard/nemo/phone";
 my $home = "/home/nemo";
 
@@ -20,7 +22,7 @@ sub main(@){
   for my $dir(@dirs){
     push @cmds, "sailphoto-dir --add $dir";
   }
-  system "sx", join "; ", @cmds;
+  system "ipmagic", $ipmagicName, join "; ", @cmds;
 }
 
 &main(@ARGV);
