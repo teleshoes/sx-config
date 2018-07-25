@@ -73,6 +73,7 @@ my @config = qw(
   jboyadvance
 
   mupen64plus-gui-sailfishos
+  saera
 );
 
 ########################################################
