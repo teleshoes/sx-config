@@ -1,1 +1,2 @@
-sudo /bin/ping "$@"
+#sudo /bin/ping "$@"
+/bin/ping "$@"
