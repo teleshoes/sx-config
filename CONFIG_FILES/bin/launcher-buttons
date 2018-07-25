@@ -74,6 +74,7 @@ my @config = qw(
 
   mupen64plus-gui-sailfishos
   saera
+  spring
 );
 
 ########################################################
