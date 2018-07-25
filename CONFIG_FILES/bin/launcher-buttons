@@ -39,7 +39,6 @@ my @config = qw(
   aptoide
 
   jolla-email
-  harbour-file-browser
   jolla-mediaplayer
   sailfish-office
 
