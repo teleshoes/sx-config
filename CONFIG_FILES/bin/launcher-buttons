@@ -46,11 +46,8 @@ my @config = qw(
   jolla-notes
   sailfish-tutorial
   okboard
-  harbour-dolphin-settings
 
   sailfish-browser
-  harbour-hungermeter
-  harbour-batterylog
   harbour-webcat
 
   patchmanager
