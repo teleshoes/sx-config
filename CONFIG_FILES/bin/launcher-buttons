@@ -38,18 +38,15 @@ my @config = qw(
   store-client
   aptoide
 
-  jolla-email
   jolla-mediaplayer
   sailfish-office
 
   jolla-notes
-  sailfish-tutorial
   okboard
 
   sailfish-browser
   harbour-webcat
 
-  sailfish-weather
   harbour-sailbook
   qtemail
 
@@ -73,6 +70,12 @@ my @config = qw(
   mupen64plus-gui-sailfishos
   saera
   spring
+);
+
+my @unused = qw(
+  jolla-email
+  sailfish-weather
+  sailfish-tutorial
 );
 
 ########################################################
