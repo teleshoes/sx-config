@@ -51,6 +51,7 @@ my %packages = (
     harbour-unplayer
     harbour-webcat
     mupen64plus
+    myipaddress
     stellarium
     thumbterm
     toeterm
