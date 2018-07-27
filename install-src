@@ -14,6 +14,7 @@ my %INSTALLS = (
   lirrtraintime  => ["https://github.com/teleshoes/lirrtraintime", "./install.sh"],
   net            => ["https://github.com/teleshoes/net",           "./install.pl"],
   qtbigtext      => ["https://github.com/teleshoes/qtbigtext",     "./install.pl"],
+  qtbtn          => ["https://github.com/teleshoes/qtbtn",         "./install.pl"],
   qtemail        => ["https://github.com/teleshoes/qtemail",       "./install.sh"],
 );
 
