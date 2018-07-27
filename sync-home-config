@@ -48,32 +48,39 @@ my @HOMEBIN_EXECS = qw(
   transmission-webui
 );
 
+sub run(@);
+
 sub main(@){
   die "Usage: $0\n" if @_ > 0;
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
-  system "rsync", "-avP", @usrlocalbinFiles, "root\@$host:$USRLOCALBIN_REMOTE_DIR/";
+  run "rsync", "-avP", @usrlocalbinFiles, "root\@$host:$USRLOCALBIN_REMOTE_DIR/";
 
   my @homebinFiles = map {"$HOMEBIN_LOCAL_DIR/$_"} @HOMEBIN_EXECS;
-  system "rsync", "-avP", @homebinFiles, "$user\@$host:$HOMEBIN_REMOTE_DIR/";
+  run "rsync", "-avP", @homebinFiles, "$user\@$host:$HOMEBIN_REMOTE_DIR/";
 
-  system "ipmagic", $ipmagicName, "-u", "root", "
+  run "ipmagic", $ipmagicName, "-u", "root", "
     rmdir /root/bin 2>/dev/null;
     rm -f /root/bin;
     ln -s /home/$user/bin/ /root/bin;
   ";
 
   for my $file(@HOME_RSYNC_FILES){
-    system "rsync", "-avP", "$ENV{HOME}/$file", "$user\@$host:~/$file";
-    system "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
+    run "rsync", "-avP", "$ENV{HOME}/$file", "$user\@$host:~/$file";
+    run "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
   }
 
-  system "ipmagic", $ipmagicName, "-u", "root", "
+  run "ipmagic", $ipmagicName, "-u", "root", "
     sed -i 's/›/>/g' /home/nemo/.vimrc
     sed -i 's/›/>/g' /root/.vimrc
   ";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 &main(@ARGV);
