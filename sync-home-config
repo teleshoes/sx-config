@@ -73,6 +73,7 @@ sub main(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
+  print "\n\n===INITIAL COMMANDS\n";
   for my $cmd(@INITIAL_USER_CMDS){
     run "ipmagic", $ipmagicName, "-u", $user, $cmd;
   }
@@ -80,22 +81,27 @@ sub main(@){
     run "ipmagic", $ipmagicName, "-u", "root", $cmd;
   }
 
+  print "\n\n===RSYNC /usr/local/bin FILES\n";
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
   run "rsync", "-avP", @usrlocalbinFiles, "root\@$host:$USRLOCALBIN_REMOTE_DIR/";
 
+  print "\n\n===RSYNC ~/bin FILES\n";
   my @homebinFiles = map {"$HOMEBIN_LOCAL_DIR/$_"} @HOMEBIN_EXECS;
   run "rsync", "-avP", @homebinFiles, "$user\@$host:$HOMEBIN_REMOTE_DIR/";
 
+  print "\n\n===RSYNC HOME FILES\n";
   for my $file(@HOME_RSYNC_FILES){
     run "rsync", "-avP", "$ENV{HOME}/$file", "$user\@$host:~/$file";
     run "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
   }
 
+  print "\n\n===RSYNC SPECIAL FILES\n";
   for my $rsync(@SPECIAL_RSYNCS){
     my ($src, $dest) = @$rsync;
     run "rsync", "-avP", $src, "$user\@$host:$dest";
   }
 
+  print "\n\n===FINAL COMMANDS\n";
   for my $cmd(@FINAL_USER_CMDS){
     run "ipmagic", $ipmagicName, "-u", $user, $cmd;
   }
