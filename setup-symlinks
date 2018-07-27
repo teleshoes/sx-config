@@ -14,12 +14,7 @@ my %SYMLINKS = (
     src => "*-*-*-*-*",
     dest => "phone",
   },
-  "2escapepod" => {
-    dir => "/home/$user",
-    src => "/media/sdcard/phone/escape_pod",
-    dest => "escape_pod",
-  },
-  "3qtemail" => {
+  "2qtemail" => {
     dir => "/home/$user/.cache",
     src => "/media/sdcard/phone/email",
     dest => "email",
