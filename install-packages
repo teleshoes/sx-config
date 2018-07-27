@@ -64,7 +64,11 @@ my %packages = (
     qt5-qtdeclarative-qtquick qt5-qtopengl qt5-qtnetwork qt5-qtwidgets
   )],
 
-  "6-weather" => [qw(
+  "6-klomp" => [qw(
+    qt5-qtmultimedia-plugin-mediaservice-gstaudiodecoder
+  )],
+
+  "7-weather" => [qw(
     harbour-meecast
     harbour-meecast-daemon
     harbour-meecast-event
