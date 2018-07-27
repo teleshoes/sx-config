@@ -10,6 +10,7 @@ my $srcDir = "/home/$user/Code";
 sub install($$$);
 
 my %INSTALLS = (
+  klomp          => ["https://github.com/teleshoes/klomp",         "./install.pl"],
   lirrtraintime  => ["https://github.com/teleshoes/lirrtraintime", "./install.sh"],
   net            => ["https://github.com/teleshoes/net",           "./install.pl"],
   qtbigtext      => ["https://github.com/teleshoes/qtbigtext",     "./install.pl"],
