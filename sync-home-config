@@ -17,11 +17,13 @@ my @HOME_RSYNC_FILES = qw(
 );
 
 my @INITIAL_USER_CMDS = (
+  "mkdir -p /home/$user/.config/qtemail",
 );
 my @FINAL_USER_CMDS = (
 );
 
 my @INITIAL_ROOT_CMDS = (
+  "mkdir -p /root/.config/qtemail",
   "rmdir /root/bin 2>/dev/null",
   "rm -f /root/bin",
   "ln -s /home/$user/bin/ /root/bin",
