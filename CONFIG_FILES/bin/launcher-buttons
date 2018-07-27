@@ -11,6 +11,7 @@ my @config = qw(
   toeterm
   chrome
 
+  qtbtn-klomp
   tether-on
   unplayer
   jolla-camera
