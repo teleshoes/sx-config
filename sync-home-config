@@ -18,6 +18,7 @@ my @HOME_RSYNC_FILES = qw(
 
 my @INITIAL_USER_CMDS = (
   "mkdir -p /home/$user/.config/qtemail",
+  "mkdir -p /home/$user/.klomp",
 );
 my @FINAL_USER_CMDS = (
 );
