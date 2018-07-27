@@ -12,7 +12,6 @@ my @config = qw(
   chrome
 
   qtbtn-klomp
-  tether-on
   unplayer
   jolla-camera
   jolla-settings
@@ -32,16 +31,16 @@ my @config = qw(
   jolla-calendar
   jolla-mediaplayer
 
+  tether-on
   filecase
   sailphoto
   jolla-gallery
-  sailbook
 
 
   warehouse
   store-client
   aptoide
-  spring
+  sailbook
 
   sailfish-office
   jolla-notes
@@ -69,6 +68,7 @@ my @config = qw(
   mupen64plus-gui-sailfishos
 
   saera
+  spring
 );
 
 my @unused = qw(
