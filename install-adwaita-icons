@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+my $REPO_URL = "https://github.com/GNOME/adwaita-icon-theme";
+my $REPO_DIR = "$ENV{HOME}/Code/adwaita-icon-theme";
+
+sub run(@);
+
+sub main(@){
+  if(-d $REPO_DIR){
+    run "cd $REPO_DIR && git pull";
+    if($? != 0){
+      die "could not update $REPO_DIR";
+    }
+  }else{
+    run "mkdir", "-p", $REPO_DIR;
+    run "git", "clone", $REPO_URL, "$REPO_DIR/.";
+    die "could not clone $REPO_URL" if $? != 0;
+  }
+
+  my $host = `ipmagic $ipmagicName`;
+  chomp $host;
+
+  run "rsync", "-avP", "--del",
+    "$REPO_DIR/Adwaita/", "root\@$host:/usr/share/icons/Adwaita/";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
