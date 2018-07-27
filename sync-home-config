@@ -35,6 +35,8 @@ my @FINAL_ROOT_CMDS = (
 );
 
 my @SPECIAL_RSYNCS = (
+  ["$ENV{HOME}/.klomp/config-sx", "~/.klomp/config"],
+  ["$ENV{HOME}/.klomp/phone-lib", "~/.klomp/lib"],
 );
 
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
