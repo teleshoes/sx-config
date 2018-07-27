@@ -16,6 +16,16 @@ my @HOME_RSYNC_FILES = qw(
   .vim/
 );
 
+my @INITIAL_ROOT_CMDS = (
+  "rmdir /root/bin 2>/dev/null",
+  "rm -f /root/bin",
+  "ln -s /home/$user/bin/ /root/bin",
+);
+my @FINAL_ROOT_CMDS = (
+  "sed -i 's/›/>/g' /home/$user/.vimrc",
+  "sed -i 's/›/>/g' /root/.vimrc",
+);
+
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
 my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
 my @USRLOCALBIN_EXECS = qw(
@@ -55,27 +65,24 @@ sub main(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
+  for my $cmd(@INITIAL_ROOT_CMDS){
+    run "ipmagic", $ipmagicName, "-u", "root", $cmd;
+  }
+
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
   run "rsync", "-avP", @usrlocalbinFiles, "root\@$host:$USRLOCALBIN_REMOTE_DIR/";
 
   my @homebinFiles = map {"$HOMEBIN_LOCAL_DIR/$_"} @HOMEBIN_EXECS;
   run "rsync", "-avP", @homebinFiles, "$user\@$host:$HOMEBIN_REMOTE_DIR/";
 
-  run "ipmagic", $ipmagicName, "-u", "root", "
-    rmdir /root/bin 2>/dev/null;
-    rm -f /root/bin;
-    ln -s /home/$user/bin/ /root/bin;
-  ";
-
   for my $file(@HOME_RSYNC_FILES){
     run "rsync", "-avP", "$ENV{HOME}/$file", "$user\@$host:~/$file";
     run "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
   }
 
-  run "ipmagic", $ipmagicName, "-u", "root", "
-    sed -i 's/›/>/g' /home/nemo/.vimrc
-    sed -i 's/›/>/g' /root/.vimrc
-  ";
+  for my $cmd(@FINAL_ROOT_CMDS){
+    run "ipmagic", $ipmagicName, "-u", "root", $cmd;
+  }
 }
 
 sub run(@){
