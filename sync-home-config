@@ -31,6 +31,9 @@ my @FINAL_ROOT_CMDS = (
   "sed -i 's/›/>/g' /root/.vimrc",
 );
 
+my @SPECIAL_RSYNCS = (
+);
+
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
 my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
 my @USRLOCALBIN_EXECS = qw(
@@ -86,6 +89,11 @@ sub main(@){
   for my $file(@HOME_RSYNC_FILES){
     run "rsync", "-avP", "$ENV{HOME}/$file", "$user\@$host:~/$file";
     run "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
+  }
+
+  for my $rsync(@SPECIAL_RSYNCS){
+    my ($src, $dest) = @$rsync;
+    run "rsync", "-avP", $src, "$user\@$host:$dest";
   }
 
   for my $cmd(@FINAL_USER_CMDS){
