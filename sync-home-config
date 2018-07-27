@@ -16,6 +16,11 @@ my @HOME_RSYNC_FILES = qw(
   .vim/
 );
 
+my @INITIAL_USER_CMDS = (
+);
+my @FINAL_USER_CMDS = (
+);
+
 my @INITIAL_ROOT_CMDS = (
   "rmdir /root/bin 2>/dev/null",
   "rm -f /root/bin",
@@ -65,6 +70,9 @@ sub main(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
+  for my $cmd(@INITIAL_USER_CMDS){
+    run "ipmagic", $ipmagicName, "-u", $user, $cmd;
+  }
   for my $cmd(@INITIAL_ROOT_CMDS){
     run "ipmagic", $ipmagicName, "-u", "root", $cmd;
   }
@@ -80,6 +88,9 @@ sub main(@){
     run "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
   }
 
+  for my $cmd(@FINAL_USER_CMDS){
+    run "ipmagic", $ipmagicName, "-u", $user, $cmd;
+  }
   for my $cmd(@FINAL_ROOT_CMDS){
     run "ipmagic", $ipmagicName, "-u", "root", $cmd;
   }
