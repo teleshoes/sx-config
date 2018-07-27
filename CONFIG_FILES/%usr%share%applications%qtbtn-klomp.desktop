@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=qtbtn-klomp
+Comment=qtbtn.py for qtbtn-klomp.conf
+Icon=qtbtn-klomp
+Exec=invoker --type=generic sh -c /usr/local/bin/qtbtn-klomp
+Type=Application
