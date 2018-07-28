@@ -14,6 +14,9 @@ my %MODULES = (
     Date::Parse
     MIME::Parser
   )],
+  klompbigtext => [qw(
+    Text::CSV
+  )],
 );
 my @GROUPS = sort keys %MODULES;
 
