@@ -56,6 +56,7 @@ my @HOMEBIN_EXECS = qw(
   display-guess
   escribe-hosts
   gpg-sym
+  klomp-bigtext
   lirr_train_time
   loop
   pidgin-logs
