@@ -45,6 +45,8 @@ my @USRLOCALBIN_EXECS = qw(
   alarm
   ipmagic
   term
+  pulse-enable
+  pulse-vol
   vpn
 );
 
