@@ -107,7 +107,7 @@ sub main(@){
   run "scp", "$user\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
   run "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
-  run "ssh", "root\@$host", "vcardconverter -e $contactsTmpVcf";
+  run "ssh", "nemo\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
   run "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
