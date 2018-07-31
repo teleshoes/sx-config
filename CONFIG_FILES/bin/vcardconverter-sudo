@@ -1,0 +1,4 @@
+CMD="vcardconverter $@"
+sudo usermod -a -G privileged nemo
+sudo su --login nemo -c "$CMD"
+sudo gpasswd -d nemo privileged
