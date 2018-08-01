@@ -10,7 +10,7 @@ my $home = "/home/nemo";
 my @dirs = (
   "$home/Pictures",
   "$home/Pictures/screenshots",
-  "$sdcard/phone/sheet_music/sheet_1080p",
+  "$sdcard/sheet_music/sheet_1080p",
   "$sdcard/Pictures/Camera",
   "$sdcard/DCIM-pixmirror-bydate",
   "$sdcard/xbestddr",
