@@ -67,11 +67,12 @@ sub main(@){
     runQuiet "touch", "-h", "$localByDateDir/${y}", "-r", $dir;
     runQuiet "touch", "-h", "$localByDateDir", "-r", $dir;
   }
-  for my $dir(glob "$localPixmirror/backup*"){
-    if($dir !~ /^(?:.*\/)?(backup[a-zA-Z0-9_\-]*)$/){
+  for my $dir(glob "$localPixmirror/*/"){
+    if($dir !~ /^$localPixmirror\/([a-zA-Z0-9_\-]+)\/?$/){
       die "malformed dir: $dir\n";
     }
     my $dirName = $1;
+    next if $dirName =~ /^\d\d\d\d-\d\d-\d\d_/;
 
     my $remoteSrcAbsDir = "$remotePixmirror/$dirName";
     my $remoteRelBaseDir = "$remotePixmirrorByDate";
