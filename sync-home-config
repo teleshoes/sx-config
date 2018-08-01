@@ -16,29 +16,6 @@ my @HOME_RSYNC_FILES = qw(
   .vim/
 );
 
-my @INITIAL_USER_CMDS = (
-  "mkdir -p /home/$user/.config/qtemail",
-  "mkdir -p /home/$user/.klomp",
-);
-my @FINAL_USER_CMDS = (
-);
-
-my @INITIAL_ROOT_CMDS = (
-  "mkdir -p /root/.config/qtemail",
-  "rmdir /root/bin 2>/dev/null",
-  "rm -f /root/bin",
-  "ln -s /home/$user/bin/ /root/bin",
-);
-my @FINAL_ROOT_CMDS = (
-  "sed -i 's/›/>/g' /home/$user/.vimrc",
-  "sed -i 's/›/>/g' /root/.vimrc",
-);
-
-my @SPECIAL_RSYNCS = (
-  ["$ENV{HOME}/.klomp/config-sx", "~/.klomp/config"],
-  ["$ENV{HOME}/.klomp/phone-lib", "~/.klomp/lib"],
-);
-
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
 my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
 my @USRLOCALBIN_EXECS = qw(
@@ -72,6 +49,29 @@ my @HOMEBIN_EXECS = qw(
   seedbox
   speedtest
   transmission-webui
+);
+
+my @SPECIAL_RSYNCS = (
+  ["$ENV{HOME}/.klomp/config-sx", "~/.klomp/config"],
+  ["$ENV{HOME}/.klomp/phone-lib", "~/.klomp/lib"],
+);
+
+my @INITIAL_USER_CMDS = (
+  "mkdir -p /home/$user/.config/qtemail",
+  "mkdir -p /home/$user/.klomp",
+);
+my @FINAL_USER_CMDS = (
+);
+
+my @INITIAL_ROOT_CMDS = (
+  "mkdir -p /root/.config/qtemail",
+  "rmdir /root/bin 2>/dev/null",
+  "rm -f /root/bin",
+  "ln -s /home/$user/bin/ /root/bin",
+);
+my @FINAL_ROOT_CMDS = (
+  "sed -i 's/›/>/g' /home/$user/.vimrc",
+  "sed -i 's/›/>/g' /root/.vimrc",
 );
 
 sub run(@);
