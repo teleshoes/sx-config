@@ -54,6 +54,7 @@ my @HOMEBIN_EXECS = qw(
 my @SPECIAL_RSYNCS = (
   ["$ENV{HOME}/.klomp/config-sx", "~/.klomp/config"],
   ["$ENV{HOME}/.klomp/phone-lib", "~/.klomp/lib"],
+  ["$ENV{HOME}/Music/shows/sheet_1080p/", "/media/sdcard/phone/sheet_music/sheet_1080p/"],
 );
 
 my @INITIAL_USER_CMDS = (
