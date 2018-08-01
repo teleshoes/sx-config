@@ -21,7 +21,7 @@ sub main(@){
 
   run "scp", "$repo/contacts.vcf", "$user\@$host:/tmp/$vcfFile";
   run "ssh", "$user\@$host", "
-    devel-su -p vcardconverter /tmp/$vcfFile && \
+    vcardconverter-sudo /tmp/$vcfFile && \
     echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 }
