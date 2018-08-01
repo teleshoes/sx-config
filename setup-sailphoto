@@ -4,7 +4,7 @@ use warnings;
 
 my $ipmagicName = "sx";
 
-my $sdcard = "/media/sdcard/nemo/phone";
+my $sdcard = "/media/sdcard/phone";
 my $home = "/home/nemo";
 
 my @dirs = (
