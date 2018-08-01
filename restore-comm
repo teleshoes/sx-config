@@ -48,6 +48,7 @@ sub main(@){
   run "rsync", "-avP", "--exclude=.git",
     "$MMS_PARTS_REPO/",
     "$user\@$host:$MMS_PARTS_REMOTE_DIR/";
+  run "ssh", "root\@$host", "chown nemo.nemo -R $MMS_PARTS_REMOTE_DIR/";
 
   my $backupDir = "$COMMHISTORY_DB_REMOTE_DIR/commhistory-backup-$now";
   run "ssh", "root\@$host", "
