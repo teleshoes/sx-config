@@ -5,4 +5,5 @@ backup-*/
 deb-chroot/
 debdroid*
 perl/
+rpms/
 TWRP/
