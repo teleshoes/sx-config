@@ -150,9 +150,20 @@ sub writeRepoFile($$@){
   }else{
     die "invalid type: $type\n";
   }
+  my $maxDateMillis = undef;
+  for my $entry(@entries){
+    if(not defined $maxDateMillis or $$entry{date} > $maxDateMillis){
+      $maxDateMillis = $$entry{date};
+    }
+  }
   open FH, "> $repoFile" or die "could not write $repoFile\n$!\n";
   print FH $$_{line} foreach @entries;
   close FH;
+
+  if(defined $maxDateMillis){
+    my $mtime = int($maxDateMillis / 1000.0 + 0.5);
+    system "touch", $repoFile, "--date", "\@$mtime";
+  }
 }
 
 sub stripMillisLine($$){
