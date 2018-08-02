@@ -13,10 +13,10 @@ sub formatNumberUSA($);
 sub run(@);
 sub runQuiet(@);
 
-my $validFileTypes = join '|', qw(sms call);
+my $validCmdTypes = join '|', qw(--sms --call);
 
 my $usage = "Usage:
-  $0 VCF_FILE FILE_TYPE SRC_DIR DEST_DIR
+  $0 CMD_TYPE VCF_FILE SRC_DIR DEST_DIR
     create symlinks with filenames containing the names of contacts
     also makes a symlink with just the number
 
@@ -25,8 +25,8 @@ my $usage = "Usage:
     to:
       \"<DEST_DIR>/<CONTACT_FORMAT>.<FILE_TYPE>\"
 
+  CMD_TYPE      one of [$validCmdTypes]
   VCF_FILE      path to the contacts VCF file
-  FILE_TYPE     one of [$validFileTypes]
   SRC_DIR       path to the dir containing comm files
   DEST_DIR      path to place newly created contacts symlinks
 
@@ -41,33 +41,40 @@ my $usage = "Usage:
 
 sub main(@){
   die $usage if @_ != 4;
-  my ($vcfFile, $fileType, $srcDir, $destDir) = @_;
+  my ($cmdType, $vcfFile, $srcDir, $destDir) = @_;
 
-  if($fileType !~ /^($validFileTypes)$/){
-    die "invalid file type (must be one of $validFileTypes): $fileType\n";
+  if($cmdType !~ /^($validCmdTypes)$/){
+    die "invalid file type (must be one of $validCmdTypes): $cmdType\n";
   }
   die "could not find VCF file: $vcfFile\n" if not -f $vcfFile;
   die "not a directory: $srcDir\n" if not -d $srcDir;
   die "not a directory: $destDir\n" if not -d $destDir;
 
-  runQuiet "rm", "-f", glob "$destDir/*.$fileType";
+  my $fileExt;
+  if($cmdType =~ /^--sms$/){
+    $fileExt = "sms";
+  }elsif($cmdType =~ /^--call$/){
+    $fileExt = "call";
+  }
+
+  runQuiet "rm", "-f", glob "$destDir/*.$fileExt";
 
   my $contacts = getContactsFromVcf $vcfFile;
-  my @srcFiles = glob "$srcDir/*.$fileType";
+  my @srcFiles = glob "$srcDir/*.$fileExt";
 
   my $countContact = 0;
   my $countTotal = @srcFiles;
 
   for my $srcFile(@srcFiles){
-    if($srcFile =~ /^.*\/([0-9+]+)\.$fileType$/){
+    if($srcFile =~ /^.*\/([0-9+]+)\.$fileExt$/){
       my $num = $1;
       my $contact = $$contacts{$num};
       if(defined $contact){
         my $contactName = formatContactName $contact;
-        relSymlink $srcFile, "$destDir/$contactName-$num.$fileType";
+        relSymlink $srcFile, "$destDir/$contactName-$num.$fileExt";
         $countContact++;
       }else{
-        relSymlink $srcFile, "$destDir/$num.$fileType";
+        relSymlink $srcFile, "$destDir/$num.$fileExt";
       }
     }
   }
