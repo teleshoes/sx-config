@@ -115,6 +115,7 @@ sub main(@){
 
   for my $srcFileEntry(@srcFileEntries){
     my $number = $$srcFileEntry{number};
+    $number = formatNumberUSA($number);
     $number = "+++" if length $number == 0;
     my $contact = $$contacts{$number};
     my $contactFmt;
