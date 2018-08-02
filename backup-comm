@@ -194,10 +194,10 @@ sub main(@){
   # by-contact symlinks
   #########################################################
   print "\n\n=====SMS/CALL BY-CONTACT SYMLINKS\n";
-  run "$CMD_CONTACTS_SYMLINKS", "$CONTACTS_REPO/contacts.vcf",
-    "sms", $SMS_REPO, $SMS_BY_CONTACT_DIR;
-  run "$CMD_CONTACTS_SYMLINKS", "$CONTACTS_REPO/contacts.vcf",
-    "call", $CALL_REPO, $CALL_BY_CONTACT_DIR;
+  run "$CMD_CONTACTS_SYMLINKS", "--sms",
+    "$CONTACTS_REPO/contacts.vcf", $SMS_REPO, $SMS_BY_CONTACT_DIR;
+  run "$CMD_CONTACTS_SYMLINKS", "--call",
+    "$CONTACTS_REPO/contacts.vcf", $CALL_REPO, $CALL_BY_CONTACT_DIR;
 
   #########################################################
   # show git repo summary
