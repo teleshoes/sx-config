@@ -123,9 +123,11 @@ def main():
       msgDir = args.MMS_MSG_DIR + "/" + dirName
       if not os.path.isdir(msgDir):
         os.mkdir(msgDir)
-      infoFile = codecs.open(msgDir + "/" + "info", 'w', 'utf-8')
+      infoFilePath = msgDir + "/" + "info"
+      infoFile = codecs.open(infoFilePath, 'w', 'utf-8')
       infoFile.write(msg.getInfo())
       infoFile.close()
+      os.system("touch '" + infoFilePath + "' -r '" + msgDir + "'")
       for attName in sorted(msg.attFiles.keys()):
         srcFile = msg.attFiles[attName]
         destFile = msgDir + "/" + attName
