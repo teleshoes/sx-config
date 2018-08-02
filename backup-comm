@@ -61,6 +61,11 @@ my $REMOTE_REPO_DIR_SMS = "/media/sdcard/phone/comm-repos/sms/repo";
 my $REMOTE_REPO_DIR_CALL = "/media/sdcard/phone/comm-repos/call/repo";
 my $REMOTE_REPO_DIR_MMS = "/media/sdcard/phone/comm-repos/mms/repo";
 
+my $REMOTE_BYCONTACT_DIR_SMS = "/media/sdcard/phone/comm-repos/sms/by-contact";
+my $REMOTE_BYCONTACT_DIR_CALL = "/media/sdcard/phone/comm-repos/call/by-contact";
+my $REMOTE_BYCONTACT_DIR_MMS = "/media/sdcard/phone/comm-repos/mms/msg-by-contact";
+my $REMOTE_BYCONTACT_DIR_MMSPIX = "/media/sdcard/phone/comm-repos/mms/pix-by-contact";
+
 sub main(@){
   my $user = "nemo";
   my $host = `ipmagic $ipmagicName`;
@@ -213,11 +218,21 @@ sub main(@){
     mkdir -p $REMOTE_REPO_DIR_SMS;
     mkdir -p $REMOTE_REPO_DIR_CALL;
     mkdir -p $REMOTE_REPO_DIR_MMS;
+
+    mkdir -p $REMOTE_BYCONTACT_DIR_SMS;
+    mkdir -p $REMOTE_BYCONTACT_DIR_CALL;
+    mkdir -p $REMOTE_BYCONTACT_DIR_MMS;
+    mkdir -p $REMOTE_BYCONTACT_DIR_MMSPIX;
   ";
 
   run "rsync", "-avP", "--del", "$SMS_REPO/", "$user\@$host:$REMOTE_REPO_DIR_SMS/";
   run "rsync", "-avP", "--del", "$CALL_REPO/", "$user\@$host:$REMOTE_REPO_DIR_CALL/";
   run "rsync", "-avP", "$MMS_MSG_REPO/", "$user\@$host:$REMOTE_REPO_DIR_MMS/";
+
+  run "rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_SMS/";
+  run "rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_CALL/";
+  run "rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_MMS/";
+  run "rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_MMSPIX/";
 
   #########################################################
   # show git repo summary
