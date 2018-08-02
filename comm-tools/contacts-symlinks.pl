@@ -23,19 +23,16 @@ my $usage = "Usage:
     symlink files named:
       \"<SRC_DIR>/<PHONE_NUMBER>.<FILE_TYPE>\"
     to:
-      \"<DEST_DIR>/<VCF_NAME>-<VCF_NUMBER>.<FILE_TYPE>\"
-    and also to:
-      \"<DEST_DIR>/<PHONE_NUMBER>.<FILE_TYPE>\"
+      \"<DEST_DIR>/<CONTACT_FORMAT>.<FILE_TYPE>\"
 
   VCF_FILE      path to the contacts VCF file
   FILE_TYPE     one of [$validFileTypes]
   SRC_DIR       path to the dir containing comm files
   DEST_DIR      path to place newly created contacts symlinks
 
-  PHONE_NUMBER  phone number prefixing the comm file name
-                  digits and plus signs only, all other files are ignored
-  VCF_NUMBER    formatted number from VCF file
-                  all characters except numbers and plus signs are discarded
+  PHONE_NUMBER  phone number in the filename (digits and plus signs only)
+  CONTACT_FMT   either \"<VCF_NAME>-<NUMBER_FMT>\", or \"<NUMBER_FMT>\" if not found in VCF
+  NUMBER_FMT    same as \"<PHONE_NUMER>\" except US country code is omitted if present
   VCF_NAME      formatted contact name from the VCF file
                   \"'s\" followed by non-alphanumeric chars are replaced with \"s\"
                   groups of non-alphanumber chars are replaced with \"_\"
@@ -67,9 +64,10 @@ sub main(@){
         my $contactName = formatContactName $contact;
         relSymlink $srcFile, "$destDir/$contactName-$num.$fileType";
         $countNameSymlinks++;
+      }else{
+        relSymlink $srcFile, "$destDir/$num.$fileType";
+        $countNumberSymlinks++;
       }
-      relSymlink $srcFile, "$destDir/$num.$fileType";
-      $countNumberSymlinks++;
     }
   }
   print "created $countNumberSymlinks unmodified by-number symlinks\n";
