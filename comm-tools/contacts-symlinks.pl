@@ -163,7 +163,7 @@ sub formatNumberUSA($){
   #remove everything but digits and +
   $num =~ s/[^0-9+]//g;
   #remove US country code (remove leading + and/or 1 if followed by 10 digits)
-  $num =~ s/^\+?1?(\d{10})$/$1/;
+  $num =~ s/^(?:\+1|1)(\d{10})$/$1/;
   return $num;
 }
 
