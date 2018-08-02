@@ -206,12 +206,13 @@ sub main(@){
     }
 
     my $destFile;
+    my $subdir = undef;
     if($cmdType eq $CMD_TYPE_SMS){
       $destFile = "$destDir/$contactFmt.sms";
     }elsif($cmdType eq $CMD_TYPE_CALL){
       $destFile = "$destDir/$contactFmt.call";
     }elsif($cmdType eq $CMD_TYPE_MMS){
-      my $subdir = "$destDir/$contactFmt";
+      $subdir = "$destDir/$contactFmt";
       runQuiet "mkdir", "-p", $subdir if not -d $subdir;
       $destFile = sprintf "%s/%s_%s_%s",
         $subdir,
@@ -220,7 +221,7 @@ sub main(@){
         $$srcFileEntry{msgid},
         ;
     }elsif($cmdType eq $CMD_TYPE_MMSPIX){
-      my $subdir = "$destDir/$contactFmt";
+      $subdir = "$destDir/$contactFmt";
       runQuiet "mkdir", "-p", $subdir if not -d $subdir;
       $destFile = sprintf "%s/%s_%s_%s_%s.%s",
         $subdir,
@@ -233,6 +234,10 @@ sub main(@){
     }
 
     relSymlink $$srcFileEntry{file}, $destFile;
+
+    if(defined $subdir){
+      runQuiet "touch", "-r", $$srcFileEntry{file}, $subdir;
+    }
   }
 
   print "created $countTotal total symlinks ($countContact by-name)\n";
