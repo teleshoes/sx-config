@@ -79,7 +79,10 @@ sub main(@){
 sub relSymlink($$){
   my ($srcFile, $destFile) = @_;
   $srcFile = abs_path $srcFile;
+  die "dest file exists: $destFile\n" if -e $destFile;
   $destFile = abs_path $destFile;
+  die "dest file exists: $destFile\n" if -e $destFile;
+
   my $destDir = $destFile;
   $destDir =~ s/\/[^\/]*$//;
   my $relSrcFile = File::Spec->abs2rel($srcFile, $destDir);
