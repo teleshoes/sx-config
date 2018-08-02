@@ -16,13 +16,18 @@ sub runQuiet(@);
 my $CMD_TYPE_SMS = "SMS";
 my $CMD_TYPE_CALL = "CALL";
 my $CMD_TYPE_MMS = "MMS";
-my @CMD_TYPES = ($CMD_TYPE_SMS, $CMD_TYPE_CALL, $CMD_TYPE_MMS);
+my $CMD_TYPE_MMSPIX = "MMSPIX";
+my @CMD_TYPES = ($CMD_TYPE_SMS, $CMD_TYPE_CALL, $CMD_TYPE_MMS, $CMD_TYPE_MMSPIX);
 
 my %cmdTypeArgs = (
   $CMD_TYPE_SMS => join("|", qw(--sms)),
   $CMD_TYPE_CALL => join("|", qw(--call)),
   $CMD_TYPE_MMS => join("|", qw(--mms)),
+  $CMD_TYPE_MMSPIX => join("|", qw(--mmspix --pix --mms-pix)),
 );
+
+my @imgExts = qw(jpg jpeg png bmp);
+my $okImgExts = join "|", @imgExts;
 
 my $validCmdTypes = join "|", sort values %cmdTypeArgs;
 
@@ -50,6 +55,12 @@ my $usage = "Usage:
         \"<SRC_DIR>/<TIMESTAMP>_<NUMBER_LIST>_<DIRECTION>_<MSG_ID>\"
       to:
         \"<DEST_DIR>/<CONTACT_FORMAT>/<TIMESTAMP_FMT>_<DIRECTION>_<MSG_ID>\"
+
+    $cmdTypeArgs{$CMD_TYPE_MMSPIX}
+      symlink files named:
+        \"<SRC_DIR>/<TIMESTAMP>_<NUMBER_LIST>_<DIRECTION>_<MSG_ID>/<FILE_PREFIX>.<IMG_EXT>\"
+      to:
+        \"<DEST_DIR>/<CONTACT_FMT>/<TIMESTAMP_FMT>_<DIRECTION>_<MSG_ID>_<FILE_PREFIX>.<IMG_EXT>\"
 
   VCF_FILE      path to the contacts VCF file
   SRC_DIR       path to the dir containing comm files
@@ -107,6 +118,8 @@ sub main(@){
           timestamp => undef,
           direction => undef,
           msgid => undef,
+          fileprefix => undef,
+          fileext => undef,
         };
       }else{
         die "malformed file: $file\n";
@@ -121,6 +134,8 @@ sub main(@){
           timestamp => undef,
           direction => undef,
           msgid => undef,
+          fileprefix => undef,
+          fileext => undef,
         };
         push @srcFileEntries, $srcFileEntry;
       }else{
@@ -136,7 +151,27 @@ sub main(@){
           timestamp => $1,
           direction => $3,
           msgid => $4,
+          fileprefix => undef,
+          fileext => undef,
         };
+        push @srcFileEntries, $srcFileEntry;
+      }else{
+        die "malformed file: $file\n";
+      }
+    }
+  }elsif($cmdType eq $CMD_TYPE_MMSPIX){
+    for my $file(glob "$srcDir/*_*_*_*/*.*"){
+      if($file =~ /^.*\/(\d+)_([0-9+]*)(?:-[0-9+]+)*_(INC|OUT|NTF)_([0-9a-f]+)\/(.*)\.(\w+)$/){
+        my $srcFileEntry = {
+          file => $file,
+          number => $2,
+          timestamp => $1,
+          direction => $3,
+          msgid => $4,
+          fileprefix => $5,
+          fileext => $6,
+        };
+        next if $$srcFileEntry{fileext} !~ /^($okImgExts)$/;
         push @srcFileEntries, $srcFileEntry;
       }else{
         die "malformed file: $file\n";
@@ -183,6 +218,17 @@ sub main(@){
         $timestampFmt,
         $$srcFileEntry{direction},
         $$srcFileEntry{msgid},
+        ;
+    }elsif($cmdType eq $CMD_TYPE_MMSPIX){
+      my $subdir = "$destDir/$contactFmt";
+      runQuiet "mkdir", "-p", $subdir if not -d $subdir;
+      $destFile = sprintf "%s/%s_%s_%s_%s.%s",
+        $subdir,
+        $timestampFmt,
+        $$srcFileEntry{direction},
+        $$srcFileEntry{msgid},
+        $$srcFileEntry{fileprefix},
+        $$srcFileEntry{fileext},
         ;
     }
 
