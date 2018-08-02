@@ -13,19 +13,36 @@ sub formatNumberUSA($);
 sub run(@);
 sub runQuiet(@);
 
-my $validCmdTypes = join '|', qw(--sms --call);
+my $CMD_TYPE_SMS = "SMS";
+my $CMD_TYPE_CALL = "CALL";
+my @CMD_TYPES = ($CMD_TYPE_SMS, $CMD_TYPE_CALL);
+
+my %cmdTypeArgs = (
+  $CMD_TYPE_SMS => join("|", qw(--sms)),
+  $CMD_TYPE_CALL => join("|", qw(--call)),
+);
+
+my $validCmdTypes = join "|", sort values %cmdTypeArgs;
 
 my $usage = "Usage:
   $0 CMD_TYPE VCF_FILE SRC_DIR DEST_DIR
-    create symlinks with filenames containing the names of contacts
-    also makes a symlink with just the number
 
-    symlink files named:
-      \"<SRC_DIR>/<PHONE_NUMBER>.<FILE_TYPE>\"
-    to:
-      \"<DEST_DIR>/<CONTACT_FORMAT>.<FILE_TYPE>\"
+    create symlinks with filenames containing the names of contacts,
+      or symlinks with just the number if number is not found in the VCF
 
-  CMD_TYPE      one of [$validCmdTypes]
+  CMD_TYPE      $validCmdTypes
+    $cmdTypeArgs{$CMD_TYPE_SMS}
+      symlink files named:
+        \"<SRC_DIR>/<PHONE_NUMBER>.sms\"
+      to:
+        \"<DEST_DIR>/<CONTACT_FORMAT>.sms\"
+
+    $cmdTypeArgs{$CMD_TYPE_CALL}
+      symlink files named:
+        \"<SRC_DIR>/<PHONE_NUMBER>.call\"
+      to:
+        \"<DEST_DIR>/<CONTACT_FORMAT>.call\"
+
   VCF_FILE      path to the contacts VCF file
   SRC_DIR       path to the dir containing comm files
   DEST_DIR      path to place newly created contacts symlinks
@@ -41,43 +58,83 @@ my $usage = "Usage:
 
 sub main(@){
   die $usage if @_ != 4;
-  my ($cmdType, $vcfFile, $srcDir, $destDir) = @_;
+  my ($cmdTypeArg, $vcfFile, $srcDir, $destDir) = @_;
 
-  if($cmdType !~ /^($validCmdTypes)$/){
-    die "invalid file type (must be one of $validCmdTypes): $cmdType\n";
+  my $cmdType;
+  for my $type(@CMD_TYPES){
+    if($cmdTypeArg =~ /^(?:$cmdTypeArgs{$type})$/){
+      $cmdType = $type;
+    }
+  }
+  if(not defined $cmdType){
+    die "invalid cmd type (must be one of $validCmdTypes): $cmdType\n";
   }
   die "could not find VCF file: $vcfFile\n" if not -f $vcfFile;
   die "not a directory: $srcDir\n" if not -d $srcDir;
   die "not a directory: $destDir\n" if not -d $destDir;
 
-  my $fileExt;
-  if($cmdType =~ /^--sms$/){
-    $fileExt = "sms";
-  }elsif($cmdType =~ /^--call$/){
-    $fileExt = "call";
+  if(glob "$destDir/*/*"){
+    runQuiet "rm", "-f", glob "$destDir/*/*";
+  }
+  if(glob "$destDir/*/"){
+    runQuiet "rmdir", glob "$destDir/*/";
+  }
+  if(glob "$destDir/*"){
+    runQuiet "rm", "-f", glob "$destDir/*";
   }
 
-  runQuiet "rm", "-f", glob "$destDir/*.$fileExt";
-
   my $contacts = getContactsFromVcf $vcfFile;
-  my @srcFiles = glob "$srcDir/*.$fileExt";
-
-  my $countContact = 0;
-  my $countTotal = @srcFiles;
-
-  for my $srcFile(@srcFiles){
-    if($srcFile =~ /^.*\/([0-9+]+)\.$fileExt$/){
-      my $num = $1;
-      my $contact = $$contacts{$num};
-      if(defined $contact){
-        my $contactName = formatContactName $contact;
-        relSymlink $srcFile, "$destDir/$contactName-$num.$fileExt";
-        $countContact++;
+  my @srcFileEntries;
+  if($cmdType eq $CMD_TYPE_SMS){
+    for my $file(glob "$srcDir/*.sms"){
+      if($file =~ /^.*\/([0-9+]+)\.sms$/){
+        push @srcFileEntries, {
+          file => $file,
+          number => $1,
+        };
       }else{
-        relSymlink $srcFile, "$destDir/$num.$fileExt";
+        die "malformed file: $file\n";
+      }
+    }
+  }elsif($cmdType eq $CMD_TYPE_CALL){
+    for my $file(glob "$srcDir/*.call"){
+      if($file =~ /^.*\/([0-9+]+)\.call$/){
+        my $srcFileEntry = {
+          file => $file,
+          number => $1,
+        };
+        push @srcFileEntries, $srcFileEntry;
+      }else{
+        die "malformed file: $file\n";
       }
     }
   }
+
+  my $countContact = 0;
+  my $countTotal = @srcFileEntries;
+
+  for my $srcFileEntry(@srcFileEntries){
+    my $number = $$srcFileEntry{number};
+    my $contact = $$contacts{$number};
+    my $contactFmt;
+    if(defined $contact){
+      $countContact++;
+      my $contactName = formatContactName $contact;
+      $contactFmt = "$contactName-$number";
+    }else{
+      $contactFmt = "unknown-$number";
+    }
+
+    my $destFile;
+    if($cmdType eq $CMD_TYPE_SMS){
+      $destFile = "$destDir/$contactFmt.sms";
+    }elsif($cmdType eq $CMD_TYPE_CALL){
+      $destFile = "$destDir/$contactFmt.call";
+    }
+
+    relSymlink $$srcFileEntry{file}, $destFile;
+  }
+
   print "created $countTotal total symlinks ($countContact by-name)\n";
 }
 
