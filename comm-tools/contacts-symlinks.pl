@@ -15,11 +15,13 @@ sub runQuiet(@);
 
 my $CMD_TYPE_SMS = "SMS";
 my $CMD_TYPE_CALL = "CALL";
-my @CMD_TYPES = ($CMD_TYPE_SMS, $CMD_TYPE_CALL);
+my $CMD_TYPE_MMS = "MMS";
+my @CMD_TYPES = ($CMD_TYPE_SMS, $CMD_TYPE_CALL, $CMD_TYPE_MMS);
 
 my %cmdTypeArgs = (
   $CMD_TYPE_SMS => join("|", qw(--sms)),
   $CMD_TYPE_CALL => join("|", qw(--call)),
+  $CMD_TYPE_MMS => join("|", qw(--mms)),
 );
 
 my $validCmdTypes = join "|", sort values %cmdTypeArgs;
@@ -43,17 +45,28 @@ my $usage = "Usage:
       to:
         \"<DEST_DIR>/<CONTACT_FORMAT>.call\"
 
+    $cmdTypeArgs{$CMD_TYPE_MMS}
+      symlink directories named:
+        \"<SRC_DIR>/<TIMESTAMP>_<NUMBER_LIST>_<DIRECTION>_<MSG_ID>\"
+      to:
+        \"<DEST_DIR>/<CONTACT_FORMAT>/<TIMESTAMP_FMT>_<DIRECTION>_<MSG_ID>\"
+
   VCF_FILE      path to the contacts VCF file
   SRC_DIR       path to the dir containing comm files
   DEST_DIR      path to place newly created contacts symlinks
 
   PHONE_NUMBER  phone number in the filename (digits and plus signs only)
+  NUMBER_LIST   a list of \"<PHONE_NUMBER>\", joined with hyphens (only first is used)
   CONTACT_FMT   either \"<VCF_NAME>-<NUMBER_FMT>\", or \"<NUMBER_FMT>\" if not found in VCF
   NUMBER_FMT    same as \"<PHONE_NUMER>\" except US country code is omitted if present
   VCF_NAME      formatted contact name from the VCF file
                   \"'s\" followed by non-alphanumeric chars are replaced with \"s\"
                   groups of non-alphanumber chars are replaced with \"_\"
                   contains only letters, numbers, and underscores
+  TIMESTAMP     milliseconds since epoch
+  TIMESTAMP_FMT <TIMESTAMP>, formatted as \"YYYYmmdd-HHMMSS\"
+                  using `date --date @<TIMESTAMP> +%Y%m%d-%H%M%S`
+  DIRECTION     INC, OUT, or NTF
 ";
 
 sub main(@){
@@ -91,6 +104,9 @@ sub main(@){
         push @srcFileEntries, {
           file => $file,
           number => $1,
+          timestamp => undef,
+          direction => undef,
+          msgid => undef,
         };
       }else{
         die "malformed file: $file\n";
@@ -102,6 +118,24 @@ sub main(@){
         my $srcFileEntry = {
           file => $file,
           number => $1,
+          timestamp => undef,
+          direction => undef,
+          msgid => undef,
+        };
+        push @srcFileEntries, $srcFileEntry;
+      }else{
+        die "malformed file: $file\n";
+      }
+    }
+  }elsif($cmdType eq $CMD_TYPE_MMS){
+    for my $file(glob "$srcDir/*_*_*_*"){
+      if($file =~ /^.*\/(\d+)_([0-9+]*)(?:-[0-9+]+)*_(INC|OUT|NTF)_([0-9a-f]+)$/){
+        my $srcFileEntry = {
+          file => $file,
+          number => $2,
+          timestamp => $1,
+          direction => $3,
+          msgid => $4,
         };
         push @srcFileEntries, $srcFileEntry;
       }else{
@@ -127,11 +161,29 @@ sub main(@){
       $contactFmt = "unknown-$number";
     }
 
+    my $timestampFmt;
+    if(defined $$srcFileEntry{timestamp}){
+      my $timestampSex = int($$srcFileEntry{timestamp} / 1000.0);
+      $timestampFmt = `date --date \@$timestampSex +%Y%m%d-%H%M%S`;
+      chomp $timestampFmt;
+    }else{
+      $timestampFmt = undef;
+    }
+
     my $destFile;
     if($cmdType eq $CMD_TYPE_SMS){
       $destFile = "$destDir/$contactFmt.sms";
     }elsif($cmdType eq $CMD_TYPE_CALL){
       $destFile = "$destDir/$contactFmt.call";
+    }elsif($cmdType eq $CMD_TYPE_MMS){
+      my $subdir = "$destDir/$contactFmt";
+      runQuiet "mkdir", "-p", $subdir if not -d $subdir;
+      $destFile = sprintf "%s/%s_%s_%s",
+        $subdir,
+        $timestampFmt,
+        $$srcFileEntry{direction},
+        $$srcFileEntry{msgid},
+        ;
     }
 
     relSymlink $$srcFileEntry{file}, $destFile;
