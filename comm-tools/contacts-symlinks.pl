@@ -54,8 +54,10 @@ sub main(@){
 
   my $contacts = getContactsFromVcf $vcfFile;
   my @srcFiles = glob "$srcDir/*.$fileType";
-  my $countNumberSymlinks = 0;
-  my $countNameSymlinks = 0;
+
+  my $countContact = 0;
+  my $countTotal = @srcFiles;
+
   for my $srcFile(@srcFiles){
     if($srcFile =~ /^.*\/([0-9+]+)\.$fileType$/){
       my $num = $1;
@@ -63,15 +65,13 @@ sub main(@){
       if(defined $contact){
         my $contactName = formatContactName $contact;
         relSymlink $srcFile, "$destDir/$contactName-$num.$fileType";
-        $countNameSymlinks++;
+        $countContact++;
       }else{
         relSymlink $srcFile, "$destDir/$num.$fileType";
-        $countNumberSymlinks++;
       }
     }
   }
-  print "created $countNumberSymlinks unmodified by-number symlinks\n";
-  print "created $countNameSymlinks by-contact-name symlinks\n";
+  print "created $countTotal total symlinks ($countContact by-name)\n";
 }
 
 sub relSymlink($$){
