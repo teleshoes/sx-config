@@ -102,6 +102,13 @@ sub main(@){
   system "echo " . nowHrMin() . " > $lastSuccessFile";
   ######
 
+  ######
+  notificationMsg $id, sprintf "BAK-GEO: %s", nowHrMin();
+  my $gpsconFile = sprintf "/tmp/gpscon-%s", nowYMD_HMS_MILLIS();
+  system "gpscon runs=1 >$gpsconFile 2>&1";
+  run rsyncCmd($config, $gpsconFile, "$backupDir/gpscon/");
+  ######
+
   removeNotification $id;
 
   run "date";
