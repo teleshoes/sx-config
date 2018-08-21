@@ -54,9 +54,14 @@ sub main(@){
       my $sortKey = getSortKey $type, $entry;
       if(defined $allEntriesBySortKey{$sortKey}){
         my $prevEntry = $allEntriesBySortKey{$sortKey};
-        die "duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
+        if(hashEq $entry, $prevEntry){
+          print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
+        }else{
+          die "ERROR: duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
+        }
+      }else{
+        $allEntriesBySortKey{$sortKey} = $entry;
       }
-      $allEntriesBySortKey{$sortKey} = $entry;
     }
 
     for my $entry(@newEntries){
@@ -77,9 +82,14 @@ sub main(@){
       my $sortKey = getSortKey $type, $entry;
       if(defined $allEntriesBySortKey{$sortKey}){
         my $prevEntry = $allEntriesBySortKey{$sortKey};
-        die "duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
+        if(hashEq $prevEntry, $entry){
+          print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
+        }else{
+          die "ERROR: duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
+        }
+      }else{
+        $allEntriesBySortKey{$sortKey} = $entry;
       }
-      $allEntriesBySortKey{$sortKey} = $entry;
     }
 
     my @sortedEntries = map {$allEntriesBySortKey{$_}} sort keys %allEntriesBySortKey;
