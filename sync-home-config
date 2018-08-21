@@ -38,6 +38,7 @@ my @HOMEBIN_EXECS = qw(
   klomp-bigtext
   lirr_train_time
   loop
+  mtime
   pidgin-logs
   pix
   revtun
