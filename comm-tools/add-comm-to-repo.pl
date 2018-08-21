@@ -15,6 +15,9 @@ sub parseFile($$);
 sub parseSmsFile($);
 sub parseCallFile($);
 
+sub hashEq($$);
+sub arrEq($$);
+
 my $usage = "Usage:
   $0 --sms FILE
     parse FILE and add to $SMS_REPO_DIR
@@ -256,6 +259,37 @@ sub parseCallFile($){
     };
   }
   return $entries;
+}
+
+sub hashEq($$){
+  my ($hashOne, $hashTwo) = @_;
+  return 1 if not defined $hashOne and not defined $hashTwo;
+  return 0 if not defined $hashOne or not defined $hashTwo;
+
+  my @keysOne = sort keys %$hashOne;
+  my @keysTwo = sort keys %$hashTwo;
+
+  return 0 if not arrEq \@keysOne, \@keysTwo;
+
+  for my $key(@keysOne){
+    return 0 if not $$hashOne{$key} eq $$hashTwo{$key};
+  }
+  return 1;
+}
+
+sub arrEq($$){
+  my ($arrOne, $arrTwo) = @_;
+  return 1 if not defined $arrOne and not defined $arrTwo;
+  return 0 if not defined $arrOne or not defined $arrTwo;
+
+  return 0 if not @$arrOne == @$arrTwo;
+
+  for(my $i=0; $i<@$arrOne; $i++){
+    if($$arrOne[$i] ne $$arrTwo[$i]){
+      return 0;
+    }
+  }
+  return 1;
 }
 
 &main(@ARGV);
