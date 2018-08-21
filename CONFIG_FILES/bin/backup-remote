@@ -44,6 +44,7 @@ sub readProc(@);
 sub tryReadProc(@);
 sub tryReadProcQuiet(@);
 sub nowHrMin();
+sub nowYMD_HMS_MILLIS();
 sub fail($);
 
 sub main(@){
@@ -63,6 +64,13 @@ sub main(@){
   run "screen-cmd", "revtun", "-r", "--unsafe", "--local";
   ensureConnection($config);
   run sshCmd($config, "mkdir", "-p", $backupDir);
+  ######
+
+  ######
+  notificationMsg $id, sprintf "BAK-GEO: %s", nowHrMin();
+  my $opencellidFile = sprintf "/tmp/opencellid-geo-%s", nowYMD_HMS_MILLIS();
+  system "opencellid-geo >$opencellidFile 2>&1";
+  run rsyncCmd($config, $opencellidFile, "$backupDir/opencellid-geo/");
   ######
 
   ######
@@ -232,6 +240,14 @@ sub nowHrMin(){
   my $hrMin = `date +%H:%M`;
   chomp $hrMin;
   return $hrMin;
+}
+sub nowYMD_HMS_MILLIS(){
+  my $nowMillis = int(time * 1000.0);
+  my $nowSex = int($nowMillis / 1000.0);
+
+  my $dateFmt = `date --date \@$nowSex +%Y%m%d_%H%M%S_$nowMillis`;
+  chomp $dateFmt;
+  return $dateFmt;
 }
 
 sub fail($){
