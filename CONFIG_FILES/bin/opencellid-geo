@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $OPENCELLID_API_URL = "http://www.opencellid.org/cell/get";
+
+my $secretsFile = "$ENV{HOME}/.secrets";
+my $secretsPrefix = "opencellid";
+my @configKeys = qw(token);
+my @requiredKeys = qw(token);
+
+sub getNetworkPropsDbus();
+sub readProc(@);
+sub readSecrets();
+
+sub main(@){
+  my $secrets = readSecrets();
+  my $token = $$secrets{token};
+
+  my $networkProps = getNetworkPropsDbus();
+  my $mnc = $$networkProps{MobileNetworkCode};
+  my $mcc = $$networkProps{MobileCountryCode};
+  my $lac = $$networkProps{LocationAreaCode};
+  my $cellid = $$networkProps{CellId};
+
+  my $geo = callOpenCellId($token, $mnc, $mcc, $lac, $cellid);
+  if(not defined $geo){
+    print "no lat/long found\n";
+  }else{
+    print "$geo\n";
+  }
+}
+
+sub callOpenCellId($$$$$){
+  my ($token, $mnc, $mcc, $lac, $cellid) = @_;
+  my $url = $OPENCELLID_API_URL
+    . "?key=$token"
+    . "&mnc=$mnc"
+    . "&mcc=$mcc"
+    . "&lac=$lac"
+    . "&cellid=$cellid"
+    ;
+
+  my $curlOut = readProc "curl", "--silent", $url;
+  my $lat = $1 if $curlOut =~ /lat\s*=\s*"(-?\d+|-?\d*\.\d+)"/;
+  my $lon = $1 if $curlOut =~ /lon\s*=\s*"(-?\d+|-?\d*\.\d+)"/;
+  if(defined $lat and defined $lon){
+    return "$lat, $lon";
+  }else{
+    return undef;
+  }
+}
+
+sub getNetworkPropsDbus(){
+  my @cmd = qw(
+    dbus-send
+      --system
+      --print-reply=literal
+      --type=method_call
+      --dest=org.ofono
+      /ril_0
+      org.ofono.NetworkRegistration.GetProperties
+  );
+  my $dbusOut = readProc @cmd;
+  $dbusOut =~ s/(\s*\n\s*|\s+)/ /g;
+
+  my @types = qw(
+    string boolean byte
+    int16 int32 int64 uint16 uint32 uint64
+    double objectpath signature utf8string
+    variant
+  );
+  my $typeRegex = "(?:variant\\s*)?(?:" . join("|", @types) . ")";
+
+  my $info = {};
+  while($dbusOut =~ /dict \s+ entry \s*\(\s* (\w+) \s+ $typeRegex \s+ (\S+) \s*\)/gx){
+    my ($keyName, $val) = ($1, $2, $3);
+    $$info{$keyName} = $val;
+  }
+  return $info;
+}
+
+sub readProc(@){
+  open CMD, "-|", @_ or die "could not run \"@_\"\n$!\n";
+  my @lines = <CMD>;
+  close CMD;
+  return join "", @lines;
+}
+
+sub readSecrets(){
+  my @lines = `cat $secretsFile 2>/dev/null`;
+  my $cfg = {};
+  my $okConfigKeys = join "|", @configKeys;
+  for my $line(@lines){
+    if($line =~ /^$secretsPrefix\.($okConfigKeys)\s*=\s*(.+)$/){
+      $$cfg{$1} = $2;
+    }
+  }
+  for my $key(sort @requiredKeys){
+    die "Missing config '$key' in $secretsFile\n" if not defined $$cfg{$key};
+  }
+  return $cfg;
+}
+
+&main(@ARGV);
