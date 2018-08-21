@@ -42,6 +42,7 @@ my %packages = (
 
   "4-apps" => [qw(
     filecase
+    gpscon
     harbour-gpsinfo
     harbour-jboyadvance
     harbour-modrana
@@ -97,6 +98,7 @@ my @openrepos = qw(
   Feathers_McGraw
   fravaccaro
   gexc
+  halftux
   hbp
   HuyliGun
   krnlyng
