@@ -18,20 +18,33 @@ sub main(@){
   my $token = $$secrets{token};
 
   my $networkProps = getNetworkPropsDbus();
+
   my $mnc = $$networkProps{MobileNetworkCode};
   my $mcc = $$networkProps{MobileCountryCode};
   my $lac = $$networkProps{LocationAreaCode};
   my $cellid = $$networkProps{CellId};
-
-  my $geo = callOpenCellId($token, $mnc, $mcc, $lac, $cellid);
-  if(not defined $geo){
-    print "no lat/long found\n";
-  }else{
-    print "$geo\n";
+  if(not defined $mnc or not defined $mcc or not defined $lac or not defined $cellid){
+    die "could not read network registration info via dbus\n";
   }
+
+  my $opencellidInfo = opencellidGet($token, $mnc, $mcc, $lac, $cellid);
+  my $latLon;
+  if(defined $$opencellidInfo{lat} and defined $$opencellidInfo{lon}){
+    $latLon = "$$opencellidInfo{lat}, $$opencellidInfo{lon}";
+  }else{
+    $latLon = "no lat/lon found";
+  }
+
+  print "$latLon\n"
+    . "\n"
+    . "mnc=$mnc\n"
+    . "mcc=$mcc\n"
+    . "lac=$lac\n"
+    . "cellid=$cellid\n"
+    ;
 }
 
-sub callOpenCellId($$$$$){
+sub opencellidGet($$$$$){
   my ($token, $mnc, $mcc, $lac, $cellid) = @_;
   my $url = $OPENCELLID_API_URL
     . "?key=$token"
@@ -42,13 +55,14 @@ sub callOpenCellId($$$$$){
     ;
 
   my $curlOut = readProc "curl", "--silent", $url;
-  my $lat = $1 if $curlOut =~ /lat\s*=\s*"(-?\d+|-?\d*\.\d+)"/;
-  my $lon = $1 if $curlOut =~ /lon\s*=\s*"(-?\d+|-?\d*\.\d+)"/;
-  if(defined $lat and defined $lon){
-    return "$lat, $lon";
-  }else{
-    return undef;
-  }
+
+  my $info = {};
+
+  $$info{lat} = $1 if $curlOut =~ /lat\s*=\s*"(-?\d+|-?\d*\.\d+)"/;
+  $$info{lon} = $1 if $curlOut =~ /lon\s*=\s*"(-?\d+|-?\d*\.\d+)"/;
+  $$info{response} = $curlOut;
+
+  return $info;
 }
 
 sub getNetworkPropsDbus(){
