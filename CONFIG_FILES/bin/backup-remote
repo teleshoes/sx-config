@@ -105,7 +105,7 @@ sub main(@){
   ######
   notificationMsg $id, sprintf "BAK-GPS: %s", nowHrMin();
   my $gpsconFile = sprintf "/tmp/gpscon-%s", nowYMD_HMS_MILLIS();
-  system "gpscon runs=1 >$gpsconFile 2>&1";
+  system "gpscon runs=1 tout=60 >$gpsconFile 2>&1";
   run rsyncCmd($config, $gpsconFile, "$backupDir/gpscon/");
   ######
 
