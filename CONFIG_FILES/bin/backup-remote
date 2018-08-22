@@ -97,16 +97,16 @@ sub main(@){
   ######
 
   ######
-  notificationMsg $id, sprintf "%28s", "b\@" . nowHrMin();
-  run "screen-cmd", "-q", "revtun", "--unsafe", "--local";
-  system "echo " . nowHrMin() . " > $lastSuccessFile";
-  ######
-
-  ######
   notificationMsg $id, sprintf "BAK-GPS: %s", nowHrMin();
   my $gpsconFile = sprintf "/tmp/gpscon-%s", nowYMD_HMS_MILLIS();
   system "gpscon runs=1 dumps=2 tout=60 >$gpsconFile 2>&1";
   run rsyncCmd($config, $gpsconFile, "$backupDir/gpscon/");
+  ######
+
+  ######
+  notificationMsg $id, sprintf "%28s", "b\@" . nowHrMin();
+  run "screen-cmd", "-q", "revtun", "--unsafe", "--local";
+  system "echo " . nowHrMin() . " > $lastSuccessFile";
   ######
 
   removeNotification $id;
