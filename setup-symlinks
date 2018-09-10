@@ -9,11 +9,6 @@ my $user = "nemo";
 sub run(@);
 
 my %SYMLINKS = (
-  "1sdcard" => {
-    dir => "/media/sdcard",
-    src => "*-*-*-*-*",
-    dest => "phone",
-  },
   "2qtemail" => {
     dir => "/home/$user/.cache",
     src => "/media/sdcard/phone/email",
