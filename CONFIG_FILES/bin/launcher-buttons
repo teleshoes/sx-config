@@ -31,6 +31,7 @@ my @config = qw(
   jolla-calendar
   jolla-mediaplayer
 
+  qtscreen-daemon
   filecase
   sailphoto
   jolla-gallery
