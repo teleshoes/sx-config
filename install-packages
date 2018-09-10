@@ -19,6 +19,7 @@ my %packages = (
     htop man-db git gnupg2 sudo tar vim wget zypper
     expect
     lipstick-qt5-tools
+    mce-tools
     harbour-storeman
     whois
   )],
