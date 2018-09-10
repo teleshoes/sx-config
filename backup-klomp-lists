@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $user = "nemo";
+my $ipmagicName = "sx";
+
+my $BASE_DIR = "$ENV{HOME}/Code/sx";
+my $BACKUP_DIR = "$BASE_DIR/backup/klomp";
+
+sub run(@);
+
+sub main(@){
+  my $host = `ipmagic $ipmagicName`;
+  chomp $host;
+
+  my $nowFmt = `date +%Y%m%d_%H%M%S`;
+  chomp $nowFmt;
+  my $backupName = "klomp-$nowFmt";
+
+  my $dir = "$BACKUP_DIR/$backupName";
+  run "rsync", "$user\@$host:~/.klomp/", "$dir/",
+    "-avP",
+    "--exclude=db",
+    "--exclude=datecache",
+    ;
+
+  my $tar = "$dir.tar.xz";
+  run "cd $BACKUP_DIR; tar -cJf $tar $backupName/";
+  run "touch", $tar, "-r", $dir;
+
+  my $latestDir = "$BACKUP_DIR/latest";
+  run "rm", "-rf", $latestDir;
+  run "mv", $dir, $latestDir;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
