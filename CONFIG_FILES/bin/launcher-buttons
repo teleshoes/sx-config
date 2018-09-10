@@ -37,7 +37,7 @@ my @config = qw(
   jolla-gallery
 
 
-  warehouse
+  storeman
   store-client
   aptoide
   sailbook
