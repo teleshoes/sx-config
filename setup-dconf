@@ -33,6 +33,10 @@ my @actions = (
 );
 
 my $dconf = {
+  "/desktop/lipstick-jolla-home/close_from_top" => "true",
+  "/desktop/lipstick-jolla-home/left_peek_to_events" => "false",
+  "/desktop/lipstick-jolla-home/lock_screen_camera" => "true",
+
   "/desktop/lipstick-jolla-home/events_screen_shortcuts_enabled" => "true",
   "/desktop/lipstick-jolla-home/events_screen_shortcuts_user" => "true",
   "/desktop/lipstick-jolla-home/events_screen_shortcuts" => gvariantList(@shortcuts),
