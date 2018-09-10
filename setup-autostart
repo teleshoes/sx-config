@@ -5,25 +5,13 @@ use Time::HiRes qw(time);
 
 my $ipmagicName = "sx";
 
-my $backupDelayMillis = 120 * 60 * 1000;
-my $backupTimeoutMillis = 30 * 60 * 1000;
-
-my $emailDelayMillis = 30 * 60 * 1000;
-my $emailTimeoutMillis = 15 * 60 * 1000;
-
 my $startupScriptFile = "/usr/local/bin/autostart";
 my $startupScriptContents = "#!/bin/sh
 PATH=/home/nemo/bin:\$PATH
 
-/home/nemo/bin/screen-daemon backup-daemon \\
-  --start $backupDelayMillis $backupTimeoutMillis \\
-  backup-remote
-
-/home/nemo/bin/screen-daemon email-daemon \\
-  --start $emailDelayMillis $emailTimeoutMillis \\
-  /opt/qtemail/bin/email.pl --update --folder=inbox | tee /tmp/log
+/home/nemo/bin/screen-daemon backup-daemon --start
+/home/nemo/bin/screen-daemon email-daemon --start
 ";
-
 
 my @systemdSymlinks = qw(
   /home/nemo/.config/systemd/user/auto-start.service
