@@ -19,11 +19,22 @@ my $launchers = getShortcutLaunchers();
 my $actions = getActions();
 
 my @shortcuts = (
+  $$toggles{flight},
+  $$toggles{wlan},
+  $$toggles{mobile},
+  $$toggles{bluetooth},
+  $$toggles{flashlight},
+  $$toggles{tethering},
+  $$toggles{brightness_slider},
+  $$toggles{orientation_slider},
 );
 my @actions = (
 );
 
 my $dconf = {
+  "/desktop/lipstick-jolla-home/events_screen_shortcuts_enabled" => "true",
+  "/desktop/lipstick-jolla-home/events_screen_shortcuts_user" => "true",
+  "/desktop/lipstick-jolla-home/events_screen_shortcuts" => gvariantList(@shortcuts),
 };
 
 sub main(@){
