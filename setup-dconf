@@ -29,12 +29,17 @@ my @shortcuts = (
   $$toggles{orientation_slider},
 );
 my @actions = (
+  $$actions{internet},
 );
 
 my $dconf = {
   "/desktop/lipstick-jolla-home/events_screen_shortcuts_enabled" => "true",
   "/desktop/lipstick-jolla-home/events_screen_shortcuts_user" => "true",
   "/desktop/lipstick-jolla-home/events_screen_shortcuts" => gvariantList(@shortcuts),
+
+  "/desktop/lipstick-jolla-home/events_screen_actions_enabled" => "true",
+  "/desktop/lipstick-jolla-home/events_screen_actions_user" => "true",
+  "/desktop/lipstick-jolla-home/events_screen_actions" => gvariantList(@actions),
 };
 
 sub main(@){
