@@ -41,6 +41,7 @@ my @HOMEBIN_EXECS = qw(
   mtime
   pidgin-logs
   pix
+  qtscreen-daemon
   revtun
   sb-rt-status
   sbcam
