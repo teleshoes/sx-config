@@ -105,7 +105,7 @@ sub main(@){
 
   ######
   notificationMsg $id, sprintf "%28s", "b\@" . nowHrMin();
-  run "screen-cmd", "-q", "revtun", "--unsafe", "--local";
+  run "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
   system "echo " . nowHrMin() . " > $lastSuccessFile";
   ######
 
