@@ -32,6 +32,8 @@
 
 ./config-files
 
+./setup-dconf
+
 ./sync-home-config
 
 ./restore-contacts
