@@ -1,4 +1,5 @@
 IPMAGIC_NAME="sx"
+USER="nemo"
 HOST=$(ipmagic $IPMAGIC_NAME)
 
 ipmagic $IPMAGIC_NAME -s 'su -c "echo PermitRootLogin yes >> /etc/ssh/sshd_config"'
@@ -11,6 +12,8 @@ ipmagic $IPMAGIC_NAME -s "
     mv ~/.ssh/id_rsa.pub ~/.ssh/$HOST.pub
   fi
 "
+
+scp $USER@$HOST:~/.ssh/$HOST.pub ~/.ssh/.pub
 
 pubkeys $IPMAGIC_NAME
 pubkeys $IPMAGIC_NAME-root
