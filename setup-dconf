@@ -8,7 +8,20 @@ my $ipmagicName = "sx";
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup/klomp";
 
+sub getShortcutToggles();
+sub getShortcutLaunchers();
+sub getActions();
+sub gvariantList(@);
 sub run(@);
+
+my $toggles = getShortcutToggles();
+my $launchers = getShortcutLaunchers();
+my $actions = getActions();
+
+my @shortcuts = (
+);
+my @actions = (
+);
 
 my $dconf = {
 };
@@ -28,6 +41,78 @@ sub main(@){
     ";
   }
   run "ipmagic", $ipmagicName, $commands;
+}
+
+sub getShortcutToggles(){
+  return {
+    flight              => 'system_settings/connectivity/flight/enable_switch',
+    wlan                => 'system_settings/connectivity/wlan/enable_switch',
+    mobile              => 'system_settings/connectivity/mobile/context0',
+    bluetooth           => 'system_settings/connectivity/bluetooth/enable_switch',
+    gps                 => 'system_settings/connectivity/gps_and_location/enable_location',
+    tethering           => 'system_settings/connectivity/tethering/wlan_hotspot_switch',
+    flashlight          => 'system_settings/look_and_feel/events/flashlight/enable_switch',
+    orientation_lock    => 'system_settings/look_and_feel/display/orientation_lock',
+    brightness_slider   => 'system_settings/look_and_feel/display/brightness_slider',
+    orientation_slider  => 'system_settings/look_and_feel/orientation/orientation_slider',
+    ringer_volume       => 'system_settings/look_and_feel/sounds/ringer_volume',
+  };
+}
+
+sub getShortcutLaunchers(){
+  return {
+    ambiences           => 'system_settings/look_and_feel/ambiences',
+    display             => 'system_settings/look_and_feel/display',
+    sounds              => 'system_settings/look_and_feel/sounds',
+    gestures            => 'system_settings/look_and_feel/gestures',
+    events              => 'system_settings/look_and_feel/events',
+    lockscreen          => 'system_settings/look_and_feel/lockscreen',
+    patchmanager        => 'system_settings/look_and_feel/patchmanager',
+    orientation         => 'system_settings/look_and_feel/orientation',
+    remorse_timeout     => 'system_settings/look_and_feel/sailfishos-remorse-items-timeout',
+    wlan                => 'system_settings/connectivity/wlan',
+    mobile              => 'system_settings/connectivity/mobile',
+    tethering           => 'system_settings/connectivity/tethering',
+    vpn                 => 'system_settings/connectivity/vpn',
+    flight              => 'system_settings/connectivity/flight',
+    gps_and_location    => 'system_settings/connectivity/gps_and_location',
+    usb                 => 'system_settings/connectivity/usb',
+    bluetooth           => 'system_settings/connectivity/bluetooth',
+    device_lock         => 'system_settings/security/device_lock',
+    pin_code            => 'system_settings/security/pin_code',
+    sideloading         => 'system_settings/security/sideloading',
+    certificates        => 'system_settings/security/certificates',
+    sailfishos          => 'system_settings/system/sailfishos',
+    backup              => 'system_settings/system/backup',
+    storage             => 'system_settings/system/storage',
+    date_time           => 'system_settings/system/date_time',
+    language_and_region => 'system_settings/system/language_and_region',
+    text_input          => 'system_settings/system/text_input',
+    developer_mode      => 'system_settings/system/developer_mode',
+    about_device        => 'system_settings/info/about_device',
+    transferui          => 'system_settings/info/transferui',
+    datacounters        => 'system_settings/info/datacounters',
+    android             => 'system_settings/info/android',
+    reset               => 'system_settings/info/reset',
+  };
+}
+
+sub getActions(){
+  return {
+    camera   => '/usr/share/lipstick/quickactions/com.jolla.camera.conf',
+    clock    => '/usr/share/lipstick/quickactions/com.jolla.clock.conf',
+    internet => '/usr/share/lipstick/quickactions/com.jolla.internet.conf',
+    notes    => '/usr/share/lipstick/quickactions/com.jolla.notes.conf',
+    browser  => '/usr/share/lipstick/quickactions/org.sailfishos.browser.conf',
+  };
+}
+
+sub gvariantList(@){
+  if(@_ == 0){
+    return "'[]'"; #have to wrap empty list in quotes for some reason
+  }else{
+    return "[" . join(", ", map {"'$_'"} @_) . "]";
+  }
 }
 
 sub run(@){
