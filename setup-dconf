@@ -44,6 +44,8 @@ my $dconf = {
   "/desktop/lipstick-jolla-home/events_screen_actions_enabled" => "true",
   "/desktop/lipstick-jolla-home/events_screen_actions_user" => "true",
   "/desktop/lipstick-jolla-home/events_screen_actions" => gvariantList(@actions),
+
+  "/apps/jolla-camera/storagePath" => "'/run/media/nemo/phone'",
 };
 
 sub main(@){
