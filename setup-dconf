@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $user = "nemo";
+my $ipmagicName = "sx";
+
+my $BASE_DIR = "$ENV{HOME}/Code/sx";
+my $BACKUP_DIR = "$BASE_DIR/backup/klomp";
+
+sub run(@);
+
+my $dconf = {
+};
+
+sub main(@){
+  my $host = `ipmagic $ipmagicName`;
+  chomp $host;
+
+  my $commands = "";
+  for my $key(sort keys %$dconf){
+    my $val = $$dconf{$key};
+    $commands .= "
+      echo -ne \"\\n\\n$key\\n\"
+      dconf read $key
+      dconf write $key \"$val\"
+      dconf read $key
+    ";
+  }
+  run "ipmagic", $ipmagicName, $commands;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
