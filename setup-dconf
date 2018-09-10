@@ -52,17 +52,30 @@ sub main(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
-  my $commands = "";
+  my $script = "";
   for my $key(sort keys %$dconf){
     my $val = $$dconf{$key};
-    $commands .= "
-      echo -ne \"\\n\\n$key\\n\"
-      dconf read $key
+    $script .= "
+      echo -ne \"\\n$key\\n\"
+      OLD=`dconf read $key`
       dconf write $key \"$val\"
-      dconf read $key
+      NEW=`dconf read $key`
+      if [ \"\$OLD\" == \"\$NEW\" ]; then
+        echo -ne \"  (no change)\\n\"
+      else
+        echo -ne \"  old:\$OLD\n\"
+        echo -ne \"    =>\n\"
+        echo -ne \"  new:\$NEW\\n\"
+      fi
     ";
   }
-  run "ipmagic", $ipmagicName, $commands;
+  my $scriptFile = "$host-setup-dconf.sh";
+  open FH, "> /tmp/$scriptFile";
+  print FH $script;
+  close FH;
+
+  run "scp", "/tmp/$scriptFile", "$user\@$host:/tmp/$scriptFile";
+  run "ipmagic", $ipmagicName, "bash", "/tmp/$scriptFile";
 }
 
 sub getShortcutToggles(){
