@@ -62,3 +62,4 @@
 ./setup-autostart
 
 ./restore-klomp-lists
+klomp-sync `sx`
