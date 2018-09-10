@@ -38,6 +38,8 @@
 ./restore-contacts
 ./restore-comm
 
+#insert SIM+sdcard and reboot
+
 ./setup-backgrounds
 ./setup-ambiences
 ./setup-sailphoto
