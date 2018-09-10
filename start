@@ -33,12 +33,13 @@
 ./config-files
 
 ./sync-home-config
-./setup-symlinks
 
 ./restore-contacts
 ./restore-comm
 
 #insert SIM+sdcard and reboot
+
+./setup-symlinks
 
 ./setup-backgrounds
 ./setup-ambiences
