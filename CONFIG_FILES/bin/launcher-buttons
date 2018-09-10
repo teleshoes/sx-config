@@ -31,7 +31,6 @@ my @config = qw(
   jolla-calendar
   jolla-mediaplayer
 
-  tether-on
   filecase
   sailphoto
   jolla-gallery
