@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $user = "nemo";
+my $ipmagicName = "sx";
+
+my $BASE_DIR = "$ENV{HOME}/Code/sx";
+my $BACKUP_DIR = "$BASE_DIR/backup/klomp";
+
+sub run(@);
+
+sub main(@){
+  my $host = `ipmagic $ipmagicName`;
+  chomp $host;
+
+  my $now = time;
+  run "ipmagic", $ipmagicName, "mv ~/.klomp/ ~/.klomp-bak-$now";
+
+  run "rsync", "-avP", "$BACKUP_DIR/latest/", "$user\@$host:~/.klomp/";
+
+  print "REMEMBER TO RUN klomp-sync for db and datecache\n";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
