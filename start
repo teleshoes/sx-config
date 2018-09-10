@@ -46,6 +46,7 @@
 ./setup-backgrounds
 ./setup-ambiences
 ./setup-sailphoto
+./setup-ping
 
 ./install-cpan
 ./install-pyqt
