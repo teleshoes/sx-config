@@ -17,6 +17,7 @@ sub main(@){
 
   backup "dcim-backup";
   backup "sync-pixmirror";
+  backup "backup-klomp-lists";
   backup "backup-comm";
 }
 
