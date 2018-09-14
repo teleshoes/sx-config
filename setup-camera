@@ -1,0 +1,7 @@
+IPMAGIC_NAME="sx"
+USER="nemo"
+HOST=$(ipmagic $IPMAGIC_NAME)
+
+ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Pictures/Camera'
+ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Videos/Camera'
+ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Videos/Camera/.recording'
