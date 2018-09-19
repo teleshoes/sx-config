@@ -12,6 +12,7 @@ my %MODULES = (
     Mail::IMAPClient
     IO::Socket::SSL
     Date::Parse
+    MIME::Lite
     MIME::Parser
   )],
   klompbigtext => [qw(
