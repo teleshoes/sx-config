@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Time::HiRes qw(time);
 
 my $user = "nemo";
 my $ipmagicName = "sx";
@@ -13,6 +14,8 @@ my @backups = (
   [ $localDir, "/home/nemo/Videos/Camera",              "backup_int_sf_vid"],
   [ $localDir, "/home/nemo/Videos/Camera/.recording",   "backup_int_sf_vid_RECORDING"],
 );
+my $remoteTmpDir = "/media/sdcard/phone/dcim-tmp";
+my $localTmpDir = "$ENV{HOME}/dcim-tmp";
 
 my @filetypes = qw(jpg jpeg png mp4);
 
@@ -27,12 +30,17 @@ sub updateLocalDCIMInfo($);
 sub readLocalDCIMInfoCache($);
 sub writeLocalDCIMInfoCache($$);
 sub getRemoteDCIMInfo($);
+sub getFileKey($);
 sub remoteDirExists($);
 
 sub main(@){
   for my $backup(@backups){
     my ($localDCIM, $remoteDCIM, $backupPrefix) = @$backup;
     dcimBackup($localDCIM, $remoteDCIM, $backupPrefix);
+  }
+  for my $backup(@backups){
+    my ($localDCIM, $remoteDCIM, $backupPrefix) = @$backup;
+    checkMissing($localDCIM, $remoteDCIM);
   }
 }
 
@@ -203,6 +211,78 @@ sub updateMd5sums($){
   return \%newByMd5sum;
 }
 
+sub checkMissing($$){
+  my ($localDCIM, $remoteDCIM) = @_;
+  print "checking $remoteDCIM for missing files"
+    . " (by rough filename and exact mtime+size)\n";
+  my $localDCIMInfo = updateLocalDCIMInfo $localDir;
+
+  my $localInfosByKey = {};
+  for my $file(sort keys %$localDCIMInfo){
+    my $key = getFileKey($file);
+
+    $$localInfosByKey{$key} = [] if not defined $$localInfosByKey{$key};
+    push @{$$localInfosByKey{$key}}, $$localDCIMInfo{$file};
+  }
+
+  my $remoteDCIMInfo = getRemoteDCIMInfo $remoteDCIM;
+  my $fileErrors = {};
+  for my $file(sort keys %$remoteDCIMInfo){
+    my $key = getFileKey($file);
+
+    my @infos;
+    if(defined $$localInfosByKey{$key}){
+      @infos = @{$$localInfosByKey{$key}};
+    }
+
+    my $mtime = $$remoteDCIMInfo{$file}{mtime};
+    my $size = $$remoteDCIMInfo{$file}{size};
+    my $infoFound = 0;
+    for my $info(@infos){
+      if($$info{mtime} == $mtime and $$info{size} == $size){
+        $infoFound = 1;
+        last;
+      }
+    }
+
+    if(@infos == 0){
+      $$fileErrors{$file} = "no local file matching key $key found";
+    }elsif(not $infoFound){
+      $$fileErrors{$file} = "mismatched mtime/size for key $key";
+    }
+  }
+
+  if(%$fileErrors == 0){
+    print "no missing files for $remoteDCIM\n";
+  }else{
+    my @files = sort keys %$fileErrors;
+    my $missingCount = @files;
+    print "$missingCount REMOTE FILES MISSING FROM LOCAL\n";
+    for my $file(sort keys %$fileErrors){
+      my $err = $$fileErrors{$file};
+      print "  $file - $err\n";
+    }
+
+    my $nowMillis = int(time * 1000.0);
+    my $subdir = "dcim-missing-$nowMillis";
+
+    my $host = `ipmagic $ipmagicName`;
+    die "could not read ipmagic $ipmagicName hostname\n" if $? != 0;
+    chomp $host;
+
+    print ""
+      . "\n\n"
+      . "copy command:\n"
+      . "ipmagic $ipmagicName '"
+      . "  mkdir -p $remoteTmpDir/$subdir &&"
+      . "  cd $remoteDCIM &&"
+      . "  cp -ar @files $remoteTmpDir/$subdir"
+      . "'\n"
+      . "rsync -avP $user\@$host:$remoteTmpDir/ $localTmpDir/\n";
+  }
+  print "\n";
+}
+
 sub updateLocalDCIMInfo($){
   my ($localDCIM) = @_;
   my $infoByFile = readLocalDCIMInfoCache $localDCIM;
@@ -278,6 +358,18 @@ sub getRemoteDCIMInfo($){
   }
 
   return $infoByFile;
+}
+
+sub getFileKey($){
+  my ($file) = @_;
+
+  my $key = lc $file;
+  $key =~ s/^.*\///;
+  $key =~ s/^VID_//i;
+  $key =~ s/_[a-z][a-z0-9_\-]*\./\./i;
+  $key =~ s/jpeg$/jpg/i;
+
+  return $key;
 }
 
 sub remoteDirExists($){
