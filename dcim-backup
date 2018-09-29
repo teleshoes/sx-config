@@ -21,6 +21,7 @@ sub reorganizeBackedUpRemotes($$$$$);
 sub md5sumMaps(\@);
 sub runMd5sum($);
 sub wrapQuotes($);
+sub findDCIMFiles($);
 sub updateMd5sums($);
 sub remoteDirExists($);
 
@@ -149,15 +150,26 @@ sub wrapQuotes($){
   return $s;
 }
 
+sub findDCIMFiles($){
+  my ($localDCIM) = @_;
+  my @files = `cd $localDCIM && find`;
+  my @okFiles;
+  my $okFiletypes = join "|", @filetypes;
+  for my $file(sort @files){
+    chomp $file;
+    if($file =~ /\.($okFiletypes)$/i){
+      push @okFiles, $file;
+    }
+  }
+  return @okFiles;
+}
+
 sub updateMd5sums($){
   my $localDCIM = shift;
   my @lines = `cat $localDCIM/md5sums`;
   my ($byMd5sum, $byFile) = md5sumMaps @lines;
 
-  my $find = "find -false";
-  $find .= " -or -iname '*.$_'" foreach @filetypes;
-  my @files = `$find`;
-  chomp $_ foreach @files;
+  my @files = findDCIMFiles $localDCIM;
   @files = grep {not defined $$byFile{$_}} @files;
 
   print "md5summing local files\n";
