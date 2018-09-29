@@ -152,7 +152,7 @@ sub wrapQuotes($){
 
 sub findDCIMFiles($){
   my ($localDCIM) = @_;
-  my @files = `cd $localDCIM && find`;
+  my @files = `cd $localDCIM && find -not -type d`;
   my @okFiles;
   my $okFiletypes = join "|", @filetypes;
   for my $file(sort @files){
