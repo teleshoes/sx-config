@@ -1,0 +1,75 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(sleep);
+
+my $SOUND_DELAY_MILLIS = 350;
+
+my $usage = "Usage:
+  $0 ACC_NAME
+    play alert sounds for emails
+";
+
+sub filterMatches($$@);
+sub searchMatches($$@);
+sub isEmailSearchMatch(@);
+
+sub main(@){
+  my ($accName) = @_;
+  die $usage if not defined $accName;
+
+  if($accName =~ "G"){
+    if(searchMatches "G", 'subject~"new voicemail" from~"google voice"'){
+      system "alert", "jumpdown";
+      sleep ($SOUND_DELAY_MILLIS / 1000.0);
+      system "alarm", "-s", "--volume", "100", "ff7-phoenixdown";
+    }else{
+      system "alert", "jumpdown";
+    }
+  }elsif($accName =~ "L"){
+    if(filterMatches "L", "me"){
+      system "alert", "jumpup";
+      sleep ($SOUND_DELAY_MILLIS / 1000.0);
+      system "alarm", "-s", "--volume", "100", "ff7-menuselect";
+      sleep (0.05);
+      system "alarm", "-s", "--volume", "100", "ff7-menuselect";
+    }elsif(filterMatches "L", "crap", "--negate"){
+      system "alert", "jumpup";
+    }else{
+      #do nothing
+    }
+  }
+}
+
+sub filterMatches($$@){
+  my ($accName, $filterName, @args) = @_;
+  return isEmailSearchMatch(
+    "email-search.pl",
+    "--filter", "--match", "--new-unread", @args,
+    $accName, $filterName,
+    );
+}
+sub searchMatches($$@){
+  my ($accName, $query, @args) = @_;
+  return isEmailSearchMatch(
+    "email-search.pl",
+    "--search", "--match", "--new-unread", @args,
+    $accName, $query,
+    );
+}
+
+sub isEmailSearchMatch(@){
+  my @cmd = @_;
+  open CMD, "-|", @cmd or die "could not run @_\n$!\n";
+  my $out = join '', <CMD>;
+  close CMD;
+  if($out =~ /^yes$/){
+    return 1;
+  }elsif($out =~ /^no$/){
+    return 0;
+  }else{
+    die "malformed output of @_:\n$out\n";
+  }
+}
+
+&main(@ARGV);
