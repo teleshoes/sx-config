@@ -12,6 +12,7 @@ my $wallpaperFullDir = "/home/nemo/Backgrounds/sx-ambience-full";
 my $ambienceDir = "/usr/share/ambience";
 
 my @ambienceOrder = qw(seconds ada neko silent hisaishi sailfish3);
+my $preloadAmbience = "neko";
 my $ambiences = {
   ada       => [1, "$wallpaperDir/artwork/ada_crop9x16.jpg", {}],
   neko      => [1, "$wallpaperDir/neko/neko_kutie_ontable.jpg", {}],
@@ -29,7 +30,7 @@ my $ambiences = {
   }],
 };
 
-my $preloadAmbience = "$ambienceDir/$ambienceOrder[0]/$ambienceOrder[0].ambience";
+my $preloadAmbience = "$ambienceDir/$preloadAmbience/$preloadAmbience.ambience";
 my $preloadDir = "/usr/share/jolla-preload/ambience";
 my @preloadConfFiles = qw(
   ambience-Jolla_C.conf
