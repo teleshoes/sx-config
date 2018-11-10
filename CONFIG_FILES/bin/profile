@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $usage = "Usage:
+  $0
+    query dbus method com.nokia.profiled.get_profile
+    print either 'general' or 'silent', or fail with an error message
+";
+
+sub main(@){
+  die $usage if @_ > 0;
+
+  my $profile = getProfile();
+  if(defined $profile and $profile =~ /(\w+)/){
+    print "$profile\n";
+  }else{
+    die "no profile found!\n";
+  }
+}
+
+sub getProfile(){
+  my @cmd = qw(
+    dbus-send
+      --session
+      --type=method_call --print-reply
+      --dest=com.nokia.profiled
+      /com/nokia/profiled
+      com.nokia.profiled.get_profile
+  );
+  my $out = `@cmd`;
+  if($out =~ /string \"(general|silent)\"/){
+    return $1;
+  }else{
+    return undef;
+  }
+}
+
+&main(@ARGV);
