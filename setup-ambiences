@@ -111,7 +111,7 @@ sub getDefaultAmbienceConfig($){
 
   return {
     "translationCatalog"       => "\"ambience-$ambienceName\"",
-    "displayName"              => "\"ambience-$ambienceName\"",
+    "displayName"              => "\"$ambienceName\"",
     "wallpaper"                => "\"\"",
     "highlightColor"           => "\"#ff81ffff\"",
     "secondaryHighlightColor"  => "\"#ff6cb7d4\"",
