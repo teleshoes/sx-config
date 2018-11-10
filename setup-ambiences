@@ -8,14 +8,16 @@ use File::Basename qw(basename);
 my $ipmagicName = "sx";
 
 my $wallpaperDir = "/home/nemo/Backgrounds/sx-ambience";
+my $wallpaperFullDir = "/home/nemo/Backgrounds/sx-ambience-full";
 my $ambienceDir = "/usr/share/ambience";
 
-my @ambienceOrder = qw(seconds ada neko silent hisaishi);
+my @ambienceOrder = qw(seconds ada neko silent hisaishi sailfish3);
 my $ambiences = {
   ada       => [1, "$wallpaperDir/artwork/ada_crop9x16.jpg", {}],
   neko      => [1, "$wallpaperDir/neko/neko_kutie_ontable.jpg", {}],
   seconds   => [1, "$wallpaperDir/artwork/seconds.jpg", {}],
   hisaishi  => [1, "$wallpaperDir/photos/hisaishi_joe.jpg", {}],
+  sailfish3 => [1, "$wallpaperFullDir/wallpapers/ambience_sailfish3.jpg", {}],
 
   silent    => [1, "$wallpaperDir/sarah/sarah_crop9x16.jpg", {
     "ringerVolume"            => "0",
