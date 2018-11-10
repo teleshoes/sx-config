@@ -99,7 +99,7 @@ sub main(@){
 
   print "try each of these, as nemo, in order, to attempt to see changes:\n";
   print "  systemctl --user restart ambienced\n";
-  print "  systemctl --user restart lipstick\n";
+  print "  systemctl --user stop ambienced ; systemctl --user restart lipstick\n";
   print "  sudo reboot\n";
 }
 
