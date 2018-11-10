@@ -15,12 +15,12 @@ my @ambienceOrder = qw(seconds ada neko silent hisaishi sailfish3);
 my $preloadAmbience = "neko";
 my $ambiences = {
   ada       => [0, "$wallpaperDir/artwork/ada_crop9x16.jpg", {}],
-  neko      => [0, "$wallpaperDir/neko/neko_kutie_ontable.jpg", {}],
+  neko      => [1, "$wallpaperDir/neko/neko_kutie_ontable.jpg", {}],
   seconds   => [0, "$wallpaperDir/artwork/seconds.jpg", {}],
   hisaishi  => [0, "$wallpaperDir/photos/hisaishi_joe.jpg", {}],
   sailfish3 => [0, "$wallpaperFullDir/wallpapers/ambience_sailfish3.jpg", {}],
 
-  silent    => [0, "$wallpaperDir/sarah/sarah_crop9x16.jpg", {
+  silent    => [1, "$wallpaperDir/sarah/sarah_crop9x16.jpg", {
     "ringerVolume"            => "0",
 
     "highlightColor"          => "\"#ff66a8ff\"",
