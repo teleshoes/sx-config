@@ -39,7 +39,7 @@ my @preloadConfFiles = qw(
   ambience-origami.conf
 );
 
-sub getDefaultAmbienceConfig($);
+sub getDefaultAmbienceConfig($$);
 sub getValidConfigKeys();
 sub run(@);
 
@@ -48,12 +48,15 @@ sub main(@){
 
   my $tmpAmbienceDir = "/tmp/sx-ambiences-$nowMillis";
 
-  for my $ambienceName(@ambienceOrder){
+  my $timestampOffsetSex = 0;
+
+  for my $ambienceName(reverse @ambienceOrder){
     run "mkdir", "-p", "$tmpAmbienceDir/$ambienceName";
     my ($isFavorite, $wallpaperPath, $extraConfig) = @{$$ambiences{$ambienceName}};
     my $wallpaperFileName = basename $wallpaperPath;
 
-    my $defaultConfig = getDefaultAmbienceConfig($ambienceName);
+    my $defaultConfig = getDefaultAmbienceConfig($ambienceName, $timestampOffsetSex);
+    $timestampOffsetSex += 1;
 
     my %config = (%$defaultConfig, %$extraConfig);
     $config{wallpaper} = "\"$wallpaperFileName\"";
@@ -103,10 +106,13 @@ sub main(@){
   print "  sudo reboot\n";
 }
 
-sub getDefaultAmbienceConfig($){
-  my ($ambienceName) = @_;
+sub getDefaultAmbienceConfig($$){
+  my ($ambienceName, $timestampOffsetSex) = @_;
 
-  my $timestamp = `date +%Y-%m-%dT%H:%M:%S`;
+  my $time = time;
+  $time += $timestampOffsetSex;
+
+  my $timestamp = `date --date=\@$time +%Y-%m-%dT%H:%M:%S`;
   chomp $timestamp;
 
   return {
