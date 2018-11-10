@@ -18,6 +18,16 @@ sub main(@){
   my ($accName) = @_;
   die $usage if not defined $accName;
 
+  my $profile = `profile`;
+  if($profile =~ /^silent$/){
+    print "PROFILE IS SILENT, QUITTING\n";
+    exit 0;
+  }elsif($profile =~ /^general$/){
+    print "profile is general, continuing\n";
+  }else{
+    die "ERROR: profile is not 'general' or 'silent': '$profile'\n"
+  }
+
   if($accName =~ "G"){
     if(searchMatches "G", 'subject~"new voicemail" from~"google voice"'){
       system "alert", "jumpdown";
