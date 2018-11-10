@@ -42,12 +42,16 @@ sub main(@){
     my $sym = $SYMLINKS{$name};
 
     my $cmd = "cd $$sym{dir} && rm -f $$sym{dest} && ln -s $$sym{src} $$sym{dest}";
-    push @commands, $cmd;
+
+    my $ipmagicUser;
+    if($$sym{dir} =~ /^\/home\/(\w+)\//){
+      $ipmagicUser = "$1";
+    }else{
+      $ipmagicUser = "root";
+    }
+
+    run "ipmagic", $ipmagicName, "-u", $ipmagicUser, "sh -c \"$cmd\"";
   }
-
-
-  my $cmdFmt = join "", map {"  sh -c \"$_\";\n"} @commands;
-  run "ipmagic", $ipmagicName, "\n$cmdFmt";
 }
 
 sub run(@){
