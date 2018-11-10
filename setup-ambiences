@@ -11,7 +11,7 @@ my $wallpaperDir = "/home/nemo/Backgrounds/sx-ambience";
 my $wallpaperFullDir = "/home/nemo/Backgrounds/sx-ambience-full";
 my $ambienceDir = "/usr/share/ambience";
 
-my @ambienceOrder = qw(seconds ada neko silent hisaishi sailfish3);
+my @ambienceOrder = qw(silent neko hisaishi sailfish3 seconds ada);
 my $preloadAmbience = "neko";
 my $ambiences = {
   ada       => [0, "$wallpaperDir/artwork/ada_crop9x16.jpg", {}],
