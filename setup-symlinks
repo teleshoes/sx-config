@@ -9,10 +9,20 @@ my $user = "nemo";
 sub run(@);
 
 my %SYMLINKS = (
-  "2qtemail" => {
+  "1qtemail" => {
     dir => "/home/$user/.cache",
     src => "/media/sdcard/phone/email",
     dest => "email",
+  },
+  "2alarms" => {
+    dir => "/usr/share",
+    src => "/media/sdcard/phone/alarms",
+    dest => "alarms",
+  },
+  "3sounds" => {
+    dir => "/usr/share/sounds",
+    src => "/media/sdcard/phone/sounds",
+    dest => "custom",
   },
 );
 my @SYMLINK_NAMES = sort keys %SYMLINKS;
