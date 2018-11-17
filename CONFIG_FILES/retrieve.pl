@@ -2,7 +2,9 @@
 use strict;
 use warnings;
 
-my $host = `sx`;
+my $ipmagicName = "sx";
+
+my $host = `ipmagic $ipmagicName`;
 my $user = "root";
 
 sub main(@){
