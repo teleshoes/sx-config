@@ -13,7 +13,7 @@ InverseMouseArea {
     // Can't use textField height due to excessive implicit padding
     height: timestamp.y + timestamp.height + typeMenu.height + simSelector.height + Theme.paddingMedium
 
-    property string contactName: conversation.people.length === 1 ? conversation.people[0].firstName : ""
+    property string contactName: conversation.people.length === 1 ? conversation.people[0].firstName + " " + conversation.people[0].lastName  : ""
     property alias text: textField.text
     property alias cursorPosition: textField.cursorPosition
     property alias editorFocus: textField.focus
