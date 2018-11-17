@@ -338,7 +338,7 @@ InverseMouseArea {
 
         function updateTimestamp() {
             var date = new Date()
-            text = Format.formatDate(date, Formatter.TimepointRelative)
+            text = Format.formatDate(date, Formatter.TimepointRelative) + "  " + contactName
             updater.interval = (60 - date.getSeconds() + 1) * 1000
         }
 
