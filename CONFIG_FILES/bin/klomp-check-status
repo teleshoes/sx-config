@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub main(@){
+  my $profile = `profile`;
+  if($profile !~ /^general$/){
+    print "quit\n";
+  }
+}
+
+&main(@ARGV);
