@@ -5,7 +5,6 @@ Page {
     id: mainPage
 
     property bool isDirectoryPage: true
-    property bool pageCreated: false
 
     allowedOrientations: Orientation.All
     property string currentDir: settings.dirPath
@@ -13,8 +12,6 @@ Page {
     property var currentView: null
 
     showNavigationIndicator: false
-
-    backNavigation: false
 
     VerticalScrollDecorator { }
 
@@ -125,16 +122,6 @@ Page {
         }
     }
 
-    onPageContainerChanged: {
-        if (settings.showShortcutsAtStartup && !directoryPageCreated)
-        {
-            openShortcuts()
-            directoryPageCreated = true
-        }
-        else
-            openDirectory(settings.dirPath, "left", true)
-    }
-
     /*
      *  Open a directory
      */
@@ -201,37 +188,6 @@ Page {
 
         currentView.scrollToTop()
         currentView.viewLoaded()
-
-        updateBackNavigation()
-    }
-
-    /*
-     *  Open shortcuts view
-     */
-    function openShortcuts()
-    {
-        clipboard.clearSelectedFiles()
-        selectingItems = false
-
-        // Reset current file index
-        engine.currentFileIndex = -1
-
-        var component = Qt.createComponent(Qt.resolvedUrl('dirView/ShortcutsView.qml'))
-
-        currentView = component.createObject(directoryListRow)
-
-        // Collapse the current directory
-        if (directoryListRow.children.length > 1)
-        {
-            var currentDir = directoryListRow.children[0]
-
-            currentDir.x = 0
-            currentDir.collapseToLeft(true)
-            currentView.x = mainPage.width
-            currentView.collapseToLeft(false)
-        }
-
-        backNavigation = false
     }
 
     /*
@@ -322,16 +278,5 @@ Page {
     function showScrollToBottom(show)
     {
         scrollToBottomButton.visible = show
-    }
-
-    /*
-     *  Update the backNavigation parameter
-     */
-    function updateBackNavigation()
-    {
-        if (settings.dirPath == "/")
-            backNavigation = false
-        else
-            backNavigation = true
     }
 }

@@ -36,23 +36,24 @@ ApplicationWindow
 {
     property variant currentDirectoryView: null
 
-    // If directory page is created at least once this is true
-    // Used to open Shortcuts page at startup
-    property bool directoryPageCreated: false
+    property var dirPage: Qt.createComponent(Qt.resolvedUrl("pages/DirectoryPage.qml")).createObject(this)
 
     // Get the current directory page
     property var getDirectoryPage: function() {
-        return pageStack.find(function(page) { if ('isDirectoryPage' in page) { return true; } else return false; })
+      return dirPage
+    }
+
+    property var openDir: function(dir) {
+      pageStack.push(dirPage, null, PageStackAction.Immediate)
+      if(dirPage.currentView != null){
+        dirPage.currentView.destroy()
+      }
+      dirPage.openDirectory(dir)
     }
 
     // Get the current directory view (eg. a list/grid of files)
     property var getDirectoryView: function() {
-        var page = getDirectoryPage()
-
-        if (page.currentView)
-            return page.currentView
-        else
-            return false
+        return dirPage.currentView
     }
 
     // Get the current file page
@@ -76,7 +77,7 @@ ApplicationWindow
 
     id: mainWindow
     allowedOrientations: Orientation.All
-    initialPage: Qt.resolvedUrl("pages/BackPage.qml")
+    initialPage: Qt.resolvedUrl("pages/dirView/ShortcutsView.qml")
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
 }
 

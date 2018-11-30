@@ -3,15 +3,12 @@ import Sailfish.Silica 1.0
 import "../../js/directoryViewModel.js" as DirectoryViewModel
 import "../../js/misc.js" as Misc
 
-SilicaListView {
-    id: shortcutsView
+Page {
+  id: shortcutsView
+  property bool isShortcutsPage: true
 
-    width: parent.width
-    height: parent.height
-
-    property bool isShortcutsPage: true
-
-    property bool destroyAfterTransition: false
+  SilicaListView {
+    anchors.fill: parent
 
     VerticalScrollDecorator { }
 
@@ -32,7 +29,7 @@ SilicaListView {
             width: shortcutsView.width
             height: Screen.height / 12
 
-            onClicked: getDirectoryPage().openDirectory(model.location)
+            onClicked: openDir(model.location)
 
             Image {
                 id: image
@@ -101,6 +98,7 @@ SilicaListView {
         }
     }
 
+    Component.onCompleted: updateModel()
     section {
         property: 'section'
 
@@ -113,28 +111,6 @@ SilicaListView {
     ListModel {
         id: listModel
     }
-
-    SmoothedAnimation {
-        id: animateCollapseLeft
-        target: shortcutsView
-        properties: "x"
-        from: shortcutsView.x
-        to: shortcutsView.x - shortcutsView.width
-        duration: 200
-        onStopped: if (destroyAfterTransition) shortcutsView.destroy()
-    }
-
-    SmoothedAnimation {
-        id: animateCollapseRight
-        target: shortcutsView
-        properties: "x"
-        from: shortcutsView.x
-        to: shortcutsView.x + shortcutsView.width
-        duration: 200
-        onStopped: if (destroyAfterTransition) shortcutsView.destroy()
-    }
-
-    Component.onCompleted: updateModel()
 
     /*
      *  Create model entries
@@ -197,16 +173,5 @@ SilicaListView {
                                "location": engine.getSdCardMountPath()})
         }
     }
-
-    function collapseToLeft(destroyAfterCollapse)
-    {
-        animateCollapseLeft.start()
-        destroyAfterTransition = destroyAfterCollapse
-    }
-
-    function collapseToRight(destroyAfterCollapse)
-    {
-        animateCollapseRight.start()
-        destroyAfterTransition = destroyAfterCollapse
-    }
+  }
 }
