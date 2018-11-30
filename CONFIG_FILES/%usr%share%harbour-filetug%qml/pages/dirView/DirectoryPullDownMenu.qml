@@ -19,15 +19,6 @@ PullDownMenu {
         onClicked: getDirectoryPage().addNewFiles()
     }
     MenuItem {
-        text: "Scroll to bottom"
-        onClicked: getDirectoryView().scrollToBottom()
-    }
-
-    MenuItem {
-        text: "Scroll to top"
-        onClicked: getDirectoryView().scrollToTop()
-    }
-    MenuItem {
         id: addToBookmarks
         text: "Add to bookmarks"
         visible: false
