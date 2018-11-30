@@ -15,7 +15,7 @@ PullDownMenu {
     }
     MenuItem {
         text: "New..."
-        visible: 'isShortcutsPage' in getDirectoryView() ? false : true
+        visible: getDirectoryPage().visible
         onClicked: getDirectoryPage().addNewFiles()
     }
     MenuItem {
@@ -53,7 +53,7 @@ PullDownMenu {
     }
     MenuItem {
         id: directoryProperties
-        visible: 'isShortcutsPage' in getDirectoryView() ? false : true
+        visible: getDirectoryPage().visible
         text: "Directory properties"
         onClicked: {
             var fullPath = settings.dirPath
@@ -73,9 +73,9 @@ PullDownMenu {
     function updateBookmarkOptions() {
         console.log("UPDATED: " + settings.dirPath)
 
-        // Don't display options to add/remove bookmarks in the Shortcuts page
-        if ('isShortcutsPage' in getDirectoryView())
+        if (!getDirectoryPage().visible){
             return
+        }
 
         if (settings.isPathInBookmarks(settings.dirPath)) {
             removeFromBookmarks.visible = true
