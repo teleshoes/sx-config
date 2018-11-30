@@ -32,9 +32,9 @@ PullDownMenu {
         text: "Add to bookmarks"
         visible: false
         onClicked: {
-            visible = false
-            removeFromBookmarks.visible = true
             settings.addBookmarkPath(settings.dirPath, settings.dirPath)
+            updateBookmarkOptions()
+            getShortcutsPage().updateModel()
         }
     }
     MenuItem {
@@ -42,9 +42,9 @@ PullDownMenu {
         text: "Remove from bookmarks"
         visible: false
         onClicked: {
-            visible = false
-            addToBookmarks.visible = true
             settings.removeBookmarkPath(settings.dirPath)
+            updateBookmarkOptions()
+            getShortcutsPage().updateModel()
         }
     }
     MenuItem {
@@ -72,6 +72,8 @@ PullDownMenu {
 
     function updateBookmarkOptions() {
         console.log("UPDATED: " + settings.dirPath)
+        removeFromBookmarks.visible = false
+        addToBookmarks.visible = false
 
         if (!getDirectoryPage().visible){
             return
@@ -79,9 +81,7 @@ PullDownMenu {
 
         if (settings.isPathInBookmarks(settings.dirPath)) {
             removeFromBookmarks.visible = true
-            addToBookmarks.visible = false
         } else {
-            removeFromBookmarks.visible = false
             addToBookmarks.visible = true
         }
     }
