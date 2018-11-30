@@ -48,10 +48,6 @@ PullDownMenu {
         }
     }
     MenuItem {
-        text: "Shortcuts"
-        onClicked: getDirectoryPage().openShortcuts()
-    }
-    MenuItem {
         id: directoryProperties
         visible: getDirectoryPage().visible
         text: "Directory properties"
