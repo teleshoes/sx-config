@@ -168,7 +168,6 @@ Page {
             {
                 oldView.destroy()
                 currentView.x = 0
-                currentView.loadFileList()
             }
             else if (collapseDirection == "left")
             {
@@ -187,6 +186,7 @@ Page {
         }
 
         currentView.scrollToTop()
+        currentView.loadFileList()
         currentView.viewLoaded()
     }
 
