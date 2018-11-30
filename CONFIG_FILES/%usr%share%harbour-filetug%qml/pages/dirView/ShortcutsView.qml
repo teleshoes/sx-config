@@ -102,51 +102,48 @@ Page {
     ListModel {
         id: listModel
     }
+  }
 
-    /*
-     *  Create model entries
-     */
-    function updateModel()
-    {
-        var homeDir = fileList.getHomePath()
-        var sdcardDir = "/media/sdcard/phone"
-        var lastDir = settings.dirPath
+  //Create model entries
+  function updateModel(){
+      var homeDir = fileList.getHomePath()
+      var sdcardDir = "/media/sdcard/phone"
+      var lastDir = settings.dirPath
 
-        listModel.clear()
+      listModel.clear()
 
-        var shortcuts = [
-          "ROOT",                   "/",
-          "HOME",                   homeDir,
-          "SDCARD",                 sdcardDir,
-          "screenshots",            homeDir + "/Pictures/screenshots",
-          "MMS pix-by-contact",     sdcardDir + "/comm-repos/mms/pix-by-contact",
-          "sheet_1080p",            sdcardDir + "/sheet_music/sheet_1080p",
-          "Camera (sdcard)",        sdcardDir + "/Pictures/Camera",
-          "DCIM-pixmirror-bydate",  sdcardDir + "/DCIM-pixmirror-bydate",
-          "DDR best",               sdcardDir + "/xbestddr",
-          "DDR gnuplot",            sdcardDir + "/xgnuplotddr",
-        ];
+      var shortcuts = [
+        "ROOT",                   "/",
+        "HOME",                   homeDir,
+        "SDCARD",                 sdcardDir,
+        "screenshots",            homeDir + "/Pictures/screenshots",
+        "MMS pix-by-contact",     sdcardDir + "/comm-repos/mms/pix-by-contact",
+        "sheet_1080p",            sdcardDir + "/sheet_music/sheet_1080p",
+        "Camera (sdcard)",        sdcardDir + "/Pictures/Camera",
+        "DCIM-pixmirror-bydate",  sdcardDir + "/DCIM-pixmirror-bydate",
+        "DDR best",               sdcardDir + "/xbestddr",
+        "DDR gnuplot",            sdcardDir + "/xgnuplotddr",
+      ];
 
-        for (var i=0; i<shortcuts.length; i+=2){
-          var name = shortcuts[i]
-          var location = shortcuts[i+1]
-          listModel.append({ "name": name,
-                             "location": location,
-                             "thumbnail": "qrc:/icons/directory"})
-        }
+      for (var i=0; i<shortcuts.length; i+=2){
+        var name = shortcuts[i]
+        var location = shortcuts[i+1]
+        listModel.append({ "name": name,
+                           "location": location,
+                           "thumbnail": "qrc:/icons/directory"})
+      }
 
 
-        var bookmarks = settings.getBookmarks()
+      var bookmarks = settings.getBookmarks()
 
-        for (var key in bookmarks)
-        {
-            var entry = bookmarks[key];
+      for (var key in bookmarks)
+      {
+          var entry = bookmarks[key];
 
-            listModel.append({ "name": entry,
-                               "thumbnail": "qrc:/icons/directory",
-                               "location": key,
-                               "bookmark": true })
-        }
-    }
+          listModel.append({ "name": entry,
+                             "thumbnail": "qrc:/icons/directory",
+                             "location": key,
+                             "bookmark": true })
+      }
   }
 }
