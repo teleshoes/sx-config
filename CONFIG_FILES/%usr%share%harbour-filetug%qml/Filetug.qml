@@ -37,10 +37,13 @@ ApplicationWindow
     property variant currentDirectoryView: null
 
     property var dirPage: Qt.createComponent(Qt.resolvedUrl("pages/DirectoryPage.qml")).createObject(this)
+    property var shortcutsPage: Qt.createComponent(Qt.resolvedUrl("pages/dirView/ShortcutsView.qml")).createObject(this)
 
-    // Get the current directory page
     property var getDirectoryPage: function() {
       return dirPage
+    }
+    property var getShortcutsPage: function() {
+      return shortcutsPage
     }
 
     property var openDir: function(dir) {
@@ -77,7 +80,7 @@ ApplicationWindow
 
     id: mainWindow
     allowedOrientations: Orientation.All
-    initialPage: Qt.resolvedUrl("pages/dirView/ShortcutsView.qml")
+    initialPage: shortcutsPage
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
 }
 
