@@ -13,7 +13,6 @@ Page {
     VerticalScrollDecorator { }
 
     DirectoryPullDownMenu { }
-    DirectoryPushUpMenu { }
 
     model: listModel
 

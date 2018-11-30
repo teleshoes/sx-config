@@ -43,7 +43,6 @@ SilicaListView {
     VerticalScrollDecorator { }
 
     DirectoryPullDownMenu { id: pullDownMenu }
-    DirectoryPushUpMenu { id: pushUpMenu }
 
     // Directory title header
     header: Item {
@@ -305,7 +304,7 @@ SilicaListView {
     function viewLoaded()
     {
         // Make sure the add/remove bookmark menu options are updated correctly
-        pushUpMenu.updateBookmarkOptions()
+        pullDownMenu.updateBookmarkOptions()
     }
 
     function removeSelections()

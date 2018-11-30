@@ -45,7 +45,6 @@ SilicaGridView {
     VerticalScrollDecorator { }
 
     DirectoryPullDownMenu { id: pullDownMenu }
-    DirectoryPushUpMenu { id: pushUpMenu }
 
     // Directory title header
     header: Item {
@@ -281,7 +280,7 @@ SilicaGridView {
      */
     function viewLoaded()
     {
-        pushUpMenu.updateBookmarkOptions()
+        pullDownMenu.updateBookmarkOptions()
     }
 
     function removeSelections()
