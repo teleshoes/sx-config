@@ -7,6 +7,12 @@ Page {
   id: shortcutsView
   property bool isShortcutsPage: true
 
+  onVisibleChanged: {
+    if(visible){
+      updateModel()
+    }
+  }
+
   SilicaListView {
     anchors.fill: parent
 
