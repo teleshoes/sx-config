@@ -107,15 +107,21 @@ Page {
   //Create model entries
   function updateModel(){
       listModel.clear()
+
+      var homeDir = fileList.getHomePath()
+      var sdcardDir = "/media/sdcard/phone"
       var shortcuts = [
-        "Last Location",   "qrc:/icons/up",         settings.dirPath,
-        "SD card",         "qrc:/icons/sdcard",     engine.getSdCardMountPath(),
-        "Documents",       "qrc:/icons/text",       StandardPaths.documents,
-        "Downloads",       "qrc:/icons/downloads",  fileList.getHomePath() + "/Downloads",
-        "Music",           "qrc:/icons/audio",      StandardPaths.music,
-        "Pictures",        "qrc:/icons/image",      StandardPaths.pictures,
-        "Videos",          "qrc:/icons/video",      StandardPaths.videos,
-        "Android storage", "qrc:/icons/directory",  "/data/sdcard",
+        "Last Location",         "qrc:/icons/up",        settings.dirPath,
+        "ROOT",                  "qrc:/icons/directory", "/",
+        "HOME",                  "qrc:/icons/directory", homeDir,
+        "SDCARD",                "qrc:/icons/directory", sdcardDir,
+        "screenshots",           "qrc:/icons/directory", homeDir + "/Pictures/screenshots",
+        "MMS pix-by-contact",    "qrc:/icons/directory", sdcardDir + "/comm-repos/mms/pix-by-contact",
+        "sheet_1080p",           "qrc:/icons/directory", sdcardDir + "/sheet_music/sheet_1080p",
+        "Camera (sdcard)",       "qrc:/icons/directory", sdcardDir + "/Pictures/Camera",
+        "DCIM-pixmirror-bydate", "qrc:/icons/directory", sdcardDir + "/DCIM-pixmirror-bydate",
+        "DDR best",              "qrc:/icons/directory", sdcardDir + "/xbestddr",
+        "DDR gnuplot",           "qrc:/icons/directory", sdcardDir + "/xgnuplotddr",
       ]
 
       for (var i=0; i<shortcuts.length; i+=3){
