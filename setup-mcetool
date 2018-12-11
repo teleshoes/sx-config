@@ -6,6 +6,7 @@ my $ipmagicName = "sx";
 
 my @cmds = (
   "mcetool --reset-settings",
+  "mcetool --set-dim-timeout=600",
 );
 
 sub main(@){
