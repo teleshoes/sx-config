@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+my @cmds = (
+  "mcetool --reset-settings",
+);
+
+sub main(@){
+  for my $cmd(@cmds){
+    print "$cmd\n";
+    system "ipmagic", $ipmagicName, "-u", "root", "mcetool $cmd";
+  }
+}
+
+&main(@ARGV);
