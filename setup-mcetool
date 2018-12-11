@@ -8,6 +8,7 @@ my @cmds = (
   "mcetool --reset-settings",
   "mcetool --set-dim-timeout=600",
   "mcetool --set-display-off-single-powerkey-press-actions=unblank,tkunlock",
+  "mcetool --set-ps-mode=disabled",
 );
 
 sub main(@){
