@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ipmagicName = "sx";
+
+my $pkg = "droid-compat-f5321-hybris-libsensorfw-qt5";
+my $sensorCompass = "/usr/lib/sensord-qt5/libhybrismagnetometeradaptor-qt5.so";
+my $sensorStep = "/usr/lib/sensord-qt5/libhybrisstepcounteradaptor-qt5.so";
+my $sensorPressure = "/usr/lib/sensord-qt5/libhybrispressureadaptor-qt5.so";
+my $sensorGyro = "/usr/lib/sensord-qt5/libhybrisgyroscopeadaptor-qt5.so";
+
+sub run(@);
+
+my @cmds = (
+  "rpm-divert list --package $pkg               #list all diversions",
+
+#  "rpm-divert apply --package $pkg             #divert all secondary sensors",
+#  "rpm-divert unapply --source $sensorCompass  #restore compass",
+#  "rpm-divert unapply --source $sensorStep     #restore step",
+#  "rpm-divert unapply --source $sensorPressure #restore pressure",
+#  "rpm-divert unapply --source $sensorGyro     #restore gyro",
+
+  "rpm-divert unapply --package $pkg            #restore all sensors",
+
+  "rpm-divert list --package $pkg               #list all diversions",
+
+  "systemctl restart sensorfwd                  #restart sensor daemon",
+);
+
+sub main(@){
+  for my $cmd(@cmds){
+    print "\n$cmd\n";
+    run "ipmagic", $ipmagicName, "-u", "root", $cmd;
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
