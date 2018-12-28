@@ -1,0 +1,48 @@
+#!/bin/bash
+#  cpu.sh written by butler
+#  https://together.jolla.com/question/187833/howto-enable-a72-cores-to-make-xperia-17x-faster/
+
+GOVERNOR=/sys/devices/system/cpu/cpuquiet/current_governor
+
+function switch_cores {
+        state="$1"
+        shift
+
+        for c in "$@"; do
+                fname=/sys/devices/system/cpu/cpu$c/online
+                if [ "$(cat $fname)" != "$state" ]; then
+                        echo $state >$fname
+                fi
+        done
+}
+
+
+case "$1" in
+"fast")
+        echo userspace >$GOVERNOR
+        switch_cores 1  4 5
+        switch_cores 0  0 1 2 3
+        ;;
+"slow")
+        echo userspace >$GOVERNOR
+        switch_cores 1  0 1 2 3
+        switch_cores 0  4 5
+        ;;
+"all")
+        echo userspace >$GOVERNOR
+        switch_cores 1  0 1 2 3 4 5
+        ;;
+"default")
+        echo rqbalance >$GOVERNOR
+        ;;
+*)
+        echo "Usage: $0 [fast|slow|all|default]"
+        exit -1
+        ;;
+esac
+
+
+echo "governor:" $(cat $GOVERNOR)
+for c in 0 1 2 3 4 5; do
+        echo "core $c:"  $(cat /sys/devices/system/cpu/cpu$c/online)
+done
