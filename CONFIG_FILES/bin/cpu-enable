@@ -1,48 +1,160 @@
-#!/bin/bash
-#  cpu.sh written by butler
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+#  based on cpu.sh written by butler
 #  https://together.jolla.com/question/187833/howto-enable-a72-cores-to-make-xperia-17x-faster/
 
-GOVERNOR=/sys/devices/system/cpu/cpuquiet/current_governor
+my $DEV_GOVERNOR = "/sys/devices/system/cpu/cpuquiet/current_governor";
+my $DEV_CPU_ONLINE_PATTERN = "/sys/devices/system/cpu/cpu%d/online";
 
-function switch_cores {
-        state="$1"
-        shift
+my @CORES_SMALL = qw(0 1 2 3);
+my @CORES_BIG = qw(4 5);
+my @CORES_ALL = (@CORES_SMALL, @CORES_BIG);
 
-        for c in "$@"; do
-                fname=/sys/devices/system/cpu/cpu$c/online
-                if [ "$(cat $fname)" != "$state" ]; then
-                        echo $state >$fname
-                fi
-        done
+my $ARGS_HELP =    join "|", qw(-h --help    help);
+my $ARGS_GET =     join "|", qw(-g --get     get);
+my $ARGS_BIG =     join "|", qw(-b --big     big   -f --fast fast);
+my $ARGS_SMALL =   join "|", qw(-s --small   small    --slow slow);
+my $ARGS_ALL =     join "|", qw(-a --all     all);
+my $ARGS_DEFAULT = join "|", qw(-d --default default);
+
+my $CMD_GET = "get";
+my $CMD_BIG = "big";
+my $CMD_SMALL = "small";
+my $CMD_ALL = "all";
+my $CMD_DEFAULT = "default";
+
+sub setGovernor($);
+sub setCoresOnline($@);
+sub getInfoFmt();
+sub getRoot(@);
+
+my $usage = "Usage:
+  $0 $ARGS_HELP
+    show this message
+
+  $0
+  $0 $ARGS_GET
+    print the cpu governor and enabled states of all CPUs
+
+  $0 $ARGS_BIG
+    set governor: userspace
+    enable: @CORES_BIG (big cores)
+    disable: @CORES_SMALL (small cores)
+
+  $0 $ARGS_SMALL
+    set governor: userspace
+    enable: @CORES_SMALL (small cores)
+    disable: @CORES_BIG (big cores)
+
+  $0 $ARGS_ALL
+    set governor: userspace
+    enable: @CORES_ALL (all cores)
+    disable: none
+
+  $0 $ARGS_DEFAULT
+    set governor: rqbalance
+    enable: @CORES_ALL (all cores)
+    disable: none
+";
+
+sub main(@){
+  my $cmd;
+  if(@_ == 0){
+    $cmd = $CMD_GET;
+  }elsif(@_ == 1 and $_[0] =~ /^($ARGS_GET)$/){
+    $cmd = $CMD_GET;
+  }elsif(@_ == 1 and $_[0] =~ /^($ARGS_BIG)$/){
+    $cmd = $CMD_BIG;
+  }elsif(@_ == 1 and $_[0] =~ /^($ARGS_SMALL)$/){
+    $cmd = $CMD_SMALL;
+  }elsif(@_ == 1 and $_[0] =~ /^($ARGS_ALL)$/){
+    $cmd = $CMD_ALL;
+  }elsif(@_ == 1 and $_[0] =~ /^($ARGS_DEFAULT)$/){
+    $cmd = $CMD_DEFAULT;
+  }else{
+    die $usage;
+  }
+
+  getRoot(@_);
+
+  if($cmd eq $CMD_GET){
+    my $info = getInfoFmt();
+    print $info;
+  }elsif($cmd eq $CMD_BIG){
+    my $oldInfo = getInfoFmt();
+    setGovernor "userspace";
+    setCoresOnline 1, @CORES_BIG;
+    setCoresOnline 0, @CORES_SMALL;
+    my $newInfo = getInfoFmt();
+    print "OLD:\n$oldInfo\nNEW:\n$newInfo";
+  }elsif($cmd eq $CMD_SMALL){
+    my $oldInfo = getInfoFmt();
+    setGovernor "userspace";
+    setCoresOnline 1, @CORES_SMALL;
+    setCoresOnline 0, @CORES_BIG;
+    my $newInfo = getInfoFmt();
+    print "OLD:\n$oldInfo\nNEW:\n$newInfo";
+  }elsif($cmd eq $CMD_ALL){
+    my $oldInfo = getInfoFmt();
+    setGovernor "userspace";
+    setCoresOnline 1, @CORES_ALL;
+    my $newInfo = getInfoFmt();
+    print "OLD:\n$oldInfo\nNEW:\n$newInfo";
+  }elsif($cmd eq $CMD_DEFAULT){
+    my $oldInfo = getInfoFmt();
+    setCoresOnline 1, @CORES_ALL;
+    setGovernor "rqbalance";
+    my $newInfo = getInfoFmt();
+    print "OLD:\n$oldInfo\nNEW:\n$newInfo";
+  }else{
+    die "unknown command: $cmd\n";
+  }
 }
 
+sub setGovernor($){
+  my ($governor) = @_;
+  open FH, "> $DEV_GOVERNOR" or die "could not write $DEV_GOVERNOR\n$!\n";
+  print FH "$governor\n";
+  close FH;
+}
 
-case "$1" in
-"fast")
-        echo userspace >$GOVERNOR
-        switch_cores 1  4 5
-        switch_cores 0  0 1 2 3
-        ;;
-"slow")
-        echo userspace >$GOVERNOR
-        switch_cores 1  0 1 2 3
-        switch_cores 0  4 5
-        ;;
-"all")
-        echo userspace >$GOVERNOR
-        switch_cores 1  0 1 2 3 4 5
-        ;;
-"default")
-        echo rqbalance >$GOVERNOR
-        ;;
-*)
-        echo "Usage: $0 [fast|slow|all|default]"
-        exit -1
-        ;;
-esac
+sub setCoresOnline($@){
+  my ($onlineStatus, @coreNums) = @_;
+  for my $coreNum(@coreNums){
+    my $dev = sprintf $DEV_CPU_ONLINE_PATTERN, $coreNum;
+    open FH, "> $dev" or die "could not write $dev\n$!\n";
+    print FH "$onlineStatus\n";
+    close FH;
+  }
+}
 
+sub getInfoFmt(){
+  my (@online, @offline);
+  for my $coreNum(@CORES_ALL){
+    my $dev = sprintf $DEV_CPU_ONLINE_PATTERN, $coreNum;
+    my $isOnline = `cat $dev`;
+    if($isOnline =~ /^1$/){
+      push @online, $coreNum;
+    }elsif($isOnline =~ /^0$/){
+      push @offline, $coreNum;
+    }
+  }
+  my $gov = `cat $DEV_GOVERNOR`;
+  chomp $gov;
+  return ""
+    . "GOV: $gov\n"
+    . "ON : @online\n"
+    . "OFF: @offline\n"
+    ;
+}
 
-echo "governor:" $(cat $GOVERNOR)
-for c in 0 1 2 3 4 5; do
-        echo "core $c:"  $(cat /sys/devices/system/cpu/cpu$c/online)
-done
+sub getRoot(@){
+  if(`whoami` ne "root\n"){
+    print "rerunning as root\n";
+    exec "sudo", $0, @_;
+  }
+}
+
+&main(@ARGV);
