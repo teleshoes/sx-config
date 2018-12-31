@@ -315,7 +315,7 @@ sub readLocalDCIMInfoCache($){
   my @lines = `cat $localDCIM/info 2>/dev/null`;
   my $infoByFile = {};
   for my $line(@lines){
-    if($line !~ /^(\d+)\s+(\d+)\s+(\.\/.+)$/){
+    if($line !~ /^\s*(\d+)\s+(\d+)\s+(\.\/.+)$/){
       die "malformed info line: $line";
     }
     my ($mtime, $size, $file) = ($1, $2, $3);
