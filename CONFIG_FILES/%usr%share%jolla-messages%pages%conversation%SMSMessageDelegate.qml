@@ -170,17 +170,18 @@ ListItem {
                 var today = new Date().setHours(0, 0, 0, 0);
                 var messageDate = new Date(modelData.startTime).setHours(0, 0, 0, 0);
                 var daysDiff = (today - messageDate) / (24*60*60*1000)
+                var timeFmt = Format.formatDate(modelData.startTime, Formatter.TimeValue)
                 if (daysDiff > 6) {
                     // Short-Date Time
                     rv = Format.formatDate(modelData.startTime, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear)) + ' ' +
-                         Format.formatDate(modelData.startTime, Formatter.TimeValue)
+                         timeFmt
                 } else if (daysDiff > 0) {
                     // Weekday Time
                     rv = Format.formatDate(modelData.startTime, Formatter.WeekdayNameStandalone) + ' ' +
-                         Format.formatDate(modelData.startTime, Formatter.TimeValue)
+                         timeFmt
                 } else {
                     // Time
-                    rv = Format.formatDate(modelData.startTime, Formatter.TimeValue)
+                    rv = timeFmt
                 }
 
                 if (modelData.readStatus === CommHistory.ReadStatusRead) {
