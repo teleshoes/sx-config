@@ -23,6 +23,8 @@ InverseMouseArea {
     property bool recreateDraftEvent: false
     property string simErrorState
 
+    onContactNameChanged: timestamp.updateTimestamp()
+
     signal sendMessage(string text)
 
     function send() {
