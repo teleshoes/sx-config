@@ -170,7 +170,7 @@ ListItem {
                 var today = new Date().setHours(0, 0, 0, 0);
                 var messageDate = new Date(modelData.startTime).setHours(0, 0, 0, 0);
                 var daysDiff = (today - messageDate) / (24*60*60*1000)
-                var timeFmt = Format.formatDate(modelData.startTime, Formatter.TimeValue)
+                var timeFmt = Qt.formatDateTime(modelData.startTime, 'hh:mm:ss')
                 if (daysDiff > 6) {
                     // Short-Date Time
                     rv = Format.formatDate(modelData.startTime, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear)) + ' ' +
