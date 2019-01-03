@@ -114,7 +114,7 @@ ListItem {
             text: {
                 var label = mainWindow.eventStatusText(model.lastEventStatus)
                 if (!label) {
-                    label = Format.formatDate(model.startTime, Formatter.TimepointRelative)
+                    label = Qt.formatDateTime(model.startTime, 'hh:mm   -   yyyy-MM-dd')
                     if (providerName) {
                         label += " \u2022 " + providerName
                     }
