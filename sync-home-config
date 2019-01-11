@@ -83,6 +83,11 @@ sub run(@);
 
 sub main(@){
   die "Usage: $0\n" if @_ > 0;
+
+  print "making sure $ipmagicName is ssh-able\n";
+  system "ipmagic", $ipmagicName, "-s", "echo found sx!\n";
+  die "failed" if $? != 0;
+
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
