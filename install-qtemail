@@ -27,7 +27,7 @@ sub main(@){
   run "$DIR/install-src qtemail";
 
   print "\n\n===setting up symlink ~/.cache/email => sdcard\n";
-  run "$DIR/setup-symlinks 3qtemail";
+  run "$DIR/setup-symlinks 1qtemail";
 }
 
 sub run(@){
