@@ -14,6 +14,10 @@ my $usage = "Usage:
 
   $0
     install all apks in $srcDir
+
+  $0 PREFIX
+    install all apks in $srcDir with filename starting with PREFIX
+    (all APK files are copied to the phone first, not just PREFIX*)
 ";
 
 sub run(@);
@@ -23,6 +27,8 @@ sub main(@){
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $usage;
     exit 0;
+  }elsif(@_ == 1){
+    $prefix = $_[0];
   }elsif(@_ > 0){
     die $usage;
   }
@@ -38,7 +44,7 @@ sub main(@){
 
   run "rsync", "-avP", "$srcDir/", "$user\@$host:$destDir/";
 
-  run "ipmagic", $ipmagicName, "apkd-install $destDir/*.apk";
+  run "ipmagic", $ipmagicName, "apkd-install $destDir/$prefix*.apk";
 }
 
 sub run(@){
