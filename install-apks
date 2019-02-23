@@ -8,19 +8,26 @@ my $user = "nemo";
 my $srcDir = "$ENV{HOME}/Code/sx/apks",
 my $destDir = "/media/sdcard/phone/apks";
 
+sub run(@);
+
 sub main(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  system "apk-name", glob "$srcDir/*";
+  run "apk-name", glob "$srcDir/*";
   if($? != 0){
     die "ERROR: apk-name exited with non-zero code\n";
   }
 
-  system "rsync", "-avP", "$srcDir/", "$user\@$host:$destDir/";
+  run "rsync", "-avP", "$srcDir/", "$user\@$host:$destDir/";
 
-  system "ipmagic", $ipmagicName, "apkd-install $destDir/*.apk";
+  run "ipmagic", $ipmagicName, "apkd-install $destDir/*.apk";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 &main(@ARGV);
