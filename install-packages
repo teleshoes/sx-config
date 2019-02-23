@@ -46,7 +46,6 @@ my %packages = (
     harbour-jollacompass
     harbour-modrana
     harbour-sailbook
-    harbour-sailphoto
     harbour-screentapshot2
     harbour-unplayer
     myipaddress

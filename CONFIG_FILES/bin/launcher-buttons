@@ -33,7 +33,6 @@ my @config = qw(
 
   qtscreen-daemon
   filetug
-  sailphoto
   jolla-gallery
 
 
