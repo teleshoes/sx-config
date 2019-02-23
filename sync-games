@@ -9,10 +9,14 @@ my $DIR_BACKUP = "$DIR_BASE/backup";
 my $IPMAGIC_NAME = "sx";
 my $IPMAGIC_USER = "nemo";
 
+my $DIR_NESOID_LAST_BACKUP = "$DIR_BACKUP/games/nesoid-saves/last-backup";
+my $DIR_NESOID_BY_MTIME = "$DIR_BACKUP/games/nesoid-saves/saves-by-mtime";
+
 my $DIR_SRC_NES_ROMS = "$ENV{HOME}/Games/nes";
 my $DIR_DEST_NES_ROMS = "/media/sdcard/phone/Games/nes";
 my $DIR_NESOID_DATA = "/home/nemo/android_storage/nesoid";
 
+sub backupNesoidSaves();
 sub setupNesoid();
 sub getNesRoms();
 
@@ -27,6 +31,7 @@ my $usage = "Usage:
     show this message
 
   $0 [--backup]
+    -backup nesoid saves
 
   $0 --restore
     -copy NES roms
@@ -47,8 +52,37 @@ sub main(@){
   }
 
   if($command eq "--backup"){
+    backupNesoidSaves();
   }elsif($command eq "--restore"){
     setupNesoid();
+  }
+}
+
+sub backupNesoidSaves(){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  run "mkdir", "-p", $DIR_NESOID_LAST_BACKUP, $DIR_NESOID_BY_MTIME;
+
+  run "rsync",
+    "-avP",
+    "--del",
+    "$IPMAGIC_USER\@$host:$DIR_NESOID_DATA/", "$DIR_NESOID_LAST_BACKUP/",
+    "--exclude=*.nes";
+
+  for my $file(glob "$DIR_NESOID_LAST_BACKUP/*"){
+    my $fileName = $file;
+    $fileName =~ s/^(.*)\///;
+
+    my $mtime = mtime($file);
+    my $destFile = "$DIR_NESOID_BY_MTIME/$fileName-$mtime";
+    if(-e $destFile){
+      if(not checksumMatches($file, $destFile)){
+        die "CHECKSUM MISMATCH: $file vs $destFile\n";
+      }
+    }else{
+      run "cp", "-ar", $file, $destFile;
+    }
   }
 }
 
