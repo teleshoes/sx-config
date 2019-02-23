@@ -32,9 +32,9 @@ my %packages = (
     harbour-maxvol
     okboard-full
     patchmanager
+    patchmanager-volume-warning
     patchutils
     remorse-accept-patch
-    sailfishos-disable-volume-warning
     sailfishos-patch-autocaps
     sailfishos-remorse-items-timeout
     sailfishos-uirotate-free
