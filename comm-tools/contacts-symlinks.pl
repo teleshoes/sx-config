@@ -293,7 +293,7 @@ sub getContactsFromVcard($){
   my $info = {};
   my $nums = {};
   for my $line(split /[\n\r]+/, $vcard){
-    if($line =~ /^TEL;/){
+    if($line =~ /^(TEL;|TEL:)/){
       my $type = undef;
       $type = 'cell' if $line =~ /TYPE=CELL/;
       $type = 'home' if $line =~ /TYPE=HOME/;
