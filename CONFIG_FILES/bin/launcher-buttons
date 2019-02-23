@@ -64,8 +64,6 @@ my @config = qw(
 
   maxvol
   meecast
-  jboyadvance
-  mupen64plus-gui-sailfishos
 
 );
 

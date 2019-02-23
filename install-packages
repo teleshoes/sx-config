@@ -42,13 +42,11 @@ my %packages = (
     gpscon
     harbour-filetug
     harbour-gpsinfo
-    harbour-jboyadvance
     harbour-modrana
     harbour-sailbook
     harbour-sailphoto
     harbour-unplayer
     harbour-webcat
-    mupen64plus
     myipaddress
     stellarium
     thumbterm
