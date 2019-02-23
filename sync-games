@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $DIR_BASE = "$ENV{HOME}/Code/sx";
+my $DIR_BACKUP = "$DIR_BASE/backup";
+
+my $IPMAGIC_NAME = "sx";
+my $IPMAGIC_USER = "nemo";
+
+sub checksumMatches($$);
+sub sha1sum($);
+sub mtime($);
+sub nowMillis();
+sub run(@);
+
+my $usage = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0 [--backup]
+
+  $0 --restore
+";
+
+sub main(@){
+  my $command;
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print $usage;
+    exit 0;
+  }elsif(@_ == 1 and $_[0] =~ /^(--backup|--restore)$/){
+    $command = $1;
+  }elsif(@_ == 0){
+    $command = "--backup";
+  }else{
+    die $usage;
+  }
+
+  if($command eq "--backup"){
+  }elsif($command eq "--restore"){
+  }
+}
+
+sub checksumMatches($$){
+  my ($fileA, $fileB) = @_;
+  return 0 if not -f $fileA;
+  return 0 if not -f $fileB;
+
+  my $sha1A = sha1sum $fileA;
+  my $sha1B = sha1sum $fileB;
+  if($sha1A eq $sha1B){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+sub sha1sum($){
+  my ($file) = @_;
+  open FH, "-|", "sha1sum", $file or die "could not run sha1sum on $file\n$!\n";
+  my @lines = <FH>;
+  close FH;
+  if(@lines != 1 or $lines[0] !~ /^([0-9a-f]{40})\s/){
+    die "error running sha1sum on $file\n";
+  }
+  return $1;
+}
+
+sub mtime($){
+  my @stat = stat $_[0];
+  return $stat[9];
+}
+
+sub nowMillis(){
+  return int(time() * 1000.0 + 0.5);
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
