@@ -20,7 +20,7 @@
 
     <string name="secondController">none</string>
 
-    <boolean name="enableVKeypad" value="true" />
+    <boolean name="enableVKeypad" value="false" />
     <string name="vkeypadLayout">top_bottom</string>
     <string name="vkeypadSize">medium</string>
     <boolean name="hideDpad" value="false" />
