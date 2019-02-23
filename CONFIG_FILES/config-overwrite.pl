@@ -125,6 +125,11 @@ sub overwriteFile($$$){
   my ($chownUid, $chownGid);
   if($dest =~ /^\/home\/$user/){
     ($chownUid, $chownGid) = ($uid, $gid);
+  }elsif($dest =~ /^(\/opt\/alien\/data\/data\/[^\/]+)\//){
+    my $alienAppDir = $1;
+    my @alienAppDirStat = stat $alienAppDir;
+    my ($alienUID, $alienGID) = ($alienAppDirStat[4], $alienAppDirStat[5]);
+    ($chownUid, $chownGid) = ($alienUID, $alienGID);
   }else{
     ($chownUid, $chownGid) = (0, 0);
   }
