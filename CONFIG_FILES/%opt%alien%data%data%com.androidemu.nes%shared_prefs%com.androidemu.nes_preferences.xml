@@ -1,30 +1,35 @@
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <map>
-    <boolean name="hideButtons" value="false" />
-    <boolean name="enableSensor" value="false" />
-    <boolean name="enableVKeypad" value="true" />
-    <boolean name="quickLoadOnStart" value="true" />
     <string name="aspectRatio">1.3333</string>
-    <boolean name="dpad4Way" value="false" />
+    <boolean name="fullScreenMode" value="true" />
+    <string name="orientation">unspecified</string>
+    <string name="scalingMode">proportional</string>
     <string name="refreshRate">default</string>
+    <string name="frameSkipMode">auto</string>
     <string name="autoSyncClientInterval">30</string>
     <boolean name="autoSyncClient" value="false" />
-    <string name="vkeypadLayout">top_bottom</string>
-    <boolean name="fullScreenMode" value="true" />
-    <boolean name="hideExtraButtons" value="false" />
-    <boolean name="soundEnabled" value="true" />
-    <boolean name="hideSelectStart" value="false" />
-    <string name="orientation">unspecified</string>
-    <string name="secondController">none</string>
-    <boolean name="enableCheats" value="true" />
-    <string name="vkeypadSize">medium</string>
-    <string name="frameSkipMode">auto</string>
-    <boolean name="hideDpad" value="false" />
-    <boolean name="disableExtraButtons" value="true" />
     <string name="fastForwardSpeed">2x</string>
-    <string name="scalingMode">proportional</string>
-    <boolean name="enableVibrator" value="true" />
+
+    <boolean name="soundEnabled" value="true" />
+
+    <boolean name="quickLoadOnStart" value="true" />
+
+    <boolean name="enableCheats" value="true" />
     <boolean name="enableGameGenie" value="false" />
+    <boolean name="enableVibrator" value="true" />
+
+    <string name="secondController">none</string>
+
+    <boolean name="enableVKeypad" value="true" />
+    <string name="vkeypadLayout">top_bottom</string>
+    <string name="vkeypadSize">medium</string>
+    <boolean name="hideDpad" value="false" />
+    <boolean name="hideButtons" value="false" />
+    <boolean name="hideSelectStart" value="false" />
+    <boolean name="hideExtraButtons" value="false" />
+    <boolean name="disableExtraButtons" value="true" />
+    <boolean name="enableSensor" value="false" />
+    <boolean name="dpad4Way" value="false" />
     <boolean name="useInputMethod" value="false" />
     <boolean name="enableTrackball" value="true" />
 </map>
