@@ -45,7 +45,6 @@ my %packages = (
     harbour-gpsinfo
     harbour-jboyadvance
     harbour-modrana
-    harbour-saera
     harbour-sailbook
     harbour-sailphoto
     harbour-spring
