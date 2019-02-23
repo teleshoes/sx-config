@@ -17,6 +17,7 @@ my $DIR_DEST_NES_ROMS = "/media/sdcard/phone/Games/nes";
 my $DIR_NESOID_DATA = "/home/nemo/android_storage/nesoid";
 
 sub backupNesoidSaves();
+sub restoreNesoidSaves();
 sub setupNesoid();
 sub getNesRoms();
 
@@ -36,6 +37,7 @@ my $usage = "Usage:
   $0 --restore
     -copy NES roms
     -setup nesoid
+    -restore nesoid saves
 ";
 
 sub main(@){
@@ -55,6 +57,7 @@ sub main(@){
     backupNesoidSaves();
   }elsif($command eq "--restore"){
     setupNesoid();
+    restoreNesoidSaves();
   }
 }
 
@@ -84,6 +87,18 @@ sub backupNesoidSaves(){
       run "cp", "-ar", $file, $destFile;
     }
   }
+}
+
+sub restoreNesoidSaves(){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  run "rsync",
+    "-avP",
+    "--del",
+    "$DIR_NESOID_LAST_BACKUP/",
+    "$IPMAGIC_USER\@$host:$DIR_NESOID_DATA/",
+    "--exclude=*.nes";
 }
 
 sub setupNesoid(){
