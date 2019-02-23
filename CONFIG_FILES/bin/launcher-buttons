@@ -31,9 +31,11 @@ my @config = qw(
   jolla-calendar
   jolla-mediaplayer
 
-  qtscreen-daemon
+  zoom
+  riot
   filetug
-  jolla-gallery
+  screentapshot2
+
 
 
   storeman
@@ -49,6 +51,7 @@ my @config = qw(
   sailfish-browser
   okboard
   tkts
+  kasa
 
   lirr_cpg_pen
   lirr_cpg_rvc
@@ -60,11 +63,8 @@ my @config = qw(
   lirrgui
   lirr-traintime
 
-  zoom
-  riot
-  kasa
-
-  screentapshot2
+  jolla-gallery
+  qtscreen-daemon
   jollacompass
 );
 
