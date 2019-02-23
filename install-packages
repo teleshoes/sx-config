@@ -49,7 +49,6 @@ my %packages = (
     harbour-sailphoto
     harbour-screentapshot2
     harbour-unplayer
-    harbour-webcat
     myipaddress
     stellarium
     thumbterm

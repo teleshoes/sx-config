@@ -48,7 +48,6 @@ my @config = qw(
   thumbterm
 
   sailfish-browser
-  webcat
   okboard
   tkts
 
