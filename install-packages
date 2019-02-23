@@ -29,13 +29,13 @@ my %packages = (
   )],
 
   "3-patches" => [qw(
-    harbour-maxvol
     okboard-full
     patchmanager
     patchmanager-volume-warning
     patchutils
     sailfishos-patch-autocaps
     sailfishos-patch-messages-layout
+    sailfishos-speaker-volumeup
     sailfishos-uirotate-free
   )],
 

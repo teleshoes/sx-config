@@ -62,7 +62,6 @@ my @config = qw(
   lirrgui
   lirr-traintime
 
-  maxvol
   meecast
 
   screentapshot2
