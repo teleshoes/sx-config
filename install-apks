@@ -8,9 +8,25 @@ my $user = "nemo";
 my $srcDir = "$ENV{HOME}/Code/sx/apks",
 my $destDir = "/media/sdcard/phone/apks";
 
+my $usage = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+    install all apks in $srcDir
+";
+
 sub run(@);
 
 sub main(@){
+  my $prefix = "";
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print $usage;
+    exit 0;
+  }elsif(@_ > 0){
+    die $usage;
+  }
+
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
