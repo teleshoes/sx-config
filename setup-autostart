@@ -11,6 +11,7 @@ PATH=/home/nemo/bin:\$PATH
 
 /home/nemo/bin/screen-daemon backup-daemon --start
 /home/nemo/bin/screen-daemon email-daemon --start
+/home/nemo/bin/screen-daemon networkfix-daemon --start
 sudo cpu-enable fast
 ";
 
