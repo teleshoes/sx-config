@@ -35,6 +35,7 @@ my %packages = (
     patchmanager-volume-warning
     patchutils
     sailfishos-patch-autocaps
+    sailfishos-patch-messages-layout
     sailfishos-uirotate-free
   )],
 
