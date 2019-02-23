@@ -25,6 +25,12 @@ expect eof
 ';
 
 sub main(@){
+  my $expectLibSrc = "/usr/lib/tcl/expect5.45+mer1/libexpect5.45.so";
+  my $expectLibDest = "/usr/lib/libexpect5.45.so";
+
+  run "ipmagic", $ipmagicName, "-u", "root",
+    "ln -s $expectLibSrc $expectLibDest";
+
   run "ipmagic", $ipmagicName, "-u", "root",
     "expect <<HEREDOC\n$expect\nHEREDOC";
 }
