@@ -65,6 +65,7 @@ my @config = qw(
   maxvol
   meecast
 
+  screentapshot2
   jollacompass
 );
 
