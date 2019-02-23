@@ -67,7 +67,6 @@ my @config = qw(
   jboyadvance
   mupen64plus-gui-sailfishos
 
-  spring
 );
 
 my @unused = qw(

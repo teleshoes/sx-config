@@ -47,7 +47,6 @@ my %packages = (
     harbour-modrana
     harbour-sailbook
     harbour-sailphoto
-    harbour-spring
     harbour-unplayer
     harbour-webcat
     mupen64plus
