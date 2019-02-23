@@ -43,6 +43,7 @@ my %packages = (
     gpscon
     harbour-filetug
     harbour-gpsinfo
+    harbour-jollacompass
     harbour-modrana
     harbour-sailbook
     harbour-sailphoto

@@ -65,6 +65,7 @@ my @config = qw(
   maxvol
   meecast
 
+  jollacompass
 );
 
 my @unused = qw(
