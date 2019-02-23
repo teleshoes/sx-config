@@ -12,7 +12,7 @@
 
     <boolean name="soundEnabled" value="true" />
 
-    <boolean name="quickLoadOnStart" value="true" />
+    <boolean name="quickLoadOnStart" value="false" />
 
     <boolean name="enableCheats" value="true" />
     <boolean name="enableGameGenie" value="false" />
