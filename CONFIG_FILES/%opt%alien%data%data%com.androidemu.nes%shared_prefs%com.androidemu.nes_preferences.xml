@@ -32,4 +32,19 @@
     <boolean name="dpad4Way" value="false" />
     <boolean name="useInputMethod" value="false" />
     <boolean name="enableTrackball" value="true" />
+
+    <!--8bitdo keyboard mode-->
+    <int name="gamepad_up" value="31" />     <!--C (up)-->
+    <int name="gamepad_down" value="32" />   <!--D (down)-->
+    <int name="gamepad_left" value="33" />   <!--E (left)-->
+    <int name="gamepad_right" value="34" />  <!--F (right)-->
+    <int name="gamepad_A" value="35" />      <!--G (a)-->
+    <int name="gamepad_B" value="36" />      <!--H (x)-->
+    <int name="gamepad_start" value="43" />  <!--O (start)-->
+    <int name="gamepad_select" value="42" /> <!--N (select)-->
+    <int name="gamepad_A_turbo" value="0" />
+    <int name="gamepad_B_turbo" value="0" />
+    <int name="quickLoad" value="39" />      <!--K (left shoulder)-->
+    <int name="quickSave" value="41" />      <!--M (right shoulder)-->
+    <int name="fastForward" value="0" />
 </map>
