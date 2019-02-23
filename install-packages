@@ -36,7 +36,6 @@ my %packages = (
     patchutils
     sailfishos-patch-autocaps
     sailfishos-uirotate-free
-    settings-orientation-control
   )],
 
   "4-apps" => [qw(
