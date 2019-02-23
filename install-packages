@@ -40,7 +40,6 @@ my %packages = (
   )],
 
   "4-apps" => [qw(
-    filecase
     gpscon
     harbour-filetug
     harbour-gpsinfo
