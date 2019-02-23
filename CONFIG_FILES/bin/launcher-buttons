@@ -64,7 +64,6 @@ my @config = qw(
   zoom
   riot
   kasa
-  meecast
 
   screentapshot2
   jollacompass
