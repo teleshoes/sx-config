@@ -92,13 +92,13 @@ my @unused = qw(
 ########################################################
 
 my %replacements = (
-  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
-  'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
-  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity',
-  'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
   'aptoide'        => 'apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity',
-  'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
+  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity',
+  'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
+  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
+  'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
   'lirrgui'        => 'lirrtraintime',
+  'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
 );
 
 #desktop files with no launchers
