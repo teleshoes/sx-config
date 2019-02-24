@@ -13,8 +13,7 @@ my $DIR_NESOID_LAST_BACKUP = "$DIR_BACKUP/games/nesoid-saves/last-backup";
 my $DIR_NESOID_BY_MTIME = "$DIR_BACKUP/games/nesoid-saves/saves-by-mtime";
 
 my $DIR_SRC_NES_ROMS = "$ENV{HOME}/Games/nes";
-my $DIR_DEST_NES_ROMS = "/media/sdcard/phone/Games/nes";
-my $DIR_NESOID_DATA = "/home/nemo/android_storage/nesoid";
+my $DIR_DEST_NESOID_DATA = "/home/nemo/android_storage/nesoid";
 
 sub backupNesoidSaves();
 sub restoreNesoidSaves();
@@ -70,7 +69,7 @@ sub backupNesoidSaves(){
   run "rsync",
     "-avP",
     "--del",
-    "$IPMAGIC_USER\@$host:$DIR_NESOID_DATA/", "$DIR_NESOID_LAST_BACKUP/",
+    "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/", "$DIR_NESOID_LAST_BACKUP/",
     "--exclude=*.nes";
 
   for my $file(glob "$DIR_NESOID_LAST_BACKUP/*"){
@@ -97,7 +96,7 @@ sub restoreNesoidSaves(){
     "-avP",
     "--del",
     "$DIR_NESOID_LAST_BACKUP/",
-    "$IPMAGIC_USER\@$host:$DIR_NESOID_DATA/",
+    "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/",
     "--exclude=*.nes";
 }
 
@@ -105,17 +104,23 @@ sub setupNesoid(){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
-  run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_NES_ROMS $DIR_NESOID_DATA";
-  run "rsync", "-avP", "--del", "$DIR_SRC_NES_ROMS/", "$IPMAGIC_USER\@$host:$DIR_DEST_NES_ROMS/";
+  my $tmpDir = "/tmp/nes-roms-" . nowMillis();
+  run "mkdir", "-p", $tmpDir;
 
-  my @cmds;
-  push @cmds, "rm -f $DIR_NESOID_DATA/*.nes";
   my %nesRoms = %{getNesRoms()};
   for my $romName(sort keys %nesRoms){
     my $romFileName = $nesRoms{$romName};
-    push @cmds, "cp -ar \"$DIR_DEST_NES_ROMS/$romFileName\" $DIR_NESOID_DATA/$romName.nes";
+    run "cp -ar \"$DIR_SRC_NES_ROMS/$romFileName\" \"$tmpDir/$romName.nes\"";
   }
-  run "ipmagic", $IPMAGIC_NAME, join(" ; ", @cmds);
+
+  run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_NESOID_DATA";
+  run "rsync", "-avP", "--del",
+    "$tmpDir/",
+    "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/",
+    "--exclude=*.ss*",
+    ;
+
+  run "rm", "-rf", "$tmpDir/";
 }
 
 sub getNesRoms(){
