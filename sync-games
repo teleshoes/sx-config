@@ -12,13 +12,22 @@ my $IPMAGIC_USER = "nemo";
 my $DIR_NESOID_LAST_BACKUP = "$DIR_BACKUP/games/nesoid-saves/last-backup";
 my $DIR_NESOID_BY_MTIME = "$DIR_BACKUP/games/nesoid-saves/saves-by-mtime";
 
+my $DIR_SNES9XEX_LAST_BACKUP = "$DIR_BACKUP/games/snes9xex-saves/last-backup";
+my $DIR_SNES9XEX_BY_MTIME = "$DIR_BACKUP/games/snes9xex-saves/saves-by-mtime";
+
 my $DIR_SRC_NES_ROMS = "$ENV{HOME}/Games/nes";
 my $DIR_DEST_NESOID_DATA = "/home/nemo/android_storage/nesoid";
 
+my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes";
+my $DIR_DEST_SNES9XEX_DATA = "/home/nemo/android_storage/snes9xex";
+
 sub backupNesoidSaves();
+sub backupSnes9xExSaves();
 sub restoreNesoidSaves();
 sub setupNesoid();
+sub setupSnes9xEx();
 sub getNesRoms();
+sub getSnesRoms();
 
 sub checksumMatches($$);
 sub sha1sum($);
@@ -32,11 +41,15 @@ my $usage = "Usage:
 
   $0 [--backup]
     -backup nesoid saves
+    -backup snes9xex saves
 
   $0 --restore
     -copy NES roms
     -setup nesoid
     -restore nesoid saves
+    -copy SNES roms
+    -setup Snes9xEx
+    -restore Snes9xEx saves
 ";
 
 sub main(@){
@@ -54,9 +67,14 @@ sub main(@){
 
   if($command eq "--backup"){
     backupNesoidSaves();
+
+    backupSnes9xExSaves();
   }elsif($command eq "--restore"){
     setupNesoid();
     restoreNesoidSaves();
+
+    setupSnes9xEx();
+    restoreSnes9xExSaves();
   }
 }
 
@@ -88,6 +106,34 @@ sub backupNesoidSaves(){
   }
 }
 
+sub backupSnes9xExSaves(){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  run "mkdir", "-p", $DIR_SNES9XEX_LAST_BACKUP, $DIR_SNES9XEX_BY_MTIME;
+
+  run "rsync",
+    "-avP",
+    "--del",
+    "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/", "$DIR_SNES9XEX_LAST_BACKUP/",
+    "--exclude=*.smc";
+
+  for my $file(glob "$DIR_SNES9XEX_LAST_BACKUP/*"){
+    my $fileName = $file;
+    $fileName =~ s/^(.*)\///;
+
+    my $mtime = mtime($file);
+    my $destFile = "$DIR_SNES9XEX_BY_MTIME/$fileName-$mtime";
+    if(-e $destFile){
+      if(not checksumMatches($file, $destFile)){
+        die "CHECKSUM MISMATCH: $file vs $destFile\n";
+      }
+    }else{
+      run "cp", "-ar", $file, $destFile;
+    }
+  }
+}
+
 sub restoreNesoidSaves(){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
@@ -98,6 +144,18 @@ sub restoreNesoidSaves(){
     "$DIR_NESOID_LAST_BACKUP/",
     "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/",
     "--exclude=*.nes";
+}
+
+sub restoreSnes9xExSaves(){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  run "rsync",
+    "-avP",
+    "--del",
+    "$DIR_SNES9XEX_LAST_BACKUP/",
+    "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/",
+    "--exclude=*.smc";
 }
 
 sub setupNesoid(){
@@ -118,6 +176,29 @@ sub setupNesoid(){
     "$tmpDir/",
     "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/",
     "--exclude=*.ss*",
+    ;
+
+  run "rm", "-rf", "$tmpDir/";
+}
+
+sub setupSnes9xEx(){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  my $tmpDir = "/tmp/snes-roms-" . nowMillis();
+  run "mkdir", "-p", $tmpDir;
+
+  my %snesRoms = %{getSnesRoms()};
+  for my $romName(sort keys %snesRoms){
+    my $romFileName = $snesRoms{$romName};
+    run "cp -ar \"$DIR_SRC_SNES_ROMS/$romFileName\" \"$tmpDir/$romName.smc\"";
+  }
+
+  run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_SNES9XEX_DATA";
+  run "rsync", "-avP", "--del",
+    "$tmpDir/",
+    "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/",
+    "--exclude=*.s96",
     ;
 
   run "rm", "-rf", "$tmpDir/";
@@ -189,6 +270,54 @@ sub getNesRoms(){
     wizardry_proving_grounds_of_the_mad_overlord   => "Wizardry - Proving Grounds of the Mad Overlord (U).nes",
     wurm                                           => "Wurm (U).nes",
     zelda2_the_adventure_of_link                   => "Zelda II - The Adventure of Link (U).nes",
+  };
+}
+
+sub getSnesRoms(){
+  return {
+    aaahh_real_monsters                              => "AAAHH!!! Real Monsters (U) [!].smc",
+    aero_the_acro_bat                                => "Aero the Acro-Bat (U) [!].smc",
+    aladdin                                          => "Aladdin (U) [!].smc",
+    doom                                             => "Doom (U) [!].smc",
+    dragons_lair                                     => "Dragon's Lair (U) [!].smc",
+    final_fantasy_4_10th_anniversary_edition         => "Final Fantasy 4 - 10th Anniversary Edition (ENG) # SNES.SMC",
+    final_fantasy_6                                  => "Final Fantasy 6 (ENG) # SNES.SMC",
+    final_fantasy_3                                  => "Final Fantasy III (U) (V1.1) [!].smc",
+    final_fantasy_2                                  => "Final Fantasy II (U) (V1.1).smc",
+    gradius_3                                        => "Gradius III (U) [!].smc",
+    jrr_tolkiens_the_lord_of_the_rings_volume_1      => "JRR Tolkien's The Lord of the Rings - Volume 1 (U) [!].smc",
+    legend_of_zelda_the_a_link_to_the_past           => "Legend of Zelda, The - A Link to the Past (U) [!].smc",
+    lion_king_the                                    => "Lion King, The (U).smc",
+    mario_paint                                      => "Mario Paint (JU) [!].smc",
+    mega_man_7                                       => "Mega Man VII (U).smc",
+    mega_man_x_2                                     => "Mega Man X 2 (U) [!].smc",
+    mega_man_x_3                                     => "Mega Man X 3 (U) [!].smc",
+    mega_man_x                                       => "Mega Man X (U) (V1.1) [!].smc",
+    mortal_kombat_3                                  => "Mortal Kombat 3 (U) [!].smc",
+    mortal_kombat_2                                  => "Mortal Kombat II (U) (V1.1).smc",
+    mortal_kombat                                    => "Mortal Kombat (U) [!].smc",
+    ninja_gaiden_trilogy                             => "Ninja Gaiden Trilogy (U) [!].smc",
+    prince_of_persia_2_the_shadow_and_the_flame      => "Prince of Persia 2 - The Shadow & The Flame (U).smc",
+    prince_of_persia                                 => "Prince of Persia (U).smc",
+    sailor_moon                                      => "Sailor-Moon (ENG) # SNES.SMC",
+    sonic_the_hedgehog                               => "Sonic the Hedgehog (Unl).smc",
+    super_mario_all_stars                            => "Super Mario All-Stars (U) [!].smc",
+    super_mario_kart                                 => "Super Mario Kart (U) [!].smc",
+    super_mario_rpg_legend_of_the_seven_stars        => "Super Mario RPG - Legend of the Seven Stars (U) [!].smc",
+    super_mario_world_2_yoshis_island                => "Super Mario World 2 - Yoshi's Island (U) (M3) (V1.1).smc",
+    super_mario_world                                => "Super Mario World (U) [!].smc",
+    super_metroid                                    => "Super Metroid (JU) [!].smc",
+    super_star_wars_return_of_the_jedi               => "Super Star Wars - Return of the Jedi (U) (V1.1) [!].smc",
+    super_star_wars_the_empire_strikes_back          => "Super Star Wars - The Empire Strikes Back (U) (V1.1) [!].smc",
+    super_star_wars                                  => "Super Star Wars (U) (V1.1) [!].smc",
+    super_street_fighter_2_the_new_challengers       => "Super Street Fighter II - The New Challengers (U).smc",
+    tetris_2                                         => "Tetris 2 (U) (V1.1) [!].smc",
+    tetris_attack                                    => "Tetris Attack (U) [!].smc",
+    tetris_and_dr_mario                              => "Tetris & Dr. Mario (U) [!].smc",
+    toy_story                                        => "Toy Story (U) [!].smc",
+    warios_woods                                     => "Wario's Woods (U) [!].smc",
+    wizardry_v_heart_of_the_maelstrom                => "Wizardry V - Heart of the Maelstrom (U) [!].smc",
+    zombies_ate_my_neighbors                         => "Zombies Ate My Neighbors (U) [!].smc",
   };
 }
 
