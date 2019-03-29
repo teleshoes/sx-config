@@ -34,18 +34,10 @@ KeyboardRow {
     splitIndex: 3
 
     SymbolKey {}
-    ContextAwareCommaKey {}
     SpacebarKey {}
     SpacebarKey {
         active: splitActive
         languageLabel: ""
-    }
-    CharacterKey {
-        caption: "."
-        captionShifted: "."
-        implicitWidth: punctuationKeyWidth
-        fixedWidth: !splitActive
-        separator: SeparatorState.HiddenSeparator
     }
     EnterKey {}
 }
