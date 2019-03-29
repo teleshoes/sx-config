@@ -13,6 +13,7 @@ my @HOME_RSYNC_FILES = qw(
   .vimrc
 
   .config/qtemail/
+  .config/ipmagic/
   .vim/
 );
 
