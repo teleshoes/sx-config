@@ -60,6 +60,7 @@ Item {
         var expandingKeys = []
         var child
         var i
+        height = parent.keyHeight / 3
 
         for (i = startIndex; i < endIndex; ++i) {
             child = children[i]
@@ -69,7 +70,7 @@ Item {
             }
 
             child.visible = true
-            child.height = parent.keyHeight
+            child.height = parent.keyHeight / 3
 
             if (_isExpandingKey(child)) {
                 expandingKeys.push(child)
