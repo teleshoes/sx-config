@@ -4,7 +4,7 @@
 import QtQuick 2.0
 
 Item {
-    property double heightRatio: 0.333
+    property double heightRatio: 0.4
 
     property bool followRowHeight: true
     property int splitIndex: -1
