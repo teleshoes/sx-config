@@ -39,6 +39,8 @@ KeyboardLayout {
         ArrowUp {}
         ArrowDown {}
         ArrowRight {}
+        ContextAwareCommaKey {}
+        CharacterKey { caption: "."; captionShifted: "."}
     }
     KeyboardRow {
         CharacterKey { caption: "q"; captionShifted: "Q"; symView: "1"; symView2: "€" }
@@ -82,6 +84,5 @@ KeyboardLayout {
 
         BackspaceKey {}
     }
-
-    SpacebarRow {}
+    SpacebarNoPunctRow {}
 }
