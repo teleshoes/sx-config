@@ -4,6 +4,8 @@
 import QtQuick 2.0
 
 Item {
+    property double heightRatio: 0.333
+
     property bool followRowHeight: true
     property int splitIndex: -1
     property bool separateButtonSizes // row's button sizes are calculated independently
@@ -60,7 +62,7 @@ Item {
         var expandingKeys = []
         var child
         var i
-        height = parent.keyHeight / 3
+        height = parent.keyHeight * heightRatio
 
         for (i = startIndex; i < endIndex; ++i) {
             child = children[i]
@@ -70,7 +72,7 @@ Item {
             }
 
             child.visible = true
-            child.height = parent.keyHeight / 3
+            child.height = parent.keyHeight * heightRatio
 
             if (_isExpandingKey(child)) {
                 expandingKeys.push(child)
