@@ -36,9 +36,12 @@ FunctionKey {
 
     property int _charactersWhenPressed
     property bool _quickPicking
-    property string symbolCaption: "ABC"
 
-    caption: attributes.inSymView ? symbolCaption : "?123"
+    property string symOff: "ABC"
+    property string sym1: "?123"
+    property string sym2: "$(^"
+
+    caption: attributes.inSymView2 ? symOff : (attributes.inSymView ? sym2 : sym1)
     implicitWidth: functionKeyWidth
     keyType: KeyType.SymbolKey
 
@@ -57,7 +60,16 @@ FunctionKey {
 
     onClicked: {
         if (!_quickPicking || keyboard.characterKeyCounter > _charactersWhenPressed) {
-            keyboard.toggleSymbolMode()
+            if (keyboard.inSymView && !keyboard.inSymView2) {
+              keyboard.inSymView = true
+              keyboard.inSymView2 = true
+            } else if (keyboard.inSymView && keyboard.inSymView2) {
+              keyboard.inSymView = false
+              keyboard.inSymView2 = false
+            } else if (!keyboard.inSymView) {
+              keyboard.inSymView = true
+              keyboard.inSymView2 = false
+            }
         }
     }
 }
