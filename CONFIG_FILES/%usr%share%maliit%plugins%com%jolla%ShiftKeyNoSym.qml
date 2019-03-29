@@ -45,7 +45,7 @@ FunctionKey {
 
     // dim normal shift mode
     icon.opacity: (!attributes.inSymView && !attributes.isShiftLocked && !attributes.isShifted) ? 0.2 : 1.0
-    caption: attributes.inSymView ? (attributes.inSymView2 ? "2/2" : "1/2") : ""
+    caption: attributes.inSymView ? "abc" : ""
     key: Qt.Key_Shift
     keyType: KeyType.ShiftKey
     background.visible: attributes.inSymView
@@ -70,14 +70,14 @@ FunctionKey {
     }
 
     onClicked: {
-        if (keyboard.characterKeyCounter > _charactersWhenPressed) {
+        if (keyboard.inSymView) {
+            keyboard.inSymView = false
+            keyboard.inSymView2 = false
+            keyboard.shiftState = ShiftState.NoShift
+        } else if (keyboard.characterKeyCounter > _charactersWhenPressed) {
             keyboard.shiftState = ShiftState.NoShift
         } else if (!_quickPicking) {
-            if (keyboard.inSymView) {
-                keyboard.inSymView2 = !keyboard.inSymView2
-            } else {
-                keyboard.cycleShift()
-            }
+            keyboard.cycleShift()
         }
     }
 }
