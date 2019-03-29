@@ -72,7 +72,7 @@ KeyboardLayout {
     KeyboardRow {
         splitIndex: 5
 
-        ShiftKey {}
+        ShiftKeyNoSym {}
 
         CharacterKey { caption: "z"; captionShifted: "Z"; symView: "@"; symView2: "«" }
         CharacterKey { caption: "x"; captionShifted: "X"; symView: "&"; symView2: "»" }

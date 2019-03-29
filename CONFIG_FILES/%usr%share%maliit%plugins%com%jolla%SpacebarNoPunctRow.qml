@@ -33,7 +33,7 @@ import com.jolla.keyboard 1.0
 KeyboardRow {
     splitIndex: 3
 
-    SymbolKey {}
+    SymbolKeyNoShift {}
     SpacebarKey {}
     SpacebarKey {
         active: splitActive
