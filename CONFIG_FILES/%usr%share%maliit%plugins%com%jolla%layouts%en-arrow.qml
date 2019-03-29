@@ -33,6 +33,13 @@ import ".."
 KeyboardLayout {
     splitSupported: true
 
+    KeyboardShortRow {
+        separateButtonSizes: true;
+        ArrowLeft {}
+        ArrowUp {}
+        ArrowDown {}
+        ArrowRight {}
+    }
     KeyboardRow {
         CharacterKey { caption: "q"; captionShifted: "Q"; symView: "1"; symView2: "€" }
         CharacterKey { caption: "w"; captionShifted: "W"; symView: "2"; symView2: "£" }
