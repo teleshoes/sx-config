@@ -64,5 +64,7 @@
 
 ./setup-autostart
 
+./sync-games --restore
+
 ./restore-klomp-lists
 klomp-sync `sx`
