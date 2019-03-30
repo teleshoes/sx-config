@@ -42,6 +42,8 @@
 
 #insert SIM+sdcard and reboot
 
+./setup-sensor-diversions
+
 ./setup-symlinks
 
 ./setup-backgrounds
