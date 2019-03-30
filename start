@@ -33,6 +33,7 @@
 ./config-files
 
 ./setup-dconf
+./setup-mcetool
 
 ./sync-home-config
 
