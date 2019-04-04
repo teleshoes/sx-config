@@ -1,0 +1,101 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub isLocked();
+sub setLocked($);
+sub run(@);
+
+my $CMD_LOCK = "lock";
+my $CMD_UNLOCK = "unlock";
+my $CMD_TOGGLE = "toggle";
+
+my $usage = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+  $0 --toggle
+    -read locked status with dbus method: com.nokia.mce.request.get_display_status
+    -set locked/unlocked with mcetool
+      if display is off, same as $0 --unlock
+      if display is on, same as $0 --lock
+
+  $0 --lock
+    use mcetool to set lock screen and blank display
+
+  $0 --unlock
+    use mcetool to set unlock screen and unblank display
+";
+
+sub main(@){
+  my $arg;
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print $usage;
+    exit 0;
+  }elsif(@_ == 1 and $_[0] =~ /^(--lock)$/){
+    $arg = $CMD_LOCK;
+  }elsif(@_ == 1 and $_[0] =~ /^(--unlock)$/){
+    $arg = $CMD_UNLOCK;
+  }elsif(@_ == 0 or ($_[0] == 1 and $_[0] =~ /^(--toggle)$/)){
+    $arg = $CMD_TOGGLE;
+  }else{
+    die $usage;
+  }
+
+  if($arg eq $CMD_LOCK){
+    setLocked 1;
+  }elsif($arg eq $CMD_UNLOCK){
+    setLocked 0;
+  }elsif($arg eq $CMD_TOGGLE){
+    if(isLocked()){
+      setLocked 0;
+    }else{
+      setLocked 1;
+    }
+  }
+}
+
+sub isLocked(){
+  my @cmd = qw(
+    dbus-send
+      --system
+      --dest=com.nokia.mce
+      --print-reply
+      --type=method_call
+      /com/nokia/mce/request
+      com.nokia.mce.request.get_display_status
+  );
+  print "@cmd\n";
+  open CMD, "-|", @cmd or die "could not run @cmd\n$!\n";
+  my $out = join '', <CMD>;
+  close CMD;
+
+  my $status = "";
+  if($out =~ /^method.*\n\s*string\s*['"](on|off)['"]\s*$/){
+    $status = $1;
+  }
+
+  if($status eq "on"){
+    return 0;
+  }elsif($status eq "off"){
+    return 1;
+  }else{
+    die "could not read display status with @cmd\n";
+  }
+}
+
+sub setLocked($){
+  if($_[0]){
+    run "mcetool", "--set-tklock-mode=locked", "--blank-screen";
+  }else{
+    run "mcetool", "--tklock-close", "--unblank-screen";
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
