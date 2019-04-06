@@ -34,6 +34,8 @@ my $usage = "Usage:
 sub main(@){
   die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
 
+  run "ipmagic", $ipmagicName, "cpan install CPAN";
+
   my @groups = @_;
   @groups = @GROUPS if @_ == 0;
   for my $group(@groups){
