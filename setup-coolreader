@@ -1,0 +1,62 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+sub run(@);
+
+my $ipmagicName = "sx";
+my $user = "nemo";
+
+my $configFileRemote = "/home/$user/android_storage/.cr3/cr3.ini";
+
+my %config = (
+);
+
+sub main(@){
+  my $host = `ipmagic $ipmagicName`;
+  chomp $host;
+
+  my $nowMillis = int(time * 1000.0 + 0.5);
+  my $tmpFileOrig = "/tmp/coolreader-$nowMillis-orig.ini";
+  my $tmpFileMod = "/tmp/coolreader-$nowMillis-mod.ini";
+
+  run "scp", "$user\@$host:$configFileRemote", $tmpFileOrig;
+
+  my @lines;
+  if(-f $tmpFileOrig){
+    open FH, "< $tmpFileOrig" or die "could not read $tmpFileOrig\n$!\n";
+    @lines = <FH>;
+    close FH;
+  }
+
+  for my $key(sort keys %config){
+    my $val = $config{$key};
+
+    my $found = 0;
+    for my $line(@lines){
+      if($line =~ /^\s*\Q$key\E\s*=/){
+        $line = "$key=$val\n";
+        $found = 1;
+        last;
+      }
+    }
+
+    if(not $found){
+      push @lines, "$key=$val\n";
+    }
+  }
+
+  open FH, "> $tmpFileMod" or die "could not write $tmpFileMod\n$!\n";
+  print FH @lines;
+  close FH;
+
+  run "scp", $tmpFileMod, "$user\@$host:$configFileRemote";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
