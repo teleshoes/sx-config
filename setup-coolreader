@@ -11,14 +11,14 @@ my $user = "nemo";
 my $configFileRemote = "/home/$user/android_storage/.cr3/cr3.ini";
 
 my @TAPZONES_SHORT = qw(
-  PAGE_UP             PAGE_UP             PAGE_DOWN
+  PAGE_DOWN           PAGE_UP             PAGE_DOWN
   PAGE_UP             READER_MENU         PAGE_DOWN
-  PAGE_DOWN           PAGE_DOWN           PAGE_DOWN
+  PAGE_UP             PAGE_DOWN           PAGE_DOWN
 );
 my @TAPZONES_LONG = qw(
-  GO_BACK             TOGGLE_DAY_NIGHT    TOGGLE_AUTOSCROLL
-  PAGE_UP_10          OPTIONS             PAGE_DOWN_10
-  PAGE_DOWN_10        PAGE_DOWN_10        PAGE_DOWN_10
+  PAGE_UP             ZOOM_IN             PAGE_UP
+  PAGE_DOWN           TOGGLE_ORIENTATION  PAGE_UP
+  PAGE_DOWN           ZOOM_OUT            PAGE_UP
 );
 
 my %config = (
