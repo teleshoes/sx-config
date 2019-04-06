@@ -42,7 +42,7 @@ sub main(@){
     die "$usage\n\nunknown module group: $group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
 
-    run "ipmagic", $ipmagicName, "cpan install @modules";
+    run "ipmagic", $ipmagicName, "cpan -T install @modules";
   }
 }
 
