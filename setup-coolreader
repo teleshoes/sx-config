@@ -10,7 +10,36 @@ my $user = "nemo";
 
 my $configFileRemote = "/home/$user/android_storage/.cr3/cr3.ini";
 
+my @TAPZONES_SHORT = qw(
+  PAGE_UP             PAGE_UP             PAGE_DOWN
+  PAGE_UP             READER_MENU         PAGE_DOWN
+  PAGE_DOWN           PAGE_DOWN           PAGE_DOWN
+);
+my @TAPZONES_LONG = qw(
+  GO_BACK             TOGGLE_DAY_NIGHT    TOGGLE_AUTOSCROLL
+  PAGE_UP_10          OPTIONS             PAGE_DOWN_10
+  PAGE_DOWN_10        PAGE_DOWN_10        PAGE_DOWN_10
+);
+
 my %config = (
+  "app.tapzone.action.tap.1"                                 => $TAPZONES_SHORT[1-1],
+  "app.tapzone.action.tap.2"                                 => $TAPZONES_SHORT[2-1],
+  "app.tapzone.action.tap.3"                                 => $TAPZONES_SHORT[3-1],
+  "app.tapzone.action.tap.4"                                 => $TAPZONES_SHORT[4-1],
+  "app.tapzone.action.tap.5"                                 => $TAPZONES_SHORT[5-1],
+  "app.tapzone.action.tap.6"                                 => $TAPZONES_SHORT[6-1],
+  "app.tapzone.action.tap.7"                                 => $TAPZONES_SHORT[7-1],
+  "app.tapzone.action.tap.8"                                 => $TAPZONES_SHORT[8-1],
+  "app.tapzone.action.tap.9"                                 => $TAPZONES_SHORT[9-1],
+  "app.tapzone.action.tap.long.1"                            => $TAPZONES_LONG[1-1],
+  "app.tapzone.action.tap.long.2"                            => $TAPZONES_LONG[2-1],
+  "app.tapzone.action.tap.long.3"                            => $TAPZONES_LONG[3-1],
+  "app.tapzone.action.tap.long.4"                            => $TAPZONES_LONG[4-1],
+  "app.tapzone.action.tap.long.5"                            => $TAPZONES_LONG[5-1],
+  "app.tapzone.action.tap.long.6"                            => $TAPZONES_LONG[6-1],
+  "app.tapzone.action.tap.long.7"                            => $TAPZONES_LONG[7-1],
+  "app.tapzone.action.tap.long.8"                            => $TAPZONES_LONG[8-1],
+  "app.tapzone.action.tap.long.9"                            => $TAPZONES_LONG[9-1],
 );
 
 sub main(@){
