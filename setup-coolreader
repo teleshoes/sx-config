@@ -20,6 +20,9 @@ my $usage = "Usage:
   $0
   $0 --set
     update `ipmagic $ipmagicName`:$configFileRemote
+
+  $0 -d|--diff|-n|--dryrun
+    show what changes would be made by running --set
 ";
 
 my @TAPZONES_SHORT = qw(
@@ -207,6 +210,8 @@ sub main(@){
     my @configLines = readRemoteConfigLines();
     my @newConfigLines = updateConfigLines($CONFIG, @configLines);
     writeRemoteConfigLines(@newConfigLines);
+  }elsif(@_ == 1 and $_[0] =~ /^(-d|--diff|-n|--dryrun)$/){
+    updateConfigLines($CONFIG, readRemoteConfigLines());
   }else{
     die $usage;
   }
