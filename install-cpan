@@ -37,6 +37,8 @@ my $usage = "Usage:
 sub main(@){
   die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
 
+  run "ipmagic", $ipmagicName, "cpanp 's conf prereqs 1; s save'";
+
   my @groups = @_;
   @groups = @GROUPS if @_ == 0;
   for my $group(@groups){
