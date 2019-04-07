@@ -4,6 +4,9 @@ use warnings;
 use Time::HiRes qw(time);
 
 sub run(@);
+sub readRemoteConfigLines();
+sub writeRemoteConfigLines(@);
+sub updateConfigLines($@);
 
 my $ipmagicName = "sx";
 my $user = "nemo";
@@ -21,7 +24,7 @@ my @TAPZONES_LONG = qw(
   PAGE_DOWN           ZOOM_OUT            PAGE_UP
 );
 
-my %config = (
+my $CONFIG = {
   "app.browser.simple.mode"                                  => "1",
   "app.browser.sort.order"                                   => "FILENAME",
 
@@ -186,31 +189,50 @@ my %config = (
   "window.status.line"                                       => "0",
   "window.status.pos.page.number"                            => "1",
   "window.status.title"                                      => "1",
-);
+};
 
 sub main(@){
+  my @configLines = readRemoteConfigLines();
+  my @newConfigLines = updateConfigLines($CONFIG, @configLines);
+  writeRemoteConfigLines(@newConfigLines);
+}
+
+sub readRemoteConfigLines(){
+  my @cmd = ("ipmagic", $ipmagicName, "cat", $configFileRemote);
+  open CMD, "-|",  @cmd or die "could not run @cmd\n";
+  my @lines = <CMD>;
+  close CMD;
+  return @lines;
+}
+
+sub writeRemoteConfigLines(@){
+  my (@lines) = @_;
+  my $nowMillis = int(time * 1000.0 + 0.5);
+  my $tmpFile = "/tmp/coolreader-$nowMillis-cr3.ini";
+
+  open FH, "> $tmpFile" or die "could not write $tmpFile\n$!\n";
+  print FH @lines;
+  close FH;
+
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
-  my $nowMillis = int(time * 1000.0 + 0.5);
-  my $tmpFileOrig = "/tmp/coolreader-$nowMillis-orig.ini";
-  my $tmpFileMod = "/tmp/coolreader-$nowMillis-mod.ini";
+  run "scp", $tmpFile, "$user\@$host:$configFileRemote";
 
-  run "scp", "$user\@$host:$configFileRemote", $tmpFileOrig;
+  run "rm", $tmpFile;
+}
 
-  my @lines;
-  if(-f $tmpFileOrig){
-    open FH, "< $tmpFileOrig" or die "could not read $tmpFileOrig\n$!\n";
-    @lines = <FH>;
-    close FH;
-  }
+sub updateConfigLines($@){
+  my ($cfg, @configLines) = @_;
 
-  for my $key(sort keys %config){
-    my $val = $config{$key};
+  my @newConfigLines = (@configLines);
+  for my $key(sort keys %$cfg){
+    my $val = $$cfg{$key};
 
     my $found = 0;
-    for my $line(@lines){
-      if($line =~ /^\s*\Q$key\E\s*=/){
+    for my $line(@newConfigLines){
+      if($line =~ /^\s*\Q$key\E\s*=\s*(.*)$/){
+        my $oldVal = $1;
         $line = "$key=$val\n";
         $found = 1;
         last;
@@ -218,15 +240,10 @@ sub main(@){
     }
 
     if(not $found){
-      push @lines, "$key=$val\n";
+      push @newConfigLines, "$key=$val\n";
     }
   }
-
-  open FH, "> $tmpFileMod" or die "could not write $tmpFileMod\n$!\n";
-  print FH @lines;
-  close FH;
-
-  run "scp", $tmpFileMod, "$user\@$host:$configFileRemote";
+  return @newConfigLines;
 }
 
 sub run(@){
