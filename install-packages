@@ -76,6 +76,7 @@ my %packages = (
 
 my @zypperForceInstallPackages = qw(
   pyqt
+  perl-CPANPLUS
 );
 
 my @groups = sort keys %packages;
