@@ -13,6 +13,15 @@ my $user = "nemo";
 
 my $configFileRemote = "/home/$user/android_storage/.cr3/cr3.ini";
 
+my $usage = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+  $0 --set
+    update `ipmagic $ipmagicName`:$configFileRemote
+";
+
 my @TAPZONES_SHORT = qw(
   PAGE_DOWN           PAGE_UP             PAGE_DOWN
   PAGE_UP             READER_MENU         PAGE_DOWN
@@ -192,9 +201,15 @@ my $CONFIG = {
 };
 
 sub main(@){
-  my @configLines = readRemoteConfigLines();
-  my @newConfigLines = updateConfigLines($CONFIG, @configLines);
-  writeRemoteConfigLines(@newConfigLines);
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print $usage;
+  }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(--set)$/)){
+    my @configLines = readRemoteConfigLines();
+    my @newConfigLines = updateConfigLines($CONFIG, @configLines);
+    writeRemoteConfigLines(@newConfigLines);
+  }else{
+    die $usage;
+  }
 }
 
 sub readRemoteConfigLines(){
