@@ -75,6 +75,7 @@ my %packages = (
 );
 
 my @zypperForceInstallPackages = qw(
+  pyqt
 );
 
 my @groups = sort keys %packages;
