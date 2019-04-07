@@ -96,7 +96,7 @@ my $CONFIG = {
   "crengine.doc.embedded.fonts.enabled"                      => "0",
   "crengine.doc.embedded.styles.enabled"                     => "1",
   "crengine.file.txt.preformatted"                           => "1",
-  "crengine.font.size"                                       => "56",
+  "crengine.font.size"                                       => "52",
   "crengine.footnotes"                                       => "1",
 
   "crengine.highlight.bookmarks.color.comment.day"           => "0xaaaa55",
