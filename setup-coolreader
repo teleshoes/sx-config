@@ -51,7 +51,7 @@ my $CONFIG = {
   "app.motion.timeout"                                       => "0",
   "app.plugin.enabled.litres.org.coolreader.plugins.litres"  => "0",
 
-  "app.screen.backlight.control.flick"                       => "1",
+  "app.screen.backlight.control.flick"                       => "0",
   "app.screen.backlight.day"                                 => "-1",
   "app.screen.backlight.lock.enabled"                        => "0",
   "app.screen.backlight"                                     => "100",
