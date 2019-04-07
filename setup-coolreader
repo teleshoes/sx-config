@@ -233,6 +233,10 @@ sub updateConfigLines($@){
     for my $line(@newConfigLines){
       if($line =~ /^\s*\Q$key\E\s*=\s*(.*)$/){
         my $oldVal = $1;
+        if($oldVal ne $val){
+          printf "%-40s: %s => %s\n", $key, $oldVal, $val;
+        }
+
         $line = "$key=$val\n";
         $found = 1;
         last;
@@ -240,6 +244,7 @@ sub updateConfigLines($@){
     }
 
     if(not $found){
+      printf "%-40s: %s => %s\n", $key, "<MISSING>", $val;
       push @newConfigLines, "$key=$val\n";
     }
   }
