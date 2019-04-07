@@ -8,6 +8,8 @@ my $reposDir = "$ENV{HOME}/Code/sx/repos";
 
 sub installPackages($@);
 sub installRepos(@);
+sub zypperForceInstall($);
+sub getZypperForceInstallExpect($);
 sub run(@);
 sub tryrun(@);
 sub runIpmagicRoot(@);
@@ -70,6 +72,9 @@ my %packages = (
     harbour-meecast-event
     harbour-meecast-lockscreen
   )],
+);
+
+my @zypperForceInstallPackages = qw(
 );
 
 my @groups = sort keys %packages;
@@ -150,6 +155,8 @@ my $usage = "Usage:
         use zypper to update package lists for a single repo
         CAUTION: before running zypper, kills packagekitd
       $groupCmdFmt
+      force-install
+        use zypper and expect to forcibly install: @zypperForceInstallPackages
 ";
 
 sub main(@){
@@ -157,7 +164,7 @@ sub main(@){
 
   my @commands = @_;
   if(@commands == 0){
-    @commands = ("keys", "repos", "refresh", @groups);
+    @commands = ("keys", "repos", "refresh", @groups, "force-install");
   }
 
   for my $command(@commands){
@@ -187,6 +194,10 @@ sub main(@){
       if(@packages > 0){
         runIpmagicRoot "pkcon", "-y", "install", @packages;
       }
+    }elsif($command =~ /^force-install$/){
+      for my $package(@zypperForceInstallPackages){
+        zypperForceInstall $package;
+      }
     }else{
       die "$usage\nunknown command: $command\n";
     }
@@ -200,6 +211,36 @@ sub installRepos(@){
     my $url = "http://sailfish.openrepos.net/$repo/personal/main";
     runIpmagicRoot "ssu", "addrepo", $repoName, $url;
   }
+}
+
+sub zypperForceInstall($){
+  my ($packageName) = @_;
+
+  my $expectLibSrc = "/usr/lib/tcl/expect5.45+mer1/libexpect5.45.so";
+  my $expectLibDest = "/usr/lib/libexpect5.45.so";
+
+  tryrunIpmagicRoot "ln -s $expectLibSrc $expectLibDest";
+
+  my $expect = getZypperForceInstallExpect($packageName);
+  tryrunIpmagicRoot "expect <<HEREDOC\n$expect\nHEREDOC";
+}
+
+sub getZypperForceInstallExpect($){
+  my ($packageName) = @_;
+  return ""
+    . "set timeout -1\n"
+    . "spawn pkill packagekitd\n"
+    . "spawn zypper install $packageName\n"
+    . "\n"
+    . "expect \"Solution 2: break $packageName\" {\n"
+    . "  expect \"Choose from above solutions by number\"\n"
+    . "  send -- \"2\\n\"\n"
+    . "}\n"
+    . "\n"
+    . "expect \"Continue?\"\n"
+    . "send -- \"y\\n\"\n"
+    . "expect eof\n"
+    ;
 }
 
 sub run(@){
