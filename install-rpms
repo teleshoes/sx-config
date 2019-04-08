@@ -13,7 +13,7 @@ sub main(@){
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  system "rsync", "-avP", "$srcDir/", "$user\@$host:$destDir/";
+  system "rsync", "-avP", "--del", "$srcDir/", "$user\@$host:$destDir/";
 
   system "ipmagic", $ipmagicName, "-u", "root", "pkcon -y install-local $destDir/*.rpm";
 }
