@@ -51,7 +51,6 @@ my @config = qw(
   sailfish-browser
   okboard
   tkts
-  kasa
 
   lirr_cpg_pen
   lirr_cpg_rvc
@@ -66,7 +65,6 @@ my @config = qw(
   mta-etix
   jolla-gallery
   qtscreen-daemon
-  jollacompass
 );
 
 my @unused = qw(
