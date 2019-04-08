@@ -63,6 +63,7 @@ my @config = qw(
   lirrgui
   lirr-traintime
 
+  mta-etix
   jolla-gallery
   qtscreen-daemon
   jollacompass
@@ -97,6 +98,7 @@ my %replacements = (
   'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
   'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
   'kasa'           => 'apkd_launcher_com_tplink_kasa__android-com_tplink_hellotp_activity_SplashScreenActivity',
+  'mta-etix'       => 'apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity',
   'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
   'lirrgui'        => 'lirrtraintime',
   'riot'           => 'apkd_launcher_im_vector_alpha-im_vector_activity_LoginActivity',
