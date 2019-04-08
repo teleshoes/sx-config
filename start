@@ -52,7 +52,6 @@
 ./setup-camera
 
 ./install-cpan
-./install-pyqt
 ./install-adwaita-icons
 
 ./install-src
