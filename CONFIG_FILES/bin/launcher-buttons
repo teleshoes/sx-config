@@ -51,6 +51,7 @@ my @config = qw(
   sailfish-browser
   okboard
   tkts
+  meecast
 
   lirr_cpg_pen
   lirr_cpg_rvc
