@@ -66,6 +66,11 @@ my @config = qw(
   mta-etix
   jolla-gallery
   qtscreen-daemon
+  nesoid
+
+
+
+  snes9x
 );
 
 my @unused = qw(
@@ -99,6 +104,8 @@ my %replacements = (
   'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
   'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
   'kasa'           => 'apkd_launcher_com_tplink_kasa__android-com_tplink_hellotp_activity_SplashScreenActivity',
+  'nesoid'         => 'apkd_launcher_com_androidemu_nes-com_androidemu_nes_MainActivity',
+  'snes9x'         => 'apkd_launcher_com_explusalpha_Snes9x-com_imagine_BaseActivity',
   'mta-etix'       => 'apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity',
   'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
   'lirrgui'        => 'lirrtraintime',
