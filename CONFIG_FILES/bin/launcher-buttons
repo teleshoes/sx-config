@@ -72,6 +72,8 @@ my @unused = qw(
   jolla-email
   sailfish-weather
   sailfish-tutorial
+  sailfish-archive
+  sailfish-installationhandler
 );
 
 ########################################################
