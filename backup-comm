@@ -76,9 +76,9 @@ sub main(@){
   chomp $now;
 
   my $tmpDir = "/tmp/comm-dbs-$now";
-  my $commhistoryDb = "$DB_RAW_DIR/commhistory-$now.db";
-  my $contactsDb = "$DB_RAW_DIR/contacts-$now.db";
-  my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv-$now.db";
+  my $commhistoryDb = "$DB_RAW_DIR/commhistory/commhistory-$now.db";
+  my $contactsDb = "$DB_RAW_DIR/contacts/contacts-$now.db";
+  my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv/contacts-priv-$now.db";
   my $contactsTmpVcf = "/tmp/contacts-$now.vcf";
   my $localContactsVcf = "$CONTACTS_RAW_DIR/contacts-$now.vcf";
 
