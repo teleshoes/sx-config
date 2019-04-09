@@ -4,6 +4,9 @@ use warnings;
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup";
+
+my $SMS_RAW_DIR = "$BACKUP_DIR/backup-sms/raw";
+my $CALL_RAW_DIR = "$BACKUP_DIR/backup-call/raw";
 my @DB_RAW_DIRS = glob "$BACKUP_DIR/backup-dbs/raw/*";
 
 my $OLD_CUTOFF_SECONDS = 7 * 24 * 60 * 60; #7 days
@@ -15,6 +18,8 @@ my $usage = "Usage;
 
   $0
     cleanup backups
+    -bzip raw SMS files older than $CUTOFF_DAYS days
+    -bzip raw call files older than $CUTOFF_DAYS days
     -bzip and deduplicate raw dbs older than $CUTOFF_DAYS days
 ";
 
@@ -30,6 +35,9 @@ sub main(@){
   }elsif(@_ > 0){
     die $usage;
   }
+
+  cleanupDir $SMS_RAW_DIR, ".sms";
+  cleanupDir $CALL_RAW_DIR, ".call";
 
   for my $dbDir(@DB_RAW_DIRS){
     cleanupDir $dbDir, ".db";
