@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $usage = "Usage;
+  $0 -h|--help
+    show this message
+
+  $0
+    cleanup backups
+";
+
+my $OLD_CUTOFF_SECONDS = 7 * 24 * 60 * 60; #7 days
+
+sub isOld($);
+sub mtime($);
+sub run(@);
+
+sub main(@){
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print $usage;
+    exit 0;
+  }elsif(@_ > 0){
+    die $usage;
+  }
+}
+
+sub isOld($){
+  my $mtime = mtime $_[0];
+  return (time - $mtime) > $OLD_CUTOFF_SECONDS ? 1 : 0;
+}
+
+sub mtime($){
+  my @stat = stat $_[0];
+  return $stat[9];
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
