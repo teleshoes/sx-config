@@ -42,7 +42,7 @@ sub main(@){
     die "ERROR: apk-name exited with non-zero code\n";
   }
 
-  run "rsync", "-avP", "$srcDir/", "$user\@$host:$destDir/";
+  run "rsync", "-avP", "--del", "$srcDir/", "$user\@$host:$destDir/";
 
   run "ipmagic", $ipmagicName, "apkd-install $destDir/$prefix*.apk";
 }
