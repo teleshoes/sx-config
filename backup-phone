@@ -19,6 +19,7 @@ sub main(@){
   backup "sync-pixmirror";
   backup "backup-home";
   backup "backup-klomp-lists";
+  backup "cleanup-backups";
   backup "backup-comm";
 }
 
