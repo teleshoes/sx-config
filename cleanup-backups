@@ -18,6 +18,7 @@ my $usage = "Usage;
     -bzip and deduplicate raw dbs older than $CUTOFF_DAYS days
 ";
 
+sub cleanupDir($$);
 sub isOld($);
 sub mtime($);
 sub run(@);
@@ -31,24 +32,27 @@ sub main(@){
   }
 
   for my $dbDir(@DB_RAW_DIRS){
-    run "mkdir", "-p", "$dbDir/backup" if not -d "$dbDir/backup";
-    die "not a directory: $dbDir\n" if not -d $dbDir;
-    die "not a directory: $dbDir/backup\n" if not -d "$dbDir/backup";
-
-    my @files;
-
-    my @oldDbFiles = grep {isOld $_} glob "$dbDir/*.db";
-    for my $file(@oldDbFiles){
-      run "bzip2", $file;
-    }
-
-    my @bz2DbFiles = glob "$dbDir/*.db.bz2";
-    for my $file(@bz2DbFiles){
-      run "mv", "--no-clobber", $file, "$dbDir/backup/";
-    }
-
-    system "dedupe-dir-files", "--remove-dupes", "$dbDir/backup";
+    cleanupDir $dbDir, ".db";
   }
+}
+
+sub cleanupDir($$){
+  my ($dir, $fileSuffix) = @_;
+  run "mkdir", "-p", "$dir/backup" if not -d "$dir/backup";
+  die "not a directory: $dir\n" if not -d $dir;
+  die "not a directory: $dir/backup\n" if not -d "$dir/backup";
+
+  my @oldFiles = grep {isOld $_} glob "$dir/*$fileSuffix";
+  for my $file(@oldFiles){
+    run "bzip2", $file;
+  }
+
+  my @bz2Files = glob "$dir/*$fileSuffix.bz2";
+  for my $file(@bz2Files){
+    run "mv", "--no-clobber", $file, "$dir/backup/";
+  }
+
+  system "dedupe-dir-files", "--remove-dupes", "$dir/backup";
 }
 
 sub isOld($){
