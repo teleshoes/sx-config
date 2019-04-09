@@ -2,15 +2,21 @@
 use strict;
 use warnings;
 
+my $BASE_DIR = "$ENV{HOME}/Code/sx";
+my $BACKUP_DIR = "$BASE_DIR/backup";
+my @DB_RAW_DIRS = glob "$BACKUP_DIR/backup-dbs/raw/*";
+
+my $OLD_CUTOFF_SECONDS = 7 * 24 * 60 * 60; #7 days
+my $CUTOFF_DAYS = int($OLD_CUTOFF_SECONDS/24/60/60);
+
 my $usage = "Usage;
   $0 -h|--help
     show this message
 
   $0
     cleanup backups
+    -bzip and deduplicate raw dbs older than $CUTOFF_DAYS days
 ";
-
-my $OLD_CUTOFF_SECONDS = 7 * 24 * 60 * 60; #7 days
 
 sub isOld($);
 sub mtime($);
@@ -22,6 +28,26 @@ sub main(@){
     exit 0;
   }elsif(@_ > 0){
     die $usage;
+  }
+
+  for my $dbDir(@DB_RAW_DIRS){
+    run "mkdir", "-p", "$dbDir/backup" if not -d "$dbDir/backup";
+    die "not a directory: $dbDir\n" if not -d $dbDir;
+    die "not a directory: $dbDir/backup\n" if not -d "$dbDir/backup";
+
+    my @files;
+
+    my @oldDbFiles = grep {isOld $_} glob "$dbDir/*.db";
+    for my $file(@oldDbFiles){
+      run "bzip2", $file;
+    }
+
+    my @bz2DbFiles = glob "$dbDir/*.db.bz2";
+    for my $file(@bz2DbFiles){
+      run "mv", "--no-clobber", $file, "$dbDir/backup/";
+    }
+
+    system "dedupe-dir-files", "--remove-dupes", "$dbDir/backup";
   }
 }
 
