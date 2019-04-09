@@ -70,3 +70,5 @@
 
 ./restore-klomp-lists
 klomp-sync `sx`
+
+pubkeys
