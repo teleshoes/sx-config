@@ -62,6 +62,8 @@
 
 ./setup-coolreader
 
+./sync-riot --restore
+
 ./launcher-buttons
 
 ./setup-autostart
