@@ -123,7 +123,7 @@ Page {
         "SDCARD",                "qrc:/icons/directory", sdcardDir,
         "screenshots",           "qrc:/icons/directory", homeDir + "/Pictures/screenshots",
         "MMS pix-by-contact",    "qrc:/icons/directory", sdcardDir + "/comm-repos/mms/pix-by-contact",
-        "sheet_1080p",           "qrc:/icons/directory", sdcardDir + "/sheet_music/sheet_1080p",
+        "sheet_music",           "qrc:/icons/directory", sdcardDir + "/sheet_music",
         "Camera (sdcard)",       "qrc:/icons/directory", sdcardDir + "/Pictures/Camera",
         "DCIM-pixmirror-bydate", "qrc:/icons/directory", sdcardDir + "/DCIM-pixmirror-bydate",
         "DDR best",              "qrc:/icons/directory", sdcardDir + "/xbestddr",
