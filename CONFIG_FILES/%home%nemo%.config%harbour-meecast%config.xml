@@ -8,7 +8,7 @@
  <visible_unit>mi</visible_unit>
  <language>System</language>
  <current_station_id>2147483647</current_station_id>
- <update_period>2147483647</update_period>
+ <update_period>3600</update_period>
  <update_connect>false</update_connect>
  <fullscreen>false</fullscreen>
  <logo_on_cover>false</logo_on_cover>
