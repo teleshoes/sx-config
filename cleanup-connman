@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $IPMAGIC_NAME = "sx";
+
+sub run(@);
+
+sub main(@){
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "-s", "
+    find /var/lib/connman/ -mtime +20 -type f -delete
+    find /var/lib/connman/ -type d -exec rmdir {} \\; 2>&1 \\
+      | grep -v 'Directory not empty' #busybox find has no -empty
+  ";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
