@@ -7,6 +7,12 @@ my $IPMAGIC_NAME = "sx";
 my $PACKAGE_RESTRICTIONS_XML_FILE = "/opt/alien/data/system/users/0/package-restrictions.xml";
 
 my $PACKAGE_RESTRICTIONS = {
+  "us.zoom.videomeetings" => ''
+    . "    <pkg name=\"us.zoom.videomeetings\">\n"
+    . "        <disabled-components>\n"
+    . "            <item name=\"us.zoom.videomeetings.SendFileActivity\" />\n"
+    . "        </disabled-components>\n"
+    . "    </pkg>\n"
 };
 
 sub nowMillis();
