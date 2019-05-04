@@ -47,8 +47,8 @@ sub main(@){
       cat $tmpFileNew > $PACKAGE_RESTRICTIONS_XML_FILE
       rm $tmpFileNew
     ";
-#    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-#      "systemctl start aliendalvik.service";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "systemctl start aliendalvik.service";
   }else{
     print "NO CHANGE to package restrictions\n";
   }
