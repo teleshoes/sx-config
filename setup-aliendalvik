@@ -1,0 +1,145 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $IPMAGIC_NAME = "sx";
+my $PACKAGE_RESTRICTIONS_XML_FILE = "/opt/alien/data/system/users/0/package-restrictions.xml";
+
+my $PACKAGE_RESTRICTIONS = {
+};
+
+sub nowMillis();
+sub run(@);
+
+sub main(@){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  my $nowMillis = 1556995263382;#nowMillis();
+  my $tmpFileOld = "/tmp/setup-aliendalvik-$nowMillis-old";
+  my $tmpFileNew = "/tmp/setup-aliendalvik-$nowMillis-new";
+
+  run "scp", "root\@$host:$PACKAGE_RESTRICTIONS_XML_FILE", $tmpFileOld;
+  run "cp", "-ar", $tmpFileOld, $tmpFileNew;
+
+  if(not -e $tmpFileOld or not -e $tmpFileNew){
+    die "error fetching $PACKAGE_RESTRICTIONS_XML_FILE\n";
+  }
+
+  my $isChanged = editPackageRestrictions($tmpFileNew);
+
+  print "\n\n\n";
+  if($isChanged){
+    print "package restrictions changed, updating..\n";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "systemctl stop aliendalvik.service";
+
+    run "diff", $tmpFileOld, $tmpFileNew;
+    run "scp", $tmpFileNew, "root\@$host:$tmpFileNew";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+      cat $tmpFileNew > $PACKAGE_RESTRICTIONS_XML_FILE
+      rm $tmpFileNew
+    ";
+#    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+#      "systemctl start aliendalvik.service";
+  }else{
+    print "NO CHANGE to package restrictions\n";
+  }
+
+  run "rm", $tmpFileOld;
+  run "rm", $tmpFileNew;
+}
+
+sub editPackageRestrictions($){
+  my ($file) = @_;
+  open FH, "< $file" or die "could not read $file\n$!\n";
+  my $contents = join '', <FH>;
+  close FH;
+
+  my $ws = '(?:\s|\n)*';
+
+  if($contents !~ /
+    ^
+    ($ws <\?xml\s[^>]*\?> $ws <package-restrictions> $ws)
+    (
+      (?:
+        (?:$ws<pkg[^>]*\/>)
+        |
+        (?:$ws<pkg[^>]*[^\/]>.*?<\/pkg>)
+      )*
+    )
+    (
+      (?:$ws<preferred-activities$ws\/>$ws)
+      |
+      (?:$ws <preferred-activities$ws>.*?<\/preferred-activities> $ws)
+    )
+    ($ws <\/package-restrictions> $ws)
+    $/sxi){
+    die "ERROR: malformed $PACKAGE_RESTRICTIONS_XML_FILE\n";
+  }
+  my ($prefix, $pkgXml, $prefActXml, $suffix) = ($1, $2, $3, $4);
+
+  my @pkgs = $pkgXml =~ /
+    (
+      (?:$ws<pkg[^>]*\/>)
+      |
+      (?:$ws<pkg[^>]*[^\/]>.*?<\/pkg>)
+    )
+  /gsxi;
+  if($pkgXml ne join("", @pkgs)){
+    die "ERROR: malformed <pkg> tags in $PACKAGE_RESTRICTIONS_XML_FILE\n";
+  }
+
+  my $isChanged = 0;
+
+  for my $pkg(@pkgs){
+    my $pkgName = $1 if $pkg =~ /<pkg name="([^"]+)"/;
+    die "malformed package: $pkg\n" if not defined $pkgName;
+
+    if(defined $$PACKAGE_RESTRICTIONS{$pkgName}){
+      my $oldPkg = $pkg;
+      my $newPkg = $$PACKAGE_RESTRICTIONS{$pkgName};
+
+      my $oldPkgTrim = $oldPkg;
+      $oldPkgTrim =~ s/^$ws//sxi;
+      $oldPkgTrim =~ s/$ws$//sxi;
+
+      my $newPkgTrim = $newPkg;
+      $newPkgTrim =~ s/^$ws//sxi;
+      $newPkgTrim =~ s/$ws$//sxi;
+
+      my ($wsPrefix, $wsSuffix) = ($1, $2) if $pkg =~ /^($ws).*?($ws)$/sxi;
+      $newPkg = "$wsPrefix$newPkgTrim$wsSuffix";
+
+      if($oldPkgTrim ne $newPkgTrim){
+        print "PACKAGE RESTRICTION UPDATED:\n=====\n$oldPkgTrim\n=>\n=====\n$newPkgTrim\n";
+        $pkg = $newPkg;
+        $isChanged = 1;
+      }
+    }
+  }
+
+  $pkgXml = join("", @pkgs);
+
+  $contents = $prefix . $pkgXml . $prefActXml . $suffix;
+
+  if($isChanged){
+    open FH, "> $file" or die "could not write $file\n$!\n";
+    print FH $contents;
+    close FH;
+  }
+
+  return $isChanged;
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
