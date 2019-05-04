@@ -15,6 +15,7 @@ sub main(@){
   system "ipmagic", $ipmagicName, "-s", "echo found sx!\n";
   die "failed" if $? != 0;
 
+  backup "cleanup-connman";
   backup "dcim-backup";
   backup "sync-pixmirror";
   backup "backup-home";
