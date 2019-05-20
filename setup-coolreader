@@ -11,7 +11,8 @@ sub updateConfigLines($@);
 my $ipmagicName = "sx";
 my $user = "nemo";
 
-my $configFileRemote = "/home/$user/android_storage/.cr3/cr3.ini";
+my $configFileRemoteDir = "/home/$user/android_storage/.cr3";
+my $configFileRemoteFile = "$configFileRemoteDir/cr3.ini";
 
 my $usage = "Usage:
   $0 -h|--help
@@ -19,7 +20,7 @@ my $usage = "Usage:
 
   $0
   $0 --set
-    update `ipmagic $ipmagicName`:$configFileRemote
+    update `ipmagic $ipmagicName`:$configFileRemoteFile
 
   $0 -d|--diff|-n|--dryrun
     show what changes would be made by running --set
@@ -218,7 +219,7 @@ sub main(@){
 }
 
 sub readRemoteConfigLines(){
-  my @cmd = ("ipmagic", $ipmagicName, "cat", $configFileRemote);
+  my @cmd = ("ipmagic", $ipmagicName, "cat", $configFileRemoteFile);
   open CMD, "-|",  @cmd or die "could not run @cmd\n";
   my @lines = <CMD>;
   close CMD;
@@ -237,7 +238,8 @@ sub writeRemoteConfigLines(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
-  run "scp", $tmpFile, "$user\@$host:$configFileRemote";
+  run "ipmagic", $ipmagicName, "mkdir -p $configFileRemoteDir";
+  run "scp", $tmpFile, "$user\@$host:$configFileRemoteFile";
 
   run "rm", $tmpFile;
 }
