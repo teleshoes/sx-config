@@ -73,7 +73,7 @@
 ./sync-games --restore
 
 ./restore-klomp-lists
-klomp-sync `sx`
+klomp-sync `ipmagic sx`
 
 pubkeys
 
