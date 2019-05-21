@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $IPMAGIC_NAME = "sx";
+
+sub run(@);
+
+sub main(@){
+  print "!!!\nDELETE ALL SMS/MMS/CALLS FROM PHONE? [y/N] ";
+  my $response = <STDIN>;
+  print "\n";
+  if($response eq "y\n"){
+    print "DELETING COMMHISTORY\n";
+    run "ipmagic", $IPMAGIC_NAME, "
+      set -x
+      systemctl --user stop lipstick
+      commhistory-tool deleteall
+      commhistory-tool deleteall -calls
+      commhistory-tool deleteall -groups
+      commhistory-tool deleteall -reset
+      systemctl --user start lipstick
+    ";
+  }else{
+   print "cancelled\n";
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
