@@ -1,4 +1,5 @@
 CMD="vcardconverter $@"
+sudo rm -f /etc/gshadow.lock
 sudo usermod -a -G privileged nemo
 sudo su --login nemo -c "$CMD"
 sudo gpasswd -d nemo privileged
