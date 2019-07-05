@@ -28,6 +28,7 @@ my %packages = (
 
   "2-build" => [qw(
     cmake gcc gcc-c++
+    pcre-devel sqlite-devel
   )],
 
   "3-patches" => [qw(
