@@ -15,7 +15,7 @@ InverseMouseArea {
             : 0
     width: parent.width
 
-    property string contactName: conversation.people.length === 1 ? conversation.people[0].firstName : ""
+    property string contactName: conversation.people.length === 1 ? conversation.people[0].firstName + " " + conversation.people[0].lastName  : ""
     property alias text: textField.text
     property alias cursorPosition: textField.cursorPosition
     property alias editorFocus: textField.focus
@@ -270,6 +270,10 @@ InverseMouseArea {
                     opacity: characterCountLabel.opacity
                     text: "|"
                 }
+
+                /////HACK-DISPLAY-CONTACT-NAME
+                Label { text: contactName }
+                /////HACK-DISPLAY-CONTACT-NAME
 
                 CharacterCountLabel {
                     id: characterCountLabel
