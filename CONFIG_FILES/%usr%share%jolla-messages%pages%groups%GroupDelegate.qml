@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.6
 import Sailfish.Silica 1.0
 import org.nemomobile.contacts 1.0
 import org.nemomobile.commhistory 1.0
@@ -15,10 +15,11 @@ ListItem {
 
     property string providerName: getProviderName()
     property bool hasIMAccount: _hasIMAccount()
+    property date currentDateTime
 
     function getProviderName() {
         if (!model.lastEventGroup || !telepathyAccounts.ready
-             || MessageUtils.isSMS(model.lastEventGroup.localUid)) {
+                || MessageUtils.isSMS(model.lastEventGroup.localUid)) {
             return ""
         }
 
@@ -47,39 +48,81 @@ ListItem {
 
         Row {
             width: parent.width
+            spacing: Theme.paddingMedium
 
-            Image {
+            HighlightImage {
                 id: groupIcon
-                source: model.groups[0].remoteUids.length > 1 ? ("image://theme/icon-s-group-chat?" + (delegate.highlighted ? Theme.highlightColor : Theme.primaryColor)) : ""
-                anchors.verticalCenter: name.verticalCenter
-            }
-
-            Image {
-                id: draftIcon
-                source: model.lastEventIsDraft ? ("image://theme/icon-s-edit?" + (delegate.highlighted ? Theme.highlightColor : Theme.primaryColor)) : ""
-                anchors.verticalCenter: name.verticalCenter
+                visible: model.groups[0].remoteUids.length > 1
+                source: "image://theme/icon-s-group-chat"
+                highlighted: delegate.highlighted
+                anchors.verticalCenter: parent.verticalCenter
             }
 
             Label {
                 id: name
-                width: parent.width - x
 
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width
+                       - x
+                       - (date.width + parent.spacing)
+                       - (presence.visible ? (presence.width + parent.spacing) : 0)
                 truncationMode: TruncationMode.Fade
                 color: delegate.highlighted ? Theme.highlightColor : Theme.primaryColor
-                text: (model.chatName !== undefined && model.chatName != "") ? model.chatName :
-                      ((model.contactNames.length) ? model.contactNames.join(", ") : model.groups[0].remoteUids.join(", "))
+                text: (model.chatName !== undefined && model.chatName !== "") ? model.chatName :
+                                                                                ((model.contactNames.length) ? model.contactNames.join(", ") : model.groups[0].remoteUids.join(", "))
+
+            }
+
+            ContactPresenceIndicator {
+                id: presence
+
+                anchors.verticalCenter: parent.verticalCenter
+                visible: hasIMAccount
+                presenceState: person ? person.globalPresenceState : Person.PresenceUnknown
+            }
+
+            Label {
+                id: date
+
+                anchors.verticalCenter: parent.verticalCenter
+                color: delegate.highlighted ? Theme.highlightColor : Theme.primaryColor
+                font.pixelSize: Theme.fontSizeExtraSmall
+                text: {
+                    // TODO ideally event status would be updated dynamically on the main messages page,
+                    // but right now only the current conversation channel is accessible.
+                    var label = mainWindow.eventStatusText(model.lastEventStatus, model.lastEventId)
+                    if (!label) {
+                        var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
+                        var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
+                        var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
+
+                        if (daysDiff === 0) {
+                            label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
+                        } else if (daysDiff < 7) {
+                            label = Format.formatDate(model.startTime, Formatter.TimeValue)
+                        } else if (daysDiff < 365) {
+                            label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
+                        } else {
+                            label = Format.formatDate(model.startTime, Formatter.DateMedium)
+                        }
+
+                        if (providerName) {
+                            label = providerName + " \u2022 " + label
+                        }
+                    }
+                    return label
+                }
             }
         }
 
         Label {
             id: lastMessage
-            anchors.left: parent.left
-            anchors.right: parent.right
+            width: parent.width
 
             text: {
-                if (model.lastMessageText != '') {
+                if (model.lastMessageText !== '') {
                     return model.lastMessageText
-                } else if (model.lastEventType == CommHistory.MMSEvent) {
+                } else if (model.lastEventType === CommHistory.MMSEvent) {
                     //% "Multimedia message"
                     return qsTrId("messages-ph-mms_empty_text")
                 }
@@ -88,9 +131,30 @@ ListItem {
 
             textFormat: Text.PlainText
             font.pixelSize: Theme.fontSizeExtraSmall
-            color: delegate.highlighted || model.unreadMessages > 0 ? Theme.highlightColor : Theme.primaryColor
+            color: delegate.highlighted || model.unreadMessages > 0 ? Theme.secondaryHighlightColor : Theme.secondaryColor
             wrapMode: Text.Wrap
             maximumLineCount: 3
+            onLineLaidOut: {
+                if (line.number === 0 && model.lastEventIsDraft) {
+                    var indent = Theme.iconSizeSmall + Theme.paddingSmall
+                    line.x += indent
+                    line.width -= indent
+                }
+            }
+
+            HighlightImage {
+                id: draftIcon
+
+                visible: model.lastEventIsDraft
+                highlighted: delegate.highlighted
+                source: "image://theme/icon-s-edit"
+                y: (fontMetrics.height - height) / 2
+            }
+
+            FontMetrics {
+                id: fontMetrics
+                font: lastMessage.font
+            }
 
             GlassItem {
                 visible: model.unreadMessages > 0
@@ -103,35 +167,6 @@ ListItem {
                     top: parent.top
                     topMargin: height / -2 + date.height / 2
                 }
-            }
-        }
-
-        Label {
-            id: date
-
-            color: delegate.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
-            font.pixelSize: Theme.fontSizeExtraSmall
-            text: {
-                var label = mainWindow.eventStatusText(model.lastEventStatus)
-                if (!label) {
-                    label = Qt.formatDateTime(model.startTime, 'hh:mm   -   yyyy-MM-dd')
-                    if (providerName) {
-                        label += " \u2022 " + providerName
-                    }
-                }
-                return label
-            }
-
-            ContactPresenceIndicator {
-                id: presence
-                anchors {
-                    verticalCenter: parent.verticalCenter
-                    left: parent.right
-                    leftMargin: Theme.paddingMedium
-                }
-
-                visible: hasIMAccount
-                presenceState: person ? person.globalPresenceState : Person.PresenceUnknown
             }
         }
     }
