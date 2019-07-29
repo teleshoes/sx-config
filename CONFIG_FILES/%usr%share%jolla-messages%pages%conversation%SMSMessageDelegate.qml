@@ -45,7 +45,10 @@ ListItem {
         var timeString
 
         if (daysDiff > 6) {
-            dateString = Format.formatDate(date, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear))
+            //HACK-YYYY-MM-DD
+            //dateString = Format.formatDate(date, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear))
+            dateString = Qt.formatDateTime(date, 'yyyy-MM-dd  -  ')
+            //HACK-YYYY-MM-DD
 
             //HACK-HH-MM-SS
             //timeString = Format.formatDate(date, Formatter.TimeValue)
