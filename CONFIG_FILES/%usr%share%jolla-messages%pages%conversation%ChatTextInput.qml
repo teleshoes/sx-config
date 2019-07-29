@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.6
 import Sailfish.Silica 1.0
 import Sailfish.Telephony 1.0
 import org.nemomobile.configuration 1.0
@@ -10,10 +10,12 @@ import "../common/utils.js" as MessageUtils
 InverseMouseArea {
     id: chatInputArea
 
-    // Can't use textField height due to excessive implicit padding
-    height: timestamp.y + timestamp.height + typeMenu.height + simSelector.height + Theme.paddingMedium
+    height: visible
+            ? textField.y + textField.height + ((typeMenu.height + simSelector.height) || Theme.paddingMedium)
+            : 0
+    width: parent.width
 
-    property string contactName: conversation.people.length === 1 ? conversation.people[0].firstName + " " + conversation.people[0].lastName  : ""
+    property string contactName: conversation.people.length === 1 ? conversation.people[0].firstName : ""
     property alias text: textField.text
     property alias cursorPosition: textField.cursorPosition
     property alias editorFocus: textField.focus
@@ -23,7 +25,7 @@ InverseMouseArea {
     property bool recreateDraftEvent: false
     property string simErrorState
 
-    onContactNameChanged: timestamp.updateTimestamp()
+    readonly property bool _senderSupportsReplies: conversation.hasPhoneNumber || !conversation.message.isSMS
 
     signal sendMessage(string text)
 
@@ -186,72 +188,227 @@ InverseMouseArea {
 
     TextArea {
         id: textField
-        anchors {
-            left: parent.left
-            right: buttonArea.left
-            top: parent.top
-            topMargin: Theme.paddingMedium
-        }
 
+        width: parent.width
+        y: Theme.paddingMedium
         focusOutBehavior: FocusBehavior.KeepFocus
-        textRightMargin: 0
+        textRightMargin: Theme.horizontalPageMargin + button.width
         font.pixelSize: Theme.fontSizeSmall
+        enabled: _senderSupportsReplies
+
+        VerticalAutoScroll.bottomMargin: Theme.paddingMedium
 
         property bool empty: text.length === 0 && !inputMethodComposing
 
-        placeholderText: contactName.length ?
-                             //: Personalized placeholder for chat input, e.g. "Hi John"
-                             //% "Hi %1"
-                             qsTrId("messages-ph-chat_placeholder").arg(contactName) :
-                             //: Generic placeholder for chat input
-                             //% "Hi"
-                             qsTrId("messages-ph-chat_placeholder_generic")
+        labelComponent: Component {
+            Row {
+                spacing: Theme.paddingSmall
+
+                Label {
+                    id: messageType
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: Theme.highlightColor
+                    font.pixelSize: Theme.fontSizeTiny
+                    text: {
+                        return conversation.message.hasChannel ? MessageUtils.accountDisplayName(conversation.people[0],
+                                                                                                 conversation.message.localUid,
+                                                                                                 conversation.message.remoteUids[0])
+                                                               : ""
+                    }
+                }
+
+                ContactPresenceIndicator {
+                    id: presence
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: conversation.message.hasChannel && !conversation.message.isSMS
+                             && conversation.message.remoteUids.length === 1
+                    presenceState: !visible ? Person.PresenceUnknown
+                                            : MessageUtils.presenceForPersonAccount(conversation.people[0],
+                                                                                    conversation.message.localUid,
+                                                                                    conversation.message.remoteUids[0])
+                }
+
+                Label {
+                    id: phoneInfoSpacerLabel
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: conversation.message.isSMS && conversation.people.length === 1 && !!phoneInfoLabel.text
+                    color: Theme.highlightColor
+                    font.pixelSize: Theme.fontSizeTiny
+                    text: "|"
+                }
+
+                Label {
+                    id: phoneInfoLabel
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: conversation.message.isSMS && conversation.people.length === 1 && !!phoneInfoLabel.text
+                    color: Theme.highlightColor
+                    font.pixelSize: Theme.fontSizeTiny
+                    truncationMode: TruncationMode.Fade
+                    text: conversation.phoneDetailsString(conversation.message.remoteUids[0])
+
+                    width: Math.min(Math.ceil(implicitWidth),
+                                    textField.width - textField.textLeftMargin - textField.textRightMargin
+                                    - messageType.width
+                                    - (presence.visible ? (presence.width + parent.spacing) : 0)
+                                    - (parent.spacing + phoneInfoSpacerLabel.width)
+                                    - (characterCountLabel.visible ? (characterCountLabel.width + characterCountSpacerLabel.width
+                                                                      + 2 * parent.spacing) : 0)
+                                    - Theme.paddingMedium)
+                }
+
+                Label {
+                    id: characterCountSpacerLabel
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: conversation.message.isSMS && characterCountSetting.value
+                    color: Theme.highlightColor
+                    font.pixelSize: Theme.fontSizeTiny
+                    opacity: characterCountLabel.opacity
+                    text: "|"
+                }
+
+                CharacterCountLabel {
+                    id: characterCountLabel
+
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: conversation.message.isSMS && characterCountSetting.value
+                    messageText: visible ? textField.text : ""
+                }
+            }
+        }
+
+        Row {
+            spacing: Theme.paddingSmall
+            parent: textField
+            opacity: textField.empty ? 1.0 : 0.0
+            Behavior on opacity { FadeAnimator {} }
+            anchors {
+                left: parent.left
+                top: parent.top
+                right: parent.right
+                leftMargin: textField.textLeftMargin
+                topMargin: textField.textTopMargin
+                rightMargin: textField.textRightMargin
+            }
+
+            Label {
+                property int maxWidth: parent.width
+                                       - (simInfoLabel.visible ? (simInfoLabel.width + simInfoIcon.width
+                                                                  + simInfoSpacerLabel.width + 3 * parent.spacing)
+                                                               : 0)
+                                       - Theme.paddingMedium
+
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(implicitWidth, maxWidth)
+                color: textField.placeholderColor
+                truncationMode: TruncationMode.Fade
+                font: textField.font
+                text: {
+                    if (!_senderSupportsReplies) {
+                        //% "Sender does not support replies"
+                        return qsTrId("messages-ph-sender_des_not_support_replies")
+                    }
+
+                    //: Generic placeholder for chat input
+                    //% "Type message"
+                    return qsTrId("messages-ph-chat_placeholder_generic")
+                }
+            }
+
+            Label {
+                id: simInfoSpacerLabel
+
+                anchors.verticalCenter: parent.verticalCenter
+                visible: simInfoLabel.visible
+                color: textField.placeholderColor
+                text: "|"
+            }
+
+            HighlightImage {
+                id: simInfoIcon
+
+                anchors.verticalCenter: parent.verticalCenter
+                visible: simInfoLabel.visible
+                color: textField.placeholderColor
+                source: {
+                    if (simManager.activeSim === 0) {
+                        return "image://theme/icon-s-sim1"
+                    } else if (simManager.activeSim === 1) {
+                        return "image://theme/icon-s-sim2"
+                    } else {
+                        return ""
+                    }
+                }
+            }
+
+            Label {
+                id: simInfoLabel
+
+                anchors.verticalCenter: parent.verticalCenter
+                visible: _senderSupportsReplies && mainWindow.multipleEnabledSimCards && conversation.message.isSMS
+                         && !Telephony.promptForMessageSim && simManager.activeSim >= 0
+                color: textField.placeholderColor
+                text: simManager.activeSim >= 0 ? simManager.modemSimModel.get(simManager.activeSim)["operator"] : ""
+            }
+        }
+
+        Button {
+            id: button
+
+            enabled: typeMenu.enabled || (!textField.empty && chatInputArea.enabled)
+            parent: textField
+            width: Theme.iconSizeMedium + 2 * Theme.paddingSmall
+            height: width
+            anchors {
+                right: parent.right
+                rightMargin: Theme.horizontalPageMargin
+                bottom: parent.bottom
+                bottomMargin: Theme.paddingSmall
+            }
+            onClicked: {
+                if (textField.empty && typeMenu.enabled) {
+                    typeMenu.openMenu(chatInputArea)
+                } else {
+                    chatInputArea.send()
+                }
+            }
+            onPressAndHold: if (typeMenu.enabled) typeMenu.openMenu(chatInputArea)
+
+            HighlightImage {
+                id: image
+
+                source: textField.empty && typeMenu.enabled ? "image://theme/icon-m-change-type"
+                                                            : "image://theme/icon-m-send"
+                color: !button.enabled ? Theme.secondaryColor
+                                       : (button._showPress ? Theme.highlightColor
+                                                            : Theme.primaryColor)
+                highlighted: parent.down
+                anchors.centerIn: parent
+                opacity: parent.enabled ? 1.0 : 0.4
+                Behavior on opacity { FadeAnimator {} }
+
+                Behavior on source {
+                    SequentialAnimation {
+                        FadeAnimation {
+                            target: image
+                            to: 0.0
+                        }
+                        PropertyAction {} // This is where the property assignment really happens
+                        FadeAnimation {
+                            target: image
+                            to: image.parent.enabled ? 1.0 : 0.4
+                        }
+                    }
+                }
+            }
+        }
     }
 
     onClickedOutside: textField.focus = false
-
-    MouseArea {
-        id: buttonArea
-        anchors {
-            top: buttonText.top
-            topMargin: -Theme.paddingLarge
-            leftMargin: -Theme.paddingLarge - Math.max(0, Theme.itemSizeSmall - buttonText.width)
-            left: buttonText.left
-            right: parent.right
-            bottom: parent.bottom
-        }
-        enabled: typeMenu.enabled || (!textField.empty && chatInputArea.enabled)
-        onClicked: {
-            if (textField.empty && typeMenu.enabled) {
-                typeMenu.openMenu(chatInputArea)
-            } else {
-                chatInputArea.send()
-            }
-        }
-        onPressAndHold: if (typeMenu.enabled) typeMenu.openMenu(chatInputArea)
-    }
-
-    Label {
-        id: buttonText
-        anchors {
-            right: parent.right
-            rightMargin: Theme.horizontalPageMargin
-            verticalCenter: textField.top
-            verticalCenterOffset: textField.textVerticalCenterOffset + (textField._editor.height - height)
-        }
-
-        font.pixelSize: Theme.fontSizeSmall
-        color: !buttonArea.enabled ? Theme.secondaryColor
-                                   : (buttonArea.pressed ? Theme.highlightColor
-                                                         : Theme.primaryColor)
-
-
-        //% "Change type"
-        //: Button to select conversation type, e.g. SMS or GTalk
-        text: textField.empty && typeMenu.enabled ? qsTrId("messages-la-conversation_change_type")
-                                                    //% "Send"
-                                                  :  qsTrId("messages-la-send")
-    }
 
     ConversationTypeMenu {
         id: typeMenu
@@ -268,9 +425,12 @@ InverseMouseArea {
             if (count > 1) {
                 return true
             }
-            if (count == 1) {
+            // The onScreen condition is to prevent a crash that looks similar
+            // to https://bugreports.qt.io/browse/QTBUG-61261
+            if ((count == 1) && onScreen) {
                 var data = model.get(0)
-                if (!conversation.message.matchChannel(data.localUid, data.remoteUid)) {
+                var remotes = data.remoteUid !== "" ? [data.remoteUid] : conversation.message.remoteUids
+                if (!conversation.message.matchChannel(data.localUid, remotes)) {
                     return true
                 }
             }
@@ -282,9 +442,16 @@ InverseMouseArea {
             var data = model.get(index)
             if (data === null)
                 return
+            var groupId = conversation.message.groupId
+            var remotes = conversation.message.remoteUids
 
             var setChannel = function() {
-                conversation.message.setChannel(data.localUid, data.remoteUid)
+                if (data.remoteUid !== "") {
+                    conversation.message.setChannel(data.localUid, data.remoteUid)
+                } else {
+                    conversation.message.setBroadcastChannel(data.localUid, remotes, groupId)
+                }
+                textField.forceActiveFocus()
                 typeMenu.closed.disconnect(setChannel)
             }
             typeMenu.closed.connect(setChannel)
@@ -325,90 +492,9 @@ InverseMouseArea {
         }
     }
 
-    Label {
-        id: timestamp
-        anchors {
-            top: textField.bottom
-            // Spacing underneath separator in TextArea is _labelItem.height + Theme.paddingSmall + 3
-            topMargin: -textField._labelItem.height - 3
-            left: textField.left
-            leftMargin: Theme.horizontalPageMargin
-        }
-
-        color: Theme.highlightColor
-        font.pixelSize: Theme.fontSizeTiny
-
-        function updateTimestamp() {
-            var date = new Date()
-            text = Format.formatDate(date, Formatter.TimepointRelative) + "  " + contactName
-            updater.interval = (60 - date.getSeconds() + 1) * 1000
-        }
-
-        Timer {
-            id: updater
-            repeat: true
-            triggeredOnStart: true
-            running: Qt.application.active && timestamp.visible
-            onTriggered: timestamp.updateTimestamp()
-        }
-    }
-
     ConfigurationValue {
         id: characterCountSetting
         key: "/apps/jolla-messages/show_sms_character_count"
         defaultValue: false
-    }
-
-    CharacterCountLabel {
-        id: characterCountLabel
-
-        anchors {
-            left:timestamp.right
-            leftMargin: Theme.paddingMedium
-            top: timestamp.top
-        }
-
-        messageText: visible ? textField.text : ""
-        visible: conversation.message.isSMS && characterCountSetting.value
-    }
-
-    Label {
-        id: messageType
-        anchors {
-            right: parent.right
-            rightMargin: Theme.horizontalPageMargin
-            top: timestamp.top
-        }
-
-        color: Theme.highlightColor
-        font.pixelSize: Theme.fontSizeTiny
-        text: {
-            if (conversation.message.isSMS && !Telephony.promptForMessageSim) {
-                var type = mainWindow.shortSimName()
-                if (type.length > 0) {
-                    return type
-                }
-            }
-            return conversation.message.hasChannel ? MessageUtils.accountDisplayName(conversation.people[0],
-                                                                                     conversation.message.localUid,
-                                                                                     conversation.message.remoteUids[0])
-                                                   : ""
-        }
-
-        ContactPresenceIndicator {
-            id: presence
-            anchors {
-                right: parent.right
-                rightMargin: 2
-                bottom: parent.top
-            }
-
-            visible: conversation.message.hasChannel && !conversation.message.isSMS
-                     && conversation.message.remoteUids.length === 1
-            presenceState: !visible ? Person.PresenceUnknown
-                                    : MessageUtils.presenceForPersonAccount(conversation.people[0],
-                                                                            conversation.message.localUid,
-                                                                            conversation.message.remoteUids[0])
-        }
     }
 }
