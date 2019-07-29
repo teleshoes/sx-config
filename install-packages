@@ -34,7 +34,6 @@ my %packages = (
   "3-patches" => [qw(
     okboard-full
     patchmanager
-    patchmanager-volume-warning
     patchutils
     sailfishos-patch-autocaps
     sailfishos-patch-messages-layout
