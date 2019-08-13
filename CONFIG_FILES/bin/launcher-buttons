@@ -71,6 +71,7 @@ my @config = qw(
 
 
   snes9x
+  vlc
 );
 
 my @unused = qw(
@@ -111,6 +112,7 @@ my %replacements = (
   'lirrgui'        => 'lirrtraintime',
   'riot'           => 'apkd_launcher_im_vector_alpha-im_vector_activity_VectorLauncherActivity',
   'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
+  'vlc'            => 'apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity',
   'zoom'           => 'apkd_launcher_us_zoom_videomeetings-com_zipow_videobox_LauncherActivity',
 );
 
