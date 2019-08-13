@@ -29,7 +29,7 @@ my @config = qw(
   jolla-calculator
   openrepos-myipaddress
   jolla-calendar
-  jolla-mediaplayer
+  vlc
 
   zoom
   riot
@@ -71,7 +71,7 @@ my @config = qw(
 
 
   snes9x
-  vlc
+  jolla-mediaplayer
 );
 
 my @unused = qw(
