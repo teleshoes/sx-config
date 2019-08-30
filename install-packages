@@ -85,6 +85,7 @@ die "first character of group must be unique\n" if %groupAliases != %groupsByAli
 
 my @openrepos = qw(
   alina
+  ade
   Ancelad
   anig
   balta
