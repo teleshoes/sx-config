@@ -23,6 +23,8 @@
 # devel-su #d
 # passwd #d
 
+# ipmagic sx -t IPADDRESS # until icmp rules written in config files and reboot
+
 ./setup-ssh #twice for some reason
 ./setup-ssh
 
@@ -41,6 +43,7 @@
 ./restore-comm
 
 #insert SIM+sdcard and reboot
+#ipmagic sx -t # ok after config-files and reboot
 
 ./setup-sensor-diversions
 
