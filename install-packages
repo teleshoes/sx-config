@@ -141,7 +141,11 @@ my $groupCmdFmt = join "      ", map {
 
 my $usage = "Usage:
   $0 [COMMAND COMMAND ..]
-    run COMMANDs as below. if none are given, do all in order
+    run COMMANDs as below
+    if none are given, do all of these, in order:
+        keys repos refresh
+        @groups
+        force-install
 
     COMMAND:
       keys
