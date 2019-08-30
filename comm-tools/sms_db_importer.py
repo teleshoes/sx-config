@@ -428,6 +428,7 @@ class MMS:
         relFilepath = re.sub('^' + REMOTE_MMS_PARTS_DIR + '/', '', relFilepath)
         filename = relFilepath
         filename = re.sub('^\d+/', '', filename)
+        filename = re.sub('^msg-\d+-\d+/', '', filename)
         if "/" in filename:
           print "filename contains path sep '/': " + filename
           quit(1)
