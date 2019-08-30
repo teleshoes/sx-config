@@ -85,6 +85,9 @@ sub dcimBackup($$$){
     die "could not read ipmagic $ipmagicName hostname\n" if $? != 0;
     chomp $host;
     system "rsync -avP $user\@$host:$remoteDCIM/*.* $dir/";
+    if(-e "$dir/.recording"){
+      system "rmdir $dir/.recording";
+    }
     die "failed rsync backup\n" if $? != 0;
 
     print "updating local md5sums again and re-reorganizing remote\n";
