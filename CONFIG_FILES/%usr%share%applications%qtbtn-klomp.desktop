@@ -2,5 +2,5 @@
 Name=qtbtn-klomp
 Comment=qtbtn.py for qtbtn-klomp.conf
 Icon=qtbtn-klomp
-Exec=invoker --type=generic sh -c /usr/local/bin/qtbtn-klomp
+Exec=invoker --type=generic sh -c '/usr/local/bin/qtbtn.py /home/nemo/.config/qtbtn-klomp.conf'
 Type=Application
