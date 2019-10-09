@@ -45,7 +45,7 @@
 #insert SIM+sdcard and reboot
 #ipmagic sx -t # ok after config-files and reboot
 
-./setup-sensor-diversions
+#xperia x compact only: ./setup-sensor-diversions
 
 ./setup-symlinks
 
