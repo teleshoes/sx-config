@@ -7,9 +7,6 @@ my $ipmagicName = "sx";
 sub run(@);
 
 my %MODULES = (
-  cpan => [qw(
-    CPAN
-  )],
   qtemail => [qw(
     Net::SSLeay
     Mail::IMAPClient
@@ -38,6 +35,7 @@ sub main(@){
   die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
 
   run "ipmagic", $ipmagicName, "cpanp 's conf prereqs 1; s save'";
+  run "ipmagic", $ipmagicName, "perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
 
   my @groups = @_;
   @groups = @GROUPS if @_ == 0;
