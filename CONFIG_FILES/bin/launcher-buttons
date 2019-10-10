@@ -103,21 +103,21 @@ my @unused = qw(
 #  appname6-launcher
 ########################################################
 
-my %replacements = (
-  'aptoide'        => 'apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity',
-  'chrome'         => 'apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity',
-  'cool-reader'    => 'apkd_launcher_org_coolreader-org_coolreader_CoolReader',
-  'google-maps'    => 'apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity',
-  'kasa'           => 'apkd_launcher_com_tplink_kasa__android-com_tplink_hellotp_activity_SplashScreenActivity',
-  'nesoid'         => 'apkd_launcher_com_androidemu_nes-com_androidemu_nes_MainActivity',
-  'snes9x'         => 'apkd_launcher_com_explusalpha_Snes9x-com_imagine_BaseActivity',
-  'mta-etix'       => 'apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity',
-  'lirr-traintime' => 'apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity',
-  'lirrgui'        => 'lirrtraintime',
-  'riot'           => 'apkd_launcher_im_vector_alpha-im_vector_activity_VectorLauncherActivity',
-  'tkts'           => 'apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity',
-  'vlc'            => 'apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity',
-  'zoom'           => 'apkd_launcher_us_zoom_videomeetings-com_zipow_videobox_LauncherActivity',
+my %replacementRegexs = (
+  'aptoide'        => qw/^apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity$/,
+  'chrome'         => qw/^apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity$/,
+  'cool-reader'    => qw/^apkd_launcher_org_coolreader-org_coolreader_CoolReader$/,
+  'google-maps'    => qw/^apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity$/,
+  'kasa'           => qw/^apkd_launcher_com_tplink_kasa__android-com_tplink_hellotp_activity_SplashScreenActivity$/,
+  'nesoid'         => qw/^apkd_launcher_com_androidemu_nes-com_androidemu_nes_MainActivity$/,
+  'snes9x'         => qw/^apkd_launcher_com_explusalpha_Snes9x-com_imagine_BaseActivity$/,
+  'mta-etix'       => qw/^apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity$/,
+  'lirr-traintime' => qw/^apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity$/,
+  'lirrgui'        => qw/^lirrtraintime$/,
+  'riot'           => qw/^apkd_launcher_im_vector_alpha-im_vector_activity_VectorLauncherActivity$/,
+  'tkts'           => qw/^apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity$/,
+  'vlc'            => qw/^apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity$/,
+  'zoom'           => qw/^apkd_launcher_us_zoom_videomeetings-com_zipow_videobox_LauncherActivity$/,
 );
 
 #desktop files with no launchers
@@ -207,6 +207,22 @@ sub main(@){
 
 sub rearrangeLauncherButtons(){
   my @validAppNames = getValidAppNames();
+
+
+  my %replacements;
+  for my $fakeAppName(sort keys %replacementRegexs){
+    my $regex = $replacementRegexs{$fakeAppName};
+    my $found = 0;
+    for my $validAppName(@validAppNames){
+      if($validAppName =~ /$regex/){
+        $replacements{$fakeAppName} = $validAppName;
+        $found = 1;
+      }
+    }
+    if(not $found){
+      $replacements{$fakeAppName} = $regex;
+    }
+  }
 
   my @configItems = @config;
   @configItems = map {defined $replacements{$_} ? $replacements{$_} : $_} @configItems;
