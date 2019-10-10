@@ -105,7 +105,7 @@ my @unused = qw(
 
 my %replacementRegexs = (
   'aptoide'        => qw/^apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity$/,
-  'chrome'         => qw/^apkd_launcher_com_android_chrome-org_chromium_chrome_browser_document_ChromeLauncherActivity$/,
+  'chrome'         => qw/^apkd_launcher_com_android_chrome-.*$/,
   'cool-reader'    => qw/^apkd_launcher_org_coolreader-org_coolreader_CoolReader$/,
   'google-maps'    => qw/^apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity$/,
   'kasa'           => qw/^apkd_launcher_com_tplink_kasa__android-com_tplink_hellotp_activity_SplashScreenActivity$/,
