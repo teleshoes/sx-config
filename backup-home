@@ -31,6 +31,7 @@ sub main(@){
   my @cmd = ("rsync",
     "-avP",
     "--del",
+    "--one-file-system",
     "$rootUser\@$host:/home/$user/",
     "$BACKUP_DIR/",
   );
