@@ -15,10 +15,15 @@ my $PACKAGE_RESTRICTIONS = {
     . "    </pkg>\n"
 };
 
+sub handlePackageRestrictions();
 sub nowMillis();
 sub run(@);
 
 sub main(@){
+  handlePackageRestritions();
+}
+
+sub handlePackageRestrictions(){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
