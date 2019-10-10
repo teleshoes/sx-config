@@ -16,7 +16,7 @@ my $DIR_SNES9XEX_LAST_BACKUP = "$DIR_BACKUP/games/snes9xex-saves/last-backup";
 my $DIR_SNES9XEX_BY_MTIME = "$DIR_BACKUP/games/snes9xex-saves/saves-by-mtime";
 
 my $DIR_SRC_NES_ROMS = "$ENV{HOME}/Games/nes";
-my $DIR_DEST_NESOID_DATA = "/home/nemo/android_storage/nesoid";
+my $DIR_DEST_NESOID_DATA = "/media/sdcard/phone/Games/nesoid";
 
 my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes";
 my $DIR_DEST_SNES9XEX_DATA = "/home/nemo/android_storage/Game\\ Data/";
