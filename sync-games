@@ -19,7 +19,7 @@ my $DIR_SRC_NES_ROMS = "$ENV{HOME}/Games/nes";
 my $DIR_DEST_NESOID_DATA = "/home/nemo/android_storage/nesoid";
 
 my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes";
-my $DIR_DEST_SNES9XEX_DATA = "/home/nemo/android_storage/snes9xex";
+my $DIR_DEST_SNES9XEX_DATA = "/home/nemo/android_storage/Game\\ Data/";
 
 sub backupNesoidSaves();
 sub backupSnes9xExSaves();
