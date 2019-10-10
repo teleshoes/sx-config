@@ -151,6 +151,7 @@ my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
 sub rearrangeLauncherButtons();
 sub ensureExecScriptOnDevice(@);
+sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
 sub getValidAppNames();
 sub addMissingPrefix($$);
@@ -209,27 +210,11 @@ sub main(@){
 sub rearrangeLauncherButtons(){
   my @validAppNames = getValidAppNames();
 
-
-  my %replacements;
-  for my $fakeAppName(sort keys %replacementRegexs){
-    my $regex = $replacementRegexs{$fakeAppName};
-    my $found = 0;
-    for my $validAppName(@validAppNames){
-      if($validAppName =~ /$regex/){
-        $replacements{$fakeAppName} = $validAppName;
-        $found = 1;
-      }
-    }
-    if(not $found){
-      $replacements{$fakeAppName} = $regex;
-    }
-  }
-
   my @configItems = @config;
-  @configItems = map {defined $replacements{$_} ? $replacements{$_} : $_} @configItems;
+  @configItems = applyConfigReplacements \@configItems, \@validAppNames;
   @configItems = addMissingPrefixes([@configItems], [@validAppNames]);
 
-  my @appNames = grep {$_ !~ /(^dir%.*%.*\[$)|(^\]$)/} @configItems;
+  my @appNames = grep {$_ !~ /^(dir%.*%.*\[|\])$/} @configItems;
 
   my %okAllAppNamesOld = map {$_ => 1} getAppNamesInDir $allDir;
   createAppDesktopFiles(@appNames);
@@ -276,6 +261,37 @@ sub ensureExecScriptOnDevice(@){
     print "rerunning on the device\n";
     exec "ssh", "root\@$host", "/tmp/$name", @args;
   }
+}
+
+sub applyConfigReplacements($$){
+  my ($configItems, $validAppNames) = @_;
+
+  my %replacements;
+  for my $fakeAppName(sort keys %replacementRegexs){
+    my $regex = $replacementRegexs{$fakeAppName};
+    my $found = 0;
+    for my $validAppName(@$validAppNames){
+      if($validAppName =~ /$regex/){
+        $replacements{$fakeAppName} = $validAppName;
+        $found = 1;
+      }
+    }
+    if(not $found){
+      $replacements{$fakeAppName} = $regex;
+    }
+  }
+
+  my @replacedConfigItems;
+  for my $item(@$configItems){
+    if($item =~ /^(dir%.*%\[|\])$/){ #dont replace dir start/end items
+      push @replacedConfigItems, $item;
+    }else{
+      my $replacementItem = $replacements{$item};
+      push @replacedConfigItems, defined $replacementItem ? $replacementItem : $item;
+    }
+  }
+
+  return @replacedConfigItems;
 }
 
 sub getAppNamesInDir($){
