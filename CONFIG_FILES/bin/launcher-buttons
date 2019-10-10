@@ -73,8 +73,6 @@ my @config = qw(
   snes9x
   jolla-mediaplayer
   jollacompass
-  bluepill
-
   harbour-advanced-camera
 );
 
