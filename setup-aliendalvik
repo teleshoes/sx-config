@@ -23,17 +23,17 @@ sub main(@){
   chomp $host;
 
   my $nowMillis = 1556995263382;#nowMillis();
-  my $tmpFileOld = "/tmp/setup-aliendalvik-$nowMillis-old";
-  my $tmpFileNew = "/tmp/setup-aliendalvik-$nowMillis-new";
+  my $tmpPkgRestrictionsFileOld = "/tmp/setup-aliendalvik-$nowMillis-old";
+  my $tmpPkgRestrictionsFileNew = "/tmp/setup-aliendalvik-$nowMillis-new";
 
-  run "scp", "root\@$host:$PACKAGE_RESTRICTIONS_XML_FILE", $tmpFileOld;
-  run "cp", "-ar", $tmpFileOld, $tmpFileNew;
+  run "scp", "root\@$host:$PACKAGE_RESTRICTIONS_XML_FILE", $tmpPkgRestrictionsFileOld;
+  run "cp", "-ar", $tmpPkgRestrictionsFileOld, $tmpPkgRestrictionsFileNew;
 
-  if(not -e $tmpFileOld or not -e $tmpFileNew){
+  if(not -e $tmpPkgRestrictionsFileOld or not -e $tmpPkgRestrictionsFileNew){
     die "error fetching $PACKAGE_RESTRICTIONS_XML_FILE\n";
   }
 
-  my $isChanged = editPackageRestrictions($tmpFileNew);
+  my $isChanged = editPackageRestrictions($tmpPkgRestrictionsFileNew);
 
   print "\n\n\n";
   if($isChanged){
@@ -41,11 +41,11 @@ sub main(@){
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "systemctl stop aliendalvik.service";
 
-    run "diff", $tmpFileOld, $tmpFileNew;
-    run "scp", $tmpFileNew, "root\@$host:$tmpFileNew";
+    run "diff", $tmpPkgRestrictionsFileOld, $tmpPkgRestrictionsFileNew;
+    run "scp", $tmpPkgRestrictionsFileNew, "root\@$host:$tmpPkgRestrictionsFileNew";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
-      cat $tmpFileNew > $PACKAGE_RESTRICTIONS_XML_FILE
-      rm $tmpFileNew
+      cat $tmpPkgRestrictionsFileNew > $PACKAGE_RESTRICTIONS_XML_FILE
+      rm $tmpPkgRestrictionsFileNew
     ";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "systemctl start aliendalvik.service";
@@ -53,8 +53,8 @@ sub main(@){
     print "NO CHANGE to package restrictions\n";
   }
 
-  run "rm", $tmpFileOld;
-  run "rm", $tmpFileNew;
+  run "rm", $tmpPkgRestrictionsFileOld;
+  run "rm", $tmpPkgRestrictionsFileNew;
 }
 
 sub editPackageRestrictions($){
