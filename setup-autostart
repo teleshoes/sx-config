@@ -3,10 +3,10 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
-my $ipmagicName = "sx";
+my $IPMAGIC_NAME = "sx";
 
-my $startupScriptFile = "/usr/local/bin/autostart";
-my $startupScriptContents = "#!/bin/sh
+my $STARTUP_SCRIPT_FILE = "/usr/local/bin/autostart";
+my $STARTUP_SCRIPT_CONTENTS = "#!/bin/sh
 PATH=/home/nemo/bin:\$PATH
 
 /home/nemo/bin/screen-daemon backup-daemon --start
@@ -16,20 +16,20 @@ sudo cpu-enable fast
 /usr/local/bin/sd-mount-android
 ";
 
-my @systemdSymlinks = qw(
+my @SYSTEMD_SYMLINKS = qw(
   /home/nemo/.config/systemd/user/auto-start.service
   /home/nemo/.config/systemd/user/user-session.target.wants/auto-start.service
 );
 
-my $systemdServiceFile = "/usr/lib/systemd/user/auto-start.service";
-my $systemdServiceContents = "[Unit]
+my $SYSTEMD_SERVICE_FILE = "/usr/lib/systemd/user/auto-start.service";
+my $SYSTEMD_SERVICE_CONTENTS = "[Unit]
 Description=Auto-start stuff after lipstick
 Requires=lipstick.service
 After=lipstick.service
 
 [Service]
 Type=oneshot
-ExecStart=$startupScriptFile
+ExecStart=$STARTUP_SCRIPT_FILE
 RemainAfterExit=yes
 
 [Install]
@@ -39,24 +39,24 @@ WantedBy=user-session.target
 sub writeRemoteFile($$$$);
 
 sub main(@){
-  my $host = `ipmagic $ipmagicName`;
+  my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
-  writeRemoteFile $host, "root", $startupScriptFile, $startupScriptContents;
+  writeRemoteFile $host, "root", $STARTUP_SCRIPT_FILE, $STARTUP_SCRIPT_CONTENTS;
   system "ssh", "root\@$host", "
-    chmod a+x $startupScriptFile
-    chown root.root $startupScriptFile
+    chmod a+x $STARTUP_SCRIPT_FILE
+    chown root.root $STARTUP_SCRIPT_FILE
   ";
 
-  writeRemoteFile $host, "root", $systemdServiceFile, $systemdServiceContents;
+  writeRemoteFile $host, "root", $SYSTEMD_SERVICE_FILE, $SYSTEMD_SERVICE_CONTENTS;
   system "ssh", "root\@$host", "
-    chown nemo.nemo $systemdServiceFile
+    chown nemo.nemo $SYSTEMD_SERVICE_FILE
   ";
 
-  for my $symlink(@systemdSymlinks){
+  for my $symlink(@SYSTEMD_SYMLINKS){
     system "ssh", "nemo\@$host", "
       rm -f $symlink
-      ln -s $systemdServiceFile $symlink
+      ln -s $SYSTEMD_SERVICE_FILE $symlink
     ";
   }
 }
