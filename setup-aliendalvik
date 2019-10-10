@@ -16,6 +16,7 @@ my $PACKAGE_RESTRICTIONS = {
 };
 
 sub handlePackageRestrictions();
+sub editPackageRestrictions($);
 sub nowMillis();
 sub run(@);
 
