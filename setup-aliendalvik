@@ -76,15 +76,29 @@ sub editPackageRestrictions($){
       )*
     )
     (
-      (?:$ws<preferred-activities$ws\/>$ws)
-      |
-      (?:$ws <preferred-activities$ws>.*?<\/preferred-activities> $ws)
+      (?: (?:$ws<preferred-activities$ws\/>$ws)
+        |
+        (?:$ws <preferred-activities$ws>.*?<\/preferred-activities> $ws)
+      )?
+      (?: (?:$ws<persistent-preferred-activities$ws\/>$ws)
+        |
+        (?:$ws <persistent-preferred-activities$ws>.*?<\/persistent-preferred-activities> $ws)
+      )?
+      (?: (?:$ws<crossProfile-intent-filters$ws\/>$ws)
+        |
+        (?:$ws <crossProfile-intent-filters$ws>.*?<\/crossProfile-intent-filters> $ws)
+      )?
+      (?: (?:$ws<default-apps$ws\/>$ws)
+        |
+        (?:$ws <default-apps$ws>.*?<\/default-apps> $ws)
+      )?
+
+      $ws <\/package-restrictions> $ws
     )
-    ($ws <\/package-restrictions> $ws)
     $/sxi){
     die "ERROR: malformed $PACKAGE_RESTRICTIONS_XML_FILE\n";
   }
-  my ($prefix, $pkgXml, $prefActXml, $suffix) = ($1, $2, $3, $4);
+  my ($prefix, $pkgXml, $suffix) = ($1, $2, $3, $4);
 
   my @pkgs = $pkgXml =~ /
     (
@@ -128,7 +142,7 @@ sub editPackageRestrictions($){
 
   $pkgXml = join("", @pkgs);
 
-  $contents = $prefix . $pkgXml . $prefActXml . $suffix;
+  $contents = $prefix . $pkgXml . $suffix;
 
   if($isChanged){
     open FH, "> $file" or die "could not write $file\n$!\n";
