@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $ANDROID_DIR = "/home/nemo/android_storage/SDCARD";
+my $MNT_DIR = "/media/sdcard";
+
+sub run(@);
+
+sub main(@){
+  if(`whoami` !~ /^root$/){
+    print "rerunning as root..\n";
+    exec "sudo", $0, @_;
+  }
+
+  my @sdcardDirs = glob "$MNT_DIR/*/";
+  die "no sdcard dir found in $MNT_DIR/\n" if @sdcardDirs == 0;
+
+  my $sdcard = $sdcardDirs[0];
+  run "umount $ANDROID_DIR 2>/dev/null";
+  run "mkdir -p $ANDROID_DIR";
+  run "mount --bind $sdcard $ANDROID_DIR";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
