@@ -228,10 +228,14 @@ sub rearrangeLauncherButtons(){
 
   my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $activeDir;
 
+  my @unusedItems = @unused;
+  @unusedItems = applyConfigReplacements \@unusedItems, \@validAppNames;
+  my %okUnusedAppNames = map {$_ => 1} @unusedItems;
+
   my (@removedNew, @removedOld);
   for my $appName(sort keys %okAllAppNamesNew){
     if(not defined $okActiveAppNames{$appName}){
-      if(defined $okAllAppNamesOld{$appName}){
+      if(defined $okAllAppNamesOld{$appName} or defined $okUnusedAppNames{$appName}){
         push @removedOld, $appName;
       }else{
         push @removedNew, $appName;
