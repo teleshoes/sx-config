@@ -15,52 +15,57 @@ my $PACKAGE_RESTRICTIONS = {
     . "    </pkg>\n"
 };
 
-sub handlePackageRestrictions();
+sub editRemoteFile($$$);
 sub editPackageRestrictions($);
 sub nowMillis();
 sub run(@);
 
 sub main(@){
-  handlePackageRestritions();
+  editRemoteFile(
+    "package-restrictions",
+    $PACKAGE_RESTRICTIONS_XML_FILE,
+    \&editPackageRestrictions,
+  );
 }
 
-sub handlePackageRestrictions(){
+sub editRemoteFile($$$){
+  my ($editName, $remoteFile, $editSub) = @_;
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
   my $nowMillis = nowMillis();
-  my $tmpPkgRestrictionsFileOld = "/tmp/setup-aliendalvik-pkgrestrictions-$nowMillis-old";
-  my $tmpPkgRestrictionsFileNew = "/tmp/setup-aliendalvik-pkgrestrictions-$nowMillis-new";
+  my $tmpFileOld = "/tmp/setup-aliendalvik-$editName-$nowMillis-old";
+  my $tmpFileNew = "/tmp/setup-aliendalvik-$editName-$nowMillis-new";
 
-  run "scp", "root\@$host:$PACKAGE_RESTRICTIONS_XML_FILE", $tmpPkgRestrictionsFileOld;
-  run "cp", "-ar", $tmpPkgRestrictionsFileOld, $tmpPkgRestrictionsFileNew;
+  run "scp", "root\@$host:$remoteFile", $tmpFileOld;
+  run "cp", "-ar", $tmpFileOld, $tmpFileNew;
 
-  if(not -e $tmpPkgRestrictionsFileOld or not -e $tmpPkgRestrictionsFileNew){
-    die "error fetching $PACKAGE_RESTRICTIONS_XML_FILE\n";
+  if(not -e $tmpFileOld or not -e $tmpFileNew){
+    die "error fetching $remoteFile\n";
   }
 
-  my $isChanged = editPackageRestrictions($tmpPkgRestrictionsFileNew);
+  my $isChanged = &$editSub($tmpFileNew);
 
   print "\n\n\n";
   if($isChanged){
-    print "package restrictions changed, updating..\n";
+    print "$editName changed, updating..\n";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "systemctl stop aliendalvik.service";
 
-    run "diff", $tmpPkgRestrictionsFileOld, $tmpPkgRestrictionsFileNew;
-    run "scp", $tmpPkgRestrictionsFileNew, "root\@$host:$tmpPkgRestrictionsFileNew";
+    run "diff", $tmpFileOld, $tmpFileNew;
+    run "scp", $tmpFileNew, "root\@$host:$tmpFileNew";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
-      cat $tmpPkgRestrictionsFileNew > $PACKAGE_RESTRICTIONS_XML_FILE
-      rm $tmpPkgRestrictionsFileNew
+      cat $tmpFileNew > $remoteFile
+      rm $tmpFileNew
     ";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "systemctl start aliendalvik.service";
   }else{
-    print "NO CHANGE to package restrictions\n";
+    print "NO CHANGE to $editName\n";
   }
 
-  run "rm", $tmpPkgRestrictionsFileOld;
-  run "rm", $tmpPkgRestrictionsFileNew;
+  run "rm", $tmpFileOld;
+  run "rm", $tmpFileNew;
 }
 
 sub editPackageRestrictions($){
