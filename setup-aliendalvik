@@ -29,8 +29,8 @@ sub handlePackageRestrictions(){
   chomp $host;
 
   my $nowMillis = 1556995263382;#nowMillis();
-  my $tmpPkgRestrictionsFileOld = "/tmp/setup-aliendalvik-$nowMillis-old";
-  my $tmpPkgRestrictionsFileNew = "/tmp/setup-aliendalvik-$nowMillis-new";
+  my $tmpPkgRestrictionsFileOld = "/tmp/setup-aliendalvik-pkgrestrictions-$nowMillis-old";
+  my $tmpPkgRestrictionsFileNew = "/tmp/setup-aliendalvik-pkgrestrictions-$nowMillis-new";
 
   run "scp", "root\@$host:$PACKAGE_RESTRICTIONS_XML_FILE", $tmpPkgRestrictionsFileOld;
   run "cp", "-ar", $tmpPkgRestrictionsFileOld, $tmpPkgRestrictionsFileNew;
