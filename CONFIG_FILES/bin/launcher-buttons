@@ -84,6 +84,7 @@ my @unused = qw(
   sailfish-tutorial
   sailfish-archive
   sailfish-installationhandler
+  jolla-aptoide
 );
 
 ########################################################
@@ -105,6 +106,7 @@ my @unused = qw(
 
 my %replacementRegexs = (
   'aptoide'        => qw/^apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity$/,
+  'jolla-aptoide'  => qw/^apkd_launcher_com_aptoide_partners-com_aptoide_partners_Start$/,
   'chrome'         => qw/^apkd_launcher_com_android_chrome-.*$/,
   'cool-reader'    => qw/^apkd_launcher_org_coolreader-org_coolreader_CoolReader$/,
   'google-maps'    => qw/^apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity$/,
