@@ -4,7 +4,7 @@ use warnings;
 use Time::HiRes qw(time);
 
 my $IPMAGIC_NAME = "sx";
-my $PACKAGE_RESTRICTIONS_XML_FILE = "/opt/alien/data/system/users/0/package-restrictions.xml";
+my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-restrictions.xml";
 
 my $PACKAGE_RESTRICTIONS = {
   "us.zoom.videomeetings" => ''
