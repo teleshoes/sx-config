@@ -28,7 +28,7 @@ sub handlePackageRestrictions(){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
-  my $nowMillis = 1556995263382;#nowMillis();
+  my $nowMillis = nowMillis();
   my $tmpPkgRestrictionsFileOld = "/tmp/setup-aliendalvik-pkgrestrictions-$nowMillis-old";
   my $tmpPkgRestrictionsFileNew = "/tmp/setup-aliendalvik-pkgrestrictions-$nowMillis-new";
 
