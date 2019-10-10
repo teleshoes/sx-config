@@ -74,6 +74,8 @@ my @config = qw(
   jolla-mediaplayer
   jollacompass
   bluepill
+
+  harbour-advanced-camera
 );
 
 my @unused = qw(
