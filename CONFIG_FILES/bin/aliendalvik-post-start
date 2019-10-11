@@ -12,7 +12,28 @@ sub testLXC();
 sub nowMillis();
 sub run(@);
 
+my $usage = "Usage:
+  $0
+    waits for aliendalvik to be fully up and then mounts sdcard in ~/android_storage
+
+    -ensure root (rerun as sudo $0)
+    -umount $ANDROID_DIR
+    -use lxc-attach to ensure aliendalvik is running and /system/bin/echo works
+      -check every second, sleeping until it echo on android prints 'ok'
+      -stop checking after ${LXC_TIMEOUT_MILLIS}ms (but still mount)
+    -mount --bind $MNT_DIR/<LABEL> $ANDROID_DIR
+
+  $0 -h | --help
+    show this message
+";
+
 sub main(@){
+  if(@_ == 1 and $_[0] =~ /^(-h | --help)$/){
+    print $usage;
+    exit 0;
+  }
+  die $usage if @_ != 0;
+
   if(`whoami` !~ /^root$/){
     print "rerunning as root..\n";
     exec "sudo", $0, @_;
