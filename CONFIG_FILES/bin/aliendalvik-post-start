@@ -1,10 +1,15 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Time::HiRes qw(time);
 
 my $ANDROID_DIR = "/home/nemo/android_storage/SDCARD";
 my $MNT_DIR = "/media/sdcard";
 
+my $LXC_TIMEOUT_MILLIS = 10000;
+
+sub testLXC();
+sub nowMillis();
 sub run(@);
 
 sub main(@){
@@ -19,9 +24,36 @@ sub main(@){
   my @sdcardDirs = glob "$MNT_DIR/*/";
   die "no sdcard dir found in $MNT_DIR/\n" if @sdcardDirs == 0;
 
+  my $start = nowMillis();
+  print "checking lxc\n";
   my $sdcard = $sdcardDirs[0];
+  while(1){
+    if(testLXC()){
+      print "lxc aliendalvik is up and running\n";
+      last;
+    }
+    if(nowMillis() - $start > $LXC_TIMEOUT_MILLIS){
+      print "WARNING: LXC TIMED OUT, MOUNTING ANYWAY...\n";
+      last;
+    }
+    run "date";
+    sleep 1;
+  }
   run "mkdir -p $ANDROID_DIR";
   run "mount --bind $sdcard $ANDROID_DIR";
+}
+
+sub testLXC(){
+  my $out = `sudo lxc-attach -n aliendalvik -- /system/bin/echo ok 2>/dev/null`;
+  if($out =~ /^ok$/){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
 }
 
 sub run(@){
