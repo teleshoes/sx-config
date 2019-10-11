@@ -13,11 +13,13 @@ sub main(@){
     exec "sudo", $0, @_;
   }
 
+  run "umount $ANDROID_DIR 2>/dev/null";
+  run "rmdir $ANDROID_DIR";
+
   my @sdcardDirs = glob "$MNT_DIR/*/";
   die "no sdcard dir found in $MNT_DIR/\n" if @sdcardDirs == 0;
 
   my $sdcard = $sdcardDirs[0];
-  run "umount $ANDROID_DIR 2>/dev/null";
   run "mkdir -p $ANDROID_DIR";
   run "mount --bind $sdcard $ANDROID_DIR";
 }
