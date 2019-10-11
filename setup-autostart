@@ -12,8 +12,6 @@ PATH=/home/nemo/bin:\$PATH
 /home/nemo/bin/screen-daemon backup-daemon --start
 /home/nemo/bin/screen-daemon email-daemon --start
 sudo cpu-enable fast
-
-/usr/local/bin/sd-mount-android
 ";
 
 my @SYSTEMD_SYMLINKS = qw(
