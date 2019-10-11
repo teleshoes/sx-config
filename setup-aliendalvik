@@ -6,6 +6,8 @@ use Time::HiRes qw(time);
 my $IPMAGIC_NAME = "sx";
 my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-restrictions.xml";
 
+my $ALIENDALVIK_START_SCRIPT = "/usr/bin/start-aliendalvik.sh";
+
 my $PACKAGE_RESTRICTIONS = {
   "us.zoom.videomeetings" => ''
     . "    <pkg name=\"us.zoom.videomeetings\">\n"
@@ -17,6 +19,7 @@ my $PACKAGE_RESTRICTIONS = {
 
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
+sub editStartScript($);
 sub nowMillis();
 sub run(@);
 
@@ -25,6 +28,12 @@ sub main(@){
     "package-restrictions",
     $PACKAGE_RESTRICTIONS_XML_FILE,
     \&editPackageRestrictions,
+  );
+
+  editRemoteFile(
+    "start-script",
+    $ALIENDALVIK_START_SCRIPT,
+    \&editStartScript,
   );
 }
 
@@ -155,6 +164,25 @@ sub editPackageRestrictions($){
   $pkgXml = join("", @pkgs);
 
   $contents = $prefix . $pkgXml . $suffix;
+
+  if($isChanged){
+    open FH, "> $file" or die "could not write $file\n$!\n";
+    print FH $contents;
+    close FH;
+  }
+
+  return $isChanged;
+}
+
+sub editStartScript($){
+  my ($file) = @_;
+  open FH, "< $file" or die "could not read $file\n$!\n";
+  my $contents = join '', <FH>;
+  close FH;
+
+  my $oldContents = $contents;
+
+  my $isChanged = $contents eq $oldContents ? 0 : 1;
 
   if($isChanged){
     open FH, "> $file" or die "could not write $file\n$!\n";
