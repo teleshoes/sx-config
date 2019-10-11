@@ -25,7 +25,7 @@ sub main(@){
   die "no sdcard dir found in $MNT_DIR/\n" if @sdcardDirs == 0;
 
   my $start = nowMillis();
-  print "checking lxc\n";
+  print "checking aliendalvik with lxc-attach\n";
   my $sdcard = $sdcardDirs[0];
   while(1){
     if(testLXC()){
@@ -33,10 +33,11 @@ sub main(@){
       last;
     }
     if(nowMillis() - $start > $LXC_TIMEOUT_MILLIS){
-      print "WARNING: LXC TIMED OUT, MOUNTING ANYWAY...\n";
+      print "WARNING: TIMED OUT, MOUNTING ANYWAY...\n";
       last;
     }
     run "date";
+    run "aliendalvik not running, sleeping...\n";
     sleep 1;
   }
   run "mkdir -p $ANDROID_DIR";
