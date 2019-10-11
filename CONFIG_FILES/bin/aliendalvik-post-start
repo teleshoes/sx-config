@@ -19,7 +19,8 @@ my $usage = "Usage:
 
     -ensure root (rerun as sudo $0)
     -umount $ANDROID_DIR
-    -use lxc-attach to ensure aliendalvik is running and /system/bin/echo works
+    -check if lxc-attach exists
+      -if it does, use it to ensure aliendalvik is running and /system/bin/echo works
       -check every second, sleeping until it echo on android prints 'ok'
       -stop checking after ${LXC_TIMEOUT_MILLIS}ms (but still mount)
     -mount --bind $MNT_DIR/<LABEL> $ANDROID_DIR
@@ -47,7 +48,12 @@ sub main(@){
   die "no sdcard dir found in $MNT_DIR/\n" if @sdcardDirs == 0;
   my $sdcard = $sdcardDirs[0];
 
-  ensureLXC();
+  my $lxcAttachExec = `which lxc-attach 2>/dev/null`;
+  if($lxcAttachExec =~ /lxc-attach/){
+    ensureLXC();
+  }else{
+    print "skipping aliendalvik ensure\n";
+  }
 
   run "mkdir -p $ANDROID_DIR";
   run "mount --bind $sdcard $ANDROID_DIR";
