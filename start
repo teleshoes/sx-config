@@ -86,7 +86,3 @@ pubkeys
 #settings => apps => phone => disable 'Quick call'
 #add work alarm
 #settings => location => high-accuracy positioning
-#to make old MMS appear:
-# ./backup-comm
-# ./delete-all-comm-sms-calls
-# ./restore-comm
