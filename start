@@ -17,7 +17,9 @@
 # settings -> developer tools -> developer mode
 # settings -> developer tools -> remote connection
 # settings -> developer tools -> set password for ssh and root acccess -> d -> save
-# settings -> developer tools -> show reboot option on top menu
+# settings -> developer tools -> show reboot option on top menu #MANUAL only for now
+
+# settings -> display -> timeout -> 10 min #for convenience only, timeout is also in setup-dconf
 
 # open terminal
 # devel-su #d
@@ -80,6 +82,10 @@ klomp-sync `ipmagic sx`
 
 pubkeys
 
+#MANUAL SETTINGS FOR NOW:
+#settings => apps => phone => disable 'Quick call'
+#add work alarm
+#settings => location => high-accuracy positioning
 #to make old MMS appear:
 # ./backup-comm
 # ./delete-all-comm-sms-calls
