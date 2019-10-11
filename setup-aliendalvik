@@ -31,11 +31,16 @@ sub main(@){
     \&editPackageRestrictions,
   );
 
-  editRemoteFile(
-    "start-script",
-    $ALIENDALVIK_START_SCRIPT,
-    \&editStartScript,
-  );
+  run "ipmagic", $IPMAGIC_NAME, "test -f $ALIENDALVIK_START_SCRIPT";
+  if($? == 0){
+    editRemoteFile(
+      "start-script",
+      $ALIENDALVIK_START_SCRIPT,
+      \&editStartScript,
+    );
+  }else{
+    print "\n\n\nskipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
+  }
 }
 
 sub editRemoteFile($$$){
