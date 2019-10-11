@@ -39,6 +39,8 @@
 ./setup-dconf
 ./setup-mcetool
 
+#ensure SD card inserted and mounted (not sim card)
+
 ./sync-home-config
 
 ./restore-contacts
