@@ -7,6 +7,7 @@ my $IPMAGIC_NAME = "sx";
 my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-restrictions.xml";
 
 my $ALIENDALVIK_START_SCRIPT = "/usr/bin/start-aliendalvik.sh";
+my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
 my $PACKAGE_RESTRICTIONS = {
   "us.zoom.videomeetings" => ''
@@ -181,6 +182,18 @@ sub editStartScript($){
   close FH;
 
   my $oldContents = $contents;
+
+  $contents =~ s/###EDIT_START###(.|\n)*###EDIT_END###\n//g;
+
+  my $editSection = ""
+    . "###EDIT_START###\n"
+    . "$POST_ALIENDALVIK_START_SCRIPT\n"
+    . "###EDIT_END###\n"
+    ;
+
+  if($contents !~ s/(^if.*lxc_status.*active.*\n)/$1$editSection/m){
+    die "could not find place where lxc_status is checked in $file\n";
+  }
 
   my $isChanged = $contents eq $oldContents ? 0 : 1;
 
