@@ -8,6 +8,7 @@ my $MNT_DIR = "/media/sdcard";
 
 my $LXC_TIMEOUT_MILLIS = 10000;
 
+sub ensureLXC();
 sub testLXC();
 sub nowMillis();
 sub run(@);
@@ -44,10 +45,17 @@ sub main(@){
 
   my @sdcardDirs = glob "$MNT_DIR/*/";
   die "no sdcard dir found in $MNT_DIR/\n" if @sdcardDirs == 0;
+  my $sdcard = $sdcardDirs[0];
 
+  ensureLXC();
+
+  run "mkdir -p $ANDROID_DIR";
+  run "mount --bind $sdcard $ANDROID_DIR";
+}
+
+sub ensureLXC(){
   my $start = nowMillis();
   print "checking aliendalvik with lxc-attach\n";
-  my $sdcard = $sdcardDirs[0];
   while(1){
     if(testLXC()){
       print "lxc aliendalvik is up and running\n";
@@ -61,8 +69,6 @@ sub main(@){
     run "aliendalvik not running, sleeping...\n";
     sleep 1;
   }
-  run "mkdir -p $ANDROID_DIR";
-  run "mount --bind $sdcard $ANDROID_DIR";
 }
 
 sub testLXC(){
