@@ -30,6 +30,7 @@ sub main(@){
 
 sub editRemoteFile($$$){
   my ($editName, $remoteFile, $editSub) = @_;
+  print "\n\n\nchecking $editName\n";
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
