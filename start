@@ -85,6 +85,5 @@ klomp-sync `ipmagic sx`
 pubkeys
 
 #MANUAL SETTINGS FOR NOW:
-#settings => apps => phone => disable 'Quick call'
 #add work alarm
 #settings => location => high-accuracy positioning
