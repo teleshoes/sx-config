@@ -46,6 +46,25 @@ my $dconf = {
   "/desktop/lipstick-jolla-home/events_screen_actions" => gvariantList(@actions),
 
   "/apps/jolla-camera/storagePath" => "'/run/media/nemo/phone'",
+
+  "/desktop/lipstick-jolla-home/close_all_apps_hint_count" => "4",
+  "/desktop/lipstick-jolla-home/events_view_close_hint_count" => "4",
+  "/desktop/sailfish/hints/return_to_home_hint_count" => "4",
+  "/sailfish/accounts/settings_autosave_hint_count" => "4",
+  "/sailfish/calculator/scientific_calculator_hint_count" => "4",
+  "/sailfish/calendar/change_month_hint_count" => "4",
+  "/sailfish/camera/camera_mode_hint_count" => "4",
+  "/sailfish/camera/camera_roll_hint_count" => "4",
+  "/sailfish/email/folder_access_hint_count" => "4",
+  "/sailfish/gallery/split_view_back_hint_count" => "4",
+  "/sailfish/gallery/vertical_page_back_hint" => "4",
+  "/sailfish/maps/explore_map_hint_count" => "4",
+  "/sailfish/messages/access_contact_card_hint_count" => "4",
+  "/sailfish/people/use_count" => "4",
+  "/sailfish/store/categories_attached_page_hint_count" => "4",
+  "/sailfish/store/download_upgrade_hint_count" => "4",
+  "/sailfish/voicecall/incoming_call_hint_count" => "4",
+  "/sailfish/voicecall/init_call_hint_count" => "4",
 };
 
 sub main(@){
