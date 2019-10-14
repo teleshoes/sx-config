@@ -54,7 +54,8 @@ sub dcimBackup($$$){
   die "local $localDCIM does not exist\n" if not -d $localDCIM;
   die "remote $remoteDCIM does not exist\n" if not remoteDirExists $remoteDCIM;
   chdir $localDCIM;
-  print "Getting md5sums of files in root of remote DCIM\n";
+  print "\n\n===============\n";
+  print "Fetching remote md5sums: $remoteDCIM\n";
   my @remoteMd5sums = `ipmagic $ipmagicName -u $user md5sum $remoteDCIM/*.* 2>/dev/null`;
 
   print "===all:\n" . join "", @remoteMd5sums;
