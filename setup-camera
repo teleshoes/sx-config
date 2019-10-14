@@ -5,3 +5,6 @@ HOST=$(ipmagic $IPMAGIC_NAME)
 ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Pictures/Camera'
 ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Videos/Camera'
 ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Videos/Camera/.recording'
+
+ipmagic $IPMAGIC_NAME -s 'mkdir -p /media/sdcard/phone/Pictures/Camera'
+ipmagic $IPMAGIC_NAME -s 'mkdir -p /media/sdcard/phone/Videos/Camera'
