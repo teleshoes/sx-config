@@ -10,9 +10,13 @@ my $localDir = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @backups = (
   [ $localDir, "/media/sdcard/phone/Pictures/Camera",      "backup_sd-phone_sf"],
   [ $localDir, "/media/sdcard/phone/Videos/Camera",        "backup_sd-phone_sf_vid"],
+  [ $localDir, "/media/sdcard/phone/Pictures/AdvancedCam", "backup_sd-phone-adv_sf"],
+  [ $localDir, "/media/sdcard/phone/Videos/AdvancedCam",   "backup_sd-phone-adv_sf_vid"],
   [ $localDir, "/home/nemo/Pictures/Camera",               "backup_int_sf"],
   [ $localDir, "/home/nemo/Videos/Camera",                 "backup_int_sf_vid"],
   [ $localDir, "/home/nemo/Videos/Camera/.recording",      "backup_int_sf_vid_RECORDING"],
+  [ $localDir, "/home/nemo/Pictures/AdvancedCam",          "backup_int-adv_sf"],
+  [ $localDir, "/home/nemo/Videos/AdvancedCam",            "backup_int-adv_sf_vid"],
 );
 my $remoteTmpDir = "/media/sdcard/phone/dcim-tmp";
 my $localTmpDir = "$ENV{HOME}/dcim-tmp";
