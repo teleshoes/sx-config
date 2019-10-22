@@ -8,15 +8,15 @@ my $ipmagicName = "sx";
 
 my $localDir = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @backups = (
-  [ $localDir, "/media/sdcard/phone/Pictures/Camera",      "backup_sd-phone_sf"],
-  [ $localDir, "/media/sdcard/phone/Videos/Camera",        "backup_sd-phone_sf_vid"],
-  [ $localDir, "/media/sdcard/phone/Pictures/AdvancedCam", "backup_sd-phone-adv_sf"],
-  [ $localDir, "/media/sdcard/phone/Videos/AdvancedCam",   "backup_sd-phone-adv_sf_vid"],
-  [ $localDir, "/home/nemo/Pictures/Camera",               "backup_int_sf"],
-  [ $localDir, "/home/nemo/Videos/Camera",                 "backup_int_sf_vid"],
-  [ $localDir, "/home/nemo/Videos/Camera/.recording",      "backup_int_sf_vid_RECORDING"],
-  [ $localDir, "/home/nemo/Pictures/AdvancedCam",          "backup_int-adv_sf"],
-  [ $localDir, "/home/nemo/Videos/AdvancedCam",            "backup_int-adv_sf_vid"],
+  [ $localDir, "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
+  [ $localDir, "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
+  [ $localDir, "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
+  [ $localDir, "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
+  [ $localDir, "/home/nemo/Pictures/Camera",               "int_sf"],
+  [ $localDir, "/home/nemo/Videos/Camera",                 "int_sf_vid"],
+  [ $localDir, "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
+  [ $localDir, "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
+  [ $localDir, "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
 );
 my $remoteTmpDir = "/media/sdcard/phone/dcim-tmp";
 my $localTmpDir = "$ENV{HOME}/dcim-tmp";
@@ -39,17 +39,17 @@ sub remoteDirExists($);
 
 sub main(@){
   for my $backup(@backups){
-    my ($localDCIM, $remoteDCIM, $backupPrefix) = @$backup;
-    dcimBackup($localDCIM, $remoteDCIM, $backupPrefix);
+    my ($localDCIM, $remoteDCIM, $backupSuffix) = @$backup;
+    dcimBackup($localDCIM, $remoteDCIM, $backupSuffix);
   }
   for my $backup(@backups){
-    my ($localDCIM, $remoteDCIM, $backupPrefix) = @$backup;
+    my ($localDCIM, $remoteDCIM, $backupSuffix) = @$backup;
     checkMissing($localDCIM, $remoteDCIM);
   }
 }
 
 sub dcimBackup($$$){
-  my ($localDCIM, $remoteDCIM, $backupPrefix) = @_;
+  my ($localDCIM, $remoteDCIM, $backupSuffix) = @_;
 
   die "local $localDCIM does not exist\n" if not -d $localDCIM;
   die "remote $remoteDCIM does not exist\n" if not remoteDirExists $remoteDCIM;
@@ -84,7 +84,7 @@ sub dcimBackup($$$){
   if(@needsBackUp > 0){
     my $now = `date +%Y-%m-%d_%s`;
     chomp $now;
-    my $dir = "$localDCIM/${backupPrefix}_$now";
+    my $dir = "$localDCIM/backup_${now}_${backupSuffix}";
     system "mkdir -p $dir";
     my $host = `ipmagic $ipmagicName`;
     die "could not read ipmagic $ipmagicName hostname\n" if $? != 0;
