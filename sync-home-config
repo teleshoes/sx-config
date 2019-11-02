@@ -50,6 +50,7 @@ my @HOMEBIN_EXECS = qw(
   screen-cmd
   screen-daemon
   seedbox
+  sms-search
   speedtest
   transmission-webui
 );
