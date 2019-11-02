@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $SMS_DIR_PATTERN = "/media/sdcard/*/comm-repos/sms/by-contact";
+
+my $usage = "Usage:
+  $0 SMS_FILE_NAME_PATTERN
+    run sms-search --debt <FILE> on the <FILE> matching:
+      $SMS_DIR_PATTERN/<SMS_FILE_NAME_PATTERN>*
+";
+
+sub main(@){
+  die $usage if @_ != 1;
+  my @smsFiles = glob "$SMS_DIR_PATTERN/$_[0]*";
+  if(@smsFiles > 1){
+    my $msg = "ERROR: too many matching SMS files:\n";
+    $msg .= "  $_\n" foreach @smsFiles;
+    die $msg;
+  }elsif(@smsFiles < 1){
+    my $msg = "ERROR: no SMS files found matching:\n  $SMS_DIR_PATTERN/$_[0]*\n";
+    die $msg;
+  }else{
+    system "sms-search", "--debt", $smsFiles[0];
+    print "\n$smsFiles[0]\n";
+  }
+}
+
+&main(@ARGV);
