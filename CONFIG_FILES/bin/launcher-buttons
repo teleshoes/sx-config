@@ -9,7 +9,7 @@ my @config = qw(
   voicecall-ui
   jolla-messages
   toeterm
-  chrome
+  bromite
 
   qtbtn-klomp
   unplayer
@@ -75,7 +75,7 @@ my @config = qw(
   jollacompass
   harbour-advanced-camera
 
-  bromite
+  chrome
 );
 
 my @unused = qw(
