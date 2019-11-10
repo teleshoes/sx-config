@@ -27,12 +27,19 @@ my $usage = "Usage:
 
   $0
     overwrite SMS/calls/MMS on `ipmagic $ipmagicName`
+
+  $0 -m|--print-mms-rsync
+    print mms rsync command
 ";
 
 sub main(@){
+  my $command = undef;
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print "$usage\n";
     exit 0;
+  }elsif(@_ == 1 and $_[0] =~ /^(-m|--print-mms-rsync)$/){
+    shift;
+    $command = "print-mms-rsync";
   }
 
   die $usage if @_ != 0;
@@ -40,6 +47,19 @@ sub main(@){
   my $host = `ipmagic $ipmagicName`;
   die "failed to get host" if $? != 0;
   chomp $host;
+
+  if(defined $command){
+    if($command eq "print-mms-rsync"){
+      my @cmd = ("rsync", "-avP", "--exclude=.git",
+        "$MMS_PARTS_REPO/",
+        "$user\@$host:$MMS_PARTS_REMOTE_DIR/"
+      );
+      print "@cmd\n";
+      exit 0;
+    }else{
+      die "unknown command: $command\n";
+    }
+  }
 
   my $now = `date +'%Y-%m-%d_%s'`;
   chomp $now;
