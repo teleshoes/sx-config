@@ -95,3 +95,4 @@ pubkeys
 #settings => text input => keyboards => English => off
 #okboard => enable okboard => enable
 #okboard => enable backtracking => DISABLE
+#settings => apps => camera => save location => sdcard
