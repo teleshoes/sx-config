@@ -21,7 +21,21 @@ my $MMS_PARTS_REMOTE_DIR = "/home/nemo/.local/share/commhistory/data";
 my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
 my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms/parts-repo";
 
+my $usage = "Usage:
+  $0 -h|--help
+    print this message
+
+  $0
+    overwrite SMS/calls/MMS on `ipmagic $ipmagicName`
+";
+
 sub main(@){
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print "$usage\n";
+    exit 0;
+  }
+
+  die $usage if @_ != 0;
   my $user = "nemo";
   my $host = `ipmagic $ipmagicName`;
   die "failed to get host" if $? != 0;
