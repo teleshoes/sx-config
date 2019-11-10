@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import Sailfish.Messages 1.0
 import Sailfish.TextLinking 1.0
 import org.nemomobile.commhistory 1.0
 import org.nemomobile.messages.internal 1.0
@@ -14,7 +15,7 @@ ListItem {
     _backgroundColor: "transparent"
 
     property QtObject modelData
-    property int modemIndex: simManager.indexOfModemFromImsi(modelData.subscriberIdentity)
+    property int modemIndex: MessageUtils.simManager.indexOfModemFromImsi(modelData.subscriberIdentity)
     property bool inbound: modelData ? modelData.direction == CommHistory.Inbound : false
     property bool hasAttachments: attachmentLoader.count > 0
     property bool hasText
@@ -24,11 +25,7 @@ ListItem {
 
     property date currentDateTime
     property bool showDetails
-
-    //HACK-DISABLE-HIDE-TIMESTAMP
-    //property bool hideDefaultTimestamp: modelData && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6 && modelData.index !== 0)
-    property bool hideDefaultTimestamp: false
-    //HACK-DISABLE-HIDE-TIMESTAMP
+    property bool hideDefaultTimestamp: modelData && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6 && modelData.index !== 0)
 
     function calculateDaysDiff(date, currentDateTime) {
         // We use different formats depending on the age for the message, compared to the
@@ -45,27 +42,13 @@ ListItem {
         var timeString
 
         if (daysDiff > 6) {
-            //HACK-YYYY-MM-DD
-            //dateString = Format.formatDate(date, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear))
-            dateString = Qt.formatDateTime(date, 'yyyy-MM-dd  -  ')
-            //HACK-YYYY-MM-DD
-
-            //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.TimeValue)
-            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
-            //HACK-HH-MM-SS
+            dateString = Format.formatDate(date, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear))
+            timeString = Format.formatDate(date, Formatter.TimeValue)
         } else if (daysDiff > 0) {
             dateString = Format.formatDate(modelData.startTime, Formatter.WeekdayNameStandalone)
-
-            //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.TimeValue)
-            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
-            //HACK-HH-MM-SS
+            timeString = Format.formatDate(date, Formatter.TimeValue)
         } else {
-            //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.DurationElapsed)
-            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
-            //HACK-HH-MM-SS
+            timeString = Format.formatDate(date, Formatter.DurationElapsed)
         }
 
         if (dateString) {
@@ -90,7 +73,10 @@ ListItem {
     }
 
     Rectangle {
-        property color backgroundColor: !inbound ? "transparent" : (Theme.colorScheme === Theme.DarkOnLight ? Theme.rgba(Theme.highlightColor, 0.2) : Theme.rgba(Theme.primaryColor, 0.1))
+        property color backgroundColor: !inbound ? "transparent"
+                                                 : (Theme.colorScheme === Theme.DarkOnLight
+                                                    ? Theme.rgba(Theme.highlightColor, Theme.opacityFaint)
+                                                    : Theme.rgba(Theme.primaryColor, Theme.opacityFaint))
         property color highlightedColor: Theme.rgba(Theme.highlightBackgroundColor, menuOpen ? 0 : Theme.highlightBackgroundOpacity)
 
         visible: inbound || message.highlighted
@@ -169,7 +155,7 @@ ListItem {
         Rectangle {
             anchors.fill: parent
             color:  modelData.messageParts.length ? Theme.highlightDimmerColor : Theme.highlightColor
-            opacity: modelData.messageParts.length ? 0.5 : 0.1
+            opacity: modelData.messageParts.length ? Theme.opacityHigh : Theme.opacityFaint
         }
 
         Loader {
@@ -262,7 +248,7 @@ ListItem {
             top: messageText.bottom
             topMargin: Theme.paddingSmall
         }
-        opacity: 0.6
+        opacity: Theme.opacityHigh
         height: detailedTimestampLoader.item ? detailedTimestampLoader.item.height : implicitHeight
         Behavior on height {
             NumberAnimation {
@@ -337,7 +323,7 @@ ListItem {
                 visible: !!text
                 color: messageText.color
                 font.pixelSize: Theme.fontSizeExtraSmall
-                text: conversation.phoneDetailsString(inbound ? modelData.remoteUid : modelData.localUid)
+                text: MessageUtils.phoneDetailsString(inbound ? modelData.remoteUid : modelData.localUid, conversation.people)
             }
 
             Row {
@@ -353,7 +339,7 @@ ListItem {
 
                     anchors.verticalCenter: parent.verticalCenter
                     highlighted: message.highlighted
-                    visible: mainWindow.multipleEnabledSimCards && message.modemIndex >= 0 && message.modemIndex <= 1
+                    visible: MessageUtils.multipleEnabledSimCards && message.modemIndex >= 0 && message.modemIndex <= 1
                     source: {
                         if (message.modemIndex === 0)
                             return "image://theme/icon-s-sim1"
@@ -368,7 +354,7 @@ ListItem {
                     font.pixelSize: Theme.fontSizeExtraSmall
                     visible: simIcon.visible
                     color: simIcon.color
-                    text: message.modemIndex >= 0 ? simManager.modemSimModel.get(message.modemIndex)["operator"] : ""
+                    text: message.modemIndex >= 0 ? MessageUtils.simManager.modemSimModel.get(message.modemIndex)["operator"] : ""
                 }
 
                 Label {
