@@ -3,14 +3,15 @@ import Sailfish.Silica 1.0
 import org.nemomobile.contacts 1.0
 import org.nemomobile.commhistory 1.0
 import Sailfish.Contacts 1.0
-import "../common/utils.js" as MessageUtils
+import Sailfish.Messages 1.0
 
 ListItem {
     id: delegate
     contentHeight: textColumn.height + Theme.paddingMedium + textColumn.y
     menu: contextMenuComponent
+    property CommContactGroupModel groupModel
 
-    property QtObject person: model.contactIds.length ? peopleModel.personById(model.contactIds[0]) : null
+    property QtObject person: model.contactIds.length ? MessageUtils.peopleModel.personById(model.contactIds[0]) : null
     property string subscriberIdentity: model.subscriberIdentity || ''
 
     property string providerName: getProviderName()
@@ -18,7 +19,7 @@ ListItem {
     property date currentDateTime
 
     function getProviderName() {
-        if (!model.lastEventGroup || !telepathyAccounts.ready
+        if (!model.lastEventGroup || !MessageUtils.telepathyAccounts.ready
                 || MessageUtils.isSMS(model.lastEventGroup.localUid)) {
             return ""
         }
@@ -92,25 +93,19 @@ ListItem {
                     // but right now only the current conversation channel is accessible.
                     var label = mainWindow.eventStatusText(model.lastEventStatus, model.lastEventId)
                     if (!label) {
+                        var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
+                        var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
+                        var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
 
-                        //ABSTIME_HACK
-                        //
-                        //var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
-                        //var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
-                        //var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
-                        //
-                        //if (daysDiff === 0) {
-                        //    label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
-                        //} else if (daysDiff < 7) {
-                        //    label = Format.formatDate(model.startTime, Formatter.TimeValue)
-                        //} else if (daysDiff < 365) {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
-                        //} else {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMedium)
-                        //}
-                        //
-                        label = Qt.formatDateTime(model.startTime, 'hh:mm   -   yyyy-MM-dd')
-                        ///////ABSTIME HACK
+                        if (daysDiff === 0) {
+                            label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
+                        } else if (daysDiff < 7) {
+                            label = Format.formatDate(model.startTime, Formatter.TimeValue)
+                        } else if (daysDiff < 365) {
+                            label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
+                        } else {
+                            label = Format.formatDate(model.startTime, Formatter.DateMedium)
+                        }
 
                         if (providerName) {
                             label = providerName + " \u2022 " + label
@@ -148,6 +143,12 @@ ListItem {
                 }
             }
 
+            Connections {
+                target: groupModel.at(model.index)
+                // forceLayout() deprecates doLayout() in Qt 5.9
+                onLastEventChanged: lastMessage.doLayout()
+            }
+
             HighlightImage {
                 id: draftIcon
 
@@ -178,8 +179,7 @@ ListItem {
     }
 
     function remove() {
-        //% "Deleting"
-        remorseAction(qsTrId("messages-remorse_delete_group"), function() { model.contactGroup.deleteGroups() })
+        remorseDelete(function() { model.contactGroup.deleteGroups() })
     }
 
     Component {
