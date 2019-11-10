@@ -91,3 +91,7 @@ pubkeys
 #MANUAL SETTINGS FOR NOW:
 #add work alarm
 #settings => location => high-accuracy positioning
+#settings => text input => keyboards => English (Arrows) => on
+#settings => text input => keyboards => English => off
+#okboard => enable okboard => enable
+#okboard => enable backtracking => DISABLE
