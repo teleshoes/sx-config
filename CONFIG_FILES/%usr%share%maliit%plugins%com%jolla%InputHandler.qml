@@ -41,6 +41,14 @@ Item {
     property Component verticalItem
     property bool active
 
+    signal select(string text, int index)
+    signal remove(string text, int index)
+    signal paste(string text)
+
+    function formatText(text) {
+        return text
+    }
+
     Timer {
         id: autorepeatTimer
         repeat: true
@@ -108,14 +116,6 @@ Item {
             MInputMethodQuick.sendCommit(pressedKey.text)
         } else if (pressedKey.key === Qt.Key_Return) {
             MInputMethodQuick.activateActionKey()
-        } else if (pressedKey.key === Qt.Key_Up) {
-            MInputMethodQuick.sendKey(Qt.Key_Up, 0, "", Maliit.KeyClick)
-        } else if (pressedKey.key === Qt.Key_Down) {
-            MInputMethodQuick.sendKey(Qt.Key_Down, 0, "", Maliit.KeyClick)
-        } else if (pressedKey.key === Qt.Key_Left) {
-            MInputMethodQuick.sendKey(Qt.Key_Left, 0, "", Maliit.KeyClick)
-        } else if (pressedKey.key === Qt.Key_Right) {
-            MInputMethodQuick.sendKey(Qt.Key_Right, 0, "", Maliit.KeyClick)
         } else if (pressedKey.key === Qt.Key_Backspace) {
             if (MInputMethodQuick.surroundingTextValid && MInputMethodQuick.cursorPosition == 0) {
                 resetShift = false
