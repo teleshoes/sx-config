@@ -41,6 +41,10 @@
 
 #ensure SD card inserted and mounted (not sim card)
 
+#cd backup/backup-mms/parts-repo
+#perl rename-msg-dirs.pl
+#git commit -m 'run rename-msg-dirs (rename all ##### msg dirs to msg-MTIME-##### for sailfish)'
+
 ./sync-home-config
 
 ./restore-contacts
