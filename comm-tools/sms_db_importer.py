@@ -38,6 +38,9 @@ Usage:
   {appName} import-to-db-mms DB_FILE MMS_MSG_DIR MMS_PARTS_DIR [OPTS]
     insert MMS from MMS_MSG_DIR into DB_FILE, and ensure att files in MMS_PARTS_DIR
 
+  {appName} mms-hash SUBJECT BODY [ATT_FILE ATT_FILE ..]
+    insert MMS from MMS_MSG_DIR into DB_FILE, and ensure att files in MMS_PARTS_DIR
+
   OPTS:
     --my-number       default phone number for "from" in OUT-MMS and "to" in INC-MMS
     --limit           only import LIMIT entries into DB_FILE
@@ -61,6 +64,7 @@ def addSubparser(subparsers, cmd, args):
   for arg in args:
     p.add_argument(arg)
   addOptArgs(p)
+  return p
 
 def addOptArgs(parser):
   parser.add_argument('--my-number',),
@@ -83,12 +87,29 @@ def main():
   addSubparser(subparsers, 'import-to-db-sms', ['DB_FILE', 'CSV_FILE'])
   addSubparser(subparsers, 'import-to-db-calls', ['DB_FILE', 'CSV_FILE'])
   addSubparser(subparsers, 'import-to-db-mms', ['DB_FILE', 'MMS_MSG_DIR', 'MMS_PARTS_DIR'])
+  mmsHashSubParser = addSubparser(subparsers, 'mms-hash', ['SUBJECT', 'BODY'])
+  mmsHashSubParser.add_argument('ATT_FILE', nargs='*')
   args = parser.parse_args()
 
   global VERBOSE, NO_COMMIT, MY_NUMBER
   VERBOSE = args.verbose
   NO_COMMIT = args.no_commit
   MY_NUMBER = args.my_number
+
+  if args.COMMAND == "mms-hash":
+    subject = args.SUBJECT
+    body = args.BODY
+    attFileList = args.ATT_FILE
+    attFiles = {}
+    for attFile in attFileList:
+      if not os.path.isfile(attFile):
+        print "ERROR: ATT_FILE '" + attFile + "' does not exist"
+        quit(1)
+      attName = os.path.basename(attFile)
+      attFiles[attName] = attFile
+    checksum = generateMMSChecksum(subject, body, attFiles)
+    print checksum
+    quit(0)
 
   if not os.path.isfile(args.DB_FILE):
     print "ERROR: commhistory db file " + args.DB_FILE + " does not exist"
