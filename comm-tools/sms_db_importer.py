@@ -278,6 +278,23 @@ def main():
     print "invalid <COMMAND>: " + args.COMMAND
     quit(1)
 
+def generateMMSChecksum(subject, body, attFiles):
+  md5 = hashlib.md5()
+  if subject != None:
+    md5.update(escapeStr(subject.encode("utf-8")))
+  if body != None:
+    md5.update(escapeStr(body.encode("utf-8")))
+  for attName in sorted(attFiles.keys()):
+    md5.update("\n" + attName + "\n")
+    filepath = attFiles[attName]
+    if not os.path.isfile(filepath):
+      print "missing att file: " + filepath
+      quit(1)
+    f = open(filepath, 'r')
+    md5.update(f.read())
+    f.close()
+  return md5.hexdigest()
+
 class Text:
   def __init__(self, number, date_millis, date_sent_millis,
                sms_mms_type, direction, date_format, body):
@@ -442,21 +459,7 @@ class MMS:
         quit(1)
     self.checksum = self.generateChecksum()
   def generateChecksum(self):
-    md5 = hashlib.md5()
-    if self.subject != None:
-      md5.update(escapeStr(self.subject.encode("utf-8")))
-    if self.body != None:
-      md5.update(escapeStr(self.body.encode("utf-8")))
-    for attName in sorted(self.attFiles.keys()):
-      md5.update("\n" + attName + "\n")
-      filepath = self.attFiles[attName]
-      if not os.path.isfile(filepath):
-        print "missing att file: " + filepath
-        quit(1)
-      f = open(filepath, 'r')
-      md5.update(f.read())
-      f.close()
-    return md5.hexdigest()
+    return generateMMSChecksum(self.subject, self.body, self.attFiles)
   def getMsgDirName(self):
     dirName = ""
     dirName += str(self.date_millis)
