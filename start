@@ -36,6 +36,8 @@
 
 ./install-packages
 
+./config-files --backup-only
+
 ./config-files
 
 ./setup-dconf
