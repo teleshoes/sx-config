@@ -7,8 +7,25 @@ my $user = "nemo";
 
 my $srcDir = "$ENV{HOME}/Code/sx/rpms",
 my $destDir = "/media/sdcard/phone/rpms";
+my $destDirHome = "/home/nemo/rpms";
+
+my $usage = "Usage:
+  $0 [OPTS]
+    -copy $srcDir to $destDir
+    -run pkcon -y install-local $destDir/*.rpm
+
+  OPTS
+    --home
+      use $destDirHome instead of $destDir
+";
 
 sub main(@){
+  if(@_ > 0 and $_[0] =~ /^(--home)$/){
+    shift;
+    $destDir = $destDirHome;
+  }
+  die $usage if @_ > 0;
+
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
