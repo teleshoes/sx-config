@@ -21,11 +21,13 @@
 # settings -> developer tools -> set password for ssh and root acccess -> d -> save
 # settings -> developer tools -> show reboot option on top menu #MANUAL only for now
 
-# open terminal
-# devel-su #d
-# passwd #d
-
 # ipmagic sx -t IPADDRESS # until icmp rules written in config files and reboot
+
+###################
+# ipmagic sx -s
+#   devel-su #d
+#   passwd #d
+###################
 
 ./setup-ssh #twice for some reason
 ./setup-ssh
