@@ -22,7 +22,15 @@ my %changedTriggers = (
 
 my $okTypes = join "|", qw(boing bin remove all);
 
-my $usage = "Usage: $0 [$okTypes]\n";
+my $usage = "Usage:
+  $0 [OPTS] $okTypes
+    overwrite boing, bin, remove, or all files
+
+  $0 [OPTS]
+    same as $0 all
+
+  OPTS
+";
 
 sub overwriteFile($$$);
 sub removeFile($);
