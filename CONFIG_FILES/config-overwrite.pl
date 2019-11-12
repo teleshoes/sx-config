@@ -1,10 +1,13 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Time::HiRes qw(time);
+use File::Basename qw(basename);
 
 my $hostName = "wolke-sx";
 
 my $DIR = '/opt/CONFIG_FILES';
+my $BAK_DIR_PREFIX = '/opt/CONFIG_FILES_BACKUP';
 my $user = "nemo";
 my ($login,$pass,$uid,$gid) = getpwnam($user);
 my $binTarget = '/usr/local/bin';
@@ -25,23 +28,41 @@ my $okTypes = join "|", qw(boing bin remove all);
 my $usage = "Usage:
   $0 [OPTS] $okTypes
     overwrite boing, bin, remove, or all files
+    NOTE: does NOT backup any files
+          see --backup-only option, which ONLY runs backup
 
   $0 [OPTS]
     same as $0 all
 
   OPTS
+    --backup-only
+      instead of overwriting files, copy all files to ${BAK_DIR_PREFIX}_<NOW_MILLIS>
 ";
 
+sub backupFile($$);
 sub overwriteFile($$$);
 sub removeFile($);
 sub md5sum($);
+sub nowMillis();
 
 sub main(@){
+  my $backupOnlyMode = 0;
+  if(@_ >= 1 and $_[0] =~ /^(--backup-only)$/){
+    shift;
+    $backupOnlyMode = 1;
+  }
+
   my $type = 'all';
   $type = shift if @_ > 0 and $_[0] =~ /^($okTypes)$/;
+
   die $usage if @_ > 0;
 
   die "hostname must be $hostName" if `hostname` ne "$hostName\n";
+
+  my $backupDir = "${BAK_DIR_PREFIX}_" . nowMillis();
+  if($backupOnlyMode){
+    system "mkdir", "-p", $backupDir;
+  }
 
   my @boingFiles = glob "$DIR/%*";
   s/^$DIR\/// foreach @boingFiles;
@@ -60,7 +81,11 @@ sub main(@){
       if(defined $changedTriggers{$dest}){
         $old = md5sum $dest;
       }
-      overwriteFile "$DIR/$file", $dest, 1;
+      if($backupOnlyMode){
+        backupFile $backupDir, $dest;
+      }else{
+        overwriteFile "$DIR/$file", $dest, 1;
+      }
       if(defined $changedTriggers{$dest}){
         $new = md5sum $dest;
         if($old ne $new){
@@ -73,23 +98,53 @@ sub main(@){
 
   if($type =~ /^(bin|all)$/){
     print "\n ---handling bin files...\n";
-    overwriteFile "$DIR/bin/", "$binTarget/", 0;
+    if($backupOnlyMode){
+      for my $file(glob "$DIR/bin/*"){
+        my $baseName = basename $file;
+        my $binFile = "$binTarget/$baseName";
+        backupFile $backupDir, $binFile;
+      }
+    }else{
+      overwriteFile "$DIR/bin/", "$binTarget/", 0;
+    }
   }
 
   if($type =~ /^(remove|all)$/){
     print "\n ---removing files to remove...\n";
     for my $file(@filesToRemove){
       chomp $file;
-      removeFile $file;
+      if($backupOnlyMode){
+        backupFile $backupDir, $file;
+      }else{
+        removeFile $file;
+      }
     }
   }
 
   print "\n ---running triggers...\n";
   for my $trigger(keys %triggers){
     print "  $trigger: \n";
-    system $trigger;
+    if($backupOnlyMode){
+      print "WARNING: backup only mode, NOT running trigger: $trigger\n";
+    }else{
+      system $trigger;
+    }
   }
-  system "chmod", "0440", "/etc/sudoers";
+  if($backupOnlyMode){
+    print "backup only mode, NOT touching /etc/sudoers\n";
+  }else{
+    system "chmod", "0440", "/etc/sudoers";
+  }
+}
+
+sub backupFile($$){
+  my ($backupDir, $file) = @_;
+  my $dest = $file;
+  $dest =~ s/\//%/g;
+  if(-e $file){
+    print "backing up $file\n";
+    system "cp", "-ar", $file, "$backupDir/$dest";
+  }
 }
 
 sub overwriteFile($$$){
@@ -175,4 +230,9 @@ sub md5sum($){
   }
   return $out;
 }
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
+}
+
 &main(@ARGV);
