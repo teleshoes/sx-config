@@ -7,22 +7,32 @@ my $user = "nemo";
 
 my $srcDir = "$ENV{HOME}/Code/sx/apks",
 my $destDir = "/media/sdcard/phone/apks";
+my $destDirHome = "/home/nemo/apks";
 
 my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0
+  $0 [OPTS]
     install all apks in $srcDir
 
-  $0 PREFIX
+  $0 [OPTS] PREFIX
     install all apks in $srcDir with filename starting with PREFIX
     (all APK files are copied to the phone first, not just PREFIX*)
+
+  OPTS
+    --home
+      use $destDirHome instead of $destDir
 ";
 
 sub run(@);
 
 sub main(@){
+  if(@_ > 0 and $_[0] =~ /^(--home)$/){
+    shift;
+    $destDir = $destDirHome;
+  }
+
   my $prefix = "";
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $usage;
