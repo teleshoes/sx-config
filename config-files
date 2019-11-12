@@ -7,13 +7,19 @@ my $ipmagicName = "sx";
 my $okTypes = join "|", qw(boing bin remove all);
 
 sub main(@){
+  my $backupOnlyMode = 0;
+  if(@_ > 0 and $_[0] =~ /^(--backup-only)$/){
+    shift;
+    $backupOnlyMode = 1;
+  }
+
   my $type;
   if(@_ == 0){
     $type = "all";
   }elsif(@_ == 1 and $_[0] =~ /^($okTypes)$/){
     $type = $_[0];
   }else{
-    die "Usage: $0 [$okTypes]\n";
+    die "Usage: $0 [--backup-only] [$okTypes]\n";
   }
 
   my $host = `ipmagic $ipmagicName`;
@@ -30,7 +36,8 @@ sub main(@){
 
   system 'ssh', "root\@$host", "chown root.root -R $dest";
 
-  system 'ssh', "root\@$host", "$dest/config-overwrite.pl $type";
+  my $args = $backupOnlyMode ? "--backup-only $type" : "$type";
+  system 'ssh', "root\@$host", "$dest/config-overwrite.pl $args";
 }
 
 &main(@ARGV);
