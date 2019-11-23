@@ -9,6 +9,9 @@ my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-
 my $ALIENDALVIK_START_SCRIPT = "/usr/bin/start-aliendalvik.sh";
 my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
+my $REMOTE_DATA_DIR = "/opt/alien/data/data";
+my $REMOTE_PROVIDERS_DB = "$REMOTE_DATA_DIR/com.android.providers.settings/databases/settings.db";
+
 my $PACKAGE_RESTRICTIONS = {
   "us.zoom.videomeetings" => ''
     . "    <pkg name=\"us.zoom.videomeetings\">\n"
@@ -41,6 +44,17 @@ sub main(@){
   }else{
     print "\n\n\nskipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
   }
+
+  print "\nsetting up providers:\n";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+    sqlite3 $REMOTE_PROVIDERS_DB \"
+      select * FROM secure WHERE name LIKE 'tts_default_synth';
+      select ' => ';
+      delete FROM secure WHERE name LIKE 'tts_default_synth';
+      insert into secure (_id, name, value) values (null, 'tts_default_synth', 'com.google.android.tts');
+      select * FROM secure WHERE name LIKE 'tts_default_synth';
+    \"
+  ";
 }
 
 sub editRemoteFile($$$){
