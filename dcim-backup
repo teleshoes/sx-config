@@ -35,7 +35,7 @@ sub readLocalDCIMInfoCache($);
 sub writeLocalDCIMInfoCache($$);
 sub getRemoteDCIMInfo($);
 sub getFileKey($);
-sub remoteDirExists($);
+sub remoteDirExists($;$);
 
 sub main(@){
   for my $backup(@backups){
@@ -380,13 +380,19 @@ sub getFileKey($){
   return $key;
 }
 
-sub remoteDirExists($){
-  my ($dir) = @_;
+sub remoteDirExists($;$){
+  my ($dir, $attempts) = @_;
+  $attempts = 3 if not defined $attempts;
+  if($attempts <= 0){
+    return 0;
+  }
+
   my $out = `ipmagic $ipmagicName -u $user 'if [ -d "$dir" ]; then echo exists; fi' 2>/dev/null`;
   if($out =~ /^exists$/){
     return 1;
   }else{
-    return 0;
+    sleep 0.1;
+    return remoteDirExists $dir, ($attempts - 1);
   }
 }
 
