@@ -65,7 +65,8 @@ ListItem {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width
                        - x
-                       - (date.width + parent.spacing)
+                       - (date.visible ? (date.width + parent.spacing) : 0)
+                       - (warningIcon.visible ? (warningIcon.width + parent.spacing) : 0)
                        - (presence.visible ? (presence.width + parent.spacing) : 0)
                 truncationMode: TruncationMode.Fade
                 color: delegate.highlighted ? Theme.highlightColor : Theme.primaryColor
@@ -82,36 +83,41 @@ ListItem {
                 presenceState: person ? person.globalPresenceState : Person.PresenceUnknown
             }
 
+            HighlightImage {
+                id: warningIcon
+
+                visible: model.lastEventStatus === CommHistory.PermanentlyFailedStatus
+                         || (model.lastEventStatus === CommHistory.TemporarilyFailedStatus && !channelManager.isPendingEvent(model.lastEventId))
+                source: "image://theme/icon-s-warning"
+                color: Theme.primaryColor
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
             Label {
                 id: date
 
                 anchors.verticalCenter: parent.verticalCenter
                 color: delegate.highlighted ? Theme.highlightColor : Theme.primaryColor
                 font.pixelSize: Theme.fontSizeExtraSmall
+                visible: !warningIcon.visible
                 text: {
                     // TODO ideally event status would be updated dynamically on the main messages page,
                     // but right now only the current conversation channel is accessible.
                     var label = mainWindow.eventStatusText(model.lastEventStatus, model.lastEventId)
                     if (!label) {
+                        var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
+                        var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
+                        var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
 
-                        //ABSTIME_HACK
-                        //
-                        //var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
-                        //var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
-                        //var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
-                        //
-                        //if (daysDiff === 0) {
-                        //    label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
-                        //} else if (daysDiff < 7) {
-                        //    label = Format.formatDate(model.startTime, Formatter.TimeValue)
-                        //} else if (daysDiff < 365) {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
-                        //} else {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMedium)
-                        //}
-                        //
-                        label = Qt.formatDateTime(model.startTime, 'hh:mm   -   yyyy-MM-dd')
-                        ///////ABSTIME HACK
+                        if (daysDiff === 0) {
+                            label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
+                        } else if (daysDiff < 7) {
+                            label = Format.formatDate(model.startTime, Formatter.TimeValue)
+                        } else if (daysDiff < 365) {
+                            label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
+                        } else {
+                            label = Format.formatDate(model.startTime, Formatter.DateMedium)
+                        }
 
                         if (providerName) {
                             label = providerName + " \u2022 " + label
