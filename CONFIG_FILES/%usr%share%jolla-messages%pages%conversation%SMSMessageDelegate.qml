@@ -59,14 +59,32 @@ ListItem {
 
         if (daysDiff > 6) {
             dateString = Format.formatDate(date, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear))
-            timeString = Format.formatDate(date, Formatter.TimeValue)
+
+            //HACK-HH-MM-SS
+            //timeString = Format.formatDate(date, Formatter.TimeValue)
+            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
+            //HACK-HH-MM-SS
         } else if (daysDiff > 0) {
             dateString = Format.formatDate(modelData.startTime, Formatter.WeekdayNameStandalone)
             timeString = Format.formatDate(date, Formatter.TimeValue)
+
+            //HACK-HH-MM-SS
+            //timeString = Format.formatDate(date, Formatter.TimeValue)
+            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
+            //HACK-HH-MM-SS
         } else if (shorten) {
-            timeString = Format.formatDate(date, Formatter.DurationElapsedShort)
+
+            //HACK-HH-MM-SS
+            //timeString = Format.formatDate(date, Formatter.DurationElapsedShort)
+            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
+            //HACK-HH-MM-SS
         } else {
             timeString = Format.formatDate(date, Formatter.DurationElapsed)
+
+            //HACK-HH-MM-SS
+            //timeString = Format.formatDate(date, Formatter.DurationElapsed)
+            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
+            //HACK-HH-MM-SS
         }
 
         if (dateString) {
