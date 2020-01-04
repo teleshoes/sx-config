@@ -56,7 +56,7 @@ my @HOMEBIN_EXECS = qw(
 );
 
 my @SPECIAL_RSYNCS = (
-  ["$ENV{HOME}/.klomp/config-sx", "~/.klomp/config"],
+  ["$ENV{HOME}/.klomp/config-$ipmagicName", "~/.klomp/config"],
   ["$ENV{HOME}/.klomp/phone-lib", "~/.klomp/lib"],
   ["$ENV{HOME}/Music/sheet_music/shows/sheet_1080p/", "/media/sdcard/phone/sheet_music/shows/sheet_1080p/"],
   ["$ENV{HOME}/Music/sheet_music/shows/music/", "/media/sdcard/phone/sheet_music/shows/music/"],
@@ -89,7 +89,7 @@ sub main(@){
   die "Usage: $0\n" if @_ > 0;
 
   print "making sure $ipmagicName is ssh-able\n";
-  system "ipmagic", $ipmagicName, "-s", "echo found sx!\n";
+  system "ipmagic", $ipmagicName, "-s", "echo found $ipmagicName!\n";
   die "failed" if $? != 0;
 
   my $host = `ipmagic $ipmagicName`;
