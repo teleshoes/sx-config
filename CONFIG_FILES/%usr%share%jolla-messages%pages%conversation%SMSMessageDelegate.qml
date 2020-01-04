@@ -1,5 +1,6 @@
-import QtQuick 2.0
+import QtQuick 2.6
 import Sailfish.Silica 1.0
+import Sailfish.Silica.private 1.0
 import Sailfish.Messages 1.0
 import Sailfish.TextLinking 1.0
 import org.nemomobile.commhistory 1.0
@@ -8,7 +9,20 @@ import org.nemomobile.messages.internal 1.0
 ListItem {
     id: message
 
-    contentHeight: Math.max(timestamp.y + (timestamp.height ? (timestamp.height + Theme.paddingSmall) : 0), retryIcon.height) + Theme.paddingMedium + Theme.paddingSmall
+    contentHeight: Math.max(timestamp.y + (timestamp.height ? (timestamp.height) : -Theme.paddingSmall),
+                            messageText.y + messageText.height,
+                            retryIcon.height)
+                   + Theme.paddingMedium
+                   + (groupFirst ? Theme.paddingSmall : 0)
+
+    Behavior on contentHeight {
+        NumberAnimation {
+            id: contentHeightAnimation
+            duration: 100
+            easing.type: Easing.InOutQuad
+        }
+    }
+
     menu: messageContextMenu
 
     // NOTE: press effect is provided by the rounded rectangle, so we disable the one provided by ListItem
@@ -17,7 +31,7 @@ ListItem {
     property QtObject modelData
     property int modemIndex: MessageUtils.simManager.indexOfModemFromImsi(modelData.subscriberIdentity)
     property bool inbound: modelData ? modelData.direction == CommHistory.Inbound : false
-    property bool hasAttachments: attachmentLoader.count > 0
+    property bool hasAttachments: modelData.messageParts.length > 0
     property bool hasText
     property bool canRetry
     property int eventStatus
@@ -25,11 +39,9 @@ ListItem {
 
     property date currentDateTime
     property bool showDetails
-
-    //HACK-DISABLE-HIDE-TIMESTAMP
-    //property bool hideDefaultTimestamp: modelData && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6 && modelData.index !== 0)
-    property bool hideDefaultTimestamp: false
-    //HACK-DISABLE-HIDE-TIMESTAMP
+    property bool hideDefaultTimestamp: modelData && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6 && modelData.index !== 0)
+    property bool groupFirst
+    property bool groupLast
 
     function calculateDaysDiff(date, currentDateTime) {
         // We use different formats depending on the age for the message, compared to the
@@ -40,33 +52,21 @@ ListItem {
         return (today - messageDate) / (24 * 60 * 60 * 1000)
     }
 
-    function formatDate(date, currentDateTime) {
+    function formatDate(date, currentDateTime, shorten) {
         var daysDiff = calculateDaysDiff(date, currentDateTime)
         var dateString
         var timeString
 
         if (daysDiff > 6) {
-            //HACK-YYYY-MM-DD
-            //dateString = Format.formatDate(date, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear))
-            dateString = Qt.formatDateTime(date, 'yyyy-MM-dd  -  ')
-            //HACK-YYYY-MM-DD
-
-            //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.TimeValue)
-            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
-            //HACK-HH-MM-SS
+            dateString = Format.formatDate(date, (daysDiff > 365 ? Formatter.DateMedium : Formatter.DateMediumWithoutYear))
+            timeString = Format.formatDate(date, Formatter.TimeValue)
         } else if (daysDiff > 0) {
             dateString = Format.formatDate(modelData.startTime, Formatter.WeekdayNameStandalone)
-
-            //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.TimeValue)
-            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
-            //HACK-HH-MM-SS
+            timeString = Format.formatDate(date, Formatter.TimeValue)
+        } else if (shorten) {
+            timeString = Format.formatDate(date, Formatter.DurationElapsedShort)
         } else {
-            //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.DurationElapsed)
-            timeString = Qt.formatDateTime(date, 'hh:mm:ss')
-            //HACK-HH-MM-SS
+            timeString = Format.formatDate(date, Formatter.DurationElapsed)
         }
 
         if (dateString) {
@@ -90,31 +90,70 @@ ListItem {
         return qsTrId("messages-la-date_time").arg(dateString).arg(timeString)
     }
 
-    Rectangle {
-        property color backgroundColor: !inbound ? "transparent"
-                                                 : (Theme.colorScheme === Theme.DarkOnLight
-                                                    ? Theme.rgba(Theme.highlightColor, Theme.opacityFaint)
-                                                    : Theme.rgba(Theme.primaryColor, Theme.opacityFaint))
-        property color highlightedColor: Theme.rgba(Theme.highlightBackgroundColor, menuOpen ? 0 : Theme.highlightBackgroundOpacity)
+    BubbleBackground {
+        id: bubble
 
-        visible: inbound || message.highlighted
-        color: message.highlighted ? highlightedColor : backgroundColor
-        radius: Theme.paddingMedium
-        anchors {
-            left: inbound ? attachments.left : undefined
-            right: !inbound ? attachments.right : undefined
-            top: parent.top
-            bottom: parent.bottom
-            topMargin: Theme.paddingMedium
-            bottomMargin: Theme.paddingMedium
-            leftMargin: inbound ? (-radius) : 0
-            rightMargin: !inbound ? (-radius) : 0
+        property int fullMessageWidth: (hasText ? (messageText.contentWidth + 2 * messageText.horizontalMargin) : 0)
+                                       + ((timestamp.mergeTimestamp && messageText.lineCount === 1) ? (timestamp.width + Theme.paddingMedium) : 0)
+                                       + (hasAttachments ? (attachments.width + attachments.anchors.leftMargin + attachments.anchors.rightMargin) : 0)
+        property int extendedTimestampWidth: {
+            if (inbound) {
+                return timestamp.x + timestamp.width
+            } else {
+                return parent.width - timestamp.x
+            }
         }
 
-        width: radius
-               + Math.max(messageText.width, timestamp.width)
-               + (messageText.anchors.leftMargin + messageText.anchors.rightMargin)
-               + (hasAttachments && (attachments.width + attachments.anchors.leftMargin + attachments.anchors.rightMargin))
+        anchors {
+            left: inbound ? parent.left : undefined
+            right: !inbound ? parent.right : undefined
+            top: parent.top
+            bottom: parent.bottom
+            leftMargin: inbound ? Theme.paddingMedium : 0
+            rightMargin: inbound ? 0 : Theme.paddingMedium
+            topMargin: Theme.paddingSmall
+            bottomMargin: (groupFirst ? Theme.paddingSmall : 0)
+        }
+
+        radius: Theme.paddingLarge
+        roundedCorners: {
+            // Note: MessagesView has a BottomToTop layout direction, so groupFirst is the bottom-most
+            var result = BubbleBackground.NoCorners;
+            result |= inbound ? BubbleBackground.BottomRight : BubbleBackground.BottomLeft
+            if (message.groupLast) {
+                result |= inbound ? BubbleBackground.TopLeft : BubbleBackground.TopRight
+            }
+            return result
+        }
+
+        opacity: {
+            if (message.highlighted) {
+                return Theme.opacityHigh
+            }
+
+            return inbound ? Theme.opacityHigh : Theme.opacityFaint
+        }
+
+        width: Math.max(fullMessageWidth, extendedTimestampWidth, radius * 2)
+
+        Behavior on width {
+            NumberAnimation {
+                duration: contentHeightAnimation.duration
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        color: {
+            if (menuOpen) {
+                return "transparent"
+            } if (message.highlighted) {
+                return Theme.rgba(Theme.highlightBackgroundColor, Theme.highlightBackgroundOpacity)
+            } if (Theme.colorScheme === Theme.DarkOnLight) {
+                return Theme.rgba(Theme.highlightColor, Theme.opacityFaint)
+            }
+
+            return Theme.rgba(Theme.primaryColor, Theme.opacityFaint)
+        }
     }
 
     // Retry icon for non-attachment outbound messages
@@ -132,8 +171,10 @@ ListItem {
         height: Math.max(implicitHeight, attachmentOverlay.height)
         width: Math.max(implicitWidth, attachmentOverlay.width)
         anchors {
-            left: inbound ? parent.left : undefined
-            right: inbound ? undefined : parent.right
+            left: inbound ? bubble.left : undefined
+            leftMargin: inbound ? (width ? Theme.paddingMedium : 0) : 0
+            right: inbound ? undefined : bubble.right
+            rightMargin: inbound ? 0 : (width ? Theme.paddingMedium : 0)
             // We really want the baseline of the last line of text, but there's no way to get that
             bottom: messageText.bottom
         }
@@ -213,34 +254,55 @@ ListItem {
     LinkedText {
         id: messageText
         anchors {
-            top: parent.top
+            top: bubble.top
             left: inbound ? attachments.right : undefined
             right: inbound ? undefined : attachments.left
-            topMargin: Theme.paddingMedium + Theme.paddingSmall
-            leftMargin: (!inbound ? Theme.paddingMedium : (attachments.height ? Theme.paddingMedium : Theme.horizontalPageMargin))
+            topMargin: Theme.paddingMedium
+            leftMargin: horizontalMargin
                         - (effectiveHorizontalAlignment === Text.AlignRight ? marginCorrection : 0)
-            rightMargin: (inbound ? Theme.paddingMedium : (attachments.height ? Theme.paddingMedium : Theme.horizontalPageMargin))
+                        + (inbound ? timestampMarginCorrection : 0)
+            rightMargin: horizontalMargin
                          - (effectiveHorizontalAlignment === Text.AlignLeft ? marginCorrection : 0)
+                         + (!inbound ? timestampMarginCorrection : 0)
         }
 
+        property int lastLineWidth
+        property int lastLineHeight
+        property bool layoutDone
+        property int horizontalMargin: Theme.paddingMedium
         property int sidePadding: Theme.itemSizeSmall + Theme.horizontalPageMargin
         property int marginCorrection: width - Math.ceil(contentWidth)
-        property int maxWidth: parent.width
-                               - (hasAttachments ? (attachments.width - Theme.horizontalPageMargin) : 0)
-                               - (retryIcon.width > 0 ? (2 * Theme.horizontalPageMargin + retryIcon.width + 2 * Theme.paddingMedium) : sidePadding)
+        property int timestampMarginCorrection: {
+            if (!timestamp.mergeTimestamp || lineCount > 1) {
+                return 0
+            } else if (inbound && effectiveHorizontalAlignment === Text.AlignRight) {
+                return timestampRow.width + horizontalMargin
+            } else if (!inbound && effectiveHorizontalAlignment === Text.AlignLeft) {
+                return timestampRow.width + horizontalMargin
+            }
+            return 0
+        }
+        Behavior on timestampMarginCorrection {
+            NumberAnimation {
+                easing.type: Easing.InOutQuad
+                duration: contentHeightAnimation.duration
+            }
+        }
 
         y: Theme.paddingMedium / 2
-        height: Math.max(implicitHeight, implicitHeight ? (attachments.height + Theme.paddingMedium) : 0)
-        width: Math.min(Math.ceil(implicitWidth), maxWidth)
+        height: Math.max(implicitHeight, implicitHeight ? attachments.height : 0)
+        width: parent.width
+               - (hasAttachments ? (Theme.itemSizeLarge + Theme.paddingMedium) : 0)
+               - (retryIcon.width > 0 ? (2 * Theme.horizontalPageMargin + retryIcon.width + 2 * Theme.paddingMedium) : sidePadding)
 
         plainText: {
             if (!modelData) {
                 hasText = false
                 return ""
-            } else if (modelData.freeText != "") {
+            } else if (modelData.freeText !== "") {
                 hasText = true
                 return modelData.freeText
-            } else if (modelData.subject != "") {
+            } else if (modelData.subject !== "") {
                 hasText = true
                 return modelData.subject
             } else {
@@ -249,37 +311,64 @@ ListItem {
             }
         }
 
+        onLineLaidOut: {
+            if (line.isLast) {
+                lastLineWidth = line.implicitWidth
+                lastLineHeight = line.height
+                layoutDone = true
+            } else {
+                layoutDone = false
+            }
+        }
+
         color: (message.highlighted || !inbound) ? Theme.highlightColor : Theme.primaryColor
         linkColor: inbound || message.highlighted ? Theme.highlightColor : Theme.primaryColor
-        font.pixelSize: inbound ? Theme.fontSizeMedium : Theme.fontSizeSmall
-        verticalAlignment: Qt.AlignBottom
+        font.pixelSize: Theme.fontSizeSmall
     }
 
     Column {
         id: timestamp
 
+        readonly property int mergedTimestampLtrX: messageText.lastLineWidth + Theme.paddingMedium
+        readonly property int mergedTimestampRtlX: messageText.contentWidth + messageText.marginCorrection - mergedTimestampLtrX - timestamp.width
+        readonly property bool canMergeTimestamp: messageText.layoutDone // Ensure that the message text is fully laid out
+                                                  && (width > 0) // Ensure that the timestamp is laid out as well
+                                                  && !hideDefaultTimestamp // Never merge if the timestamp is hidden by default
+                                                  && (messageText.lineCount === 1 // Check if we have room for the timestamp
+                                                      ? (mergedTimestampLtrX + width) <= messageText.width
+                                                      : (mergedTimestampLtrX + width) <= messageText.contentWidth)
+        readonly property bool mergeTimestamp: !showDetails && canMergeTimestamp
+
         anchors {
             left: inbound ? parent.left : undefined
-            leftMargin: inbound ? Theme.horizontalPageMargin : 0
+            leftMargin: {
+                if (!inbound) {
+                    return 0
+                } else if (mergeTimestamp) {
+                    return bubble.anchors.leftMargin + messageText.anchors.leftMargin
+                           + (messageText.effectiveHorizontalAlignment === Text.AlignLeft ? mergedTimestampLtrX : mergedTimestampRtlX)
+                           + (hasAttachments ? (attachments.width + Theme.paddingMedium) : 0)
+                } else {
+                    return Theme.paddingMedium + bubble.anchors.leftMargin
+                }
+            }
             right: !inbound ? parent.right : undefined
-            rightMargin: !inbound ? Theme.horizontalPageMargin : 0
-            top: messageText.bottom
-            topMargin: Theme.paddingSmall
+            rightMargin: {
+                if (inbound) {
+                    return 0
+                } else if (mergeTimestamp) {
+                    return bubble.anchors.rightMargin + messageText.anchors.rightMargin
+                           + (messageText.effectiveHorizontalAlignment === Text.AlignLeft ? mergedTimestampRtlX : mergedTimestampLtrX)
+                           + (hasAttachments ? (attachments.width + Theme.paddingMedium) : 0)
+                } else {
+                    return Theme.paddingMedium + bubble.anchors.rightMargin
+                }
+            }
+            top: mergeTimestamp ? messageText.baseline : messageText.bottom
+            topMargin: mergeTimestamp ? (-height) : Theme.paddingSmall
         }
         opacity: Theme.opacityHigh
-        height: detailedTimestampLoader.item ? detailedTimestampLoader.item.height : implicitHeight
-        Behavior on height {
-            NumberAnimation {
-                id: timestampHeightAnimation
-                duration: 100
-            }
-        }
-        width: detailedTimestampLoader.item ? detailedTimestampLoader.item.width : implicitWidth
-        Behavior on width {
-            NumberAnimation {
-                duration: timestampHeightAnimation.duration
-            }
-        }
+        height: (showDetails && detailedTimestampLoader.item) ? detailedTimestampLoader.item.height : implicitHeight
 
         Row {
             id: timestampRow
@@ -297,13 +386,20 @@ ListItem {
 
                 color: messageText.color
                 font.pixelSize: Theme.fontSizeExtraSmall
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.baselineOffset: timestamp.mergeTimestamp ? (messageText.height - messageText.lastLineHeight + timestamp.height) : 0
                 text: {
                     if (eventStatusText)
                         return eventStatusText
                     if (hideDefaultTimestamp)
                         return ""
-                    return formatDate(modelData.startTime, currentDateTime)
+                    return formatDate(modelData.startTime, currentDateTime, true)
+                }
+                states: State {
+                    when: timestamp.mergeTimestamp
+                    AnchorChanges {
+                        target: timestampLabel
+                        anchors.baseline: parent.top
+                    }
                 }
             }
 
@@ -314,7 +410,7 @@ ListItem {
                 highlighted: message.highlighted
                 source: "image://theme/icon-s-warning"
                 color: timestampLabel.color
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenter: timestampLabel.verticalCenter
             }
         }
 
@@ -437,7 +533,7 @@ ListItem {
 
             // Wait for the height change animation
             PauseAnimation {
-                duration: timestampHeightAnimation.duration
+                duration: contentHeightAnimation.duration
             }
 
             // Fade in the detailed timestamp, if it wasn't shown (showDetails isn't re-evaluated here, so we see its past value)
