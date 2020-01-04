@@ -39,9 +39,15 @@ ListItem {
 
     property date currentDateTime
     property bool showDetails
-    property bool hideDefaultTimestamp: modelData && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6 && modelData.index !== 0)
+
+    //HACK-DISABLE-HIDE-TIMESTAMP
+    //property bool hideDefaultTimestamp: modelData && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6 && modelData.index !== 0)
+    property bool hideDefaultTimestamp: false
+    //HACK-DISABLE-HIDE-TIMESTAMP
+
     property bool groupFirst
     property bool groupLast
+
 
     function calculateDaysDiff(date, currentDateTime) {
         // We use different formats depending on the age for the message, compared to the
