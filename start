@@ -102,3 +102,4 @@ pubkeys
 #okboard => enable okboard => enable
 #okboard => enable backtracking => DISABLE
 #settings => apps => camera => save location => sdcard
+#orienteeringcompass => calibrate 100%
