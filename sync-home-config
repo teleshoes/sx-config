@@ -32,6 +32,7 @@ my $HOMEBIN_LOCAL_DIR = "$ENV{HOME}/bin";
 my $HOMEBIN_REMOTE_DIR = "/home/$user/bin";
 my @HOMEBIN_EXECS = qw(
   alert
+  coinbase-balance
   ddrname
   display-guess
   escribe-hosts
