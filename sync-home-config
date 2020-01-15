@@ -35,6 +35,7 @@ my @HOMEBIN_EXECS = qw(
   coinbase-balance
   ddrname
   display-guess
+  echocat
   escribe-hosts
   gpg-sym
   klomp-bigtext
