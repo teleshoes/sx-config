@@ -76,6 +76,7 @@ my @config = qw(
   harbour-advanced-camera
 
   chrome
+  wemo
 );
 
 my @unused = qw(
@@ -120,6 +121,7 @@ my %replacementRegexs = (
   'riot'           => qw/^apkd_launcher_im_vector_alpha-im_vector_activity_VectorLauncherActivity$/,
   'tkts'           => qw/^apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity$/,
   'vlc'            => qw/^apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity$/,
+  'wemo'           => qw/^apkd_launcher_com_belkin_wemoandroid-com_belkin_activity_MainActivity$/,
   'zoom'           => qw/^apkd_launcher_us_zoom_videomeetings-com_zipow_videobox_LauncherActivity$/,
 );
 
