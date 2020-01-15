@@ -15,5 +15,5 @@ ipmagic $IPMAGIC_NAME -s "
 
 scp $USER@$HOST:~/.ssh/$HOST.pub ~/.ssh/$HOST.pub
 
-pubkeys $IPMAGIC_NAME
-pubkeys $IPMAGIC_NAME-root
+pubkeys $IPMAGIC_NAME scp
+pubkeys $IPMAGIC_NAME-root scp
