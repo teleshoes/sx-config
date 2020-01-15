@@ -97,6 +97,9 @@ pubkeys
 #MANUAL SETTINGS FOR NOW:
 #add work alarm
 #settings => location => high-accuracy positioning
+#settings => patchmanager => settings => apply on boot => on
+#settings => patchmanager => autocapitilization settings => on
+#settings => text input => allow auto-capitilization => off
 #settings => text input => keyboards => English (Arrows) => on
 #settings => text input => keyboards => English => off
 #okboard => enable okboard => enable
