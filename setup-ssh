@@ -5,6 +5,8 @@ HOST=$(ipmagic $IPMAGIC_NAME)
 ipmagic $IPMAGIC_NAME -s 'su -c "echo PermitRootLogin yes >> /etc/ssh/sshd_config"'
 ipmagic $IPMAGIC_NAME -s 'su -c "systemctl restart sshd"'
 
+sleep 3
+
 ipmagic $IPMAGIC_NAME -s "
   set -x
   if [ ! -f ~/.ssh/$HOST.pub ]; then
