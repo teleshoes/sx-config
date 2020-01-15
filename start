@@ -106,3 +106,9 @@ pubkeys
 #okboard => enable backtracking => DISABLE
 #settings => apps => camera => save location => sdcard
 #orienteeringcompass => calibrate 100%
+#riot => `cat ~/.secrets` => login
+#zoom => `cat ~/.secrets` => login
+#zoom => settings => auto connect audio => yes
+#zoom => settings => always mute my mic => yes
+#zoom => settings => always turn off my video => yes
+#zoom => join => `zoom-run --url` => enter meeting id => join
