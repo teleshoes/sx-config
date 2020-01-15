@@ -47,6 +47,7 @@ my %packages = (
     harbour-gpsinfo
     harbour-jollacompass
     harbour-modrana
+    harbour-orienteeringcompass
     harbour-sailbook
     harbour-screentapshot2
     harbour-unplayer
