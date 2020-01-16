@@ -17,6 +17,7 @@ sub tryrunIpmagicRoot(@);
 
 my %packages = (
   "1-essential" => [qw(
+    rsync
     perl perl-CPAN
     htop git gnupg2 sudo tar vim-enhanced wget zypper
     expect
