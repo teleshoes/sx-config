@@ -96,6 +96,11 @@ pubkeys
 
 #MANUAL SETTINGS FOR NOW:
 #add work alarm
+#setup APN for internet
+#setup APN/etc for MMS
+#settings => apps => messages => MMS message size => 600KB
+#settings => cellular network => apn => fast.t-mobile.com
+#settings => cellular network => mms access point => protocol => IPv6
 #settings => location => high-accuracy positioning
 #settings => patchmanager => settings => apply on boot => on
 #settings => patchmanager => autocapitilization settings => on
