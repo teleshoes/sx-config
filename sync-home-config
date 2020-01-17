@@ -30,32 +30,6 @@ my @USRLOCALBIN_EXECS = qw(
 
 my $HOMEBIN_LOCAL_DIR = "$ENV{HOME}/bin";
 my $HOMEBIN_REMOTE_DIR = "/home/$user/bin";
-my @HOMEBIN_EXECS = qw(
-  alert
-  coinbase-balance
-  ddrname
-  display-guess
-  echocat
-  escribe-hosts
-  gpg-sym
-  klomp-bigtext
-  lirr_train_time
-  loop
-  mtime
-  pidgin-logs
-  pix
-  qtscreen-daemon
-  revtun
-  sb-rt-status
-  sbcam
-  scoreddr
-  screen-cmd
-  screen-daemon
-  seedbox
-  sms-search
-  speedtest
-  transmission-webui
-);
 
 my @SPECIAL_RSYNCS = (
   ["$ENV{HOME}/.klomp/config-$ipmagicName", "~/.klomp/config"],
@@ -110,8 +84,7 @@ sub main(@){
   run "rsync", "-avP", @usrlocalbinFiles, "root\@$host:$USRLOCALBIN_REMOTE_DIR/";
 
   print "\n\n===RSYNC ~/bin FILES\n";
-  my @homebinFiles = map {"$HOMEBIN_LOCAL_DIR/$_"} @HOMEBIN_EXECS;
-  run "rsync", "-avP", @homebinFiles, "$user\@$host:$HOMEBIN_REMOTE_DIR/";
+  run "rsync", "-avP", "$HOMEBIN_LOCAL_DIR/", "$user\@$host:$HOMEBIN_REMOTE_DIR/";
 
   print "\n\n===RSYNC HOME FILES\n";
   for my $file(@HOME_RSYNC_FILES){
