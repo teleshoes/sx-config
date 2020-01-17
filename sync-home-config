@@ -12,6 +12,8 @@ my @HOME_RSYNC_FILES = qw(
   .secrets
   .vimrc
 
+  .config/wemo-devices.conf
+
   .config/qtemail/
   .config/ipmagic/
   .vim/
