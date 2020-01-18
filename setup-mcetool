@@ -11,11 +11,12 @@ my @cmds = (
   "mcetool --set-display-off-single-powerkey-press-actions=unblank,tkunlock",
   "mcetool --set-ps-mode=disabled",
 );
+my $cmd = "set -x; " . join(" && ", @cmds);
 
 sub main(@){
-  for my $cmd(@cmds){
-    print "$cmd\n";
-    system "ipmagic", $ipmagicName, "-u", "root", "mcetool $cmd";
+  system "ipmagic", $ipmagicName, "-u", "root", $cmd;
+  if($? != 0){
+    die "\n\nERROR: mcetool commands returned non-zero exit code\n";
   }
 }
 
