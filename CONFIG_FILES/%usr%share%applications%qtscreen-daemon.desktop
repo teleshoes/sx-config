@@ -2,5 +2,5 @@
 Name=qtscreen-daemon
 Comment=start/stop screen-daemons
 Icon=
-Exec=invoker --type=generic sh -c 'PATH=/home/nemo/bin:$PATH qtscreen-daemon'
+Exec=/bin/sh -c 'PATH=/home/nemo/bin:$PATH qtscreen-daemon'
 Type=Application

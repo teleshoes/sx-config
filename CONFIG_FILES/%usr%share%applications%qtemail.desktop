@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=qtemail
 Icon=/opt/qtemail/icons/qtemail.png
-Exec=invoker --type=generic sh -c /opt/qtemail/bin/email-gui.py
+Exec=/opt/qtemail/bin/email-gui.py
 Type=Application
 X-Nemo-Single-Instance=no

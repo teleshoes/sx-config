@@ -2,5 +2,5 @@
 Type=Application
 Name=ToeTerm
 Categories=Utility
-Exec=invoker --type=silica-qt5 toeterm
+Exec=toeterm
 Icon=toeterm
