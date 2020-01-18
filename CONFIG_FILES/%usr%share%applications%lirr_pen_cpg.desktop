@@ -4,3 +4,4 @@ Comment=LIRR train time
 Icon=lirr_pen_cpg
 Exec=/opt/lirrtraintime/bin/lirr_train_time -b pen cpg
 Type=Application
+X-Nemo-Single-Instance=no
