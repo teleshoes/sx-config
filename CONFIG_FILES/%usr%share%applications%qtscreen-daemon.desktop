@@ -5,3 +5,4 @@ Icon=
 Exec=/bin/sh -c 'PATH=/home/nemo/bin:$PATH qtscreen-daemon'
 Type=Application
 X-Nemo-Single-Instance=no
+Custom-Launcher=yes

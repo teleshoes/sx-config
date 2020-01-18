@@ -5,3 +5,4 @@ Icon=qtbtn-klomp
 Exec=/usr/local/bin/qtbtn.py /home/nemo/.config/qtbtn-klomp.conf
 Type=Application
 X-Nemo-Single-Instance=no
+Custom-Launcher=yes

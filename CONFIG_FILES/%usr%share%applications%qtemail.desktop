@@ -4,3 +4,4 @@ Icon=/opt/qtemail/icons/qtemail.png
 Exec=/opt/qtemail/bin/email-gui.py
 Type=Application
 X-Nemo-Single-Instance=no
+Custom-Launcher=yes
