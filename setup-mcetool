@@ -12,16 +12,16 @@ my @cmds = (
   "mcetool --set-ps-mode=disabled",
 
   "mcetool --set-exception-length-call-in=5000",        #Display on after incoming call
-  "mcetool --set-exception-length-call-out=2500",       #Display on after outgoing call
+  "mcetool --set-exception-length-call-out=0",          #Display on after outgoing call
   "mcetool --set-exception-length-alarm=1250",          #Display on after alarm
-  "mcetool --set-exception-length-usb-connect=5000",    #Display on at usb connect
-  "mcetool --set-exception-length-usb-dialog=10000",    #Display on at usb mode query
-  "mcetool --set-exception-length-charger=3000",        #Display on at charging start
+  "mcetool --set-exception-length-usb-connect=0",       #Display on at usb connect
+  "mcetool --set-exception-length-usb-dialog=0",        #Display on at usb mode query
+  "mcetool --set-exception-length-charger=0",           #Display on at charging start
   "mcetool --set-exception-length-battery=0",           #Display on at battery full
-  "mcetool --set-exception-length-jack-in=3000",        #Display on at jack insert
-  "mcetool --set-exception-length-jack-out=3000",       #Display on at jack remove
-  "mcetool --set-exception-length-camera=3000",         #Display on at camera button
-  "mcetool --set-exception-length-volume=2000",         #Display on at volume button
+  "mcetool --set-exception-length-jack-in=0",           #Display on at jack insert
+  "mcetool --set-exception-length-jack-out=0",          #Display on at jack remove
+  "mcetool --set-exception-length-camera=0",            #Display on at camera button
+  "mcetool --set-exception-length-volume=0",            #Display on at volume button
   "mcetool --set-exception-length-activity=2000",       #Display on activity extension
 );
 my $cmd = "set -x; " . join(" && ", @cmds);
