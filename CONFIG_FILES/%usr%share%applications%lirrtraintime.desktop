@@ -3,3 +3,5 @@ Type=Application
 Name=lirrtraintime
 Icon=/opt/lirrtraintime/icons/lirr_train_time.png
 Exec=python /opt/lirrtraintime/bin/lirr_train_time_gui.py
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
