@@ -76,7 +76,8 @@ SilicaFlickable {
 
         var item
         var index = windowIndexOf(launcherItem)
-        if (index >= 0) {
+        var singleInstance = launcherItem.readValue("X-Nemo-Single-Instance")
+        if (index >= 0 && singleInstance !== "no") {
             item = repeater.itemAt(index)
             item.minimized = false
 
