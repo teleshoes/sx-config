@@ -77,7 +77,13 @@ SilicaFlickable {
         var item
         var index = windowIndexOf(launcherItem)
         var singleInstance = launcherItem.readValue("X-Nemo-Single-Instance")
-        if (index >= 0  && singleInstance !== "no") {
+        var customLauncher = launcherItem.readValue("Custom-Launcher")
+
+        if (customLauncher == "yes") {
+            Lipstick.compositor.launcherLayer.hide()
+            launcherItem.launchApplication()
+            launcherItem.isLaunching = false
+        } else if (index >= 0 && singleInstance !== "no") {
             item = repeater.itemAt(index)
             item.minimized = false
 
