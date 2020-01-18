@@ -470,6 +470,7 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
     }
 
     function shouldUseAutocaps(layout) {
+        return false
         if (MInputMethodQuick.surroundingTextValid
                 && MInputMethodQuick.contentType === Maliit.FreeTextContentType
                 && MInputMethodQuick.autoCapitalizationEnabled
