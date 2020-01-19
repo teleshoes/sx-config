@@ -473,6 +473,9 @@ SystemWindow {
         }
         onVolumeChanged: restartHideTimerIfWindowVisibleAndWarningNotVisible()
         onVolumeKeyPressed: {
+            if (Lipstick.compositor.screenIsLocked) {
+              return
+            }
             if (keyRepeat.running || keyRepeatDelay.running) {
                 if (Lipstick.compositor.visible) {
                     screenshotTimer.restart()
