@@ -5,7 +5,10 @@ use warnings;
 my $ipmagicName = "sx";
 
 my @cmds = (
+  "mcetool > /tmp/mcetool-before",
+
   "mcetool --reset-settings",
+
   "mcetool --set-dim-timeout=600",
   "mcetool --set-als-autobrightness=disabled",
   "mcetool --set-display-off-single-powerkey-press-actions=unblank,tkunlock",
@@ -23,6 +26,10 @@ my @cmds = (
   "mcetool --set-exception-length-camera=0",            #Display on at camera button
   "mcetool --set-exception-length-volume=0",            #Display on at volume button
   "mcetool --set-exception-length-activity=2000",       #Display on activity extension
+
+  "mcetool > /tmp/mcetool-after",
+  "diff /tmp/mcetool-before /tmp/mcetool-after",
+  "rm /tmp/mcetool-before /tmp/mcetool-after",
 );
 my $cmd = "set -x; " . join(" && ", @cmds);
 
