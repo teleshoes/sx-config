@@ -1,0 +1,5 @@
+dbus-send --print-reply \
+  --dest=com.jolla.settings.system.flashlight \
+  /com/jolla/settings/system/flashlight \
+  com.jolla.settings.system.flashlight.toggleFlashlight \
+;
