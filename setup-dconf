@@ -49,6 +49,8 @@ my $dconf = {
 
   "/jolla/voicecall/quickcall" => "false",
 
+  "/jolla/sound/force_mediavolume" => "true",
+
   "/desktop/lipstick-jolla-home/close_all_apps_hint_count" => "4",
   "/desktop/lipstick-jolla-home/events_view_close_hint_count" => "4",
   "/desktop/sailfish/hints/return_to_home_hint_count" => "4",
