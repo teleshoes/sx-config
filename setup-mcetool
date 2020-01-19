@@ -5,9 +5,11 @@ use warnings;
 my $ipmagicName = "sx";
 
 my @cmds = (
+  "mcetool --set-display-brightness=30",
   "mcetool > /tmp/mcetool-before",
 
   "mcetool --reset-settings",
+  "mcetool --set-display-brightness=30",
 
   "mcetool --set-dim-timeout=600",
   "mcetool --set-als-autobrightness=disabled",
