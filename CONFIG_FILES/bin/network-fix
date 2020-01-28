@@ -1,20 +1,21 @@
-dbus-send \
-  --system \
-  --print-reply \
-  --type=method_call \
-  --dest=org.ofono \
-  /ril_0/context1 \
-  org.ofono.ConnectionContext.SetProperty \
-  string:Active \
-  variant:boolean:true \
-  ;
-dbus-send \
-  --system \
-  --print-reply \
-  --type=method_call \
-  --dest=org.ofono \
-  /ril_0/context1 \
-  org.ofono.ConnectionContext.SetProperty \
-  string:Active \
-  variant:boolean:true \
-  ;
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub main(@){
+  my @cmd = qw(
+    dbus-send
+      --system
+      --print-reply
+      --type=method_call
+      --dest=org.ofono
+      /ril_0/context1
+      org.ofono.ConnectionContext.SetProperty
+      string:Active
+      variant:boolean:true
+  );
+  system @cmd;
+  system @cmd;
+}
+
+&main(@ARGV);
