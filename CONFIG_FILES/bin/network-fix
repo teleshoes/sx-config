@@ -2,16 +2,34 @@
 use strict;
 use warnings;
 
+sub isActiveVoiceCall();
 sub isScreenLocked();
 sub readProc(@);
 
 sub main(@){
   if(not isScreenLocked()){
     print "skipping: screen not locked\n";
+  }elsif(isActiveVoiceCall()){
+    print "skipping: active voice call\n";
   }else{
     system "date";
     print "RESTARTING OFONO\n";
     system "sudo", "systemctl", "restart", "ofono";
+  }
+}
+
+sub isActiveVoiceCall(){
+  my $out = readProc qw(
+     qdbus
+       org.nemomobile.voicecall
+       /
+       org.nemomobile.voicecall.VoiceCallManager.activeVoiceCall
+  );
+
+  if($out =~ /^\s*$/){
+    return 0;
+  }else{
+    return 1;
   }
 }
 
