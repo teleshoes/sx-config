@@ -13,21 +13,37 @@ my $usage = "Usage:
   $0
     restart ofono, UNLESS screen is unlocked, OR a voice call is active
       (only restart when screen is locked and there is no voice call)
+
+  $0 -f|--force|force
+    restart ofono regardless of current state
 ";
 
 sub main(@){
+  my $force = 0;
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $usage;
     exit 0;
+  }elsif(@_ == 1 and $_[0] =~ /^(-f|--force|force)$/){
+    $force = 1;
   }elsif(@_ > 0){
     die $usage;
   }
 
-  if(not isScreenLocked()){
+  my $restart = 0;
+
+  if($force){
+    $restart = 1;
+  }elsif(not isScreenLocked()){
     print "skipping: screen not locked\n";
+    $restart = 0;
   }elsif(isActiveVoiceCall()){
     print "skipping: active voice call\n";
+    $restart = 0;
   }else{
+    $restart = 1;
+  }
+
+  if($restart){
     system "date";
     print "RESTARTING OFONO\n";
     system "sudo", "systemctl", "restart", "ofono";
