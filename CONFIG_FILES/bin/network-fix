@@ -6,7 +6,23 @@ sub isActiveVoiceCall();
 sub isScreenLocked();
 sub readProc(@);
 
+my $usage = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+    restart ofono, UNLESS screen is unlocked, OR a voice call is active
+      (only restart when screen is locked and there is no voice call)
+";
+
 sub main(@){
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print $usage;
+    exit 0;
+  }elsif(@_ > 0){
+    die $usage;
+  }
+
   if(not isScreenLocked()){
     print "skipping: screen not locked\n";
   }elsif(isActiveVoiceCall()){
