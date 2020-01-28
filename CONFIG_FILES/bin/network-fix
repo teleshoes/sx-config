@@ -3,19 +3,9 @@ use strict;
 use warnings;
 
 sub main(@){
-  my @cmd = qw(
-    dbus-send
-      --system
-      --print-reply
-      --type=method_call
-      --dest=org.ofono
-      /ril_0/context1
-      org.ofono.ConnectionContext.SetProperty
-      string:Active
-      variant:boolean:true
-  );
-  system @cmd;
-  system @cmd;
+  system "date";
+  print "RESTARTING OFONO\n";
+  system "sudo", "systemctl", "restart", "ofono";
 }
 
 &main(@ARGV);
