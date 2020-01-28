@@ -2,10 +2,50 @@
 use strict;
 use warnings;
 
+sub isScreenLocked();
+sub readProc(@);
+
 sub main(@){
-  system "date";
-  print "RESTARTING OFONO\n";
-  system "sudo", "systemctl", "restart", "ofono";
+  if(not isScreenLocked()){
+    print "skipping: screen not locked\n";
+  }else{
+    system "date";
+    print "RESTARTING OFONO\n";
+    system "sudo", "systemctl", "restart", "ofono";
+  }
+}
+
+sub isScreenLocked(){
+  my $out = readProc qw(
+    qdbus
+      --system
+      com.nokia.mce
+      /com/nokia/mce/request
+      com.nokia.mce.request.get_display_status
+  );
+
+  my $status = "";
+  if($out =~ /^(on|off)$/){
+    $status = $1;
+  }
+
+  if($status eq "on"){
+    return 0;
+  }elsif($status eq "off"){
+    return 1;
+  }else{
+    print STDERR "WARNING: could not read display status\n";
+    return 0;
+  }
+}
+
+sub readProc(@){
+  my @cmd = @_;
+  open CMD, "-|", @cmd or die "could not run @cmd\n$!\n";
+  my $out = join '', <CMD>;
+  close CMD;
+  die "ERROR: \"@cmd\" failed\n" if $? != 0;
+  return $out;
 }
 
 &main(@ARGV);
