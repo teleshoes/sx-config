@@ -52,7 +52,7 @@ my $usage = "Usage:
 
   TITLE:
     name of event
-    can contain word-characters only (letters, numbers, underscores), for convenience
+    can ONLY contain letters, numbers, underscores, or dashes, for convenience
 
   COMMAND:
     a shell command
@@ -210,10 +210,10 @@ sub main(@){
     my @recurrenceArgs = getScheduleRecurrenceArgs($sched);
     my $recurrenceArgsFmt = join ";", @recurrenceArgs;
 
-    if($title !~ /^\w+$/){
-      die "ERROR: TITLE must be word-characters only (for $EXEC convenience)\n";
+    if($title !~ /^[a-zA-Z0-9_\-]+$/){
+      die "ERROR: TITLE can only contain letters/numbers/underscores/dashes\n";
     }
-    if($command != /'/){
+    if($command =~ /'/){
       die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
     }
 
