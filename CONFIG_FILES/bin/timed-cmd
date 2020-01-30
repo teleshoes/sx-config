@@ -1,0 +1,396 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+my $APPLICATION = do{$_=$EXEC; s/\W+/_/g; $_};
+
+my $ATT_DAYS_OF_WEEK = "Days of week";
+my $ATT_MONTHS = "Months";
+my $ATT_DAYS_OF_MONTH = "Days of month";
+my $ATT_HOURS = "Hours";
+my $ATT_MINUTES = "Minutes";
+
+my $SCHED_ALL = {
+  $ATT_DAYS_OF_WEEK  => [qw(Sun Mon Tue Wed Thu Fri Sat)],
+  $ATT_MONTHS        => [qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)],
+  $ATT_DAYS_OF_MONTH => [0..31], #why 0, i couldnt say
+  $ATT_HOURS         => [0..23],
+  $ATT_MINUTES       => [0..59],
+};
+
+sub getTimedCmdEventCookies();
+sub getTimedCmdEventInfo($);
+sub getScheduleRecurrenceArgs($);
+sub parseSchedule($);
+sub filterByDivisible($$);
+sub arrSameElems($$);
+sub run(@);
+sub readProc(@);
+sub readProcLines(@);
+
+my $usage = "Usage:
+  $EXEC -h | --help
+    show this message
+
+  $EXEC
+  $EXEC -g
+    -fetch timed event cookies with APPLICATION=$APPLICATION
+    -extract schedule/command info for each cookie
+    -print one per line:
+      cookie,title,human-readable-schedule,command
+
+  $EXEC --clear
+    -fetch timed event cookies with APPLICATION=$APPLICATION
+    -run --cancel-event for each cookie
+
+  $EXEC -a|--add [SCHED SCHED ..] TITLE COMMAND
+    -create timed event to run <COMMAND>
+    -defaults to run every minute (which is the smallest granularity)
+    -<SCHED> reduces the frequency that <COMMAND> is run
+
+  TITLE:
+    name of event
+    can contain word-characters only (letters, numbers, underscores), for convenience
+
+  COMMAND:
+    a shell command
+    cannot contain apostrophes/single-quotes ('), for convenience
+
+  SCHED:
+    restrict which minutes the job will run it
+      (default is every minute of any hour of any day)
+    effects are cumulative, and the order matters (applied left to right)
+      e.g.:
+        1h
+          => every hour, on the hour
+        3h --minutes=15
+          => every 3 hours, at a quarter past the hour
+        --minutes=15 3h
+          => every 3 hours, on the hour
+        5m --weekdays
+          => every 5 minutes, EXCEPT on Sat or Sun
+        --hours=9 --minutes=0 --weekdays='Tue Thu' --months=Nov
+          => 09:00am on tuesdays and thursdays in november
+        --hours=0 --day-of-month=25 --months=Dec
+          => midnight on Newton's birthday
+
+    <MIN>m | --every-n-min=<MIN> | --every-<MIN>-min
+      set minutes = every minute evenly divisible by <MIN>
+      MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60
+      (if this is the only <SCHED>, this means run job every <MIN> minutes)
+        e.g.:
+          30m                => --minutes='0 30'
+          --every-n-min=5    => --minutes='0 5 10 15 20 25 30 35 40 45 50 55'
+          --every-15-min     => --minutes='0 15 30 45'
+
+    <HOUR>h | --every-n-hours=<HOUR> | --every-<HOUR>-hours
+      set hours = every hour divisible by <HOUR>, AND set minutes = 0
+      HOUR = 1 | 2 | 3 | 4 | 6 | 8 | 12 | 24
+      (if this is the only <SCHED>, this means run job every <HOUR> hours)
+        e.g.:
+          4h                 => --hours='0 4 8 12 16 20' --minutes=0
+          --every-6-hours    => --hours='0 6 12 18'      --minutes=0
+          --every-n-hours=8  => --hours='0 8 16'         --minutes=0
+
+    --every-min
+      same as: 1m   (this is the default)
+
+    --hourly
+      same as: 60m
+
+    --daily
+      same as: 24h
+
+    --weekdays
+      same as: --days-of-week=\"Mon Tue Wed Thu Fri\"
+    --weekends
+      same as: --days-of-week=\"Sat Sun\"
+
+    --days-of-week=\"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
+      set days-of-week
+    --months=\"<MONTH> <MONTH> ...\"
+      set months
+    --days-of-month=\"<DAY_OF_MONTH> <DAY_OF_MONTH> ...\"
+      set days-of-month
+    --hours=\"<HOUR> <HOUR> ...\"
+      set hours
+    --minutes=\"<MIN> <MIN> ...\"
+      set minutes
+";
+
+sub main(@){
+  my $schedRegex = join "|", (
+  );
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print "$usage\n";
+    exit 0;
+  }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-g|--get)$/)){
+    my @cookies = getTimedCmdEventCookies();
+    for my $cookie(@cookies){
+      my $event = getTimedCmdEventInfo $cookie;
+      my $sched = parseSchedule $$event{schedule};
+      print "$cookie: $sched $$event{TITLE} '$$event{COMMAND}'\n";
+    }
+  }elsif(@_ == 1 and $_[0] =~ /^(--clear)$/){
+    my @cookies = getTimedCmdEventCookies();
+    for my $cookie(@cookies){
+      run "timedclient-qt5", "--cancel-event", $cookie;
+    }
+  }elsif(@_ >= 3 and $_[0] =~ /^(-a|--add)$/){
+    shift @_;
+    my $sched = {%$SCHED_ALL};
+    while(@_ > 2){
+      my $arg = shift @_;
+      if($arg =~ /^(--days-of-week|--months|--days-of-month|--hours|--minutes)=(.+)$/){
+        my ($field, $valStr) = ($1, $2);
+        my $vals = [split /[ ,]+/, $valStr];
+        if($field =~ /^(--days-of-week)$/){
+          for my $dayOfWeek(@$vals){
+            die "ERROR: malformed day-of-week: $dayOfWeek\n"
+              if $dayOfWeek !~ /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/;
+          }
+          $$sched{$ATT_DAYS_OF_WEEK} = $vals;
+        }elsif($field =~ /^(--months)$/){
+          for my $month(@$vals){
+            die "ERROR: malformed month: $month\n"
+              if $month !~ /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/;
+          }
+          $$sched{$ATT_MONTHS} = $vals;
+        }elsif($field =~ /^(--days-of-month)$/){
+          for my $dayOfMonth(@$vals){
+            die "ERROR: malformed day-of-month: $dayOfMonth\n"
+              if $dayOfMonth !~ /^\d+$/ or $dayOfMonth > 31;
+          }
+          $$sched{$ATT_DAYS_OF_MONTH} = [map {0+$_} @$vals];
+        }elsif($field =~ /^(--hours)$/){
+          for my $hour(@$vals){
+            die "ERROR: malformed hour: $hour\n" if $hour !~ /^\d+$/ or $hour >= 24;
+          }
+          $$sched{$ATT_HOURS} = [map {0+$_} @$vals];
+        }elsif($field =~ /^(--minutes)$/){
+          for my $min(@$vals){
+            die "ERROR: malformed min: $min\n" if $min !~ /^\d+$/ or $min >=60;
+          }
+          $$sched{$ATT_MINUTES} = [map {0+$_} @$vals];
+        }else{
+          die "ERROR: malformed sched arg: $arg\n";
+        }
+      }elsif($arg =~ /^(\d+m|--every-n-min=\d+|--every-\d+-min)$/){
+        my $factor = 0+$1 if $arg =~ /(\d+)/;
+        if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30|60)$/){
+          die "ERROR: --every-n-minute can only accept divisors of 60\n";
+        }
+        $$sched{$ATT_MINUTES} = filterByDivisible $factor, $$SCHED_ALL{$ATT_MINUTES};
+      }elsif($arg =~ /^(\d+h|--every-n-hours=\d+|--every-\d+-hours)$/){
+        my $factor = 0+$1 if $arg =~ /(\d+)/;
+        if(not defined $factor or $factor !~ /^(1|2|3|4|6|8|12)$/){
+          die "ERROR: --every-n-hours can only accept divisors of 24\n";
+        }
+        $$sched{$ATT_HOURS} = filterByDivisible $factor, $$SCHED_ALL{$ATT_HOURS};
+        $$sched{$ATT_MINUTES} = [0];
+      }elsif($arg =~ /^(--every-min)$/){
+        $$sched{$ATT_MINUTES} = filterByDivisible 1, $$SCHED_ALL{$ATT_MINUTES};
+      }elsif($arg =~ /^(--hourly)$/){
+        $$sched{$ATT_MINUTES} = filterByDivisible 60, $$SCHED_ALL{$ATT_MINUTES};
+      }elsif($arg =~ /^(--daily)$/){
+        $$sched{$ATT_HOURS} = filterByDivisible 24, $$SCHED_ALL{$ATT_HOURS};
+        $$sched{$ATT_MINUTES} = [0];
+      }elsif($arg =~ /^(--weekdays)$/){
+        $$sched{$ATT_DAYS_OF_WEEK} = [qw(Mon Tue Wed Thu Fri)];
+      }elsif($arg =~ /^(--weekends)$/){
+        $$sched{$ATT_DAYS_OF_WEEK} = [qw(Sat Sun)];
+      }else{
+        die "ERROR: malformed schedule arg: $arg\n";
+      }
+    }
+    print "adding command with schedule: " . parseSchedule($sched) . "\n";
+    my ($title, $command) = @_;
+    my @recurrenceArgs = getScheduleRecurrenceArgs($sched);
+    my $recurrenceArgsFmt = join ";", @recurrenceArgs;
+
+    if($title !~ /^\w+$/){
+      die "ERROR: TITLE must be word-characters only (for $EXEC convenience)\n";
+    }
+    if($command != /'/){
+      die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
+    }
+
+    run "timedclient-qt5",
+      "-awhenDue;runCommand=$command",
+      "-r$recurrenceArgsFmt",
+      "-eAPPLICATION=$APPLICATION;TITLE=$title",
+      ;
+  }else{
+    die $usage;
+  }
+}
+
+sub getTimedCmdEventCookies(){
+  my $out = readProc "timedclient-qt5", "--search", "APPLICATION=$APPLICATION";
+  return $out =~ /\d+/g;
+}
+
+sub getTimedCmdEventInfo($){
+  my ($eventCookie) = @_;
+  my @lines = readProcLines "timedclient-qt5", "--get-event=$eventCookie";
+  my $okAtts = join "|", qw(APPLICATION TITLE COMMAND USER);
+  my $okSchedAtts = join "|", (
+    $ATT_DAYS_OF_WEEK, $ATT_MONTHS, $ATT_DAYS_OF_MONTH, $ATT_HOURS, $ATT_MINUTES,
+  );
+
+  my $event = {schedule => {}};
+  for my $line(@lines){
+    if($line =~ /^\s*($okAtts)\s*=\s*'(.+)'$/){
+      $$event{$1} = $2;
+    }elsif($line =~ /^\s*($okSchedAtts)\s*:\s*(.+)$/){
+      my ($att, $val) = ($1, $2);
+      my @vals = split /\s+/, $val;
+      $$event{schedule}{$att} = [@vals];
+    }
+  }
+  return $event;
+}
+
+sub getScheduleRecurrenceArgs($){
+  my ($sched) = @_;
+  my @args;
+
+  for my $hour(@{$$sched{$ATT_HOURS}}){
+    push @args, "hour=$hour";
+  }
+
+  for my $minute(@{$$sched{$ATT_MINUTES}}){
+    push @args, "minute=$minute";
+  }
+
+  if(arrSameElems($$sched{$ATT_DAYS_OF_MONTH}, $$SCHED_ALL{$ATT_DAYS_OF_MONTH})){
+    push @args, "everyDayOfMonth";
+  }else{
+    for my $dayOfMonth(@{$$sched{$ATT_DAYS_OF_MONTH}}){
+      push @args, "dayOfMonth=$dayOfMonth";
+    }
+  }
+
+  if(arrSameElems($$sched{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
+    push @args, "everyDayOfWeek";
+  }else{
+    for my $dayOfWeek(@{$$sched{$ATT_DAYS_OF_WEEK}}){
+      push @args, "dayOfWeek=$dayOfWeek";
+    }
+  }
+
+  if(arrSameElems($$sched{$ATT_MONTHS}, $$SCHED_ALL{$ATT_MONTHS})){
+    push @args, "everyMonth";
+  }else{
+    for my $month(@{$$sched{$ATT_MONTHS}}){
+      my %monthIds = (
+        Jan => 2,
+        Feb => 3,
+        Mar => 4,
+        Apr => 5,
+        May => 6,
+        Jun => 7,
+        Jul => 8,
+        Aug => 9,
+        Sep => 10,
+        Oct => 11,
+        Nov => 12,
+        Dec => undef,
+      );
+      my $monthId = $monthIds{$month};
+      if(not defined $monthId){
+        die "ERROR: some ridiculous timed off-by-one bug thinks Jan=2 and Dec=13\n"
+          . "this completely prevents adding December, except with everyMonth...\n"
+          ;
+      }
+      push @args, "month=$monthId";
+    }
+  }
+  return @args;
+}
+
+sub parseSchedule($){
+  my ($schedule) = @_;
+  my $hr = $$schedule{$ATT_HOURS};
+  my $min = $$schedule{$ATT_MINUTES};
+  my $isAllHr = arrSameElems($hr, $$SCHED_ALL{$ATT_HOURS});
+  my $isAllMin = arrSameElems($min, $$SCHED_ALL{$ATT_MINUTES});
+
+  my @schedArgs;
+  if(@schedArgs == 0 and @$min == 1){
+    for my $hrFactor(qw(1 2 3 4 6 8 12 24)){
+      my $factorHrs = filterByDivisible $hrFactor, $$SCHED_ALL{$ATT_HOURS};
+      if(arrSameElems($hr, $factorHrs)){
+        push @schedArgs, "${hrFactor}h";
+        push @schedArgs, "--minutes=$$min[0]" if $$min[0] != 0;
+        last;
+      }
+    }
+  }
+
+  if(@schedArgs == 0 and $isAllHr){
+    for my $minFactor(qw(1 2 3 4 5 6 10 12 15 20 30)){
+      my $factorMins = filterByDivisible $minFactor, $$SCHED_ALL{$ATT_MINUTES};
+      if(arrSameElems($min, $factorMins)){
+        push @schedArgs, "${minFactor}m";
+        last;
+      }
+    }
+  }
+
+  if(@schedArgs == 0){
+    push @schedArgs, "--hours='@$hr'" if not $isAllHr;
+    push @schedArgs, "--minutes='@$min'" if not $isAllMin;
+  }
+
+  if(not arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
+    push @schedArgs, "--days-of-week='@{$$schedule{$ATT_DAYS_OF_WEEK}}'";
+  }
+  if(not arrSameElems($$schedule{$ATT_MONTHS}, $$SCHED_ALL{$ATT_MONTHS})){
+    push @schedArgs, "--months='{$$schedule{$ATT_MONTHS}}'";
+  }
+  if(not arrSameElems($$schedule{$ATT_DAYS_OF_MONTH}, $$SCHED_ALL{$ATT_DAYS_OF_MONTH})){
+    push @schedArgs, "--days-of-month='{$$schedule{$ATT_DAYS_OF_MONTH}}'";
+  }
+
+  return "@schedArgs";
+}
+
+sub filterByDivisible($$){
+  my ($factor, $arr) = @_;
+  return [grep {$_ % $factor == 0} @$arr];
+}
+
+sub arrSameElems($$){
+  my ($arrRef1, $arrRef2) = @_;
+  return 0 if @$arrRef1 != @$arrRef2;
+
+  my @arr1 = sort @$arrRef1;
+  my @arr2 = sort @$arrRef2;
+  for(my $i=0; $i<@arr1; $i++){
+    if($arr1[$i] ne $arr2[$i]){
+      return 0;
+    }
+  }
+  return 1;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+  die "ERROR: \"@_\" failed\n" if $? != 0;
+}
+sub readProc(@){
+  return join '', readProcLines @_;
+}
+sub readProcLines(@){
+  open CMD, "-|", @_ or die "ERROR: could not run \"@_\"\n$!\n";
+  my @lines = <CMD>;
+  close CMD;
+  die "ERROR: \"@_\" failed\n" if $? != 0;
+  return @lines;
+}
+
+&main(@ARGV);
