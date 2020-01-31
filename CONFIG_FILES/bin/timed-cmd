@@ -76,7 +76,7 @@ my $usage = "Usage:
         --hours=0 --day-of-month=25 --months=Dec
           => midnight on Newton's birthday
 
-    <MIN>m | --every-n-min=<MIN> | --every-<MIN>-min
+    <MIN>m | <MIN>min | --every-n-min=<MIN> | --every-<MIN>-min
       set minutes = every minute evenly divisible by <MIN>
       MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60
       (if this is the only <SCHED>, this means run job every <MIN> minutes)
@@ -177,7 +177,7 @@ sub main(@){
         }else{
           die "ERROR: malformed sched arg: $arg\n";
         }
-      }elsif($arg =~ /^(\d+m|--every-n-min=\d+|--every-\d+-min)$/){
+      }elsif($arg =~ /^(\d+m|\d+min|--every-n-min=\d+|--every-\d+-min)$/){
         my $factor = 0+$1 if $arg =~ /(\d+)/;
         if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30|60)$/){
           die "ERROR: --every-n-minute can only accept divisors of 60\n";
