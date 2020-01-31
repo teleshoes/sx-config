@@ -294,10 +294,26 @@ SilicaFlickable {
         return count
     }
 
+    function writeFileOverHTTP(file, text) {
+        var request = new XMLHttpRequest();
+        request.open("PUT", "file://" + file, false);
+        request.send(text);
+        return request.status;
+    }
+
     Connections {
         target: Lipstick.compositor
         onMinimizeLaunchingWindows: switcherRoot.minimizeLaunchingWindows()
-        onTopmostWindowIdChanged: touchWindow(Lipstick.compositor.topmostWindowId)
+        onTopmostWindowIdChanged: {
+          var windowId = Lipstick.compositor.topmostWindowId
+          if(windowId > 0){
+            var window = Lipstick.compositor.windowForId(windowId)
+            if(window){
+              writeFileOverHTTP("/tmp/lipstick-window-title", window.title + "\n")
+            }
+          }
+          touchWindow(windowId)
+        }
     }
 
     function resetPosition(delay) {
