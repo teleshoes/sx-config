@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $USER = "nemo";
+
+sub main(@){
+  if(`whoami` =~ /^root$/){
+    exec "sudo", "-u", $USER, $0, @ARGV;
+  }elsif(`whoami` !~ /^$USER$/){
+    die "ERROR: user is not $USER\n";
+  }
+
+  $ENV{PATH} = "/home/$USER/bin:/home/$USER/.cabal/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/games:/usr/games";
+  exec @ARGV;
+}
+
+&main(@ARGV);
