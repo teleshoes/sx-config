@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $IPMAGIC_NAME = "sx";
+
+my $CMDS = {
+};
+
+sub main(@){
+  system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--clear";
+  print "\n\n\n";
+
+  for my $title(sort keys %$CMDS){
+    my $sched = $$CMDS{$title}{sched};
+    my $timeout = $$CMDS{$title}{timeout};
+    my $cmd = $$CMDS{$title}{cmd};
+
+    my @daemonRunCmd = (
+      "udo", "daemon-run",
+      "--name=$title", "--timeout=$timeout",
+      "--verbose",
+      $cmd,
+    );
+
+    system "ipmagic", $IPMAGIC_NAME,
+      "timed-cmd --add $sched $title '@daemonRunCmd'";
+  }
+
+  print "\n\n\n";
+  system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--get";
+}
+
+&main(@ARGV);
