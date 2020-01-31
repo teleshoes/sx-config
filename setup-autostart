@@ -9,10 +9,7 @@ my $STARTUP_SCRIPT_FILE = "/usr/local/bin/autostart";
 my $STARTUP_SCRIPT_CONTENTS = "#!/bin/sh
 PATH=/home/nemo/bin:\$PATH
 
-/home/nemo/bin/screen-daemon backup-daemon --start
-/home/nemo/bin/screen-daemon email-daemon --start
 /home/nemo/bin/screen-daemon button-monitor --start
-/home/nemo/bin/screen-daemon networkfix-daemon --start
 sudo cpu-enable fast
 aliendalvik-post-start
 ";
