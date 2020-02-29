@@ -100,10 +100,14 @@ sub main(@){
   run "ipmagic", $ipmagicName, "-u", "root", join ";\n", @cmds;
   print "\n";
 
-  print "try each of these, as nemo, in order, to attempt to see changes:\n";
-  print "  systemctl --user restart ambienced\n";
-  print "  systemctl --user stop ambienced ; systemctl --user restart lipstick\n";
-  print "  sudo reboot\n";
+  print "restarting lipstick, ok? [y/N] ";
+  my $response = <STDIN>;
+  if($response =~ /^(y|Y)$/){
+    run "ipmagic", $ipmagicName,
+      "systemctl --user stop ambienced ; systemctl --user restart lipstick";
+  }else{
+    print "ambiences wont work until you stop ambienced and restart lipstick\n";
+  }
 }
 
 sub getDefaultAmbienceConfig($$){
