@@ -84,6 +84,8 @@
 
 ./setup-autostart
 
+./setup-timed-cmds
+
 ./sync-games --restore
 
 ./restore-klomp-lists
