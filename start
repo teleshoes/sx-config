@@ -42,6 +42,7 @@
 ./setup-dconf
 ./setup-mcetool
 
+#### IMPORTANT: DO THIS NOW
 #cd backup/backup-mms/parts-repo
 #perl rename-msg-dirs.pl
 #git commit -m 'run rename-msg-dirs (rename all ##### msg dirs to msg-MTIME-##### for sailfish)'
@@ -52,8 +53,8 @@
 ./restore-contacts
 ./restore-comm
 
-#insert SIM+sdcard and reboot
-#ipmagic sx -t # ok after config-files and reboot
+#POWER OFF PHONE, insert SIM+sdcard, and reboot
+#ipmagic sx -t # ok any time after config-files and reboot
 
 #xperia x compact only: ./setup-sensor-diversions
 
