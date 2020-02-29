@@ -26,6 +26,7 @@ sub main(@){
       $cmd,
     );
 
+    print "\n";
     system "ipmagic", $IPMAGIC_NAME,
       "timed-cmd --add $sched $title '@daemonRunCmd'";
   }
