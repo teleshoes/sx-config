@@ -14,6 +14,10 @@ ipmagic $IPMAGIC_NAME -s "
     mv ~/.ssh/id_rsa.pub ~/.ssh/$HOST.pub
   fi
 "
+ipmagic $IPMAGIC_NAME -u root -s "
+  set -x
+  mkdir -p /root/.ssh/
+"
 
 scp $USER@$HOST:~/.ssh/$HOST.pub ~/.ssh/$HOST.pub
 
