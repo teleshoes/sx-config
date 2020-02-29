@@ -2,14 +2,16 @@ IPMAGIC_NAME="sx"
 USER="nemo"
 HOST=$(ipmagic $IPMAGIC_NAME)
 
-set -x
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Pictures/Camera'
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Videos/Camera'
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Videos/Camera/.recording'
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Pictures/AdvancedCam'
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /home/$USER/Videos/AdvancedCam'
+ipmagic $IPMAGIC_NAME -s '
+  set -x
+  mkdir -p /home/$USER/Pictures/Camera
+  mkdir -p /home/$USER/Videos/Camera
+  mkdir -p /home/$USER/Videos/Camera/.recording
+  mkdir -p /home/$USER/Pictures/AdvancedCam
+  mkdir -p /home/$USER/Videos/AdvancedCam
 
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /media/sdcard/phone/Pictures/Camera'
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /media/sdcard/phone/Videos/Camera'
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /media/sdcard/phone/Pictures/AdvancedCam'
-ipmagic $IPMAGIC_NAME -s 'mkdir -p /media/sdcard/phone/Videos/AdvancedCam'
+  mkdir -p /media/sdcard/phone/Pictures/Camera
+  mkdir -p /media/sdcard/phone/Videos/Camera
+  mkdir -p /media/sdcard/phone/Pictures/AdvancedCam
+  mkdir -p /media/sdcard/phone/Videos/AdvancedCam
+'
