@@ -26,7 +26,7 @@
   <country>United States of America</country>
   <region>New York</region>
   <file_name>/home/nemo/.config/harbour-meecast/weather.com_USNY0330</file_name>
-  <forecast_url>http://wxdata.weather.com/wxdata/weather/local/USNY0330?cm_ven=1CW&amp;site=wx.com-bar&amp;cm_ite=wx-cc&amp;par=1CWFFv1.1.9&amp;cm_pla=wx.com-bar&amp;cm_cat=FFv1.1.9&amp;unit=m&amp;dayf=9&amp;cc=*</forecast_url>
+  <forecast_url>https://weather.com/en-GB/weather/today/l/USNY0330</forecast_url>
   <cookie></cookie>
   <latitude>40.69</latitude>
   <longitude>-73.4</longitude>
