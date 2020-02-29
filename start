@@ -29,7 +29,6 @@
 #   passwd #d
 ###################
 
-./setup-ssh #twice for some reason
 ./setup-ssh
 
 ./set-host
