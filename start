@@ -47,14 +47,14 @@
 #perl rename-msg-dirs.pl
 #git commit -m 'run rename-msg-dirs (rename all ##### msg dirs to msg-MTIME-##### for sailfish)'
 
-#ensure SD card inserted and mounted (not sim card)
-./sync-home-config
-
 ./restore-contacts
 ./restore-comm
 
 #POWER OFF PHONE, insert SIM+sdcard, and reboot
 #ipmagic sx -t # ok any time after config-files and reboot
+
+#ensure SD card inserted and mounted
+./sync-home-config
 
 #xperia x compact only: ./setup-sensor-diversions
 
