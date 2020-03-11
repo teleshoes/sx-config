@@ -67,7 +67,6 @@ my $REMOTE_BYCONTACT_DIR_MMS = "/media/sdcard/phone/comm-repos/mms/msg-by-contac
 my $REMOTE_BYCONTACT_DIR_MMSPIX = "/media/sdcard/phone/comm-repos/mms/pix-by-contact";
 
 sub main(@){
-  my $user = "nemo";
   my $host = `ipmagic $ipmagicName`;
   die "failed to get host" if $? != 0;
   chomp $host;
