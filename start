@@ -78,7 +78,7 @@
 
 ./setup-coolreader
 
-./sync-riot --restore
+#./sync-riot --restore #broken
 
 ./launcher-buttons
 
