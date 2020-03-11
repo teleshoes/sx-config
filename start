@@ -74,6 +74,8 @@
 
 ./install-apks
 
+./config-files #to overwrite files from installs (e.g.: launchers)
+
 ./setup-aliendalvik
 
 ./setup-coolreader
