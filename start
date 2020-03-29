@@ -11,6 +11,7 @@
 #  -get an unlock code from
 #    https://developer.sony.com/develop/open-devices/get-started/unlock-bootloader/
 #  -unlock phone with fastboot
+#     sudo fastboot oem unlock 0x<UNLOCK_CODE>
 #  -download sony binary img AOSP v13+ loire
 #  -run ./flash.sh | tee log
 
