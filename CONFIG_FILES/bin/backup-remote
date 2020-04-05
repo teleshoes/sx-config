@@ -27,6 +27,7 @@ my %sqliteDbs = (
   contacts => "/home/$user/.local/share/system/Contacts/qtcontacts-sqlite/contacts.db",
 );
 
+my $notificationIdsCache = "/home/$user/.cache/backup-remote-notificationIds";
 my $lastSuccessFile = "/home/$user/.cache/backup-last-success";
 
 sub ensureConnection($);
@@ -46,6 +47,8 @@ sub tryReadProcQuiet(@);
 sub nowHrMin();
 sub nowYMD_HMS_MILLIS();
 sub fail($);
+sub appendNotificationIdCache($);
+sub clearAllNotifications();
 
 sub main(@){
   run "date";
@@ -56,6 +59,7 @@ sub main(@){
   system "execPing";
 
   my $id = createNotification();
+  appendNotificationIdCache($id);
 
   ######
   notificationMsg $id, sprintf "BAK-CNXN: %s", nowHrMin();
@@ -109,7 +113,7 @@ sub main(@){
   system "echo " . nowHrMin() . " > $lastSuccessFile";
   ######
 
-  removeNotification $id;
+  clearAllNotifications();
 
   run "date";
   run "bat";
@@ -266,7 +270,25 @@ sub fail($){
   my $id = createNotification();
   notificationMsg $id, sprintf "BACKUP FAILED %s (%s)", $now, $lastSuccess;
 
+  appendNotificationIdCache($id);
+
   die "$msg\n";
+}
+
+sub appendNotificationIdCache($){
+  my ($id) = @_;
+  open FH, ">> $notificationIdsCache"
+    or print STDERR "ERROR: could not write to $notificationIdsCache\n$!\n";
+  print FH "$id\n";
+  close FH;
+}
+
+sub clearAllNotifications(){
+  my @ids = `cat $notificationIdsCache 2>/dev/null`;
+  system "rm", $notificationIdsCache;
+  for my $id(@ids){
+    removeNotification($id);
+  }
 }
 
 &main(@ARGV);
