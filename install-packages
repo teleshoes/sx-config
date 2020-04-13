@@ -48,6 +48,7 @@ my %packages = (
     harbour-filetug
     harbour-gpsinfo
     harbour-jollacompass
+    harbour-mimer
     harbour-modrana
     harbour-orienteeringcompass
     harbour-sailbook
