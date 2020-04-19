@@ -53,6 +53,8 @@ sub main(@){
     }else{
       setLocked 1;
     }
+  }else{
+    die "ERROR: unknown command $arg\n";
   }
 }
 
