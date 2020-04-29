@@ -152,6 +152,7 @@ my @extraIncludePatterns = qw(
   simkit.desktop
   store-client-install.desktop
   voicecall-ui-openurl.desktop
+  webcal-import.desktop
 );
 
 my $user = "nemo";
