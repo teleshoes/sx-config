@@ -26,6 +26,7 @@ my %packages = (
     expect
     lipstick-qt5-tools
     mce-tools
+    pbcopy
     qt5-qttools-qdbus
     harbour-storeman
     whois
@@ -94,6 +95,7 @@ my @openrepos = qw(
   alina
   ade
   Ancelad
+  alfmar
   anig
   balta
   basil
