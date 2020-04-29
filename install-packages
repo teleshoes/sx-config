@@ -15,6 +15,8 @@ sub tryrun(@);
 sub runIpmagicRoot(@);
 sub tryrunIpmagicRoot(@);
 
+my @removals = qw();
+
 my %packages = (
   "1-essential" => [qw(
     rsync screen
@@ -151,7 +153,7 @@ my $usage = "Usage:
   $0 [COMMAND COMMAND ..]
     run COMMANDs as below
     if none are given, do all of these, in order:
-        keys repos refresh
+        keys repos refresh removals
         @groups
         force-install
 
@@ -177,7 +179,7 @@ sub main(@){
 
   my @commands = @_;
   if(@commands == 0){
-    @commands = ("keys", "repos", "refresh", @groups, "force-install");
+    @commands = ("keys", "repos", "refresh", "removals", @groups, "force-install");
   }
 
   for my $command(@commands){
@@ -196,6 +198,10 @@ sub main(@){
     }elsif($command =~ /^refresh-(\w+)$/){
       tryrunIpmagicRoot "pkill", "packagekitd";
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
+    }elsif($command =~ /^removals$/){
+      for my $pkg(@removals){
+        tryrunIpmagicRoot "pkcon", "remove", $pkg;
+      }
     }elsif(defined $groupAliases{$command} or defined $groupsByAlias{$command}){
       my $group;
       if(defined $groupAliases{$command}){
