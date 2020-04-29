@@ -200,7 +200,7 @@ sub main(@){
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
     }elsif($command =~ /^removals$/){
       for my $pkg(@removals){
-        tryrunIpmagicRoot "pkcon", "remove", $pkg;
+        tryrunIpmagicRoot "pkcon", "-y", "remove", $pkg;
       }
     }elsif(defined $groupAliases{$command} or defined $groupsByAlias{$command}){
       my $group;
