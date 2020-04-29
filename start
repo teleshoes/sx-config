@@ -122,3 +122,6 @@ pubkeys
 #zoom => settings => always mute my mic => yes
 #zoom => settings => always turn off my video => yes
 #zoom => join => `zoom-run --url` => enter meeting id => join
+#jitsi => settings => display name
+#jitsi => settings => start with video muted => yes
+#jitsi => ipmagic sx "echo $(jitsi-meet --room) | pbcopy" => paste room
