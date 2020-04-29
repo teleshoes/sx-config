@@ -40,7 +40,6 @@ my %packages = (
     patchmanager
     patchutils
     sailfishos-patch-autocaps
-    sailfishos-speaker-volumeup
     sailfishos-uirotate-free
   )],
 
