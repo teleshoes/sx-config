@@ -7,7 +7,7 @@ import Sailfish.Messages 1.0
 
 ListItem {
     id: delegate
-    contentHeight: textColumn.height + Theme.paddingMedium + textColumn.y
+    contentHeight: textColumn.height + Theme.paddingMedium + Theme.paddingSmall + textColumn.y
     menu: contextMenuComponent
     property CommContactGroupModel groupModel
 
@@ -40,7 +40,7 @@ ListItem {
         id: textColumn
         anchors {
             top: parent.top
-            topMargin: Theme.paddingSmall
+            topMargin: Theme.paddingMedium
             left: parent.left
             leftMargin: Theme.horizontalPageMargin
             right: parent.right
@@ -105,25 +105,19 @@ ListItem {
                     // but right now only the current conversation channel is accessible.
                     var label = mainWindow.eventStatusText(model.lastEventStatus, model.lastEventId)
                     if (!label) {
+                        var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
+                        var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
+                        var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
 
-                        //ABSTIME_HACK
-                        //
-                        //var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
-                        //var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
-                        //var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
-                        //
-                        //if (daysDiff === 0) {
-                        //    label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
-                        //} else if (daysDiff < 7) {
-                        //    label = Format.formatDate(model.startTime, Formatter.TimeValue)
-                        //} else if (daysDiff < 365) {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
-                        //} else {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMedium)
-                        //}
-                        //
-                        label = Qt.formatDateTime(model.startTime, 'hh:mm   -   yyyy-MM-dd')
-                        ///////ABSTIME HACK
+                        if (daysDiff === 0) {
+                            label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
+                        } else if (daysDiff < 7) {
+                            label = Format.formatDate(model.startTime, Formatter.TimeValue)
+                        } else if (daysDiff < 365) {
+                            label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
+                        } else {
+                            label = Format.formatDate(model.startTime, Formatter.DateMedium)
+                        }
 
                         if (providerName) {
                             label = providerName + " \u2022 " + label
@@ -140,7 +134,7 @@ ListItem {
 
             text: {
                 if (model.lastMessageText !== '') {
-                    return model.lastMessageText
+                    return model.lastMessageText.replace(/^\s*\n/gm, "") // remove empty lines
                 } else if (model.lastEventType === CommHistory.MMSEvent) {
                     //% "Multimedia message"
                     return qsTrId("messages-ph-mms_empty_text")
