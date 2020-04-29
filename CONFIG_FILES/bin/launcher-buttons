@@ -31,7 +31,7 @@ my @config = qw(
   jolla-calendar
   vlc
 
-  zoom
+  jitsi
   riot
   filetug
   screentapshot2
@@ -81,7 +81,7 @@ my @config = qw(
   orienteeringcompass
 
   mimer
-  jitsi
+  zoom
 );
 
 my @unused = qw(
