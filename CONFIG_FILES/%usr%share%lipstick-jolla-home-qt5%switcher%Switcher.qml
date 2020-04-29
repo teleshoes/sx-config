@@ -23,7 +23,7 @@ SilicaFlickable {
     property bool skipOnReleased: false
     readonly property bool appShowInProgress: showingWid > 0
                 || (launchingItem && launchingItem.launching && !launchingItem.minimized)
-    property real statusBarHeight: 2*Lipstick.compositor.homeLayer.statusBar.baseY + Lipstick.compositor.homeLayer.statusBar.height
+    property real statusBarHeight: Lipstick.compositor.homeLayer.statusBar.height
     readonly property real count: repeater.count
     readonly property bool largeScreen: Screen.sizeCategory >= Screen.Large
     property bool housekeeping: false
@@ -77,13 +77,7 @@ SilicaFlickable {
         var item
         var index = windowIndexOf(launcherItem)
         var singleInstance = launcherItem.readValue("X-Nemo-Single-Instance")
-        var customLauncher = launcherItem.readValue("Custom-Launcher")
-
-        if (customLauncher == "yes") {
-            Lipstick.compositor.launcherLayer.hide()
-            launcherItem.launchApplication()
-            launcherItem.isLaunching = false
-        } else if (index >= 0 && singleInstance !== "no") {
+        if (index >= 0  && singleInstance !== "no") {
             item = repeater.itemAt(index)
             item.minimized = false
 
@@ -294,26 +288,10 @@ SilicaFlickable {
         return count
     }
 
-    function writeFileOverHTTP(file, text) {
-        var request = new XMLHttpRequest();
-        request.open("PUT", "file://" + file, false);
-        request.send(text);
-        return request.status;
-    }
-
     Connections {
         target: Lipstick.compositor
         onMinimizeLaunchingWindows: switcherRoot.minimizeLaunchingWindows()
-        onTopmostWindowIdChanged: {
-          var windowId = Lipstick.compositor.topmostWindowId
-          if(windowId > 0){
-            var window = Lipstick.compositor.windowForId(windowId)
-            if(window){
-              writeFileOverHTTP("/tmp/lipstick-window-title", window.title + "\n")
-            }
-          }
-          touchWindow(windowId)
-        }
+        onTopmostWindowIdChanged: touchWindow(Lipstick.compositor.topmostWindowId)
     }
 
     function resetPosition(delay) {
@@ -392,9 +370,7 @@ SilicaFlickable {
 
         objectName: "Switcher_wrapper"
 
-        y: largeScreen
-                   ? (switcherRoot.height > switcherRoot.width ? statusBarHeight + switcherGrid.rowSpacing : Theme.paddingLarge * 5)
-                   : Lipstick.compositor.homeLayer.statusBar.height + Theme._homePageMargin
+        y: switcherGrid.baseY
         height: switcherGrid.implicitHeight <= switcherRoot.height - y
                 ? switcherRoot.height - y
                 : switcherGrid.implicitHeight + switcherGrid.rowSpacing - 1
@@ -402,32 +378,14 @@ SilicaFlickable {
 
         onWidthChanged: switcherGrid.updateColumns()
 
-        Grid {
+        SwitcherGrid {
             id: switcherGrid
-            x: margin
-            width: (coverSize.width + spacing) * columns - spacing
 
             columns: largeColumns
-
-            // disclaimer! sailfish-silica/lib/silicatheme.cpp maximum cover size calculations rely on landscape tablet switcher
-            // vertical margins to stay intact (switcherWrapper.y = Theme.paddingLarge * 5, rowSpacing = Theme.paddingLarge * 3.333)
-            spacing: Math.floor(largeScreen ? Theme.paddingLarge * 3.333 : Theme.paddingLarge)
-            rowSpacing: largeScreen && switcherRoot.height > switcherRoot.width
-                                ? Math.ceil((switcherRoot.height - statusBarHeight - largeRows*Theme.coverSizeLarge.height) / (largeRows+1)) : spacing
-
-            property real margin: Math.floor((switcherRoot.width - (coverSize.width + spacing) * columns + spacing)/2)
-
-            readonly property real minimumHeight: switcherRoot.height - statusBarHeight - ((largeScreen ? 5 : 3) * Theme.paddingLarge)
-            readonly property real maximumWidth: switcherRoot.width - 2*Theme.paddingLarge
+            statusBarHeight: switcherRoot.statusBarHeight
 
             readonly property bool allowSmallCovers: !largeScreen
-            readonly property int smallColumns: (maximumWidth + spacing) / (Theme.coverSizeSmall.width + spacing)
-
-            readonly property int largeColumns: (maximumWidth + spacing) / (Theme.coverSizeLarge.width + spacing)
-            readonly property int largeRows: minimumHeight / Theme.coverSizeLarge.height
             readonly property int largeItemCount: largeColumns * largeRows
-
-            property size coverSize: Theme.coverSizeLarge
 
             property QtObject ngfEffect
 
