@@ -20,6 +20,7 @@ my @removals = qw(busybox-symlinks-tar);
 my %packages = (
   "1-essential" => [qw(
     rsync screen
+    diffutils
     perl perl-CPAN
     htop git gnupg2 sudo tar vim-enhanced wget zypper
     expect
