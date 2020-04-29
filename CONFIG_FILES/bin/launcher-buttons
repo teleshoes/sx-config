@@ -79,6 +79,8 @@ my @config = qw(
   wemo
   torbrowser
   orienteeringcompass
+
+  mimer
 );
 
 my @unused = qw(
