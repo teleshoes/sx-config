@@ -62,6 +62,7 @@ if [ $CURRENT_UID -ne 0 ]; then
 	EOF)
 
     WHITELIST_VALUES=$(sed -e 's/^/-e ^/' -e 's/$/=/' <<-EOF
+	LIPSTICK2VNC_OPTS
 	BROWSER
 	DBUS_SESSION_BUS_ADDRESS
 	DISPLAY
