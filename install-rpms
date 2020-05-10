@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 
+# hold these packages
+my @PACKAGES_TO_LOCK = qw(lipstick2vnc);
+
 my $ipmagicName = "sx";
 my $user = "nemo";
 
@@ -33,6 +36,10 @@ sub main(@){
   system "rsync", "-avP", "--del", "$srcDir/", "$user\@$host:$destDir/";
 
   system "ipmagic", $ipmagicName, "-u", "root", "pkcon -y install-local $destDir/*.rpm";
+
+  for my $pkg(@PACKAGES_TO_LOCK){
+    system "ipmagic", $ipmagicName, "-u", "root", "zypper addlock $pkg";
+  }
 }
 
 &main(@ARGV);
