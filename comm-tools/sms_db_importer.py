@@ -596,8 +596,8 @@ def readTextsFromCommHistory(db_file):
      ORDER BY id ASC;')
   for row in query:
     number = row[0]
-    date_start_millis = long(row[1]) * 1000
-    date_end_millis = long(row[2]) * 1000
+    date_start_millis = int(row[1]) * 1000
+    date_end_millis = int(row[2]) * 1000
     dir_type = row[3]
     body = row[4]
 
@@ -635,8 +635,8 @@ def readCallsFromCommHistory(db_file):
      ORDER BY id ASC;')
   for row in query:
     number = row[0]
-    date_start_millis = long(row[1]) * 1000
-    date_end_millis = long(row[2]) * 1000
+    date_start_millis = int(row[1]) * 1000
+    date_end_millis = int(row[2]) * 1000
     dir_type = row[3]
     is_missed_call = row[4]
     headersRejectedHack = row[5]
@@ -654,7 +654,7 @@ def readCallsFromCommHistory(db_file):
       quit(1)
 
     date_millis = date_start_millis
-    durationSex = long((date_end_millis - date_start_millis)/1000)
+    durationSex = int((date_end_millis - date_start_millis)/1000)
 
     date_format = time.strftime("%Y-%m-%d %H:%M:%S",
       time.localtime(date_millis/1000))
@@ -700,11 +700,11 @@ def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
       elif key == "to":
         mms.to_numbers.append(val)
       elif key == "date":
-        mms.date_millis = long(val)
+        mms.date_millis = int(val)
         mms.date_format = time.strftime("%Y-%m-%d %H:%M:%S",
           time.localtime(mms.date_millis/1000))
       elif key == "date_sent":
-        mms.date_sent_millis = long(val)
+        mms.date_sent_millis = int(val)
       elif key == "dir":
         if val not in MMS_DIR.__members__:
           print("invalid MMS direction: " + str(val))
@@ -740,8 +740,8 @@ def readMMSFromCommHistory(db_file, mms_parts_dir):
     event_id = row[0]
     number = row[1]
     group_id = row[2]
-    date_sent_millis = long(row[3]) * 1000
-    date_millis = long(row[4]) * 1000
+    date_sent_millis = int(row[3]) * 1000
+    date_millis = int(row[4]) * 1000
     dir_type_mms = row[5]
     subject = row[6]
     body = row[7]
@@ -807,7 +807,7 @@ def readMMSFromCommHistory(db_file, mms_parts_dir):
 
   group_numbers = {}
   for row in query:
-    group_id = long(row[0])
+    group_id = int(row[0])
     numbers = row[1]
     group_numbers[group_id] = numbers
 
@@ -883,7 +883,7 @@ def ensureGroupNumbersInserted(cursor, numbers):
   query = cursor.execute("SELECT id, remoteUids FROM groups;")
   maxGroupId = 0
   for row in query:
-    groupId = long(row[0])
+    groupId = int(row[0])
     remoteUids = row[1]
 
     if groupId > maxGroupId:
