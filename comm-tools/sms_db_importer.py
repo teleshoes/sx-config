@@ -355,10 +355,8 @@ class Text:
     if self.direction not in SMS_DIR:
       print("invalid SMS direction: " + str(self.direction))
       quit(1)
-  def __unicode__(self):
-    return self.toCsv()
   def __str__(self):
-    return unicode(self).encode('utf-8')
+    return self.toCsv()
 
 class Call:
   def __init__(self, number, date_millis, direction, date_format, duration_format):
@@ -405,10 +403,8 @@ class Call:
     if self.direction not in CALL_DIR:
       print("invalid CALL direction: " + str(self.direction))
       quit(1)
-  def __unicode__(self):
-    return self.toCsv()
   def __str__(self):
-    return unicode(self).encode('utf-8')
+    return self.toCsv()
 
 def escapeStr(s):
   return (s
@@ -525,10 +521,8 @@ class MMS:
     if self.direction not in MMS_DIR:
       print("invalid MMS direction: " + str(self.direction))
       quit(1)
-  def __unicode__(self):
-    return self.getInfo()
   def __str__(self):
-    return unicode(self).encode('utf-8')
+    return self.getInfo()
 
 class MMSPart:
   def __init__(self):
