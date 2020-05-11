@@ -317,7 +317,7 @@ def generateMMSChecksum(subject, body, attFiles):
     if not os.path.isfile(filepath):
       print("missing att file: " + filepath)
       quit(1)
-    f = open(filepath, 'r')
+    f = open(filepath, 'rb')
     md5Update(md5, f.read())
     f.close()
   return md5.hexdigest()
