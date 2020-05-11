@@ -149,8 +149,8 @@ sub main(@){
   # parse contacts into repo
   #########################################################
   print "\n\n=====PARSE CONTACTS\n";
-  run "cp", "-ar", $localContactsVcf, "$CONTACTS_REPO/contacts.vcf";
-  run "$CMD_CONTACTS_SORT";
+  run "rm", "-f", "$CONTACTS_REPO/contacts.vcf";
+  run "$CMD_CONTACTS_SORT", $localContactsVcf, "$CONTACTS_REPO/contacts.vcf";
   gitCommit $CONTACTS_REPO, "contacts.vcf", "diff", "automatic commit";
 
   #########################################################
