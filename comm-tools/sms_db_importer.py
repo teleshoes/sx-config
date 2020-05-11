@@ -287,7 +287,7 @@ def main():
           quit(1)
 
         destFile = sha256Files[filename]
-        remoteFile = re.sub('^' + args.MMS_PARTS_DIR + '/?', REMOTE_MMS_PARTS_DIR + '/', destFile)
+        remoteFile = regexSub('^' + args.MMS_PARTS_DIR + '/?', REMOTE_MMS_PARTS_DIR + '/', destFile)
 
         mms.attFiles[filename] = destFile
         mms.attFilesRemotePaths[filename] = remoteFile
@@ -465,10 +465,10 @@ class MMS:
         pass
       elif p.filepath != None:
         relFilepath = p.filepath
-        relFilepath = re.sub('^' + REMOTE_MMS_PARTS_DIR + '/', '', relFilepath)
+        relFilepath = regexSub('^' + REMOTE_MMS_PARTS_DIR + '/', '', relFilepath)
         filename = relFilepath
-        filename = re.sub('^\d+/', '', filename)
-        filename = re.sub('^msg-\d+-\d+/', '', filename)
+        filename = regexSub('^\d+/', '', filename)
+        filename = regexSub('^msg-\d+-\d+/', '', filename)
         if "/" in filename:
           print("filename contains path sep '/': " + filename)
           quit(1)
@@ -538,8 +538,8 @@ class MMSPart:
 def cleanNumber(number):
   if number == None:
     number = ''
-  number = re.sub(r'[^+0-9]', '', number)
-  number = re.sub(r'^\+?1(\d{10})$', '\\1', number)
+  number = regexSub(r'[^+0-9]', '', number)
+  number = regexSub(r'^\+?1(\d{10})$', '\\1', number)
   return number
 
 def readTextsFromCSV(csvFile):
@@ -1194,33 +1194,33 @@ def importMMSToDb(mmsMessages, db_file):
   conn.close()
 
 def guessContentType(filename, filepath):
-  if re.match(r'^.*\.(txt)$', filename, re.IGNORECASE):
+  if regexMatch(r'^.*\.(txt)$', filename, re.IGNORECASE):
     contentType = "text/plain;charset=utf-8"
-  elif re.match(r'^.*\.(jpg|jpeg)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(jpg|jpeg)$', filename, re.IGNORECASE):
     contentType = "image/jpeg"
-  elif re.match(r'^.*\.(png)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(png)$', filename, re.IGNORECASE):
     contentType = "image/png"
-  elif re.match(r'^.*\.(gif)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(gif)$', filename, re.IGNORECASE):
     contentType = "image/gif"
-  elif re.match(r'^.*\.(wav)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(wav)$', filename, re.IGNORECASE):
     contentType = "audio/wav"
-  elif re.match(r'^.*\.(flac)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(flac)$', filename, re.IGNORECASE):
     contentType = "audio/flac"
-  elif re.match(r'^.*\.(ogg)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(ogg)$', filename, re.IGNORECASE):
     contentType = "audio/ogg"
-  elif re.match(r'^.*\.(mp3|mp2|m2a|mpga)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(mp3|mp2|m2a|mpga)$', filename, re.IGNORECASE):
     contentType = "audio/mpeg"
-  elif re.match(r'^.*\.(mp4)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(mp4)$', filename, re.IGNORECASE):
     contentType = "video/mp4"
-  elif re.match(r'^.*\.(mkv)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(mkv)$', filename, re.IGNORECASE):
     contentType = "video/x-matroska"
-  elif re.match(r'^.*\.(webm)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(webm)$', filename, re.IGNORECASE):
     contentType = "video/webm"
-  elif re.match(r'^.*\.(mpg|mpeg|m1v|m2v)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(mpg|mpeg|m1v|m2v)$', filename, re.IGNORECASE):
     contentType = "video/mpeg"
-  elif re.match(r'^.*\.(avi)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(avi)$', filename, re.IGNORECASE):
     contentType = "video/avi"
-  elif re.match(r'^.*\.(3gp)$', filename, re.IGNORECASE):
+  elif regexMatch(r'^.*\.(3gp)$', filename, re.IGNORECASE):
     contentType = "video/3gpp"
   else:
     mimeType = result = subprocess.check_output([ "file"
@@ -1228,14 +1228,24 @@ def guessContentType(filename, filepath):
                                                 , "--brief"
                                                 , filepath
                                                 ])
-    mimeType = re.sub(r';.*', '', mimeType)
-    if re.match(r'^[a-z0-9]+/[a-z0-9\-.]+$', mimeType):
+    mimeType = regexSub(r';.*', '', mimeType)
+    if regexMatch(r'^[a-z0-9]+/[a-z0-9\-.]+$', mimeType):
       return mimeType
     else:
       print("unknown file type: " + filepath)
       quit(1)
 
   return contentType
+
+def regexMatch(pattern, string, flags=0):
+  if type(string) != str:
+    string = string.decode("utf-8")
+  return re.match(pattern, string, flags)
+
+def regexSub(pattern, repl, string, count=0, flags=0):
+  if type(string) != str:
+    string = string.decode("utf-8")
+  return re.sub(pattern, repl, string, count, flags)
 
 if __name__ == '__main__':
   main()
