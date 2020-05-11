@@ -4,23 +4,70 @@ use warnings;
 
 my $REPO_DIR = "$ENV{HOME}/Code/sx/backup/backup-contacts/repo";
 
+sub getContactSortKey($);
+sub parseLinesToContacts(@);
+
 sub main(@){
   chdir $REPO_DIR;
   $ENV{PWD} = $REPO_DIR;
 
-  my @contacts;
   my @lines = `cat contacts.vcf`;
 
-  my @newLines;
-  for my $line(@lines){
-    my $newLine = $line;
-    $newLine =~ s/^(PHOTO);(ENCODING=b);(TYPE=JPEG):/$1;$3;$2:/;
-    $newLine =~ s/[\r\n]*$/\n/;
-    next if $newLine =~ /^REV:\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ$/;
-    push @newLines, $newLine;
-  }
-  @lines = @newLines;
+  @lines = map {$_ =~ s/^(PHOTO);(ENCODING=b);(TYPE=JPEG):/$1;$3;$2:/; $_} @lines;
+  @lines = map {$_ =~ s/[\r\n]*$/\n/; $_} @lines;
+  @lines = grep {$_ !~ /^REV:\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ$/} @lines;
 
+  my @contacts = parseLinesToContacts(@lines);
+
+  my %contactsByKey = map {getContactSortKey($_) => $_} @contacts;
+
+  @contacts = map {$contactsByKey{$_}} sort keys %contactsByKey;
+
+  open FH, "> contacts.vcf";
+  print FH $_ foreach @contacts;
+  close FH;
+}
+
+sub getContactSortKey($){
+  my ($contact) = @_;
+  my ($first, $last, $other, $fullName, $num);
+  if($contact =~ /^FN:(.+)$/m){
+    $fullName = $1;
+  }
+  my $segRe = '(?:[^;\\\\]|\\\\;)*';
+  if($contact =~ /^N:($segRe);($segRe);(.*)/m){
+    ($last, $first, $other) = ($1, $2, $3);
+  }
+  if($contact =~ /^TEL.*(\d+)/m){
+    $num = $1;
+  }
+
+  my $name;
+  if(defined $fullName){
+    $name = $fullName;
+  }elsif(defined $first and defined $last){
+    $name = "$first $last";
+  }elsif(defined $first){
+    $name = $first;
+  }elsif(defined $last){
+    $name = $last;
+  }elsif(defined $other){
+    $name = $other;
+  }else{
+    $name = "unknown";
+  }
+  $name =~ s/^\s*//;
+  $name = lc $name;
+
+  $num = "" if not defined $num;
+
+  return "$name|$num|$contact";
+}
+
+sub parseLinesToContacts(@){
+  my @lines = @_;
+
+  my @contacts;
   my $cur = undef;
   for my $line(@lines){
     $cur = '' if not defined $cur;
@@ -32,47 +79,7 @@ sub main(@){
   }
   push @contacts, $cur if defined $cur;
 
-  my %contacts;
-  for my $contact(@contacts){
-    my ($first, $last, $other, $fullName, $num);
-    if($contact =~ /^FN:(.+)$/m){
-      $fullName = $1;
-    }
-    my $segRe = '(?:[^;\\\\]|\\\\;)*';
-    if($contact =~ /^N:($segRe);($segRe);(.*)/m){
-      ($last, $first, $other) = ($1, $2, $3);
-    }
-    if($contact =~ /^TEL.*(\d+)/m){
-      $num = $1;
-    }
-
-    my $name;
-    if(defined $fullName){
-      $name = $fullName;
-    }elsif(defined $first and defined $last){
-      $name = "$first $last";
-    }elsif(defined $first){
-      $name = $first;
-    }elsif(defined $last){
-      $name = $last;
-    }elsif(defined $other){
-      $name = $other;
-    }else{
-      $name = "unknown";
-    }
-    $name =~ s/^\s*//;
-    $name = lc $name;
-
-    $num = "" if not defined $num;
-    my $sortKey = "$name|$num|$contact";
-    $contacts{$sortKey} = $contact;
-  }
-
-  open FH, "> contacts.vcf";
-  for my $sortKey(sort keys %contacts){
-    print FH $contacts{$sortKey};
-  }
-  close FH;
+  return @contacts;
 }
 
 &main(@ARGV);
