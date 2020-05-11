@@ -4,6 +4,8 @@ use warnings;
 
 sub getContactSortKey($);
 sub parseLinesToContacts(@);
+sub handleTELBlocks(@);
+sub sortTELBlock(@);
 
 my $usage = "Usage:
   $0 INPUT_VCF_FILE OUTPUT_VCF_FILE
@@ -25,6 +27,8 @@ sub main(@){
   @lines = map {$_ =~ s/^(PHOTO);(ENCODING=b);(TYPE=JPEG):/$1;$3;$2:/; $_} @lines;
   @lines = map {$_ =~ s/[\r\n]*$/\n/; $_} @lines;
   @lines = grep {$_ !~ /^REV:\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ$/} @lines;
+
+  @lines = handleTELBlocks(@lines);
 
   my @contacts = parseLinesToContacts(@lines);
 
@@ -89,6 +93,47 @@ sub parseLinesToContacts(@){
   push @contacts, $cur if defined $cur;
 
   return @contacts;
+}
+
+sub handleTELBlocks(@){
+  my @lines = @_;
+
+  my @newLines;
+  my @telLines;
+  for my $line(@lines){
+    if($line =~ /^TEL;.*/){
+      push @telLines, $line;
+    }else{
+      @newLines = (@newLines, sortTELBlock(@telLines));
+      @telLines = ();
+
+      push @newLines, $line;
+    }
+  }
+  @newLines = (@newLines, sortTELBlock(@telLines));
+
+  return @newLines;
+}
+
+sub sortTELBlock(@){
+  my @lines = @_;
+
+  my $telsByType = {};
+  for my $line(@lines){
+    my $type = "";
+    if($line =~ /TYPE=([^:]*):/){
+      $type = $1;
+    }
+    $$telsByType{$type} = [] if not defined $$telsByType{$type};
+    push @{$$telsByType{$type}}, $line;
+  }
+
+  my @newLines;
+  for my $type(sort keys %$telsByType){
+    @newLines = (@newLines, @{$$telsByType{$type}});
+  }
+
+  return @newLines;
 }
 
 &main(@ARGV);
