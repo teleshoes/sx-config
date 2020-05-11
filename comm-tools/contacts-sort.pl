@@ -2,16 +2,25 @@
 use strict;
 use warnings;
 
-my $REPO_DIR = "$ENV{HOME}/Code/sx/backup/backup-contacts/repo";
-
 sub getContactSortKey($);
 sub parseLinesToContacts(@);
 
-sub main(@){
-  chdir $REPO_DIR;
-  $ENV{PWD} = $REPO_DIR;
+my $usage = "Usage:
+  $0 INPUT_VCF_FILE OUTPUT_VCF_FILE
+    sort contacts in vcf file, and cleanup each vcard a bit
+";
 
-  my @lines = `cat contacts.vcf`;
+sub main(@){
+  my ($inputVCF, $outputVCF);
+  if(@_ == 2){
+    ($inputVCF, $outputVCF) = @_;
+  }else{
+    die $usage;
+  }
+  die "$usage\nERROR: $inputVCF is not a file\n" if not -f $inputVCF;
+  die "$usage\nERROR: $outputVCF exists already\n" if -e $outputVCF;
+
+  my @lines = `cat $inputVCF`;
 
   @lines = map {$_ =~ s/^(PHOTO);(ENCODING=b);(TYPE=JPEG):/$1;$3;$2:/; $_} @lines;
   @lines = map {$_ =~ s/[\r\n]*$/\n/; $_} @lines;
@@ -23,7 +32,7 @@ sub main(@){
 
   @contacts = map {$contactsByKey{$_}} sort keys %contactsByKey;
 
-  open FH, "> contacts.vcf";
+  open FH, "> $outputVCF" or die "ERROR: could not write $outputVCF\n$!\n";
   print FH $_ foreach @contacts;
   close FH;
 }
