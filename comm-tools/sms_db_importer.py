@@ -299,20 +299,26 @@ def main():
     print("invalid <COMMAND>: " + args.COMMAND)
     quit(1)
 
+def md5Update(md5, msg):
+  if type(msg) == str:
+    md5.update(msg.encode("utf-8"))
+  else:
+    md5.update(msg)
+
 def generateMMSChecksum(subject, body, attFiles):
   md5 = hashlib.md5()
   if subject != None:
-    md5.update(escapeStr(subject.encode("utf-8")))
+    md5Update(md5, escapeStr(subject))
   if body != None:
-    md5.update(escapeStr(body.encode("utf-8")))
+    md5Update(md5, escapeStr(body))
   for attName in sorted(attFiles.keys()):
-    md5.update("\n" + attName + "\n")
+    md5Update(md5, "\n" + attName + "\n")
     filepath = attFiles[attName]
     if not os.path.isfile(filepath):
       print("missing att file: " + filepath)
       quit(1)
     f = open(filepath, 'r')
-    md5.update(f.read())
+    md5Update(md5, f.read())
     f.close()
   return md5.hexdigest()
 
