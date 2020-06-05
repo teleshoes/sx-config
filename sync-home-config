@@ -15,7 +15,6 @@ my @HOME_RSYNC_FILES = qw(
   .config/wemo-devices.conf
 
   .config/qtemail/
-  .config/ipmagic/
   .vim/
 );
 
@@ -44,6 +43,9 @@ my @SPECIAL_USER_RSYNCS = (
   ["$ENV{HOME}/Music/sheet_music/trumpet/", "/media/sdcard/phone/sheet_music/trumpet/", []],
   ["/usr/share/alarms/", "/media/sdcard/phone/alarms/", []],
   ["/usr/share/sounds/custom/", "/media/sdcard/phone/sounds/", []],
+
+  #transform symlinks to referent file/dir
+  ["$ENV{HOME}/.config/ipmagic/", "/home/$user/.config/ipmagic/", ["-L"]],
 );
 my @SPECIAL_ROOT_RSYNCS = (
 );
