@@ -1,0 +1,158 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub convertVolumeArgToVolStep($$);
+sub getVolumeStep();
+sub setVolumeStep($);
+sub getMaxVolumeStep();
+sub run(@);
+
+my $usage = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+  $0 -g|--get|g|get
+    -read Meego MainVolume2 CurrentStep from pulse dbus and set <VOL_STEP>
+    -read Meego MainVolume2 StepCount from pulse dbus, subtract one, and set <MAX_VOL_STEP>
+    -print <VOL_STEP>/<MAX_VOL_STEP> as a percentage and a fraction
+
+  $0 VOL_ARG
+  $0 -s|--set|s|set VOL_ARG
+    -convert <VOL_ARG> to <VOL_STEP>
+    -read Meego MainVolume2 CurrentStep from pulse dbus and set <OLD_VOL_STEP>
+    -write Meego MainVolume2 CurrentStep in pulse dbus to <VOL_STEP>
+    -print <OLD_VOL_STEP> => <VOL_STEP>
+
+  VOL_ARG      = <VOL_STEP> | <VOL_PERCENT>%
+  VOL_STEP     = an integer between 0 and <MAX_VOL_STEP>
+  VOL_PERCENT  = an integer between 0 and 100, converted to nearest <VOL_STEP>
+  MAX_VOL_STEP = a positive integer (default is usually 11 on Sailfish OS)
+";
+
+sub main(@){
+  my $arg;
+  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
+    print $usage;
+    exit 0;
+  }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-g|--get|g|get)$/)){
+    my $volStep = getVolumeStep();
+    my $maxVolStep = getMaxVolumeStep();
+    print int($volStep / $maxVolStep * 100.0 + 0.5) . "% ($volStep/$maxVolStep)\n";
+  }elsif((@_ == 1 and $_[0] =~ /^\d+%?$/) or (@_ == 2 and $_[0] =~ /^(-s|--set|s|set)$/)){
+    my $volArg = $_[-1];
+
+    my $oldStep = getVolumeStep();
+    my $maxVolStep = getMaxVolumeStep();
+
+    my $volStep = convertVolumeArgToVolStep $volArg, $maxVolStep;
+
+    if($volStep > $maxVolStep){
+      die "ERROR: vol step ($volStep) exceeds max ($maxVolStep)\n";
+    }
+
+    setVolumeStep($volStep);
+    print "$oldStep => $volStep\n";
+  }else{
+    die $usage;
+  }
+}
+
+sub convertVolumeArgToVolStep($$){
+  my ($volArg, $maxVolStep) = @_;
+
+  my $volStep;
+  if($volArg =~ /^(\d+)$/){
+    $volStep = $1;
+  }elsif($volArg =~ /^(\d+)%$/){
+    my $volPct = $1;
+    $volStep = int($volPct / 100.0 * $maxVolStep + 0.5);
+  }else{
+    die "ERROR: invalid volume arg format: $volArg\n";
+  }
+  return $volStep;
+}
+
+sub getVolumeStep(){
+  my @cmd = qw(
+    dbus-send --print-reply --type=method_call
+      --address=unix:path=/run/user/100000/pulse/dbus-socket
+      --dest=org.Meego.MainVolume2
+      /com/meego/mainvolume2
+      org.freedesktop.DBus.Properties.Get
+      string:com.Meego.MainVolume2
+      string:CurrentStep
+  );
+  open CMD, "-|", @cmd or die "could not run @cmd\n$!\n";
+  my $out = join '', <CMD>;
+  close CMD;
+
+  my $step = undef;
+  if($out =~ /^method.*\n\s*variant\s*uint32\s*(\d+)\s*$/){
+    $step = $1;
+  }
+
+  if(not defined $step){
+    die "ERROR: could not read meego volume step from pulse dbus\n";
+  }
+
+  return $step;
+}
+
+sub setVolumeStep($){
+  my ($step) = @_;
+
+  my @cmd = qw(
+    dbus-send --print-reply --type=method_call
+      --address=unix:path=/run/user/100000/pulse/dbus-socket
+      --dest=org.Meego.MainVolume2
+      /com/meego/mainvolume2
+      org.freedesktop.DBus.Properties.Set
+      string:com.Meego.MainVolume2
+      string:CurrentStep
+  );
+  push @cmd, "variant:uint32:$step";
+
+  open CMD, "-|", @cmd or die "could not run @cmd\n$!\n";
+  my $out = join '', <CMD>;
+  close CMD;
+
+  if($out !~ /^method.*$/){
+    die "ERROR: dbus-send unexpected output \"$out\"\n";
+  }
+}
+
+sub getMaxVolumeStep(){
+  my @cmd = qw(
+    dbus-send --print-reply --type=method_call
+      --address=unix:path=/run/user/100000/pulse/dbus-socket
+      --dest=org.Meego.MainVolume2
+      /com/meego/mainvolume2
+      org.freedesktop.DBus.Properties.Get
+      string:com.Meego.MainVolume2
+      string:StepCount
+  );
+  open CMD, "-|", @cmd or die "could not run @cmd\n$!\n";
+  my $out = join '', <CMD>;
+  close CMD;
+
+  my $stepCount = undef;
+  if($out =~ /^method.*\n\s*variant\s*uint32\s*(\d+)\s*$/){
+    $stepCount = $1;
+  }
+
+  if(not defined $stepCount){
+    die "ERROR: could not read meego volume step from pulse dbus\n";
+  }
+
+  my $maxVolStep = $stepCount - 1; #12 steps means 0-11
+  return $maxVolStep;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
