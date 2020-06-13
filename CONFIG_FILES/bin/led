@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
 
 my $DEV_LEDS_DIR = "/sys/devices/soc.0/7af6000.i2c/i2c-6/6-0042/leds";
 my $DEV_RED = "$DEV_LEDS_DIR/led:rgb_red/brightness";
@@ -14,14 +17,14 @@ sub writeDevInt($$);
 sub allInts(@);
 
 my $usage = "Usage:
-  $0 -h|--help
+  $EXEC -h|--help
     print this message
 
-  $0 [-g|--get]
+  $EXEC [-g|--get]
     read LED brightnesses and print them as integers on one line:
       RED_BRIGHTNESS GREEN_BRIGHTNESS BLUE_BRIGHTNESS
 
-  $0 [-s|--set] RED_BRIGHTNESS GREEN_BRIGHTNESS BLUE_BRIGHTNESS
+  $EXEC [-s|--set] RED_BRIGHTNESS GREEN_BRIGHTNESS BLUE_BRIGHTNESS
     set RGB LED brightness
 
   RED_BRIGHTNESS
