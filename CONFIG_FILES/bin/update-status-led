@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $COMM_DB = "/home/nemo/.local/share/commhistory/commhistory.db";
+
+sub getUnreadEventCount();
+
+sub main(@){
+  my $eventCount = getUnreadEventCount();
+  if($eventCount > 0){
+    print "$eventCount unread events: LED=>blue\n";
+    system "led", "-s", 0, 0, 12;
+  }else{
+    my $led = `led --get`;
+    if($led =~ /^0 0 12$/){
+      print "0 unread events and LED was blue: LED=>off\n";
+      system "led", "-s", 0, 0, 0;
+    }
+  }
+}
+
+sub getUnreadEventCount(){
+  my $count = `sqlite3 $COMM_DB "select count(*) from events where isRead = 0"`;
+  if($count =~ /^(\d+)$/){
+    return $1;
+  }else{
+    die "ERROR: could not read event counts from $COMM_DB\n";
+  }
+}
+
+&main(@ARGV);
