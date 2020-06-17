@@ -8,6 +8,7 @@ my $SQL = ""
   . " from events"
   . " where isRead = 0"
   . "   and not (type = 3 and direction = 2)" # ignore outbound calls
+  . "   and not (type = 3 and direction = 1 and isMissedCall = 0)" # ignore inbound calls, except for missed calls
   ;
 
 sub getUnreadEventCount();
