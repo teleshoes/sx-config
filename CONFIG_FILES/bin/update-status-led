@@ -3,6 +3,11 @@ use strict;
 use warnings;
 
 my $COMM_DB = "/home/nemo/.local/share/commhistory/commhistory.db";
+my $SQL = ""
+  . " select count(*)"
+  . " from events"
+  . " where isRead = 0"
+  ;
 
 sub getUnreadEventCount();
 
@@ -21,7 +26,7 @@ sub main(@){
 }
 
 sub getUnreadEventCount(){
-  my $count = `sqlite3 $COMM_DB "select count(*) from events where isRead = 0"`;
+  my $count = `sqlite3 $COMM_DB "$SQL"`;
   if($count =~ /^(\d+)$/){
     return $1;
   }else{
