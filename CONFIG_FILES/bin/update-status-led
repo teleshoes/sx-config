@@ -7,6 +7,7 @@ my $SQL = ""
   . " select count(*)"
   . " from events"
   . " where isRead = 0"
+  . "   and not (type = 3 and direction = 2)" # ignore outbound calls
   ;
 
 sub getUnreadEventCount();
