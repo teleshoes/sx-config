@@ -45,7 +45,8 @@ SettingsToggle {
             if (wifiTechnology.powered) {
                 busyTimer.stop()
             } else if (connDialogConfig.rise) {
-                busyTimer.restart()
+                //HACK - DONT show the conn dialog just because you enabled wifi
+                //busyTimer.restart()
             }
         }
     }
