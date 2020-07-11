@@ -23,6 +23,7 @@ my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
 my @USRLOCALBIN_EXECS = qw(
   alarm
   ipmagic
+  off-cmd
   term
   pulse-enable
   pulse-vol
