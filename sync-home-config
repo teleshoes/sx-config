@@ -16,6 +16,7 @@ my @HOME_RSYNC_FILES = qw(
 
   .config/qtemail/
   .vim/
+  resolv/
 );
 
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
