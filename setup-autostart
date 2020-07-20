@@ -12,6 +12,7 @@ PATH=/home/nemo/bin:\$PATH
 /home/nemo/bin/screen-daemon button-monitor --start
 sudo cpu-enable fast
 aliendalvik-post-start
+sudo resolv forcegoogle
 ";
 
 my @SYSTEMD_SYMLINKS = qw(
