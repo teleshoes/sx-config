@@ -27,7 +27,7 @@ my @config = qw(
   qtemail
 
   jolla-calculator
-  openrepos-myipaddress
+  qtbtn-lap
   jolla-calendar
   vlc
 
@@ -82,7 +82,7 @@ my @config = qw(
 
   mimer
   zoom
-  qtbtn-lap
+  openrepos-myipaddress
 );
 
 my @unused = qw(
