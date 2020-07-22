@@ -82,6 +82,7 @@ my @config = qw(
 
   mimer
   zoom
+  qtbtn-lap
 );
 
 my @unused = qw(
