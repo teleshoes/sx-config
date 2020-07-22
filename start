@@ -65,6 +65,7 @@
 ./setup-ambiences
 ./setup-ping
 ./setup-camera
+./setup-meegotouch-icons
 
 ./install-cpan
 ./install-adwaita-icons
