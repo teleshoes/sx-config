@@ -1,0 +1,14 @@
+IPMAGIC_NAME="sx"
+USER="nemo"
+HOST=$(ipmagic $IPMAGIC_NAME)
+
+SRC_DIR="/usr/share/themes/sailfish-default/meegotouch/z1.75/icons"
+MEEGOTOUCH_ICONS_DIR="/usr/share/icons/meegotouch"
+
+ipmagic $IPMAGIC_NAME -s "
+  set -x
+  sudo rm $MEEGOTOUCH_ICONS_DIR/*
+  sudo rmdir $MEEGOTOUCH_ICONS_DIR/
+  sudo mkdir -p $MEEGOTOUCH_ICONS_DIR/
+  sudo ln -s $SRC_DIR $MEEGOTOUCH_ICONS_DIR/256x256
+"
