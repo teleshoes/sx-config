@@ -18,6 +18,7 @@ sub main(@){
   backup "cleanup-connman";
   backup "dcim-backup";
   backup "sync-pixmirror";
+  backup "backup-lap";
   backup "backup-home";
   backup "backup-klomp-lists";
   backup "cleanup-backups";
