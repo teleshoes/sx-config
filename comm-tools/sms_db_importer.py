@@ -18,6 +18,8 @@ NO_COMMIT = False
 REMOTE_MMS_PARTS_DIR = "/home/nemo/.local/share/commhistory/data"
 LOCAL_UID = "/org/freedesktop/Telepathy/Account/ring/tel/ril_0"
 
+LIST_TEXTS_MAX_MESSAGES = 30
+
 usage = """Export/Import SMS, call log, and MMS from commhistory database
 Usage:
   {appName} export-from-db-sms DB_FILE CSV_FILE [OPTS]
@@ -38,6 +40,9 @@ Usage:
   {appName} import-to-db-mms DB_FILE MMS_MSG_DIR MMS_PARTS_DIR [OPTS]
     insert MMS from MMS_MSG_DIR into DB_FILE, and ensure att files in MMS_PARTS_DIR
 
+  {appName} list-texts DB_FILE [CONTACTS_CSV]
+    print the last {listTextsMax} sms and mms messages from DB_FILE
+
   {appName} mms-hash SUBJECT BODY [ATT_FILE ATT_FILE ..]
     insert MMS from MMS_MSG_DIR into DB_FILE, and ensure att files in MMS_PARTS_DIR
 
@@ -46,7 +51,7 @@ Usage:
     --limit           only import LIMIT entries into DB_FILE
     --verbose         verbose output (slower)
     --no-commit       do not commit changes when inserting into DB_FILE
-""".format(appName=os.path.basename(__file__))
+""".format(appName=os.path.basename(__file__), listTextsMax=LIST_TEXTS_MAX_MESSAGES)
 
 SMS_DIR = Enum('SMS_DIR', ['OUT', 'INC'])
 MMS_DIR = Enum('MMS_DIR', ['OUT', 'INC', 'NTF'])
@@ -87,6 +92,7 @@ def main():
   addSubparser(subparsers, 'import-to-db-sms', ['DB_FILE', 'CSV_FILE'])
   addSubparser(subparsers, 'import-to-db-calls', ['DB_FILE', 'CSV_FILE'])
   addSubparser(subparsers, 'import-to-db-mms', ['DB_FILE', 'MMS_MSG_DIR', 'MMS_PARTS_DIR'])
+  addSubparser(subparsers, 'list-texts', ['DB_FILE'])
   mmsHashSubParser = addSubparser(subparsers, 'mms-hash', ['SUBJECT', 'BODY'])
   mmsHashSubParser.add_argument('ATT_FILE', nargs='*')
   args = parser.parse_args()
@@ -295,6 +301,48 @@ def main():
 
     print("Saving MMS into commhistory db:" + str(args.DB_FILE))
     importMMSToDb(mmsMessages, args.DB_FILE)
+  elif args.COMMAND == "list-texts":
+    texts = readTextsFromCommHistory(args.DB_FILE)
+    print("read " + str(len(texts)) + " SMS messages from " + args.DB_FILE)
+
+    mmsMessages = readMMSFromCommHistory(args.DB_FILE, "/FAKE_MMS_PARTS_DIR")
+    print("read " + str(len(mmsMessages)) + " MMS messages from " + args.DB_FILE)
+
+    print("\n")
+
+    recentMessages = []
+    for msg in texts:
+      recentMessages.append({ 'date_millis': msg.date_millis
+                            , 'date_format': msg.date_format
+                            , 'number': msg.number
+                            , 'body': msg.formatPretty()
+                            , 'dir_format': msg.getDirectionStr()
+                            })
+
+    for msg in mmsMessages:
+      recentMessages.append({ 'date_millis': msg.date_millis
+                            , 'date_format': msg.date_format
+                            , 'number': msg.getMainNumber()
+                            , 'body': msg.formatPretty()
+                            , 'dir_format': msg.getDirectionStr()
+                            })
+
+    recentMessages = sorted(
+      recentMessages,
+      key=lambda msg: msg['date_millis'],
+      reverse=True)
+
+    recentMessages = recentMessages[0 : LIST_TEXTS_MAX_MESSAGES]
+    recentMessages.reverse()
+
+    for msg in recentMessages:
+      number = cleanNumber(msg['number'])
+      print("%s %s %s %s" % (
+         msg['date_format'],
+         msg['dir_format'],
+         number,
+         msg['body']))
+
   else:
     print("invalid <COMMAND>: " + args.COMMAND)
     quit(1)
@@ -347,6 +395,8 @@ class Text:
       + "," + self.date_format
       + "," + "\"" + escapeStr(self.body) + "\""
     )
+  def formatPretty(self):
+    return self.body.replace('\n', ' ')
   def isOutgoing(self):
     return self.isDirection(SMS_DIR.OUT)
   def isIncoming(self):
@@ -513,6 +563,22 @@ class MMS:
       info += "att=" + str(attName) + "\n"
     info += "checksum=" + str(self.checksum) + "\n"
     return info
+  def getMainNumber(self):
+    if self.isOutgoing() and len(self.to_numbers) > 0:
+      return self.to_numbers[0]
+    elif self.isIncoming:
+      return self.from_number
+    return None
+  def formatPretty(self):
+    fmt = ""
+    if self.subject != None and len(self.subject) > 0 and self.subject != "NoSubject":
+      fmt += self.subject + " - " + self.body
+    else:
+      fmt += self.body
+    fmt += " (MMS)"
+    for attName in sorted(self.attFiles.keys()):
+      fmt += " |" + attName
+    return fmt
   def isOutgoing(self):
     return self.isDirection(MMS_DIR.OUT)
   def isIncoming(self):
