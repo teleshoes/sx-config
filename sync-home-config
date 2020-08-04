@@ -4,6 +4,7 @@ use warnings;
 
 my $ipmagicName = "sx";
 my $user = "nemo";
+my $commToolsDir = "$ENV{HOME}/Code/sx/comm-tools";
 
 my @HOME_RSYNC_FILES = qw(
   .bashrc
@@ -50,6 +51,7 @@ my @SPECIAL_USER_RSYNCS = (
   ["$ENV{HOME}/.config/ipmagic/", "/home/$user/.config/ipmagic/", ["-L"]],
 );
 my @SPECIAL_ROOT_RSYNCS = (
+  ["$commToolsDir/sms_db_importer.py", "$USRLOCALBIN_REMOTE_DIR/", []],
 );
 
 my $INITIAL_USER_CMD = "
