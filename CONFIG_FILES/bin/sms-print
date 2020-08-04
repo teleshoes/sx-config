@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $SMS_BY_CONTACTS_REPO = "/media/sdcard/phone/comm-repos/sms/by-contact";
+my $COMMHISTORY_DB = "/home/nemo/.local/share/commhistory/commhistory.db";
+
+sub writeContactsCsv($);
+sub nowMillis();
+
+sub main(@){
+  my $tmpContactsCsv = "/tmp/contacts-" . nowMillis() . ".csv";
+  writeContactsCsv($tmpContactsCsv);
+
+  system "sms_db_importer.py", "list-texts", $COMMHISTORY_DB, $tmpContactsCsv;
+}
+
+sub writeContactsCsv($){
+  my ($contactsCsvFile) = @_;
+  my @smsContacts = glob "$SMS_BY_CONTACTS_REPO/*.sms";
+  open FH, "> $contactsCsvFile" or die "ERROR: could not write $contactsCsvFile\n$!\n";
+  for my $smsContact(@smsContacts){
+    if($smsContact =~ /(\w+)-(\d+)\.sms$/){
+      print FH "$2,$1\n";
+    }
+  }
+  close FH;
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
+}
+
+&main(@ARGV);
