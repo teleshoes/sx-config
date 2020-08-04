@@ -306,7 +306,7 @@ def main():
     texts = readTextsFromCommHistory(args.DB_FILE)
     print("read " + str(len(texts)) + " SMS messages from " + args.DB_FILE)
 
-    mmsMessages = readMMSFromCommHistory(args.DB_FILE, "/FAKE_MMS_PARTS_DIR")
+    mmsMessages = readMMSFromCommHistory(args.DB_FILE, "/FAKE_MMS_PARTS_DIR", skipChecksums=True)
     print("read " + str(len(mmsMessages)) + " MMS messages from " + args.DB_FILE)
 
     print("\n")
@@ -517,7 +517,7 @@ class MMS:
     for toNumber in self.to_numbers:
       toNumbers.append(cleanNumber(toNumber))
     self.to_numbers = toNumbers
-  def parseParts(self):
+  def parseParts(self, skipChecksum=False):
     self.attFiles = {}
     self.attFilesRemotePaths = {}
     self.checksum = None
@@ -541,7 +541,8 @@ class MMS:
       else:
         print("invalid MMS part: " + str(p))
         quit(1)
-    self.checksum = self.generateChecksum()
+    if not skipChecksum:
+      self.checksum = self.generateChecksum()
   def generateChecksum(self):
     return generateMMSChecksum(self.subject, self.body, self.attFiles)
   def getMsgDirName(self):
@@ -801,7 +802,7 @@ def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
     mmsMessages.append(mms)
   return mmsMessages
 
-def readMMSFromCommHistory(db_file, mms_parts_dir):
+def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
   conn = sqlite3.connect(db_file)
   c = conn.cursor()
   i=0
@@ -875,7 +876,7 @@ def readMMSFromCommHistory(db_file, mms_parts_dir):
     msg.parts.append(part)
 
   for msg in msgs.values():
-    msg.parseParts()
+    msg.parseParts(skipChecksum=skipChecksums)
 
   query = c.execute(
     'SELECT id, remoteUids \
