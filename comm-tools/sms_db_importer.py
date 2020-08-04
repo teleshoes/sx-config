@@ -92,7 +92,8 @@ def main():
   addSubparser(subparsers, 'import-to-db-sms', ['DB_FILE', 'CSV_FILE'])
   addSubparser(subparsers, 'import-to-db-calls', ['DB_FILE', 'CSV_FILE'])
   addSubparser(subparsers, 'import-to-db-mms', ['DB_FILE', 'MMS_MSG_DIR', 'MMS_PARTS_DIR'])
-  addSubparser(subparsers, 'list-texts', ['DB_FILE'])
+  listTextsSubParser = addSubparser(subparsers, 'list-texts', ['DB_FILE'])
+  listTextsSubParser.add_argument('CONTACTS_CSV', nargs='?')
   mmsHashSubParser = addSubparser(subparsers, 'mms-hash', ['SUBJECT', 'BODY'])
   mmsHashSubParser.add_argument('ATT_FILE', nargs='*')
   args = parser.parse_args()
@@ -310,6 +311,11 @@ def main():
 
     print("\n")
 
+    if args.CONTACTS_CSV != None:
+      contacts = readContactsCSV(args.CONTACTS_CSV)
+    else:
+      contacts = dict()
+
     recentMessages = []
     for msg in texts:
       recentMessages.append({ 'date_millis': msg.date_millis
@@ -337,10 +343,15 @@ def main():
 
     for msg in recentMessages:
       number = cleanNumber(msg['number'])
-      print("%s %s %s %s" % (
+      if number in contacts:
+        contact = contacts[number]
+      else:
+        contact = ""
+      print("%s %s %s (%s) %s" % (
          msg['date_format'],
          msg['dir_format'],
          number,
+         contact,
          msg['body']))
 
   else:
@@ -928,6 +939,30 @@ def readCallsFromCSV(csvFile):
                      , duration_format
                      ))
   return texts
+
+def readContactsCSV(csvFile):
+  try:
+    csvFile = open(csvFile, 'r')
+    csvContents = csvFile.read()
+    csvFile.close()
+  except IOError:
+    print("could not read csv file: " + str(csvFile))
+    quit(1)
+
+  contacts = dict()
+  rowRegex = re.compile(''
+    + r'([0-9+]+),'
+    + r'(.+)'
+    )
+  for row in csvContents.splitlines():
+    m = rowRegex.match(row)
+    if not m or len(m.groups()) != 2:
+      print("invalid contacts CSV line: " + row)
+      quit(1)
+    contactNumber = m.group(1)
+    contactName = m.group(2)
+    contacts[contactNumber] = contactName
+  return contacts
 
 def getDbTableNames(db_file):
   cur = sqlite3.connect(db_file).cursor()
