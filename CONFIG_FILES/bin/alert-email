@@ -49,11 +49,23 @@ sub main(@){
     }
   }
 
+  my $klompCmdIsPlayingOut = `klomp-cmd is-playing`;
+  my $wasKlompPlaying = $klompCmdIsPlayingOut =~ /playing/ ? 1 : 0;
+
+  if(@soundCommands > 0 and $wasKlompPlaying){
+    system "klomp-cmd", "stop";
+  }
+
   my $first = 1;
   for my $cmd(@soundCommands){
     sleep ($SOUND_DELAY_MILLIS / 1000.0) if not $first;
     system @$cmd;
     $first = 0;
+  }
+
+  if(@soundCommands > 0 and $wasKlompPlaying){
+    sleep ($SOUND_DELAY_MILLIS / 1000.0);
+    system "klomp-cmd", "start";
   }
 }
 
