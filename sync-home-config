@@ -35,6 +35,7 @@ my @USRLOCALBIN_EXECS = qw(
 my $HOMEBIN_LOCAL_DIR = "$ENV{HOME}/bin";
 my $HOMEBIN_REMOTE_DIR = "/home/$user/bin";
 my @HOMEBIN_EXCLUDES = qw(
+  alert-email
   bat
 );
 
