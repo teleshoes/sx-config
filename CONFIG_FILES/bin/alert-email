@@ -64,7 +64,7 @@ sub main(@){
   }
 
   if(@soundCommands > 0 and $wasKlompPlaying){
-    sleep ($SOUND_DELAY_MILLIS / 1000.0);
+    sleep 2;
     system "klomp-cmd", "pause";
   }
 }
