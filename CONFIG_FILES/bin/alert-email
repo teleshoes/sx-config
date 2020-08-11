@@ -41,7 +41,7 @@ sub main(@){
       system "alert", "jumpup";
       sleep ($SOUND_DELAY_MILLIS / 1000.0);
       system "alarm", "-s", "--volume", "100", "ff7-menuselect";
-      sleep (0.05);
+      sleep ($SOUND_DELAY_MILLIS / 1000.0);
       system "alarm", "-s", "--volume", "100", "ff7-menuselect";
     }elsif(filterMatches "L", "crap", "--negate"){
       system "alert", "jumpup";
