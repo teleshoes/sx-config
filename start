@@ -115,7 +115,7 @@ pubkeys
 #settings => text input => keyboards => English => off
 #okboard => enable okboard => enable
 #okboard => enable backtracking => DISABLE
-#settings => apps => camera => save location => sdcard
+#settings => apps => camera => storage => sdcard
 #orienteeringcompass => calibrate 100%
 #riot => `cat ~/.secrets` => login
 #zoom => `cat ~/.secrets` => login
