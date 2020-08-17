@@ -41,21 +41,21 @@ my $SQL = ""
 sub main(@){
   die "Usage: $0\n" if @_ > 0;
 
-  my $prevStatus = getPreviousStatusByCurRGB();
   my ($newStatus, $newStatusMsg) = getNewStatus();
 
-  if($newStatus eq $STATUS_OFF and $prevStatus =~ /^($STATUS_OFF|$STATUS_UNKNOWN)$/){
-    #do nothing (dont turn off unmanaged LED states, or when already off)
-  }elsif($newStatus eq $STATUS_OFF and $prevStatus !~ /^($STATUS_OFF|$STATUS_UNKNOWN)$/){
-    my $formatRGB = formatRGB("0 0 0");
-    print "$prevStatus = >$newStatus $formatRGB (no conditions apply, and cur LED is known)\n";
-    setRGBByStatus $STATUS_OFF;
-  }elsif($newStatus ne $STATUS_OFF){
+  if($newStatus ne $STATUS_OFF){
     my $formatRGB = formatRGB($RGB_BY_STATUS{$newStatus});
-    print "$prevStatus => $newStatus | $formatRGB | $newStatusMsg\n";
+    print "led => $newStatus | $formatRGB | $newStatusMsg\n";
     setRGBByStatus $newStatus;
   }else{
-    die "ERROR: invalid LED status check\n";
+    my $prevStatus = getPreviousStatusByCurRGB();
+
+    if($prevStatus =~ /^($STATUS_OFF|$STATUS_UNKNOWN)$/){
+      #do nothing (dont turn off unmanaged LED states, or when already off)
+    }else{
+      print "$prevStatus => OFF (no conditions apply, and cur LED is known)\n";
+      setRGBByStatus $STATUS_OFF;
+    }
   }
 }
 
