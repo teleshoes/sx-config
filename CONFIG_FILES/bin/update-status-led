@@ -20,7 +20,7 @@ my $STATUS_UNKNOWN = "UNKNOWN";
 #   the first STATUS_NAME where BOOLEAN_CONDITION_SUB returns true is applied
 #   if no BOOLEAN_CONDITION_SUB returns true, STATUS_NAME "OFF" is used
 my @STATUS_ARR = (
-  UNREAD_SMS_MMS_CALL => "0 0 12"      => sub {${$_[0]}{UNREAD_EVENT_COUNT} > 0},
+  UNREAD_SMS_MMS_CALL => "0 0 30"      => sub {${$_[0]}{UNREAD_EVENT_COUNT} > 0},
 );
 my @STATUS_ARR_IDXS = grep {$_ % 3 == 0} (0 .. $#STATUS_ARR);
 
