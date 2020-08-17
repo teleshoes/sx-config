@@ -2,6 +2,33 @@
 use strict;
 use warnings;
 
+sub getRGB();
+sub setRGB($);
+sub setRGBByStatus($);
+sub formatRGB($);
+sub getPreviousStatusByCurRGB();
+sub getNewStatus();
+sub getUnreadEventCount();
+
+my $STATUS_OFF = "OFF";
+my $STATUS_UNKNOWN = "UNKNOWN";
+
+# "STATUS_NAME" => "R G B" => BOOLEAN_CONDITION_SUB
+#   both "R G B" and "STATUS_NAME" must be unique
+#   BOOLEAN_CONDITION_SUB is passed in a hash of variables by reference
+#      UNREAD_EVENT_COUNT = number of unread sms/mms/call events
+#   the first STATUS_NAME where BOOLEAN_CONDITION_SUB returns true is applied
+#   if no BOOLEAN_CONDITION_SUB returns true, STATUS_NAME "OFF" is used
+my @STATUS_ARR = (
+  UNREAD_SMS_MMS_CALL => "0 0 12"      => sub {${$_[0]}{UNREAD_EVENT_COUNT} > 0},
+);
+my @STATUS_ARR_IDXS = grep {$_ % 3 == 0} (0 .. $#STATUS_ARR);
+
+my @STATUS_ORDER = map {$STATUS_ARR[$_]} @STATUS_ARR_IDXS;
+my %RGB_BY_STATUS = map {$STATUS_ARR[$_] => $STATUS_ARR[$_+1]} @STATUS_ARR_IDXS;
+my %STATUS_BY_RGB = map {$STATUS_ARR[$_+1] => $STATUS_ARR[$_]} @STATUS_ARR_IDXS;
+my %CONDITION_SUB_BY_STATUS = map {$STATUS_ARR[$_] => $STATUS_ARR[$_+2]} @STATUS_ARR_IDXS;
+
 my $COMM_DB = "/home/nemo/.local/share/commhistory/commhistory.db";
 my $SQL = ""
   . " select count(*)"
@@ -11,20 +38,91 @@ my $SQL = ""
   . "   and not (type = 3 and direction = 1 and isMissedCall = 0)" # ignore inbound calls, except for missed calls
   ;
 
-sub getUnreadEventCount();
-
 sub main(@){
-  my $eventCount = getUnreadEventCount();
-  if($eventCount > 0){
-    print "$eventCount unread events: LED=>blue\n";
-    system "led", "-s", 0, 0, 12;
+  die "Usage: $0\n" if @_ > 0;
+
+  my $prevStatus = getPreviousStatusByCurRGB();
+  my ($newStatus, $newStatusMsg) = getNewStatus();
+
+  if($newStatus eq $STATUS_OFF and $prevStatus =~ /^($STATUS_OFF|$STATUS_UNKNOWN)$/){
+    #do nothing (dont turn off unmanaged LED states, or when already off)
+  }elsif($newStatus eq $STATUS_OFF and $prevStatus !~ /^($STATUS_OFF|$STATUS_UNKNOWN)$/){
+    my $formatRGB = formatRGB("0 0 0");
+    print "$prevStatus = >$newStatus $formatRGB (no conditions apply, and cur LED is known)\n";
+    setRGBByStatus $STATUS_OFF;
+  }elsif($newStatus ne $STATUS_OFF){
+    my $formatRGB = formatRGB($RGB_BY_STATUS{$newStatus});
+    print "$prevStatus => $newStatus | $formatRGB | $newStatusMsg\n";
+    setRGBByStatus $newStatus;
   }else{
-    my $led = `led --get`;
-    if($led =~ /^0 0 12$/){
-      print "0 unread events and LED was blue: LED=>off\n";
-      system "led", "-s", 0, 0, 0;
+    die "ERROR: invalid LED status check\n";
+  }
+}
+
+sub getRGB(){
+  my $rgb = `led --get`;
+  if($rgb =~ /^(\d+) (\d+) (\d+)$/){
+    return "$1 $2 $3";
+  }else{
+    die "ERROR: could not read LED with `led --get`\n";
+  }
+}
+sub setRGB($){
+  my ($rgb) = @_;
+  if($rgb =~ /^(\d+) (\d+) (\d+)$/){
+    system "led", "-s", $1, $2, $3;
+  }else{
+    die "ERROR: invalid LED RGB \"$rgb\"\n";
+  }
+}
+sub setRGBByStatus($){
+  my ($status) = @_;
+  my $rgb;
+  if($status eq $STATUS_OFF){
+    $rgb = "0 0 0";
+  }else{
+    $rgb = $RGB_BY_STATUS{$status};
+  }
+  die "ERROR: unknown status name \"$status\"\n" if not defined $rgb;
+  setRGB $rgb;
+}
+
+sub formatRGB($){
+  my ($rgb) = @_;
+  if($rgb =~ /^(\d+) (\d+) (\d+)$/){
+    return "rgb($1, $2, $3)";
+  }else{
+    die "ERROR: invalid rgb \"$rgb\"\n";
+  }
+}
+
+sub getPreviousStatusByCurRGB(){
+  my $rgb = getRGB();
+  if($rgb =~ /^0 0 0$/){
+    return $STATUS_OFF;
+  }
+  for my $status(@STATUS_ORDER){
+    if($rgb eq $RGB_BY_STATUS{$status}){
+      return $status;
     }
   }
+  return $STATUS_UNKNOWN;
+}
+
+sub getNewStatus(){
+  my $variables = {};
+  $$variables{UNREAD_EVENT_COUNT} = getUnreadEventCount();
+
+  my @varNames = grep {$$variables{$_} > 0} sort keys %$variables;
+  my $msg = join ", ", map {"$_=$$variables{$_}"} @varNames;
+
+  for my $status(@STATUS_ORDER){
+    my $condSub = $CONDITION_SUB_BY_STATUS{$status};
+    if(&$condSub($variables)){
+      return ($status, $msg);
+    }
+  }
+  return ($STATUS_OFF, $msg);
 }
 
 sub getUnreadEventCount(){
