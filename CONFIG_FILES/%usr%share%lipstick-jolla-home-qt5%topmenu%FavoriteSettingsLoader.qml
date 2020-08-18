@@ -104,7 +104,7 @@ Loader {
                     model: simpleFavModel
                     delegate: FavoriteSettingsDelegate {
                         manager: simpleFavGridManager
-                        height: Theme.itemSizeLarge + 2*Theme.paddingLarge + contextMenuHeight
+                        height: Theme.itemSizeLarge + Theme.paddingLarge + contextMenuHeight
                         width: Math.floor(root.width / root.columns)
                         onClicked: Lipstick.compositor.topMenuLayer.housekeeping = false
                         onRemove: simpleFavModel.removeFavorite(settingsEntryPath)
