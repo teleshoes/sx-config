@@ -229,7 +229,7 @@ SilicaFlickable {
             id: ambienceSelector
 
             width: parent.width
-            itemSize: topMenu.itemSize
+            itemSize: topMenu.itemSize * 0.75
             viewHeight: itemSize
 
             verticalOffset: topMenu.offset
