@@ -47,6 +47,8 @@ my $dconf = {
 
   "/apps/jolla-camera/storagePath" => "'/run/media/nemo/phone'",
 
+  "/apps/sailfish-browser/settings/autostart_private_browsing" => "true",
+
   "/jolla/voicecall/quickcall" => "false",
 
   "/jolla/sound/force_mediavolume" => "true",
