@@ -45,7 +45,7 @@ my $dconf = {
   "/desktop/lipstick-jolla-home/events_screen_actions_user" => "true",
   "/desktop/lipstick-jolla-home/events_screen_actions" => gvariantList(@actions),
 
-  "/apps/jolla-camera/storagePath" => "'/run/media/nemo/phone'",
+  "/apps/jolla-camera/storagePath" => "'/run/media/nemo/phone'", # THIS SHIT DONT WORK
 
   "/apps/sailfish-browser/settings/autostart_private_browsing" => "true",
   "/apps/sailfish-browser/settings/home_page" => "'file:///media/sdcard/phone'",
