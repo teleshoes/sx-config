@@ -26,6 +26,7 @@ my %packages = (
     expect
     lipstick-qt5-tools
     mce-tools
+    libkeepalive-glib-tools
     pbcopy
     qt5-qttools-qdbus
     harbour-storeman
