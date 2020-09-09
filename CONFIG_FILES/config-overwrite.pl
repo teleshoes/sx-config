@@ -13,7 +13,7 @@ my ($login,$pass,$uid,$gid) = getpwnam($user);
 my $binTarget = '/usr/local/bin';
 
 my @rsyncOpts = qw(
-  -a  --no-owner --no-group
+  -a -c --no-owner --no-group
   --out-format=%n
 );
 
