@@ -15,7 +15,7 @@ sub tryrun(@);
 sub runIpmagicRoot(@);
 sub tryrunIpmagicRoot(@);
 
-my @removals = qw(busybox-symlinks-tar);
+my @removals = qw(busybox-symlinks-tar busybox-symlinks-coreutils);
 
 my %packages = (
   "1-essential" => [qw(
@@ -24,6 +24,7 @@ my %packages = (
     perl perl-CPAN
     htop git gnupg2 sudo tar vim-enhanced wget zypper
     expect
+    gnu-coreutils
     lipstick-qt5-tools
     mce-tools
     libkeepalive-glib-tools
