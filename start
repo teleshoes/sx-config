@@ -34,6 +34,8 @@
 
 ./set-host
 
+./set-resolv #necessary for some inexplicable reason sometimes
+
 ./install-packages
 
 ./config-files --backup-only
