@@ -1,0 +1,6 @@
+IPMAGIC_NAME="sx"
+
+set -x
+ipmagic $IPMAGIC_NAME -u root -s "cat /etc/resolv.conf"
+ipmagic $IPMAGIC_NAME -u root -s "echo nameserver 8.8.8.8 > /etc/resolv.conf"
+ipmagic $IPMAGIC_NAME -u root -s "cat /etc/resolv.conf"
