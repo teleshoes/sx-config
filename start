@@ -95,7 +95,7 @@
 ./sync-games --restore
 
 ./restore-klomp-lists
-klomp-sync `ipmagic sx`
+klomp-sync `ipmagic sx` --nopresync
 
 #maybe:
 #  rsync -avP backup/backup-home/android_storage `sx`:~/ --del -n
