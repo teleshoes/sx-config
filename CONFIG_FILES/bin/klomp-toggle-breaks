@@ -1,0 +1,1 @@
+klomp-cmd runcmd-toggle 'klomp-cmd stop; alarm -s success'
