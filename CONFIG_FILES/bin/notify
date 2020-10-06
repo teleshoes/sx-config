@@ -2,15 +2,32 @@
 use strict;
 use warnings;
 
+my $USER = "nemo";
+my $DB = "/home/$USER/.local/share/system/privileged/Notifications/notifications.db";
+
 my $usage = "Usage:
   $0 -h|--help
     show this message
+
+  $0
+  $0 -g|-l|--get|--list
+    print notifications from $DB
+    one per line, formatted \"<APPNAME>: <SUMMARY> - <BODY>\"
 ";
 
 sub main(@){
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $usage;
     exit 0;
+  }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-g|-l|--get|--list)$/)){
+    my $sql = ""
+      . "select"
+      . " app_name"
+      . " || ': '  || summary"
+      . " || ' - ' || body"
+      . " from notifications"
+      ;
+    system "sudo", "sqlite3", "$DB", $sql;
   }else{
     die $usage;
   }
