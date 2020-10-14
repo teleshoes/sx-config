@@ -24,6 +24,11 @@ my %SYMLINKS = (
     src => "/media/sdcard/phone/sounds",
     dest => "custom",
   },
+  "4klomp" => {
+    dir => "/home/$user",
+    src => "/media/sdcard/phone/klomp",
+    dest => ".klomp",
+  },
 );
 my @SYMLINK_NAMES = sort keys %SYMLINKS;
 my %DIR = map {$_ => $SYMLINKS{$_}{dir}} @SYMLINK_NAMES;
