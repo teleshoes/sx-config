@@ -234,7 +234,7 @@ sub main(@){
       }
       my @packages = @{$packages{$group}};
       if(@packages > 0){
-        runIpmagicRoot "pkcon", "-y", "install", @packages;
+        runIpmagicRoot "pkcon", "-y", "install", "--allow-reinstall", @packages;
       }
     }elsif($command =~ /^force-install$/){
       for my $package(@zypperForceInstallPackages){
