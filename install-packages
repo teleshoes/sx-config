@@ -49,6 +49,7 @@ my %packages = (
 
   "4-apps" => [qw(
     gpscon
+    gstreamer1.0-tools
     harbour-advanced-camera
     harbour-filetug
     harbour-gpsinfo
