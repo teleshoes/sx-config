@@ -178,6 +178,8 @@ my $usage = "Usage:
       refresh-<OPENREPOS_USERNAME>
         use zypper to update package lists for a single repo
         CAUTION: before running zypper, kills packagekitd
+      removals
+        remove packages: @removals
       $groupCmdFmt
       force-install
         use zypper and expect to forcibly install: @zypperForceInstallPackages
