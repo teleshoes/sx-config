@@ -146,8 +146,10 @@ my @openrepos = qw(
   xerxes2
 );
 
-my @keyUrls = qw(
-  http://sailfish.openrepos.net/openrepos.key
+my $OPENREPOS_HOST = "sailfish.openrepos.net";
+
+my @keyUrls = (
+  "https://$OPENREPOS_HOST/openrepos.key",
 );
 
 my $groupCmdFmt = join "      ", map {
@@ -163,6 +165,8 @@ my $usage = "Usage:
         force-install
 
     COMMAND:
+      hosts
+        lookup $OPENREPOS_HOST locally and insert into /etc/host on phone
       keys
         use rpm to import keys
       repos
@@ -184,13 +188,23 @@ sub main(@){
 
   my @commands = @_;
   if(@commands == 0){
-    @commands = ("keys", "repos", "refresh", "removals", @groups, "force-install");
+    @commands = ("hosts", "keys", "repos", "refresh", "removals", @groups, "force-install");
   }
 
   for my $command(@commands){
     print "\n\n\n";
     print "=====$command\n";
-    if($command =~ /^keys$/){
+    if($command =~ /^hosts$/){
+      my $hostOut = `host $OPENREPOS_HOST`;
+      my $openreposIP;
+      if($hostOut =~ /^$OPENREPOS_HOST has address (\d+\.\d+\.\d+\.\d+)$/m){
+        $openreposIP = $1;
+      }else{
+        die "ERROR: could not find IP of $OPENREPOS_HOST with `host`\n";
+      }
+      runIpmagicRoot "sed", "-i", "'/\\tsailfish.openrepos.net\$/d'", "/etc/hosts";
+      runIpmagicRoot "echo -ne \"$openreposIP\t\tsailfish.openrepos.net\\n\" >> /etc/hosts";
+    }elsif($command =~ /^keys$/){
       for my $url(@keyUrls){
         runIpmagicRoot "rpm", "--import", $url;
       }
@@ -234,7 +248,7 @@ sub main(@){
 sub installRepos(@){
   for my $repo(@_){
     my $repoName = "openrepos-$repo";
-    my $url = "http://sailfish.openrepos.net/$repo/personal/main";
+    my $url = "https://$OPENREPOS_HOST/$repo/personal/main";
     runIpmagicRoot "ssu", "addrepo", $repoName, $url;
   }
 }
