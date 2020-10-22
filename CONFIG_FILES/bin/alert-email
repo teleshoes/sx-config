@@ -32,18 +32,18 @@ sub main(@){
 
   if($accName =~ "G"){
     if(searchMatches "G", 'subject~"new voicemail" from~"google voice"'){
-      push @soundCommands, ["alert", "jumpdown"];
+      push @soundCommands, ["alert", "jumpdown_short"];
       push @soundCommands, ["alarm", "-s", "--volume", "100", "ff7-phoenixdown"];
     }else{
-      push @soundCommands, ["alert", "jumpdown"];
+      push @soundCommands, ["alert", "jumpdown_short"];
     }
   }elsif($accName =~ "L"){
     if(filterMatches "L", "me"){
-      push @soundCommands, ["alert", "jumpup"];
+      push @soundCommands, ["alert", "jumpup_short"];
       push @soundCommands, ["alarm", "-s", "--volume", "100", "ff7-menuselect"];
       push @soundCommands, ["alarm", "-s", "--volume", "100", "ff7-menuselect"];
     }elsif(filterMatches "L", "crap", "--negate"){
-      push @soundCommands, ["alert", "jumpup"];
+      push @soundCommands, ["alert", "jumpup_short"];
     }else{
       #do nothing
     }
