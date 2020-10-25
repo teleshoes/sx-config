@@ -20,7 +20,7 @@
 # settings -> developer tools -> developer mode
 # settings -> developer tools -> remote connection
 # settings -> developer tools -> set password for ssh and root acccess -> d -> save
-# settings -> developer tools -> show reboot option on top menu #MANUAL only for now
+# settings -> developer tools -> show reboot option on top menu #for convenience only, setup-dconf
 
 # ipmagic sx -t IPADDRESS # until icmp rules written in config files and reboot
 
