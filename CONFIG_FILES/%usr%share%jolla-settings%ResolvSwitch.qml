@@ -26,7 +26,7 @@ SettingsToggle {
     }
 
     function updateResolvConfName() {
-      resolvConfName = readProc(["sudo", "resolv", "--get"])
+      resolvConfName = readProc(["cat", "/etc/resolv.conf.confname"])
     }
 
     function readProc(cmdArr) {
