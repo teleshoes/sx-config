@@ -69,6 +69,13 @@ SwipeGestureArea {
     property bool closeSwipeActive
     property int closeSwipeThreshold: Math.max(height*.3, Theme.itemSizeSmall)
 
+    ConfigurationGroup {
+        id: autocapitalization
+        path: "/apps/text_input/autocaps"
+
+        property bool enabled: true
+    }
+
     property QtObject nextLayoutAttributes: QtObject {
         property bool isShifted
         property bool inSymView
@@ -423,6 +430,7 @@ SwipeGestureArea {
                 && MInputMethodQuick.contentType === Maliit.FreeTextContentType
                 && MInputMethodQuick.autoCapitalizationEnabled
                 && !MInputMethodQuick.hiddenText
+                && autocapitalization.enabled
                 && layout && layout.type === "") {
 
             var position = MInputMethodQuick.cursorPosition
