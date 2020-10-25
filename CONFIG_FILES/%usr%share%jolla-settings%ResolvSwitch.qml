@@ -26,7 +26,9 @@ SettingsToggle {
     }
 
     function updateResolvConfName() {
-      resolvConfName = readProc(["cat", "/etc/resolv.conf.confname"])
+      var confName = readProc(["cat", "/etc/resolv.conf.confname"])
+      confName = confName.replace(/(\n|\r)+$/, '');
+      resolvConfName = confName
     }
 
     function readProc(cmdArr) {
