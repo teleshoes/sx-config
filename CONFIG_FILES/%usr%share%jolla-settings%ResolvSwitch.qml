@@ -19,6 +19,12 @@ SettingsToggle {
 
     Component.onCompleted: updateResolvConfName();
 
+    onVisibleChanged: {
+      if(visible){
+        updateResolvConfName();
+      }
+    }
+
     function updateResolvConfName() {
       resolvConfName = readProc(["sudo", "resolv", "--get"])
     }
