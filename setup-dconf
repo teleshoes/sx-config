@@ -57,6 +57,8 @@ my $dconf = {
 
   "/jolla/sound/force_mediavolume" => "true",
 
+  "/uk/co/piggz/harbour-advanced-camera/storagePath" => "'/media/sdcard/phone'",
+
   "/desktop/lipstick-jolla-home/close_all_apps_hint_count" => "4",
   "/desktop/lipstick-jolla-home/events_view_close_hint_count" => "4",
   "/desktop/sailfish/hints/close_app_hint_count" => "4",
