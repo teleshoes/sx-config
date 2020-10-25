@@ -13,9 +13,11 @@ SettingsToggle {
       readProc(["sudo", "resolv", "--cycle", "f", "l"])
       updateResolvConfName();
     }
-    property var resolvConfName: readProc(["sudo", "resolv", "--get"])
+    property var resolvConfName: "?"
     checked: false
     busy: false
+
+    Component.onCompleted: updateResolvConfName();
 
     function updateResolvConfName() {
       resolvConfName = readProc(["sudo", "resolv", "--get"])
