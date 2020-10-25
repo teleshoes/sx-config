@@ -59,6 +59,7 @@ my $dconf = {
 
   "/desktop/lipstick-jolla-home/close_all_apps_hint_count" => "4",
   "/desktop/lipstick-jolla-home/events_view_close_hint_count" => "4",
+  "/desktop/sailfish/hints/close_app_hint_count" => "4",
   "/desktop/sailfish/hints/return_to_home_hint_count" => "4",
   "/sailfish/accounts/settings_autosave_hint_count" => "4",
   "/sailfish/calculator/scientific_calculator_hint_count" => "4",
@@ -70,6 +71,8 @@ my $dconf = {
   "/sailfish/gallery/vertical_page_back_hint" => "4",
   "/sailfish/maps/explore_map_hint_count" => "4",
   "/sailfish/messages/access_contact_card_hint_count" => "4",
+  "/sailfish/text_input/close_keyboard_hint_count" => "4",
+  "/sailfish/text_input/switch_keyboard_hint_count" => "4",
   "/sailfish/people/use_count" => "4",
   "/sailfish/store/categories_attached_page_hint_count" => "4",
   "/sailfish/store/download_upgrade_hint_count" => "4",
