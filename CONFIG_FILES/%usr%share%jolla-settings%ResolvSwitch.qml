@@ -8,6 +8,7 @@ import Mer.Cutes 1.1
 SettingsToggle {
     name: "resolv " + resolvConfName
     icon.source: "image://theme/icon-m-download"
+    showOnOffLabel: false
     onToggled: {
       readProc(["sudo", "resolv", "--cycle", "f", "l"])
       resolvConfName = readProc(["sudo", "resolv", "--get"])
