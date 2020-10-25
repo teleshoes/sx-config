@@ -11,11 +11,15 @@ SettingsToggle {
     showOnOffLabel: false
     onToggled: {
       readProc(["sudo", "resolv", "--cycle", "f", "l"])
-      resolvConfName = readProc(["sudo", "resolv", "--get"])
+      updateResolvConfName();
     }
     property var resolvConfName: readProc(["sudo", "resolv", "--get"])
     checked: false
     busy: false
+
+    function updateResolvConfName() {
+      resolvConfName = readProc(["sudo", "resolv", "--get"])
+    }
 
     function readProc(cmdArr) {
       var cmdExec = cmdArr[0];
