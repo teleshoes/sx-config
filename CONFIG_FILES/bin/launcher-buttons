@@ -81,7 +81,6 @@ my @config = qw(
   orienteeringcompass
 
   mimer
-  zoom
   openrepos-myipaddress
   fdroid
 );
@@ -132,7 +131,6 @@ my %replacementRegexs = (
   'torbrowser'     => qw/^apkd_launcher_org_torproject_torbrowser-org_mozilla_gecko_LauncherActivity$/,
   'vlc'            => qw/^apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity$/,
   'wemo'           => qw/^apkd_launcher_com_belkin_wemoandroid-com_belkin_activity_MainActivity$/,
-  'zoom'           => qw/^apkd_launcher_us_zoom_videomeetings-com_zipow_videobox_LauncherActivity$/,
 );
 
 #desktop files with no launchers
