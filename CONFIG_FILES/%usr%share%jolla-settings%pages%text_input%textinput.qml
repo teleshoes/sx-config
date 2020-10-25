@@ -332,6 +332,14 @@ Page {
                 onClicked: splitConfig.value = !splitConfig.value
             }
 
+            TextSwitch {
+                width: parent.width
+                checked: autocapitalization.enabled
+                //% Allow auto-capitalization for all layouts
+                text: qsTrId("sailfishos-patch-autocaps-la-autocaps")
+                onClicked: autocapitalization.enabled = checked
+            }
+
             Repeater {
                 model: pluginSettingsModel
                 delegate: Component {
@@ -377,6 +385,8 @@ Page {
                 }
             }
         }
+
+        VerticalScrollDecorator {}
     }
 
     ConfigurationValue {
@@ -398,6 +408,13 @@ Page {
 
         key: "/sailfish/text_input/split_landscape"
         defaultValue: false
+    }
+
+    ConfigurationGroup {
+        id: autocapitalization
+        path: "/apps/text_input/autocaps"
+
+        property bool enabled: true
     }
 
     ConfigurationValue {
