@@ -46,6 +46,8 @@ my $dconf = {
   "/desktop/lipstick-jolla-home/events_screen_actions_user" => "true",
   "/desktop/lipstick-jolla-home/events_screen_actions" => gvariantList(@actions),
 
+  "/desktop/jolla/reboot_action_enabled" => "true",
+
   "/apps/jolla-camera/storagePath" => "'/run/media/nemo/phone'", # THIS SHIT DONT WORK
 
   "/apps/sailfish-browser/settings/autostart_private_browsing" => "true",
