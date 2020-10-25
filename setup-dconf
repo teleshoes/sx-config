@@ -48,7 +48,7 @@ my $dconf = {
 
   "/desktop/jolla/reboot_action_enabled" => "true",
 
-  "/apps/jolla-camera/storagePath" => "'/run/media/nemo/phone'", # THIS SHIT DONT WORK
+  "/apps/jolla-camera/storagePath" => "'/home/nemo/android_storage/SDCARD'", # THIS SHIT DONT WORK
 
   "/apps/sailfish-browser/settings/autostart_private_browsing" => "true",
   "/apps/sailfish-browser/settings/home_page" => "'file:///media/sdcard/phone'",
