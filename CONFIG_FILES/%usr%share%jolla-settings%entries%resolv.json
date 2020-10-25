@@ -1,0 +1,16 @@
+{
+    "translation_catalog": "settings-networking",
+    "entries": [
+        {
+            "path": "system_settings/connectivity/wlan/resolv_toggle_switch",
+            "title": "resolv",
+            "type": "custom",
+            "icon": "image://theme/icon-m-download",
+            "params": {
+                "source": "/usr/share/jolla-settings/ResolvSwitch.qml",
+                "type": "grid",
+                "settings_path": "system_settings/connectivity/wlan"
+            }
+        }
+    ]
+}
