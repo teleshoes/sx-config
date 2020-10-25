@@ -21,6 +21,7 @@ my $actions = getActions();
 my @shortcuts = (
   $$toggles{flight},
   $$toggles{wlan},
+  $$toggles{resolv},
   $$toggles{mobile},
   $$toggles{bluetooth},
   $$toggles{flashlight},
@@ -108,6 +109,7 @@ sub getShortcutToggles(){
   return {
     flight              => 'system_settings/connectivity/flight/enable_switch',
     wlan                => 'system_settings/connectivity/wlan/enable_switch',
+    resolv              => 'system_settings/connectivity/wlan/resolv_toggle_switch',
     mobile              => 'system_settings/connectivity/mobile/context0',
     bluetooth           => 'system_settings/connectivity/bluetooth/enable_switch',
     gps                 => 'system_settings/connectivity/gps_and_location/enable_location',
