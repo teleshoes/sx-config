@@ -38,13 +38,8 @@ my $dconf = {
   "/desktop/lipstick-jolla-home/left_peek_to_events" => "false",
   "/desktop/lipstick-jolla-home/lock_screen_camera" => "true",
 
-  "/desktop/lipstick-jolla-home/events_screen_shortcuts_enabled" => "true",
-  "/desktop/lipstick-jolla-home/events_screen_shortcuts_user" => "true",
-  "/desktop/lipstick-jolla-home/events_screen_shortcuts" => gvariantList(@shortcuts),
-
-  "/desktop/lipstick-jolla-home/events_screen_actions_enabled" => "true",
-  "/desktop/lipstick-jolla-home/events_screen_actions_user" => "true",
-  "/desktop/lipstick-jolla-home/events_screen_actions" => gvariantList(@actions),
+  "/desktop/lipstick-jolla-home/topmenu_shortcuts" => gvariantList(@shortcuts, @actions),
+  "/desktop/lipstick-jolla-home/topmenu_shortcuts_enabled" => "true",
 
   "/desktop/jolla/reboot_action_enabled" => "true",
 
