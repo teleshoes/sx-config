@@ -117,6 +117,11 @@ SystemWindow {
             }
         }
     }
+    ConfigurationValue {
+        id: disableVolumeButtons
+        key: "/jolla/sound/disable_volume_buttons"
+        defaultValue: false
+    }
 
     HapticsEffect {
         id: silenceVibra
@@ -484,6 +489,9 @@ SystemWindow {
         }
         onVolumeChanged: restartHideTimerIfWindowVisibleAndWarningNotVisible()
         onVolumeKeyPressed: {
+            if (disableVolumeButtons.value) {
+              return
+            }
             if (Lipstick.compositor.screenIsLocked) {
               return
             }
