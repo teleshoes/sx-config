@@ -106,6 +106,17 @@ SystemWindow {
         key: "/jolla/sound/force_mediavolume"
         defaultValue: false
     }
+    ConfigurationValue {
+        id: triggerBar
+        key: "/jolla/sound/trigger_bar"
+        defaultValue: false
+        onValueChanged: {
+            if(value){
+              volumeControl.windowVisible = true
+              restartHideTimerIfWindowVisibleAndWarningNotVisible()
+            }
+        }
+    }
 
     HapticsEffect {
         id: silenceVibra
