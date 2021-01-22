@@ -114,6 +114,7 @@ SystemWindow {
             if(value){
               volumeControl.windowVisible = true
               restartHideTimerIfWindowVisibleAndWarningNotVisible()
+              value = false
             }
         }
     }
