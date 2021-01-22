@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
-sub convertVolumeArgToVolStep($$);
+sub convertVolumeArgToVolStep($$$);
 sub getVolumeStep();
 sub setVolumeStep($);
 sub getMaxVolumeStep();
@@ -24,13 +24,22 @@ my $usage = "Usage:
 
   $EXEC VOL_ARG
   $EXEC -s|--set|s|set VOL_ARG
-    -convert <VOL_ARG> to <VOL_STEP>
     -read Meego MainVolume2 CurrentStep from pulse dbus and set <OLD_VOL_STEP>
+    -convert <VOL_ARG> to <VOL_STEP>
+      -if <VOL_PERCENT> is given, multiply by <MAX_VOL_STEP>, and round
+      -take that value, and if '+' or '-' is given, add or subtract it to/from <OLD_VOL_STEP>
     -write Meego MainVolume2 CurrentStep in pulse dbus to <VOL_STEP>
     -print <OLD_VOL_STEP> => <VOL_STEP>
     -write false/true/false to dconf /jolla/sound/trigger_bar (hack to show vol bar)
 
-  VOL_ARG      = <VOL_STEP> | <VOL_PERCENT>%
+  VOL_ARG      = <VOL_STEP>
+                 | <VOL_PERCENT>%
+                 | +<VOL_STEP>
+                 | +<VOL_PERCENT>%
+                 | -<VOL_STEP>
+                 | -<VOL_PERCENT>%
+                 | =<VOL_STEP>
+                 | =<VOL_PERCENT>%
   VOL_STEP     = an integer between 0 and <MAX_VOL_STEP>
   VOL_PERCENT  = an integer between 0 and 100, converted to nearest <VOL_STEP>
   MAX_VOL_STEP = a positive integer (default is usually 11 on Sailfish OS)
@@ -45,37 +54,56 @@ sub main(@){
     my $volStep = getVolumeStep();
     my $maxVolStep = getMaxVolumeStep();
     print int($volStep / $maxVolStep * 100.0 + 0.5) . "% ($volStep/$maxVolStep)\n";
-  }elsif((@_ == 1 and $_[0] =~ /^\d+%?$/) or (@_ == 2 and $_[0] =~ /^(-s|--set|s|set)$/)){
+  }elsif((@_ == 1 and $_[0] =~ /^[+-=]?\d+%?$/) or (@_ == 2 and $_[0] =~ /^(-s|--set|s|set)$/)){
     my $volArg = $_[-1];
 
-    my $oldStep = getVolumeStep();
+    my $oldVolStep = getVolumeStep();
     my $maxVolStep = getMaxVolumeStep();
 
-    my $volStep = convertVolumeArgToVolStep $volArg, $maxVolStep;
-
-    if($volStep > $maxVolStep){
-      die "ERROR: vol step ($volStep) exceeds max ($maxVolStep)\n";
-    }
+    my $volStep = convertVolumeArgToVolStep $volArg, $oldVolStep, $maxVolStep;
 
     setVolumeStep($volStep);
-    print "$oldStep => $volStep\n";
+    print "$oldVolStep => $volStep\n";
   }else{
     die $usage;
   }
 }
 
-sub convertVolumeArgToVolStep($$){
-  my ($volArg, $maxVolStep) = @_;
+sub convertVolumeArgToVolStep($$$){
+  my ($volArg, $oldVolStep, $maxVolStep) = @_;
 
-  my $volStep;
-  if($volArg =~ /^(\d+)$/){
-    $volStep = $1;
-  }elsif($volArg =~ /^(\d+)%$/){
-    my $volPct = $1;
-    $volStep = int($volPct / 100.0 * $maxVolStep + 0.5);
+  my ($sign, $value, $unit);
+  if($volArg =~ /^(\+|-|=)?(\d+)(%)?$/){
+    ($sign, $value, $unit) = ($1, $2, $3);
   }else{
     die "ERROR: invalid volume arg format: $volArg\n";
   }
+
+  $sign = "=" if not defined $sign or $sign eq "";
+  $unit = "step" if not defined $unit or $unit eq "";
+
+  my $volStep;
+  if($unit =~ /%/){
+    $volStep = int($value / 100.0 * $maxVolStep + 0.5);
+  }elsif($unit =~ /step/){
+    $volStep = $value;
+  }else{
+    die "ERROR: unknown volume unit \"$unit\"\n";
+  }
+
+  if($sign =~ /\+/){
+    $volStep = $oldVolStep + $volStep;
+  }elsif($sign =~ /-/){
+    $volStep = $oldVolStep - $volStep;
+  }elsif($sign =~ /=/){
+    $volStep = $volStep;
+  }else{
+    die "ERROR: unknown volume value sign \"$sign\"\n";
+  }
+
+  $volStep = $maxVolStep if $volStep >= $maxVolStep;
+  $volStep = 0 if $volStep <= 0;
+
   return $volStep;
 }
 
