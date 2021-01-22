@@ -92,6 +92,9 @@ Page {
             VolumeSlider {
                 width: parent.width
             }
+            MediaVolumeSlider {
+                width: parent.width
+            }
 
             Item {
                 width: parent.width
