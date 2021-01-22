@@ -36,9 +36,6 @@ my @selectedTopmenuItems = (
 
   $$topmenuToggles{resolv},
   $$topmenuActions{connect_to_internet},
-  $$topmenuActions{set_an_alarm},
-  $$topmenuActions{take_a_selfie},
-
   $$topmenuActions{make_a_note},
 );
 
