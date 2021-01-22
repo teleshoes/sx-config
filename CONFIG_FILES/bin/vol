@@ -72,6 +72,10 @@ sub main(@){
     my $volStep = convertVolumeArgToVolStep $volArg, $oldVolStep, $maxVolStep;
 
     setVolumeStep($volStep);
+
+    if($oldVolStep != $volStep){
+      showVolumeTriggerBarHack();
+    }
     print "$oldVolStep => $volStep\n";
   }else{
     die $usage;
@@ -163,8 +167,6 @@ sub setVolumeStep($){
   if($out !~ /^method.*$/){
     die "ERROR: dbus-send unexpected output \"$out\"\n";
   }
-
-  showVolumeTriggerBarHack();
 }
 
 sub getMaxVolumeStep(){
