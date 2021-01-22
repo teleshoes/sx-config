@@ -21,22 +21,24 @@ my $topmenuActions = getTopmenuActions();
 my $topmenuShortcuts = getTopmenuShortcuts();
 
 my @selectedTopmenuItems = (
+  $$topmenuSliders{brightness},
+  $$topmenuSliders{media_volume},
+
   $$topmenuToggles{cellular_data},
   $$topmenuToggles{wlan},
   $$topmenuToggles{bluetooth},
   $$topmenuToggles{flight},
+
   $$topmenuToggles{flashlight},
   $$topmenuToggles{orientation_lock},
   $$topmenuToggles{location},
   $$topmenuToggles{hotspot},
+
   $$topmenuToggles{resolv},
-
-  $$topmenuSliders{brightness},
-  $$topmenuSliders{media_volume},
-
   $$topmenuActions{connect_to_internet},
   $$topmenuActions{set_an_alarm},
   $$topmenuActions{take_a_selfie},
+
   $$topmenuActions{make_a_note},
 );
 
