@@ -77,6 +77,7 @@ SystemWindow {
 
     Component.onCompleted: {
         Lipstick.compositor.volumeWarningVisible = Qt.binding(function (){ return loader.active })
+        triggerBar.value = false /* actuall set dconf value to false to start listening for true */
     }
 
     ProfileControl {
