@@ -12,6 +12,8 @@ sub run(@);
 
 my $EXEC = basename $0;
 
+$ENV{PATH} = "/usr/bin"; #dbus-send, dconf
+
 my $usage = "Usage:
   $EXEC -h|--help
     show this message
