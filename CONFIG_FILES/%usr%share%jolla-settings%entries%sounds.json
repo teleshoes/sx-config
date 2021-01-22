@@ -26,6 +26,16 @@
         }
     },
     {
+        "path":  "system_settings/look_and_feel/sounds/media_volume_slider",
+        "type": "custom",
+        "translation_id": "settings_system-media_volume",
+        "params": {
+            "source": "/usr/share/jolla-settings/pages/sounds/MediaVolumeSlider.qml",
+            "type": "list",
+            "settings_path": "system_settings/look_and_feel/sounds"
+        }
+    },
+    {
         "path": "system_settings/look_and_feel/sounds/silence_switch",
         "type": "custom",
         "translation_id": "settings_system-silence",
