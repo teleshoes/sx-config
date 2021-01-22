@@ -4,7 +4,7 @@ import Sailfish.Silica 1.0
 Slider {
     id: slider
 
-    VolumeSliderController {
+    MediaVolumeSliderController {
         slider: slider
     }
 }

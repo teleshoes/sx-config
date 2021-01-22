@@ -6,21 +6,31 @@ import com.jolla.settings 1.0
 import com.jolla.settings.system 1.0
 import org.nemomobile.systemsettings 1.0
 
+import Mer.Cutes 1.1
+
 Item {
     id: root
 
     property QtObject slider
-    property bool externalChange
-    property bool propertiesUpdating
-    readonly property bool play: slider.down && !playDelay.running
+
+    property bool initializing
 
     function updateSliderValue() {
-        if (propertiesUpdating) {
-            return
-        }
-        externalChange = true
-        slider.value = (profileControl.profile == "silent") ? 0 : profileControl.ringerVolume
-        externalChange = false
+        var volStep = getVolume()
+        slider.value = volStep
+    }
+    function getVolume() {
+      var volStep = Math.floor(readProc(["/usr/local/bin/vol", "--read"]))
+      if (volStep < 0) {
+        volStep = 0
+      }
+      if (volStep > 11) {
+        volStep = 11
+      }
+      return volStep
+    }
+    function setVolume(volStep) {
+      readProc(["/usr/local/bin/vol", "--set", volStep])
     }
 
     state: "default"
@@ -30,54 +40,30 @@ Item {
 
         PropertyChanges {
             target: slider
-
-            // assuming Slider's internal paddings allow label to be nicely shown if a bit extra is reserved
             height: slider.implicitHeight + valueLabel.height + Theme.paddingSmall
-            //% "Ringtone volume"
-            label: qsTrId("settings_sounds_la_volume")
-            maximumValue: 100
-            minimumValue: 0
-            stepSize: 20
+            label: "Media volume"
 
-            onDownChanged: {
-                if (slider.down) {
-                    playDelay.restart()
-                }
-            }
+            maximumValue: 11
+            minimumValue: 0
+            stepSize: 1
 
             onValueChanged: {
-                if (!root.externalChange) {
-                    root.propertiesUpdating = true  // don't update slider until new values of ringVolume + profile are both known
-                    profileControl.ringerVolume = slider.value
-                    profileControl.profile = (slider.value > 0) ? "general" : "silent"
-                    root.propertiesUpdating = false
+                if(!initializing){
+                    setVolume(slider.value)
                 }
             }
-        }
-    }
-
-    onPlayChanged: {
-        if (play) {
-            feedback.play()
-        } else {
-            feedback.stop()
         }
     }
 
     Component.onCompleted: {
+        root.initializing = true
         slider.animateValue = false
+
+        slider.color = "#009955"
         root.updateSliderValue()
+
+        root.initializing = false
         slider.animateValue = true
-    }
-
-    NonGraphicalFeedback {
-        id: feedback
-        event: "ringtone"
-    }
-
-    Timer {
-        id: playDelay
-        interval: 1000
     }
 
     SliderValueLabel {
@@ -86,9 +72,7 @@ Item {
         parent: root.slider
         slider: root.slider
 
-        //% "%1%"
-        text: slider.value > 0 ? qsTrId("settings_sounds-la-percentage_format").arg(slider.value)
-                               : ""
+        text: slider.value > 0 ? slider.value : ""
         scale: slider.pressed ? Theme.fontSizeLarge / Theme.fontSizeMedium : 1.0
         font.pixelSize: Theme.fontSizeMedium
     }
@@ -103,15 +87,13 @@ Item {
         Behavior on scale { NumberAnimation { duration: 80 } }
     }
 
-    ProfileControl {
-        id: profileControl
+    function readProc(cmdArr) {
+      var cmdExec = cmdArr[0];
+      var cmdArgs = cmdArr.slice(1);
 
-        onRingerVolumeChanged: {
-            root.updateSliderValue()
-        }
-
-        onProfileChanged: {
-            root.updateSliderValue()
-        }
+      var proc = cutes.require('subprocess').process();
+      var res = proc.popen_sync(cmdExec, cmdArgs);
+      res.wait(-1);
+      return res.stdout().toString();
     }
 }
