@@ -14,11 +14,27 @@ Item {
     property QtObject slider
 
     property bool initializing
+    onVisibleChanged: {
+        if(visible){
+            initialize()
+        }
+    }
+    function initialize() {
+        root.initializing = true
+        slider.animateValue = false
+
+        slider.color = "#009955"
+        root.updateSliderValue()
+
+        root.initializing = false
+        slider.animateValue = true
+    }
 
     function updateSliderValue() {
         var volStep = getVolume()
         slider.value = volStep
     }
+
     function getVolume() {
       var volStep = Math.floor(readProc(["/usr/local/bin/vol", "--read"]))
       if (volStep < 0) {
@@ -53,17 +69,6 @@ Item {
                 }
             }
         }
-    }
-
-    Component.onCompleted: {
-        root.initializing = true
-        slider.animateValue = false
-
-        slider.color = "#009955"
-        root.updateSliderValue()
-
-        root.initializing = false
-        slider.animateValue = true
     }
 
     SliderValueLabel {
