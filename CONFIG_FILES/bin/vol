@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
 
 sub convertVolumeArgToVolStep($$);
 sub getVolumeStep();
@@ -9,18 +10,20 @@ sub getMaxVolumeStep();
 sub showVolumeTriggerBarHack();
 sub run(@);
 
+my $EXEC = basename $0;
+
 my $usage = "Usage:
-  $0 -h|--help
+  $EXEC -h|--help
     show this message
 
-  $0
-  $0 -g|--get|g|get
+  $EXEC
+  $EXEC -g|--get|g|get
     -read Meego MainVolume2 CurrentStep from pulse dbus and set <VOL_STEP>
     -read Meego MainVolume2 StepCount from pulse dbus, subtract one, and set <MAX_VOL_STEP>
     -print <VOL_STEP>/<MAX_VOL_STEP> as a percentage and a fraction
 
-  $0 VOL_ARG
-  $0 -s|--set|s|set VOL_ARG
+  $EXEC VOL_ARG
+  $EXEC -s|--set|s|set VOL_ARG
     -convert <VOL_ARG> to <VOL_STEP>
     -read Meego MainVolume2 CurrentStep from pulse dbus and set <OLD_VOL_STEP>
     -write Meego MainVolume2 CurrentStep in pulse dbus to <VOL_STEP>
