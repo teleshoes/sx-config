@@ -22,6 +22,8 @@ Loader {
     property Item pager
     property int padding
 
+    property int sliderColumns: 1
+
     property var filterToggles: ["grid_favorites_simple"]
     property var filterSliders: ["list_favorites"]
     property var filterActions: ["grid_favorites_page", "action"]
@@ -148,7 +150,7 @@ Loader {
                 property alias movingItem: listFavGridManager.movingItem
                 width: root.width
                 height: implicitHeight
-                columns: 1
+                columns: sliderColumns
                 Behavior on height {
                     enabled: Lipstick.compositor.topMenuLayer.housekeeping
                     NumberAnimation { easing.type: Easing.InOutQuad }
@@ -178,7 +180,7 @@ Loader {
                     }
                     delegate: FavoriteSettingsDelegate {
                         manager: listFavGridManager
-                        width: root.width
+                        width: root.width / sliderColumns
                         height: item.height
                         reorderScale: 1.1
                         onClicked: Lipstick.compositor.topMenuLayer.housekeeping = false
