@@ -26,6 +26,11 @@ Loader {
     property var filterSliders: ["list_favorites"]
     property var filterActions: ["grid_favorites_page", "action"]
 
+    property var filterNone: []
+    property var filterTogglesAndActions: filterToggles.concat(filterActions)
+
+    property bool combineTogglesIntoActions: false
+
     asynchronous: true
     visible: status === Loader.Ready
 
@@ -51,7 +56,7 @@ Loader {
 
     FavoritesModel {
         id: simpleFavModel
-        filter: filterToggles
+        filter: combineTogglesIntoActions ? filterNone : filterToggles
         key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
         userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
     }
@@ -231,7 +236,7 @@ Loader {
                     id: gridFavRepeater
                     model: FavoritesModel {
                         id: gridFavModel
-                        filter: filterActions
+                        filter: combineTogglesIntoActions ? filterTogglesAndActions : filterActions
                         key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
                         userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
                     }
