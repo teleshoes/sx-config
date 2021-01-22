@@ -32,6 +32,7 @@ my @selectedTopmenuItems = (
   $$topmenuToggles{resolv},
 
   $$topmenuSliders{brightness},
+  $$topmenuSliders{media_volume},
 
   $$topmenuActions{connect_to_internet},
   $$topmenuActions{set_an_alarm},
@@ -136,6 +137,7 @@ sub getTopmenuSliders(){
   return {
     brightness             => 'system_settings/look_and_feel/display/brightness_slider',
     ringer_volume          => 'system_settings/look_and_feel/sounds/ringer_volume',
+    media_volume           => 'system_settings/look_and_feel/sounds/media_volume_slider',
   };
 }
 sub getTopmenuActions(){
