@@ -22,6 +22,10 @@ Loader {
     property Item pager
     property int padding
 
+    property var filterToggles: ["grid_favorites_simple"]
+    property var filterSliders: ["list_favorites"]
+    property var filterActions: ["grid_favorites_page", "action"]
+
     asynchronous: true
     visible: status === Loader.Ready
 
@@ -47,7 +51,7 @@ Loader {
 
     FavoritesModel {
         id: simpleFavModel
-        filter: "grid_favorites_simple"
+        filter: filterToggles
         key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
         userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
     }
@@ -163,7 +167,7 @@ Loader {
                     id: listFavRepeater
                     model: FavoritesModel {
                         id: listFavModel
-                        filter: "list_favorites"
+                        filter: filterSliders
                         key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
                         userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
                     }
@@ -227,7 +231,7 @@ Loader {
                     id: gridFavRepeater
                     model: FavoritesModel {
                         id: gridFavModel
-                        filter: ["grid_favorites_page", "action"]
+                        filter: filterActions
                         key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
                         userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
                     }
