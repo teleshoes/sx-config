@@ -31,7 +31,7 @@ Loader {
     property var filterNone: []
     property var filterTogglesAndActions: filterToggles.concat(filterActions)
 
-    property bool combineTogglesIntoActions: false
+    property bool combineTogglesIntoActions: true
 
     asynchronous: true
     visible: status === Loader.Ready
