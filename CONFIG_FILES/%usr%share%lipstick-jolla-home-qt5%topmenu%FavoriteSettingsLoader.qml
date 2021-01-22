@@ -61,6 +61,7 @@ Loader {
             height: root.padding
         }
 
+        /*** TOGGLES ***/
         Item {
             id: simpleFavContainer
 
@@ -117,6 +118,8 @@ Loader {
                 }
             }
         }
+
+        /*** SLIDERS ***/
         Loader {
             id: listFavLoader
             active: showListFavorites
@@ -180,6 +183,8 @@ Loader {
                 }
             }
         }
+
+        /*** ACTIONS ***/
         Item {
             id: gridFavGridContainer
             width: parent.width
