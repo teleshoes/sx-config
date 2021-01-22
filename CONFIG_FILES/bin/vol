@@ -197,9 +197,7 @@ sub getMaxVolumeStep(){
 }
 
 sub showVolumeTriggerBarHack(){
-  system "dconf write /jolla/sound/trigger_bar false";
   system "dconf write /jolla/sound/trigger_bar true";
-  system "dconf write /jolla/sound/trigger_bar false";
 }
 
 sub run(@){
