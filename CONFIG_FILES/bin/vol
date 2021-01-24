@@ -22,7 +22,8 @@ my $usage = "Usage:
   $EXEC -g|--get|g|get
     -read Meego MainVolume2 CurrentStep from pulse dbus and set <VOL_STEP>
     -read Meego MainVolume2 StepCount from pulse dbus, subtract one, and set <MAX_VOL_STEP>
-    -print <VOL_STEP>/<MAX_VOL_STEP> as a percentage and a fraction
+    -calculate <VOL_PCT> as <VOL_STEP> divided by <MAX_VOL_STEP>, times 100
+    -print \"<VOL_PCT>% (<VOL_STEP>/<MAX_VOL_STEP>)\"
 
   $EXEC -r|--read
     -read Meego MainVolume2 CurrentStep from pulse dbus and set <VOL_STEP>
