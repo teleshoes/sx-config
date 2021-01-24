@@ -13,7 +13,7 @@ Item {
 
     property QtObject slider
 
-    property int maxVolumeStep: 11
+    property int maxVolumeStep: 100 /* set onVisible */
 
     property bool initializing
     onVisibleChanged: {
@@ -33,19 +33,25 @@ Item {
     }
 
     function updateSliderValue() {
-        var volStep = getVolume()
+        var vol = getVolume()
+        var volStep = vol[0]
+        var maxVolStep = vol[1]
+
         slider.value = volStep
+        maxVolumeStep = maxVolStep
     }
 
     function getVolume() {
-      var volStep = Math.floor(readProc(["/usr/local/bin/vol", "--read"]))
-      if (volStep < 0) {
-        volStep = 0
+      var volOut = readProc(["/usr/local/bin/vol", "--read"])
+      var stepArr = volOut.split("/")
+      var volStep = 0
+      var maxVolStep = 0
+      if(stepArr.length == 2){
+        volStep = Math.floor(stepArr[0])
+        maxVolStep = Math.floor(stepArr[1])
       }
-      if (volStep > maxVolumeStep) {
-        volStep = maxVolumeStep
-      }
-      return volStep
+
+      return [volStep, maxVolStep]
     }
     function setVolume(volStep) {
       readProc(["/usr/local/bin/vol", "--set", volStep])
