@@ -27,7 +27,8 @@ my $usage = "Usage:
 
   $EXEC -r|--read
     -read Meego MainVolume2 CurrentStep from pulse dbus and set <VOL_STEP>
-    -print <VOL_STEP>
+    -read Meego MainVolume2 StepCount from pulse dbus, subtract one, and set <MAX_VOL_STEP>
+    -print \"<VOL_STEP>/<MAX_VOL_STEP>\"
 
   $EXEC VOL_ARG
   $EXEC -s|--set|s|set VOL_ARG
@@ -63,7 +64,8 @@ sub main(@){
     print int($volStep / $maxVolStep * 100.0 + 0.5) . "% ($volStep/$maxVolStep)\n";
   }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-r|--read)$/)){
     my $volStep = getVolumeStep();
-    print "$volStep\n";
+    my $maxVolStep = getMaxVolumeStep();
+    print "$volStep/$maxVolStep\n";
   }elsif((@_ == 1 and $_[0] =~ /^[+-=]?\d+%?$/) or (@_ == 2 and $_[0] =~ /^(-s|--set|s|set)$/)){
     my $volArg = $_[-1];
 
