@@ -13,6 +13,8 @@ Item {
 
     property QtObject slider
 
+    property int maxVolumeStep: 11
+
     property bool initializing
     onVisibleChanged: {
         if(visible){
@@ -40,8 +42,8 @@ Item {
       if (volStep < 0) {
         volStep = 0
       }
-      if (volStep > 11) {
-        volStep = 11
+      if (volStep > maxVolumeStep) {
+        volStep = maxVolumeStep
       }
       return volStep
     }
@@ -59,7 +61,7 @@ Item {
             height: slider.implicitHeight + valueLabel.height + Theme.paddingSmall
             label: "Media volume"
 
-            maximumValue: 11
+            maximumValue: maxVolumeStep
             minimumValue: 0
             stepSize: 1
 
