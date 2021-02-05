@@ -44,6 +44,7 @@ my @HOMEBIN_EXCLUDES = qw(
 my @SPECIAL_USER_RSYNCS = (
   ["$ENV{HOME}/.klomp/config-$ipmagicName", "/home/$user/.klomp/config", []],
   ["$ENV{HOME}/.klomp/lib-$ipmagicName", "/home/$user/.klomp/lib", []],
+  ["$ENV{HOME}/DCIM/xddr/videos/good/", "/media/sdcard/phone/ddr-videos/", []],
   ["$ENV{HOME}/Music/sheet_music/shows/sheet_1080p/", "/media/sdcard/phone/sheet_music/shows/sheet_1080p/", []],
   ["$ENV{HOME}/Music/sheet_music/shows/music/", "/media/sdcard/phone/sheet_music/shows/music/", []],
   ["$ENV{HOME}/Music/sheet_music/trumpet/", "/media/sdcard/phone/sheet_music/trumpet/", []],
