@@ -30,6 +30,7 @@ my @USRLOCALBIN_EXECS = qw(
   term
   pulse-enable
   pulse-vol
+  sshc
   vpn
 );
 
