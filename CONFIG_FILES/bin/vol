@@ -13,6 +13,7 @@ sub run(@);
 my $EXEC = basename $0;
 
 my $DCONF_TRIGGER_BAR = "/jolla/sound/trigger_bar";
+my $SHOW_BAR_DEFAULT = "diff";
 
 $ENV{PATH} = "/usr/bin"; #dbus-send, dconf
 
@@ -32,8 +33,8 @@ my $usage = "Usage:
     -read Meego MainVolume2 StepCount from pulse dbus, subtract one, and set <MAX_VOL_STEP>
     -print \"<VOL_STEP>/<MAX_VOL_STEP>\"
 
-  $EXEC VOL_ARG
-  $EXEC -s|--set|s|set VOL_ARG
+  $EXEC [OPTS] VOL_ARG
+  $EXEC [OPTS] -s|--set|s|set VOL_ARG
     -read Meego MainVolume2 CurrentStep from pulse dbus and set <OLD_VOL_STEP>
     -convert <VOL_ARG> to <VOL_STEP>
       -if <VOL_PERCENT> is given, multiply by <MAX_VOL_STEP>, and round
@@ -53,6 +54,14 @@ my $usage = "Usage:
   VOL_STEP     = an integer between 0 and <MAX_VOL_STEP>
   VOL_PERCENT  = an integer between 0 and 100, converted to nearest <VOL_STEP>
   MAX_VOL_STEP = a positive integer (default is usually 11 on Sailfish OS)
+
+  OPTS
+    --show-bar=always|diff|never
+      (default is $SHOW_BAR_DEFAULT)
+      when setting the volume, trigger the bar to show:
+        always - always, regardless of value
+        diff   - only if new volume is different than previous
+        never  - never
 ";
 
 my $COMMAND_GET = "get";
@@ -62,6 +71,7 @@ my $COMMAND_SET = "set";
 sub main(@){
   my $cmd = undef;
   my $volArg = undef;
+  my $showBar = $SHOW_BAR_DEFAULT;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -80,6 +90,8 @@ sub main(@){
     }elsif($arg =~ /^(-s|--set|s|set)$/){
       die "ERROR: command already specified \"$cmd\"\n" if defined $cmd and $cmd ne $COMMAND_SET;
       $cmd = $COMMAND_SET;
+    }elsif($arg =~ /^--show-bar=(always|diff|never)$/){
+      $showBar = $1;
     }else{
       die "$usage\nERROR: unknown arg \"$arg\"\n";
     }
@@ -108,7 +120,7 @@ sub main(@){
 
     setVolumeStep($volStep);
 
-    if($oldVolStep != $volStep){
+    if($showBar =~ /always/ or ($showBar =~ /diff/ and $oldVolStep != $volStep)){
       showVolumeTriggerBarHack();
     }
     print "$oldVolStep => $volStep\n";
