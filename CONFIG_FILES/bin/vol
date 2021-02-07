@@ -53,21 +53,51 @@ my $usage = "Usage:
   MAX_VOL_STEP = a positive integer (default is usually 11 on Sailfish OS)
 ";
 
+my $COMMAND_GET = "get";
+my $COMMAND_READ = "read";
+my $COMMAND_SET = "set";
+
 sub main(@){
-  my $arg;
-  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print $usage;
-    exit 0;
-  }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-g|--get|g|get)$/)){
+  my $cmd = undef;
+  my $volArg = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $usage;
+      exit 0;
+    }elsif($arg =~ /^(-g|--get|g|get)$/){
+      die "ERROR: command already specified \"$cmd\"\n" if defined $cmd and $cmd ne $COMMAND_GET;
+      $cmd = $COMMAND_GET;
+    }elsif($arg =~ /^(-r|--read)$/){
+      die "ERROR: command already specified \"$cmd\"\n" if defined $cmd and $cmd ne $COMMAND_READ;
+      $cmd = $COMMAND_READ;
+    }elsif($arg =~ /^[+-=]?\d+%?$/){
+      die "ERROR: command already specified \"$cmd\"\n" if defined $cmd and $cmd ne $COMMAND_SET;
+      $volArg = $arg;
+      $cmd = $COMMAND_SET;
+    }elsif($arg =~ /^(-s|--set|s|set)$/){
+      die "ERROR: command already specified \"$cmd\"\n" if defined $cmd and $cmd ne $COMMAND_SET;
+      $cmd = $COMMAND_SET;
+    }else{
+      die "$usage\nERROR: unknown arg \"$arg\"\n";
+    }
+  }
+
+  $cmd = $COMMAND_GET if not defined $cmd;
+
+  if($cmd eq $COMMAND_GET){
     my $volStep = getVolumeStep();
     my $maxVolStep = getMaxVolumeStep();
     print int($volStep / $maxVolStep * 100.0 + 0.5) . "% ($volStep/$maxVolStep)\n";
-  }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-r|--read)$/)){
+  }elsif($cmd eq $COMMAND_READ){
     my $volStep = getVolumeStep();
     my $maxVolStep = getMaxVolumeStep();
     print "$volStep/$maxVolStep\n";
-  }elsif((@_ == 1 and $_[0] =~ /^[+-=]?\d+%?$/) or (@_ == 2 and $_[0] =~ /^(-s|--set|s|set)$/)){
-    my $volArg = $_[-1];
+  }elsif($cmd eq $COMMAND_SET){
+    $volArg = "" if not defined $volArg;
+    if($volArg !~ /^[+-=]?\d+%?$/){
+      die "ERROR: missing/malformed volume arg \"$volArg\"\n";
+    }
 
     my $oldVolStep = getVolumeStep();
     my $maxVolStep = getMaxVolumeStep();
