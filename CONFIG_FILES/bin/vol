@@ -12,6 +12,8 @@ sub run(@);
 
 my $EXEC = basename $0;
 
+my $DCONF_TRIGGER_BAR = "/jolla/sound/trigger_bar";
+
 $ENV{PATH} = "/usr/bin"; #dbus-send, dconf
 
 my $usage = "Usage:
@@ -38,7 +40,7 @@ my $usage = "Usage:
       -take that value, and if '+' or '-' is given, add or subtract it to/from <OLD_VOL_STEP>
     -write Meego MainVolume2 CurrentStep in pulse dbus to <VOL_STEP>
     -print <OLD_VOL_STEP> => <VOL_STEP>
-    -write false/true/false to dconf /jolla/sound/trigger_bar (hack to show vol bar)
+    -write false/true/false to dconf $DCONF_TRIGGER_BAR (hack to show vol bar)
 
   VOL_ARG      = <VOL_STEP>
                  | <VOL_PERCENT>%
@@ -230,7 +232,7 @@ sub getMaxVolumeStep(){
 }
 
 sub showVolumeTriggerBarHack(){
-  system "dconf write /jolla/sound/trigger_bar true &";
+  system "dconf write $DCONF_TRIGGER_BAR true &";
 }
 
 sub run(@){
