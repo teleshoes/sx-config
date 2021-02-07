@@ -7,12 +7,14 @@ sub convertVolumeArgToVolStep($$$);
 sub getVolumeStep();
 sub setVolumeStep($);
 sub getMaxVolumeStep();
+sub isDconfVolumeButtonsDisabled();
 sub showVolumeTriggerBarHack();
 sub run(@);
 
 my $EXEC = basename $0;
 
 my $DCONF_TRIGGER_BAR = "/jolla/sound/trigger_bar";
+my $DCONF_DISABLE_VOLUME_BUTTONS = "/jolla/sound/disable_volume_buttons";
 my $SHOW_BAR_DEFAULT = "always";
 
 $ENV{PATH} = "/usr/bin"; #dbus-send, dconf
@@ -56,6 +58,11 @@ my $usage = "Usage:
   MAX_VOL_STEP = a positive integer (default is usually 11 on Sailfish OS)
 
   OPTS
+    --only-if-buttons-disabled
+      check dconf setting '$DCONF_DISABLE_VOLUME_BUTTONS'
+      if value is true, continue running `$EXEC --set <VOL_ARG>`
+      if value is unset or anything but 'true', do nothing and exit
+
     --show-bar=always|diff|never
       (default is $SHOW_BAR_DEFAULT)
       when setting the volume, trigger the bar to show:
@@ -71,6 +78,7 @@ my $COMMAND_SET = "set";
 sub main(@){
   my $cmd = undef;
   my $volArg = undef;
+  my $onlyIfButtonsDisabled = 0;
   my $showBar = $SHOW_BAR_DEFAULT;
   while(@_ > 0){
     my $arg = shift;
@@ -90,6 +98,8 @@ sub main(@){
     }elsif($arg =~ /^(-s|--set|s|set)$/){
       die "ERROR: command already specified \"$cmd\"\n" if defined $cmd and $cmd ne $COMMAND_SET;
       $cmd = $COMMAND_SET;
+    }elsif($arg =~ /^(--only-if-buttons-disabled)$/){
+      $onlyIfButtonsDisabled = 1;
     }elsif($arg =~ /^--show-bar=(always|diff|never)$/){
       $showBar = $1;
     }else{
@@ -111,6 +121,11 @@ sub main(@){
     $volArg = "" if not defined $volArg;
     if($volArg !~ /^[+-=]?\d+%?$/){
       die "ERROR: missing/malformed volume arg \"$volArg\"\n";
+    }
+
+    if($onlyIfButtonsDisabled and not isDconfVolumeButtonsDisabled()){
+      print "skipping, volume buttons not disabled in dconf\n";
+      exit 0;
     }
 
     my $oldVolStep = getVolumeStep();
@@ -241,6 +256,15 @@ sub getMaxVolumeStep(){
 
   my $maxVolStep = $stepCount - 1; #12 steps means 0-11
   return $maxVolStep;
+}
+
+sub isDconfVolumeButtonsDisabled(){
+  my $val = `dconf read $DCONF_DISABLE_VOLUME_BUTTONS 2>/dev/null`;
+  if($val =~ /true/){
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
 sub showVolumeTriggerBarHack(){
