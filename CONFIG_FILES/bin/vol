@@ -13,7 +13,7 @@ sub run(@);
 my $EXEC = basename $0;
 
 my $DCONF_TRIGGER_BAR = "/jolla/sound/trigger_bar";
-my $SHOW_BAR_DEFAULT = "diff";
+my $SHOW_BAR_DEFAULT = "always";
 
 $ENV{PATH} = "/usr/bin"; #dbus-send, dconf
 
