@@ -70,6 +70,8 @@ my %packages = (
     openssl openssl-devel
     qt5-qmake qt5-qtcore qt5-qtgui qt5-qtdeclarative-tool-qml
     qt5-qtdeclarative-qtquick qt5-qtopengl qt5-qtnetwork qt5-qtwidgets
+
+    perl-libwww-perl
   )],
 
   "6-klomp" => [qw(
