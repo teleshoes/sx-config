@@ -271,7 +271,7 @@ SilicaFlickable {
             id: systemUpdateList
 
             height: Screen.height * 1000 // Ensures the view is fully populated without needing to bind height: contentHeight
-            sourceModel: systemUpdateListModel.populated ? systemUpdateListModel : null
+            sourceModel: null //HACK: remove update notifications
             timestampUpdatesEnabled: Desktop.eventsViewVisible
             animationDuration: root.animationDuration
             collapsed: root.collapsed
