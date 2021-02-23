@@ -167,6 +167,8 @@ my $usage = "Usage:
         force-install
 
     COMMAND:
+      removals
+        remove packages: @removals
       hosts
         lookup $OPENREPOS_HOST locally and insert into /etc/host on phone
       keys
@@ -180,8 +182,6 @@ my $usage = "Usage:
       refresh-<OPENREPOS_USERNAME>
         use zypper to update package lists for a single repo
         CAUTION: before running zypper, kills packagekitd
-      removals
-        remove packages: @removals
       $groupCmdFmt
       force-install
         use zypper and expect to forcibly install: @zypperForceInstallPackages
@@ -192,13 +192,17 @@ sub main(@){
 
   my @commands = @_;
   if(@commands == 0){
-    @commands = ("hosts", "keys", "repos", "refresh", "removals", @groups, "force-install");
+    @commands = ("removals", "hosts", "keys", "repos", "refresh", @groups, "force-install");
   }
 
   for my $command(@commands){
     print "\n\n\n";
     print "=====$command\n";
-    if($command =~ /^hosts$/){
+    if($command =~ /^removals$/){
+      for my $pkg(@removals){
+        tryrunIpmagicRoot "pkcon", "-y", "remove", $pkg;
+      }
+    }elsif($command =~ /^hosts$/){
       my $hostOut = `host $OPENREPOS_HOST`;
       my $openreposIP;
       if($hostOut =~ /^$OPENREPOS_HOST has address (\d+\.\d+\.\d+\.\d+)$/m){
@@ -223,10 +227,6 @@ sub main(@){
     }elsif($command =~ /^refresh-(\w+)$/){
       tryrunIpmagicRoot "pkill", "packagekitd";
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
-    }elsif($command =~ /^removals$/){
-      for my $pkg(@removals){
-        tryrunIpmagicRoot "pkcon", "-y", "remove", $pkg;
-      }
     }elsif(defined $groupAliases{$command} or defined $groupsByAlias{$command}){
       my $group;
       if(defined $groupAliases{$command}){
