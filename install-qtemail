@@ -20,8 +20,8 @@ sub main(@){
   print "\n\n===running CPAN installs\n";
   run "$DIR/install-cpan", "qtemail";
 
-  print "\n\n===installing pyqt with zypper+expect\n";
-  run "$DIR/install-pyqt";
+  print "\n\n===installing pyqt (and other pkgs) with zypper+expect\n";
+  run "$DIR/install-packages force-install";
 
   print "\n\n===installing qtemail from src\n";
   run "$DIR/install-src qtemail";
