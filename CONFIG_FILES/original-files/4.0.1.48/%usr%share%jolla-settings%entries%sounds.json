@@ -1,0 +1,51 @@
+{
+    "translation_catalog": "settings-system",
+    "disabled_group": "sailfish-guest",
+    "entries": [
+    {
+        "path": "system_settings/look_and_feel/sounds",
+        "title": "Sounds and feedback",
+        "translation_id": "settings_system-sounds",
+        "title_short": "Sounds",
+        "translation_id_short": "settings_system-sounds_short",
+        "type": "page",
+        "icon": "image://theme/icon-m-sounds",
+        "order": 250,
+        "params": {
+            "source": "/usr/share/jolla-settings/pages/sounds/SoundsPage.qml"
+        }
+    },
+    {
+        "path": "system_settings/look_and_feel/sounds/ringer_volume",
+        "type": "custom",
+        "translation_id": "settings_system-ringtone_volume",
+        "params": {
+            "source": "/usr/share/jolla-settings/pages/sounds/VolumeSettingsSlider.qml",
+            "type": "list",
+            "settings_path": "system_settings/look_and_feel/sounds"
+        }
+    },
+    {
+        "path": "system_settings/look_and_feel/sounds/silence_switch",
+        "type": "custom",
+        "translation_id": "settings_system-silence",
+        "icon": "image://theme/icon-m-silent",
+        "params": {
+            "source": "/usr/share/jolla-settings/pages/sounds/SilenceSwitch.qml",
+            "type": "grid",
+            "settings_path": "system_settings/look_and_feel/sounds"
+        }
+    },
+    {
+        "path": "system_settings/look_and_feel/sounds/do_not_disturb_switch",
+        "type": "custom",
+        "translation_id": "settings_system-do_not_disturb",
+        "icon": "image://theme/icon-m-do-not-disturb",
+        "params": {
+            "source": "/usr/share/jolla-settings/pages/sounds/DoNotDisturbSwitch.qml",
+            "type": "grid",
+            "settings_path": "system_settings/look_and_feel/sounds"
+        }
+    }
+    ]
+}
