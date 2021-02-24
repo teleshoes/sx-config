@@ -45,6 +45,17 @@
             "type": "grid",
             "settings_path": "system_settings/look_and_feel/sounds"
         }
+    },
+    {
+        "path": "system_settings/look_and_feel/sounds/do_not_disturb_switch",
+        "type": "custom",
+        "translation_id": "settings_system-do_not_disturb",
+        "icon": "image://theme/icon-m-do-not-disturb",
+        "params": {
+            "source": "/usr/share/jolla-settings/pages/sounds/DoNotDisturbSwitch.qml",
+            "type": "grid",
+            "settings_path": "system_settings/look_and_feel/sounds"
+        }
     }
     ]
 }

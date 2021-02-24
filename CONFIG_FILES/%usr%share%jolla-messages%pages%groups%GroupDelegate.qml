@@ -70,8 +70,10 @@ ListItem {
                        - (presence.visible ? (presence.width + parent.spacing) : 0)
                 truncationMode: TruncationMode.Fade
                 color: delegate.highlighted ? Theme.highlightColor : Theme.primaryColor
-                text: (model.chatName !== undefined && model.chatName !== "") ? model.chatName :
-                                                                                ((model.contactNames.length) ? model.contactNames.join(", ") : model.groups[0].remoteUids.join(", "))
+                text: (model.chatName !== undefined && model.chatName !== "")
+                      ? model.chatName
+                      : ((model.contactNames.length) ? model.contactNames.join(Format.listSeparator)
+                                                     : model.groups[0].remoteUids.join(Format.listSeparator))
 
             }
 
@@ -87,7 +89,8 @@ ListItem {
                 id: warningIcon
 
                 visible: model.lastEventStatus === CommHistory.PermanentlyFailedStatus
-                         || (model.lastEventStatus === CommHistory.TemporarilyFailedStatus && !channelManager.isPendingEvent(model.lastEventId))
+                         || (model.lastEventStatus === CommHistory.TemporarilyFailedStatus
+                             && !channelManager.isPendingEvent(model.lastEventId))
                 source: "image://theme/icon-s-warning"
                 color: Theme.primaryColor
                 anchors.verticalCenter: parent.verticalCenter
@@ -106,22 +109,16 @@ ListItem {
                     var label = mainWindow.eventStatusText(model.lastEventStatus, model.lastEventId)
                     if (!label) {
 
-                        //ABSTIME_HACK
-                        //
+                        ///////ABSTIME HACK
                         //var today = new Date(currentDateTime).setHours(0, 0, 0, 0)
                         //var messageDate = new Date(model.startTime).setHours(0, 0, 0, 0)
                         //var daysDiff = (today - messageDate) / (24 * 60 * 60 * 1000)
                         //
                         //if (daysDiff === 0) {
                         //    label = Format.formatDate(model.startTime, Formatter.DurationElapsed)
-                        //} else if (daysDiff < 7) {
-                        //    label = Format.formatDate(model.startTime, Formatter.TimeValue)
-                        //} else if (daysDiff < 365) {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMediumWithoutYear)
                         //} else {
-                        //    label = Format.formatDate(model.startTime, Formatter.DateMedium)
+                        //    label = Format.formatDate(model.startTime, Formatter.TimeValue)
                         //}
-                        //
                         label = Qt.formatDateTime(model.startTime, 'hh:mm   -   yyyy-MM-dd')
                         ///////ABSTIME HACK
 

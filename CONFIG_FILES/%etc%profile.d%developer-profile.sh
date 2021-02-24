@@ -38,6 +38,9 @@ if [ $CURRENT_UID -ne 0 ]; then
 	NGF_FFMEMLESS_SETTINGS
 	nolo
 	NOTIFY_SOCKET
+	OLDPWD
+	INVOCATION_ID
+	JOURNAL_STREAM
 	PATH
 	product_model
 	product_name
@@ -59,7 +62,8 @@ if [ $CURRENT_UID -ne 0 ]; then
 	XDG_SEAT
 	XDG_SESSION_ID
 	XDG_VTNR
-	EOF)
+	EOF
+)
 
     WHITELIST_VALUES=$(sed -e 's/^/-e ^/' -e 's/$/=/' <<-EOF
 	LIPSTICK2VNC_OPTS
@@ -72,6 +76,7 @@ if [ $CURRENT_UID -ne 0 ]; then
 	GSETTINGS_BACKEND
 	HYBRIS_LD_LIBRARY_PATH
 	M_DECORATED
+	MOZ_GMP_PATH
 	OPTIONS
 	QMLSCENE_DEVICE
 	QML_FIXED_ANIMATION_STEP
@@ -96,7 +101,8 @@ if [ $CURRENT_UID -ne 0 ]; then
 	QT_WAYLAND_FORCE_DPI
 	WAYLAND_DISPLAY
 	XDG_RUNTIME_DIR
-	EOF)
+	EOF
+)
 
     SESSION_PID=""
     for PID in $(/sbin/pidof systemd)
