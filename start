@@ -107,6 +107,12 @@ klomp-sync `ipmagic sx`
 
 pubkeys
 
+###
+./setup-dconf #to setup topmenu
+#reorganize topmenu config, swap sliders or icons
+./setup-dconf #to setup topmenu
+
+
 #MANUAL SETTINGS FOR NOW:
 #add work alarm
 #setup APN for internet
