@@ -23,3 +23,7 @@ scp $USER@$HOST:~/.ssh/$HOST.pub ~/.ssh/$HOST.pub
 
 pubkeys $IPMAGIC_NAME scp
 pubkeys $IPMAGIC_NAME-root scp
+
+
+ipmagic $IPMAGIC_NAME -u $USER touch /home/$USER/.ssh/config
+ipmagic $IPMAGIC_NAME -u $USER chmod 655 /home/$USER/.ssh/config
