@@ -1,0 +1,3 @@
+echo -ne "yubi: " 1>&2
+read yubi
+echo "$yubi"
