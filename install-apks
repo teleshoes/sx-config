@@ -54,7 +54,10 @@ sub main(@){
 
   run "rsync", "-avP", "--del", "$srcDir/", "$user\@$host:$destDir/";
 
-  run "ipmagic", $ipmagicName, "apkd-install $destDir/$prefix*.apk";
+  run "ipmagic", $ipmagicName, "-u", "root",
+    "apkd-install-preload $destDir/$prefix*.apk";
+  run "ipmagic", $ipmagicName,
+    "apkd-install $destDir/$prefix*.apk";
 }
 
 sub run(@){
