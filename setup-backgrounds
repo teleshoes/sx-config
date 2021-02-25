@@ -11,7 +11,7 @@ my @bgDirNames = qw(sx sx-ambience sx-ambience-full sx-ambience-small);
 
 my $ipmagicName = "sx";
 
-my $user = "root";
+my $user = "nemo";
 
 sub run(@);
 
