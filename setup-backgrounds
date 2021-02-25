@@ -3,7 +3,10 @@ use strict;
 use warnings;
 
 my $srcBGDir = "$ENV{HOME}/.cache/backgrounds";
-my $destBGDir = "/home/nemo/Backgrounds";
+my $sdcardDestBGDir = "/media/sdcard/phone/Backgrounds";
+my $finalDestBGDir = "/home/nemo/Backgrounds";
+
+
 my @bgDirNames = qw(sx sx-ambience sx-ambience-full sx-ambience-small);
 
 my $ipmagicName = "sx";
@@ -16,12 +19,18 @@ sub main(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
-  run "ipmagic", $ipmagicName, "-u", $user, "mkdir -p $destBGDir";
+  run "ipmagic", $ipmagicName, "-u", $user, "mkdir -p $sdcardDestBGDir";
+  run "ipmagic", $ipmagicName, "-u", $user, "mkdir -p $finalDestBGDir";
 
+  #local => sdcard
   for my $bgDirName(@bgDirNames){
     run "rsync", "-avP", "--del", "--no-owner", "--no-group",
-      "$srcBGDir/$bgDirName/", "$user\@$host:$destBGDir/$bgDirName/";
+      "$srcBGDir/$bgDirName/", "$user\@$host:$sdcardDestBGDir/$bgDirName/";
   }
+
+  #sdcard => internal
+  run "ipmagic", $ipmagicName, "-u", $user,
+    "rsync -avP --del $sdcardDestBGDir/ $finalDestBGDir/";
 }
 
 sub run(@){
