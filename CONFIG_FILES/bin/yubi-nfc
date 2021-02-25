@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub run(@);
+
+sub main(@){
+  my $killNfcdCmd = "sudo pkill nfcd";
+  print STDERR "$killNfcdCmd\n";
+  system $killNfcdCmd;
+
+  my $nfcdCmd = "sudo nfcd -v";
+  print STDERR "$nfcdCmd\n";
+
+  print STDERR "waiting for nfc\n";
+  open CMD, "-|", $nfcdCmd or die "ERROR: could not run nfcd\n$!\n";
+
+  my $key = "";
+  while(my $line = <CMD>){
+    if($line =~ /URI Record: https:\/\/my\.yubico\.com\/neo\/([a-z]+)/){
+      $key = $1;
+      system $killNfcdCmd;
+      close CMD;
+      last;
+    }
+  }
+
+  print STDERR "key: $key\n";
+
+  print "$key\n";
+}
+
+#2021-01-18 21:08:57 [nfc-core] URI Record: https://my.yubico.com/neo/vvfrdlirctnrditnblkncnbjbilukhijdflnrnvefbgt
+
+&main(@ARGV);
