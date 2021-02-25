@@ -76,6 +76,11 @@
 
 ./install-rpms
 
+#TODO: move these files out of config-files and into setup-android or something
+#for now, just do:
+#  rm -rf /opt/alien/data/data/com.androidemu.nes/
+#  rm -rf /opt/alien/data/data/com.explusalpha.Snes9x/
+
 ./install-apks
 
 ./config-files #to overwrite files from installs (e.g.: launchers)
