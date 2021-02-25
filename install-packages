@@ -25,6 +25,7 @@ my %packages = (
     htop git gnupg2 sudo gnu-tar vim-enhanced wget zypper
     expect
     gnu-coreutils
+    bind-utils
     lipstick-qt5-tools
     mce-tools
     libkeepalive-glib-tools
