@@ -1,13 +1,18 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Time::HiRes qw(time);
 
 my $SRC_OPENVPN_DIR = "$ENV{HOME}/openvpn";
 my $DEST_OPENVPN_DIR = "/root/openvpn";
 
 my $IPMAGIC_NAME = "sx";
-my $USER = "root";
+my $USER = "nemo";
+my $ROOT = "root";
 
+my $DELAY_MILLIS = 10000;
+
+sub nowMillis();
 sub run(@);
 
 sub main(@){
@@ -16,10 +21,25 @@ sub main(@){
 
   run "rsync", "-avP", "--del", "--no-owner", "--no-group",
     "--exclude=status", "--exclude=*.log",
-    "$SRC_OPENVPN_DIR/", "$USER\@$host:$DEST_OPENVPN_DIR/";
+    "$SRC_OPENVPN_DIR/", "$ROOT\@$host:$DEST_OPENVPN_DIR/";
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER,
-    "perl -i -p -e 's!$SRC_OPENVPN_DIR!$DEST_OPENVPN_DIR!g' $DEST_OPENVPN_DIR/*.conf"
+  run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT,
+    "perl -i -p -e 's!$SRC_OPENVPN_DIR!$DEST_OPENVPN_DIR!g' $DEST_OPENVPN_DIR/*.conf";
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vpn on";
+
+  print "waiting 10s, printing the logs every 1s\n";
+  my $start = nowMillis();
+  while(nowMillis() - $start < $DELAY_MILLIS){
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "cat /root/openvpn/*.log";
+    sleep 1;
+  }
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "escribe-hosts";
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
 }
 
 sub run(@){
