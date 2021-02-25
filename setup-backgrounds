@@ -8,17 +8,19 @@ my @bgDirNames = qw(sx sx-ambience sx-ambience-full sx-ambience-small);
 
 my $ipmagicName = "sx";
 
+my $user = "root";
+
 sub run(@);
 
 sub main(@){
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
 
-  run "ipmagic", $ipmagicName, "-u", "root", "mkdir -p $destBGDir";
+  run "ipmagic", $ipmagicName, "-u", $user, "mkdir -p $destBGDir";
 
   for my $bgDirName(@bgDirNames){
     run "rsync", "-avP", "--del", "--no-owner", "--no-group",
-      "$srcBGDir/$bgDirName/", "root\@$host:$destBGDir/$bgDirName/";
+      "$srcBGDir/$bgDirName/", "$user\@$host:$destBGDir/$bgDirName/";
   }
 }
 
