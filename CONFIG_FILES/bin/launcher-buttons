@@ -90,6 +90,9 @@ my @unused = qw(
   sailfish-archive
   sailfish-installationhandler
   jolla-aptoide
+  openconnect-import
+  sailfish-captiveportal
+  vpnc-import
 );
 
 ########################################################
