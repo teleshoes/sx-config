@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $SRC_OPENVPN_DIR = "$ENV{HOME}/openvpn";
+my $DEST_OPENVPN_DIR = "/root/openvpn";
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "root";
+
+sub run(@);
+
+sub main(@){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  run "rsync", "-avP", "--del", "--no-owner", "--no-group",
+    "--exclude=status", "--exclude=*.log",
+    "$SRC_OPENVPN_DIR/", "$USER\@$host:$DEST_OPENVPN_DIR/";
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER,
+    "perl -i -p -e 's!$SRC_OPENVPN_DIR!$DEST_OPENVPN_DIR!g' $DEST_OPENVPN_DIR/*.conf"
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+  die "\"@_\" failed\n" if $? != 0;
+}
+
+&main(@ARGV);
