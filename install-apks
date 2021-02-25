@@ -58,6 +58,9 @@ sub main(@){
     "apkd-install-preload $destDir/$prefix*.apk";
   run "ipmagic", $ipmagicName,
     "apkd-install $destDir/$prefix*.apk";
+
+  print "\n\nignore the installation UIs\n";
+  print "just watch each app install on its own in order, and then close the UIs\n";
 }
 
 sub run(@){
