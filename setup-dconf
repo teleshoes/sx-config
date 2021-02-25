@@ -94,6 +94,7 @@ sub main(@){
   for my $key(sort keys %$dconf){
     my $val = $$dconf{$key};
     $script .= "
+      source /etc/bashrc
       echo -ne \"\\n$key\\n\"
       OLD=`dconf read $key`
       dconf write $key \"$val\"
