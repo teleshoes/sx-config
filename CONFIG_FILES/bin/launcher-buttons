@@ -76,10 +76,8 @@ my @config = qw(
   harbour-advanced-camera
 
   chrome
-  wemo
   torbrowser
   orienteeringcompass
-
   mimer
   openrepos-myipaddress
   fdroid
@@ -130,7 +128,6 @@ my %replacementRegexs = (
   'tkts'           => qw/^apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity$/,
   'torbrowser'     => qw/^apkd_launcher_org_torproject_torbrowser-org_mozilla_gecko_LauncherActivity$/,
   'vlc'            => qw/^apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity$/,
-  'wemo'           => qw/^apkd_launcher_com_belkin_wemoandroid-com_belkin_activity_MainActivity$/,
 );
 
 #desktop files with no launchers
