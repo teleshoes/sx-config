@@ -60,7 +60,6 @@ my %packages = (
     harbour-sailbook
     harbour-screentapshot2
     harbour-unplayer
-    myipaddress
     stellarium
     thumbterm
     toeterm
