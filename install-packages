@@ -161,7 +161,7 @@ my $usage = "Usage:
   $0 [COMMAND COMMAND ..]
     run COMMANDs as below
     if none are given, do all of these, in order:
-        hosts keys repos refresh removals
+        removals hosts keys repos refresh
         @groups
         force-install
 
