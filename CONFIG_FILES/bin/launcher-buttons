@@ -79,7 +79,7 @@ my @config = qw(
   torbrowser
   orienteeringcompass
   mimer
-  openrepos-myipaddress
+
   fdroid
 );
 
