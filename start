@@ -69,6 +69,8 @@
 ./setup-camera
 ./setup-meegotouch-icons
 
+./setup-vpn
+
 ./install-cpan
 ./install-adwaita-icons
 
