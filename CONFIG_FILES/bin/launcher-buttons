@@ -41,7 +41,7 @@ my @config = qw(
   storeman
   store-client
   aptoide
-  sailbook
+  facebook-lite
 
   sailfish-office
   jolla-notes
@@ -81,7 +81,7 @@ my @config = qw(
   mimer
 
   fdroid
-  facebook-lite
+  sailbook
   fbmessenger-lite
 );
 
