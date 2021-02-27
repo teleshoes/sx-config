@@ -81,6 +81,8 @@ my @config = qw(
   mimer
 
   fdroid
+  facebook-lite
+  fbmessenger-lite
 );
 
 my @unused = qw(
@@ -118,6 +120,8 @@ my %replacementRegexs = (
   'bromite'          => qw/^apkd_launcher_org_bromite_bromite-org_chromium_chrome_browser_document_ChromeLauncherActivity$/,
   'chrome'           => qw/^apkd_launcher_com_android_chrome-.*$/,
   'cool-reader'      => qw/^apkd_launcher_org_coolreader-org_coolreader_CoolReader$/,
+  'facebook-lite'    => qw/^apkd_launcher_com_facebook_lite-com_facebook_lite_MainActivity$/,
+  'fbmessenger-lite' => qw/^apkd_launcher_com_facebook_mlite-com_facebook_mlite_coreui_view_MainActivity$/,
   'fdroid'           => qw/^apkd_launcher_org_fdroid_fdroid-.*$/,
   'google-maps'      => qw/^apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity$/,
   'jitsi'            => qw/^apkd_launcher_org_jitsi_meet-org_jitsi_meet_MainActivity$/,
