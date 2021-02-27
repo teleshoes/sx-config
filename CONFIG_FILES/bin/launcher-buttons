@@ -82,10 +82,10 @@ my @config = qw(
 
   fdroid
   sailbook
-  fbmessenger-lite
 );
 
 my @unused = qw(
+  fbmessenger-lite
   jolla-email
   sailfish-weather
   sailfish-tutorial
