@@ -7,6 +7,8 @@
 #  -maybe downgrade phone to 6.0.1 marshmallow to extract DRM keys
 #    or maybe not
 #  -upgrade phone to latest android
+#    as of 2021-02-28 the latest is: baseband:1302-7793_34.4.A.2.118
+#    per jolla, must be 34.3.A.0.xxx (xxx > 228) or 34.4.A.yyy (yyy is anything)
 #  -enable 'Allow OEM Unlock' and 'USB Debugging' in developer tools in android menu
 #  -get an unlock code from
 #    https://developer.sony.com/develop/open-devices/get-started/unlock-bootloader/
