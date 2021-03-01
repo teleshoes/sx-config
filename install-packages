@@ -43,10 +43,7 @@ my %packages = (
 
   "3-patches" => [qw(
     okboard-full
-    patchmanager
     patchutils
-    sailfishos-patch-autocaps
-    sailfishos-uirotate-free
   )],
 
   "4-apps" => [qw(
@@ -88,7 +85,6 @@ my %packages = (
     harbour-meecast
     harbour-meecast-daemon
     harbour-meecast-event
-    harbour-meecast-lockscreen
   )],
 );
 
