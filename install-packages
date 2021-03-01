@@ -150,6 +150,7 @@ my @openrepos = qw(
 );
 
 my $OPENREPOS_HOST = "sailfish.openrepos.net";
+my $JOLLA_RELEASES_HOST = "releases.jolla.com";
 
 my @keyUrls = (
   "https://$OPENREPOS_HOST/openrepos.key",
@@ -207,6 +208,10 @@ sub main(@){
       my $openreposIP = getHostIP($OPENREPOS_HOST);
       runIpmagicRoot "sed", "-i", "'/\\t$OPENREPOS_HOST\$/d'", "/etc/hosts";
       runIpmagicRoot "echo -ne \"$openreposIP\t\t$OPENREPOS_HOST\\n\" >> /etc/hosts";
+
+      my $jollaReleasesIP = getHostIP($JOLLA_RELEASES_HOST);
+      runIpmagicRoot "sed", "-i", "'/\\t$JOLLA_RELEASES_HOST\$/d'", "/etc/hosts";
+      runIpmagicRoot "echo -ne \"$jollaReleasesIP\t\t$JOLLA_RELEASES_HOST\\n\" >> /etc/hosts";
     }elsif($command =~ /^keys$/){
       for my $url(@keyUrls){
         runIpmagicRoot "rpm", "--import", $url;
