@@ -63,6 +63,8 @@
 #ensure SD card inserted and mounted
 ./sync-home-config
 
+./set-resolv #necessary for some inexplicable reason sometimes
+
 #xperia x compact only: ./setup-sensor-diversions
 
 ./setup-symlinks
