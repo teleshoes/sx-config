@@ -8,6 +8,7 @@ my $reposDir = "$ENV{HOME}/Code/sx/repos";
 
 sub installPackages($@);
 sub installRepos(@);
+sub getHostIP($);
 sub zypperForceInstall($);
 sub getZypperForceInstallExpect($);
 sub run(@);
@@ -203,15 +204,9 @@ sub main(@){
         tryrunIpmagicRoot "pkcon", "-y", "remove", $pkg;
       }
     }elsif($command =~ /^hosts$/){
-      my $hostOut = `host $OPENREPOS_HOST`;
-      my $openreposIP;
-      if($hostOut =~ /^$OPENREPOS_HOST has address (\d+\.\d+\.\d+\.\d+)$/m){
-        $openreposIP = $1;
-      }else{
-        die "ERROR: could not find IP of $OPENREPOS_HOST with `host`\n";
-      }
-      runIpmagicRoot "sed", "-i", "'/\\tsailfish.openrepos.net\$/d'", "/etc/hosts";
-      runIpmagicRoot "echo -ne \"$openreposIP\t\tsailfish.openrepos.net\\n\" >> /etc/hosts";
+      my $openreposIP = getHostIP($OPENREPOS_HOST);
+      runIpmagicRoot "sed", "-i", "'/\\t$OPENREPOS_HOST\$/d'", "/etc/hosts";
+      runIpmagicRoot "echo -ne \"$openreposIP\t\t$OPENREPOS_HOST\\n\" >> /etc/hosts";
     }elsif($command =~ /^keys$/){
       for my $url(@keyUrls){
         runIpmagicRoot "rpm", "--import", $url;
@@ -254,6 +249,16 @@ sub installRepos(@){
     my $repoName = "openrepos-$repo";
     my $url = "https://$OPENREPOS_HOST/$repo/personal/main";
     runIpmagicRoot "ssu", "addrepo", $repoName, $url;
+  }
+}
+
+sub getHostIP($){
+  my ($host) = @_;
+  my $hostOut = `host "$host"`;
+  if($hostOut =~ /^$host has address (\d+\.\d+\.\d+\.\d+)$/m){
+    return $1;
+  }else{
+    die "ERROR: could not find IP of $OPENREPOS_HOST with `host`\n";
   }
 }
 
