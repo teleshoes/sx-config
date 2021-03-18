@@ -86,8 +86,8 @@
 
 #TODO: move these files out of config-files and into setup-android or something
 #for now, just do:
-#  rm -rf /opt/alien/data/data/com.androidemu.nes/
-#  rm -rf /opt/alien/data/data/com.explusalpha.Snes9x/
+#  ipmagic sx -u root rm -rf /opt/alien/data/data/com.androidemu.nes/
+#  ipmagic sx -u root rm -rf /opt/alien/data/data/com.explusalpha.Snes9x/
 
 ./install-apks
 
