@@ -94,7 +94,7 @@
 ./config-files #to overwrite files from installs (e.g.: launchers)
 
 ## to fix systemd:
-#   ipmagic sx sudo rsync -avP /lib/systemd/system/ /usr/lib/systemd/system/ --ignore-existing
+#   ipmagic sx -u root rsync -avP /lib/systemd/system/ /usr/lib/systemd/system/ --ignore-existing
 
 ./setup-aliendalvik
 
