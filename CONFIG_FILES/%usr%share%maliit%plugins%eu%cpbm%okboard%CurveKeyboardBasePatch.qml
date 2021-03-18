@@ -47,15 +47,10 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
     property Item lastPressedKey
     property Item lastInitialKey
 
-    property int shiftState: ShiftState.AutoShift
-    property bool autocaps
-    // TODO: should clean up autocaps handling
+    property int shiftState: ShiftState.NoShift
     readonly property bool isShifted: shiftKeyPressed
                                       || shiftState === ShiftState.LatchedShift
                                       || shiftState === ShiftState.LockedShift
-                                      || (shiftState === ShiftState.AutoShift && autocaps
-                                          && (typeof inputHandler.preedit !== "string"
-                                              || inputHandler.preedit.length === 0))
     readonly property bool isShiftLocked: shiftState === ShiftState.LockedShift
     readonly property alias languageSelectionPopupVisible: languageSelectionPopup.visible
 
@@ -98,7 +93,7 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
 
         function update(layout) {
             // Figure out what state we want to animate the next layout in
-            isShifted = keyboard.shouldUseAutocaps(layout)
+            isShifted = false
             inSymView = false
             inSymView2 = false
             isShiftLocked = false
@@ -157,12 +152,6 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         }
     }
 
-    Timer {
-        id: autocapsTimer
-        interval: 1
-        onTriggered: applyAutocaps()
-    }
-
     /* --- okboard begin --- */
     Timer {
         id: curveDisableTimer
@@ -181,8 +170,6 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         target: MInputMethodQuick
         onCursorPositionChanged: {
             if (MInputMethodQuick.surroundingTextValid) {
-                applyAutocaps()
-
                 if (shiftState !== ShiftState.LockedShift) {
                     resetShift()
                 }
@@ -191,7 +178,6 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         onFocusTargetChanged: {
             if (activeEditor) {
                 resetKeyboard()
-                autocapsTimer.start() // focus change may come before updated context, delay handling
             }
         }
         onInputMethodReset: {
@@ -469,33 +455,6 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         deadKeyAccent = ""
     }
 
-    function shouldUseAutocaps(layout) {
-        if (MInputMethodQuick.surroundingTextValid
-                && MInputMethodQuick.contentType === Maliit.FreeTextContentType
-                && MInputMethodQuick.autoCapitalizationEnabled
-                && !MInputMethodQuick.hiddenText
-                && layout && layout.type === "") {
-
-            var position = MInputMethodQuick.cursorPosition
-            var text = MInputMethodQuick.surroundingText.substring(0, position)
-
-            if (position == 0
-                    || (position == 1 && text[0] === " ")
-                    || (position >= 2 && text[position - 1] === " "
-                        && ".?!".indexOf(text[position - 2]) >= 0)) {
-                return true
-            } else {
-                return false
-            }
-        } else {
-            return false
-        }
-    }
-
-    function applyAutocaps() {
-        autocaps = shouldUseAutocaps(layout)
-    }
-
     function cycleShift() {
         if (shiftState === ShiftState.NoShift) {
             shiftState = ShiftState.LatchedShift
@@ -508,18 +467,13 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         } else if (shiftState === ShiftState.LockedShift) {
             shiftState = ShiftState.NoShift
         } else {
-            // exiting automatic shift state
-            if (autocaps) {
-                shiftState = ShiftState.NoShift
-            } else {
-                shiftState = ShiftState.LatchedShift
-            }
+            shiftState = ShiftState.LatchedShift
         }
     }
 
     function resetShift() {
         if (!shiftKeyPressed) {
-            shiftState = ShiftState.AutoShift
+            shiftState = ShiftState.NoShift
         }
     }
 
@@ -771,7 +725,6 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
 		    curve.backspace();
 		} else if (key.text.length > 0 && key.text >= 'a' && key.text <= 'z') {
                     // if we type a single letter when in preedit mode caused by curve typing, we insert a space because it's the beginning of a new word
-                    autocaps = false // if the first word was autocaps the new one is not
                     curve.insertSpace();
 		}
             }
