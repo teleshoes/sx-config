@@ -18,11 +18,14 @@ import "../systemwindow"
 SystemWindow {
     id: notificationWindow
 
+    property variant appNamesNoPreview: [
+      "Riot.im",
+      "Tor Browser",
+      "backup",
+    ]
+
     property QtObject notification: notificationPreviewPresenter.notification
     property bool showNotification: notification != null && (notification.previewBody || notification.previewSummary)
-      && appNameText != 'Riot.im'
-      && appNameText != 'Tor Browser'
-      && appNameText != 'backup'
     property string summaryText: showNotification ? notification.previewSummary : ""
     property string bodyText: showNotification ? notification.previewBody : ""
     // we didn't earlier use app name on the popup so there can be transient notification that have only inferred
@@ -542,6 +545,15 @@ SystemWindow {
     onAppIconUrlChanged: refreshPeriod()
 
     function displayNotification() {
+        // do not display notifications with appName in appNamesNoPreview
+        for (var i = 0; i < notificationWindow.appNamesNoPreview.length; i++) {
+          var appName = notificationWindow.appNamesNoPreview[i]
+          if (appName === notificationWindow.appNameText) {
+              state = "hidePopup"
+              return
+          }
+        }
+
         // We use two different presentation styles: one that can be clicked and one that cannot.
         // Check for configurations that can't be correctly activated
         if (notification.remoteActions.length == 0) {
