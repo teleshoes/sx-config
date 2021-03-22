@@ -22,6 +22,7 @@ SystemWindow {
     property bool showNotification: notification != null && (notification.previewBody || notification.previewSummary)
       && appNameText != 'Riot.im'
       && appNameText != 'Tor Browser'
+      && appNameText != 'backup'
     property string summaryText: showNotification ? notification.previewSummary : ""
     property string bodyText: showNotification ? notification.previewBody : ""
     // we didn't earlier use app name on the popup so there can be transient notification that have only inferred
