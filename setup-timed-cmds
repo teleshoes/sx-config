@@ -8,7 +8,6 @@ my $CMDS = {
   "backup-daemon" => {sched=>"2h", timeout=>"30min", cmd=>"backup-remote"},
   "email-daemon" => {sched=>"30m", timeout=>"15min", cmd=>"/opt/qtemail/bin/email.pl --update --folder=inbox"},
   "networkfix-daemon", => {sched=>"10m", timeout=>"1min", cmd=>"network-fix"},
-  "vaccine-daemon", => {sched=>"5m", timeout=>"1min", cmd=>"vaccine-check-appts"},
 };
 
 sub main(@){
