@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $DIR="$ENV{HOME}/.local/share/jolla-notes/QML/OfflineStorage/Databases";
+my $DIR="$ENV{HOME}/.local/share/com.jolla/notes/QML/OfflineStorage/Databases";
 my $DB_FILE="$DIR/8b63c31a7656301b3f7bcbbfef8a2b6f.sqlite";
 
 sub main(@){
