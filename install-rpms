@@ -13,6 +13,9 @@ my $destDir = "/media/sdcard/phone/rpms";
 my $destDirHome = "/home/nemo/rpms";
 
 my $usage = "Usage:
+  $0 -h | --help
+    show this message
+
   $0 [OPTS]
     -copy $srcDir to $destDir
     -run pkcon -y install-local $destDir/*.rpm
@@ -23,11 +26,18 @@ my $usage = "Usage:
 ";
 
 sub main(@){
-  if(@_ > 0 and $_[0] =~ /^(--home)$/){
-    shift;
-    $destDir = $destDirHome;
+  my $rpmGlobPattern = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $usage;
+      exit 0;
+    }elsif($arg =~ /^(--home)$/){
+      $destDir = $destDirHome;
+    }else{
+      die "$usage\nERROR: unknown arg $arg\n";
+    }
   }
-  die $usage if @_ > 0;
 
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
