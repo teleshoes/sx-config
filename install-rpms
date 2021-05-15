@@ -5,20 +5,20 @@ use warnings;
 # hold these packages
 my @PACKAGES_TO_LOCK = qw(lipstick2vnc);
 
-my $ipmagicName = "sx";
-my $user = "nemo";
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
 
-my $srcDir = "$ENV{HOME}/Code/sx/rpms",
-my $destDir = "/media/sdcard/phone/rpms";
-my $destDirHome = "/home/nemo/rpms";
+my $SRC_DIR = "$ENV{HOME}/Code/sx/rpms",
+my $DEST_DIR = "/media/sdcard/phone/rpms";
+my $DEST_DIR_HOME = "/home/nemo/rpms";
 
 my $usage = "Usage:
   $0 -h | --help
     show this message
 
   $0 [OPTS] [RPM_GLOB_PATTERN]
-    -copy $srcDir to $destDir
-    -run pkcon -y install-local $destDir/*RPM_GLOB_PATTERN*.rpm
+    -copy $SRC_DIR to $DEST_DIR
+    -run pkcon -y install-local $DEST_DIR/*RPM_GLOB_PATTERN*.rpm
     -add a package hold to zypper for the following packages: @PACKAGES_TO_LOCK
 
   RPM_GLOB_PATTERN
@@ -27,7 +27,7 @@ my $usage = "Usage:
 
   OPTS
     --home
-      use $destDirHome instead of $destDir
+      use $DEST_DIR_HOME instead of $DEST_DIR
 ";
 
 sub main(@){
@@ -38,7 +38,7 @@ sub main(@){
       print $usage;
       exit 0;
     }elsif($arg =~ /^(--home)$/){
-      $destDir = $destDirHome;
+      $DEST_DIR = $DEST_DIR_HOME;
     }elsif(not defined $rpmGlobPattern){
       $rpmGlobPattern = $arg;
     }else{
@@ -48,18 +48,18 @@ sub main(@){
 
   $rpmGlobPattern = "" if not defined $rpmGlobPattern;
 
-  my $host = `ipmagic $ipmagicName`;
+  my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  system "rsync", "-avP", "--del", "$srcDir/", "$user\@$host:$destDir/";
+  system "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$DEST_DIR/";
 
-  my $fullRpmGlobPath = "$destDir/*$rpmGlobPattern*.rpm";
+  my $fullRpmGlobPath = "$DEST_DIR/*$rpmGlobPattern*.rpm";
 
-  system "ipmagic", $ipmagicName, "-u", "root", "pkcon -y install-local $fullRpmGlobPath";
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root", "pkcon -y install-local $fullRpmGlobPath";
 
   for my $pkg(@PACKAGES_TO_LOCK){
-    system "ipmagic", $ipmagicName, "-u", "root", "zypper addlock $pkg";
+    system "ipmagic", $IPMAGIC_NAME, "-u", "root", "zypper addlock $pkg";
   }
 }
 
