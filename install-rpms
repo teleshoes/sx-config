@@ -19,6 +19,7 @@ my $usage = "Usage:
   $0 [OPTS]
     -copy $srcDir to $destDir
     -run pkcon -y install-local $destDir/*.rpm
+    -add a package hold to zypper for the following packages: @PACKAGES_TO_LOCK
 
   OPTS
     --home
