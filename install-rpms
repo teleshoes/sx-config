@@ -16,10 +16,14 @@ my $usage = "Usage:
   $0 -h | --help
     show this message
 
-  $0 [OPTS]
+  $0 [OPTS] [RPM_GLOB_PATTERN]
     -copy $srcDir to $destDir
-    -run pkcon -y install-local $destDir/*.rpm
+    -run pkcon -y install-local $destDir/*RPM_GLOB_PATTERN*.rpm
     -add a package hold to zypper for the following packages: @PACKAGES_TO_LOCK
+
+  RPM_GLOB_PATTERN
+    only install packages that match \"*RPM_GLOB_PATTERN*.rpm\"
+    defaults to empty, i.e.: all packages
 
   OPTS
     --home
@@ -35,10 +39,14 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(--home)$/){
       $destDir = $destDirHome;
+    }elsif(not defined $rpmGlobPattern){
+      $rpmGlobPattern = $arg;
     }else{
       die "$usage\nERROR: unknown arg $arg\n";
     }
   }
+
+  $rpmGlobPattern = "" if not defined $rpmGlobPattern;
 
   my $host = `ipmagic $ipmagicName`;
   chomp $host;
@@ -46,7 +54,9 @@ sub main(@){
 
   system "rsync", "-avP", "--del", "$srcDir/", "$user\@$host:$destDir/";
 
-  system "ipmagic", $ipmagicName, "-u", "root", "pkcon -y install-local $destDir/*.rpm";
+  my $fullRpmGlobPath = "$destDir/*$rpmGlobPattern*.rpm";
+
+  system "ipmagic", $ipmagicName, "-u", "root", "pkcon -y install-local $fullRpmGlobPath";
 
   for my $pkg(@PACKAGES_TO_LOCK){
     system "ipmagic", $ipmagicName, "-u", "root", "zypper addlock $pkg";
