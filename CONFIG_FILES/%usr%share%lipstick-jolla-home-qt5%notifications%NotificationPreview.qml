@@ -21,6 +21,7 @@ SystemWindow {
     property variant appNamesNoPreview: [
       "Riot.im",
       "Tor Browser",
+      "Lite", //Facebook Lite
       "backup",
     ]
 
