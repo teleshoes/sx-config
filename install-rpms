@@ -9,7 +9,7 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 my $SRC_DIR = "$ENV{HOME}/Code/sx/rpms",
-my $DEST_DIR = "/media/sdcard/phone/rpms";
+my $DEST_DIR_SDCARD = "/media/sdcard/phone/rpms";
 my $DEST_DIR_HOME = "/home/nemo/rpms";
 
 my $usage = "Usage:
@@ -17,8 +17,8 @@ my $usage = "Usage:
     show this message
 
   $0 [OPTS] [RPM_GLOB_PATTERN]
-    -copy $SRC_DIR to $DEST_DIR
-    -run pkcon -y install-local $DEST_DIR/*RPM_GLOB_PATTERN*.rpm
+    -copy $SRC_DIR to $DEST_DIR_SDCARD
+    -run pkcon -y install-local $DEST_DIR_SDCARD/*RPM_GLOB_PATTERN*.rpm
     -add a package hold to zypper for the following packages: @PACKAGES_TO_LOCK
 
   RPM_GLOB_PATTERN
@@ -27,10 +27,11 @@ my $usage = "Usage:
 
   OPTS
     --home
-      use $DEST_DIR_HOME instead of $DEST_DIR
+      use $DEST_DIR_HOME instead of $DEST_DIR_SDCARD
 ";
 
 sub main(@){
+  my $destDir = $DEST_DIR_SDCARD;
   my $rpmGlobPattern = undef;
   while(@_ > 0){
     my $arg = shift;
@@ -38,7 +39,7 @@ sub main(@){
       print $usage;
       exit 0;
     }elsif($arg =~ /^(--home)$/){
-      $DEST_DIR = $DEST_DIR_HOME;
+      $destDir = $DEST_DIR_HOME;
     }elsif(not defined $rpmGlobPattern){
       $rpmGlobPattern = $arg;
     }else{
@@ -52,9 +53,9 @@ sub main(@){
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  system "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$DEST_DIR/";
+  system "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$destDir/";
 
-  my $fullRpmGlobPath = "$DEST_DIR/*$rpmGlobPattern*.rpm";
+  my $fullRpmGlobPath = "$destDir/*$rpmGlobPattern*.rpm";
 
   system "ipmagic", $IPMAGIC_NAME, "-u", "root", "pkcon -y install-local $fullRpmGlobPath";
 
