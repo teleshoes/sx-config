@@ -18,6 +18,9 @@ my %MODULES = (
   klompbigtext => [qw(
     Text::CSV
   )],
+  robinhood => [qw(
+    JSON
+  )],
 );
 my @GROUPS = sort keys %MODULES;
 
