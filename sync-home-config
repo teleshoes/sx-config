@@ -42,6 +42,7 @@ my @HOMEBIN_EXCLUDES = qw(
 );
 
 my @SPECIAL_USER_RSYNCS = (
+  ["$ENV{HOME}/.cache/robinhood/", "/home/$user/.cache/robinhood/", []],
   ["$ENV{HOME}/.klomp/config-$ipmagicName", "/home/$user/.klomp/config", []],
   ["$ENV{HOME}/.klomp/lib-$ipmagicName", "/home/$user/.klomp/lib", []],
   ["$ENV{HOME}/DCIM/xddr/videos/good/", "/media/sdcard/phone/ddr-videos/", []],
