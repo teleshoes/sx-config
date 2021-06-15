@@ -77,7 +77,6 @@ my @config = qw(
 
   chrome
   torbrowser
-  orienteeringcompass
   mimer
 
   fdroid
