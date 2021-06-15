@@ -9,6 +9,9 @@ my $STARTUP_SCRIPT_FILE = "/usr/local/bin/autostart";
 my $STARTUP_SCRIPT_CONTENTS = "#!/bin/sh
 PATH=/home/nemo/bin:\$PATH
 
+sudo rm -f /media/sdcard/phone
+sudo ln -s /media/sdcard/????????-????-????-????-???????????? /media/sdcard/phone
+
 /home/nemo/bin/screen-daemon button-monitor --start
 /home/nemo/bin/screen-daemon keepalive --start
 sudo cpu-enable fast
