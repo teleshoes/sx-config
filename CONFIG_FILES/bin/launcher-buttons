@@ -151,9 +151,11 @@ my @extraIncludePatterns = qw(
   jolla-mediaplayer-openfile.desktop
   jolla-messages-openurl.desktop
   jolla-notes-import.desktop
+  l2tp-import
   new-mail.desktop
   open-url.desktop
   ovpn-import.desktop
+  pptp-import
   sailfish-office-openfile.desktop
   simkit.desktop
   store-client-install.desktop
