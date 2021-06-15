@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=compass-calib
+Comment=QT gui for compass-calib
+Icon=compass-icon-macrovector
+Exec=/usr/local/bin/compass-calib -g
+Type=Application
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
