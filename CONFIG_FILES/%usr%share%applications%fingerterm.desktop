@@ -3,3 +3,5 @@ Type=Application
 Name=Terminal
 Exec=fingerterm
 Icon=icon-launcher-shell
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
