@@ -53,6 +53,7 @@ my %packages = (
     harbour-gpsinfo
     harbour-jollacompass
     harbour-mimer
+    harbour-mlsmanager
     harbour-modrana
     harbour-orienteeringcompass
     harbour-sailbook
@@ -104,6 +105,7 @@ my @openrepos = qw(
   balta
   basil
   BillyHalley
+  black_sheep_dev
   CepiPerez
   coderus
   djselbeck
