@@ -55,7 +55,6 @@ my %packages = (
     harbour-mimer
     harbour-mlsmanager
     harbour-modrana
-    harbour-orienteeringcompass
     harbour-sailbook
     harbour-screentapshot2
     harbour-unplayer
