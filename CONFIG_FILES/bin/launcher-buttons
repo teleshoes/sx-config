@@ -82,6 +82,7 @@ my @config = qw(
   fdroid
   sailbook
   discord
+  textfree
 );
 
 my @unused = qw(
@@ -133,6 +134,7 @@ my %replacementRegexs = (
   'lirr-traintime'   => qw/^apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity$/,
   'lirrgui'          => qw/^lirrtraintime$/,
   'riot'             => qw/^apkd_launcher_im_vector.*VectorLauncherActivity$/,
+  'textfree'         => qw/^apkd_launcher_com_pinger_textfree-com_pinger_textfree_call_activities_TFSplash$/,
   'tkts'             => qw/^apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity$/,
   'torbrowser'       => qw/^apkd_launcher_org_torproject_torbrowser-org_mozilla_gecko_LauncherActivity$/,
   'vlc'              => qw/^apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity$/,
