@@ -8,7 +8,7 @@ my $ipmagicName = "sx";
 my @config = qw(
   voicecall-ui
   jolla-messages
-  toeterm
+  fingerterm
   bromite
 
   qtbtn-klomp
@@ -45,7 +45,7 @@ my @config = qw(
 
   sailfish-office
   jolla-notes
-  fingerterm
+  toeterm
   thumbterm
 
   sailfish-browser
