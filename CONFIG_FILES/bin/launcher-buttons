@@ -46,6 +46,7 @@ my @config = qw(
   sailfish-office
   jolla-notes
   harbour-mlsmanager
+  kill-lipstick2vnc
 
   sailfish-browser
   okboard
