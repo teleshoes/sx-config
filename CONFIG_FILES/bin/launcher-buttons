@@ -81,6 +81,7 @@ my @config = qw(
 
   fdroid
   sailbook
+  discord
 );
 
 my @unused = qw(
@@ -119,6 +120,7 @@ my %replacementRegexs = (
   'bromite'          => qw/^apkd_launcher_org_bromite_bromite-org_chromium_chrome_browser_document_ChromeLauncherActivity$/,
   'chrome'           => qw/^apkd_launcher_com_android_chrome-.*$/,
   'cool-reader'      => qw/^apkd_launcher_org_coolreader-org_coolreader_CoolReader$/,
+  'discord'          => qw/^apkd_launcher_com_discord-com_discord_app_AppActivity.*$/,
   'facebook-lite'    => qw/^apkd_launcher_com_facebook_lite-com_facebook_lite_MainActivity$/,
   'fbmessenger-lite' => qw/^apkd_launcher_com_facebook_mlite-com_facebook_mlite_coreui_view_MainActivity$/,
   'fdroid'           => qw/^apkd_launcher_org_fdroid_fdroid-.*$/,
