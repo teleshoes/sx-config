@@ -64,8 +64,6 @@ my %packages = (
     jolla-calendar
     sailfish-office
     stellarium
-    thumbterm
-    toeterm
   )],
 
   "5-qtemail" => [qw(
