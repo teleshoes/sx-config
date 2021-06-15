@@ -141,6 +141,7 @@ my %replacementRegexs = (
 #desktop files with no launchers
 my @extraIncludePatterns = qw(
   apkd-mime-handler.desktop
+  apkd_launcher_com_cogniance_asoka_srs_android-com_cogniance_asoka_srs_android_MainActivity
   csd.desktop
   jolla-calendar-import.desktop
   jolla-camera-lockscreen.desktop
