@@ -45,8 +45,6 @@ my @config = qw(
 
   sailfish-office
   jolla-notes
-  toeterm
-  thumbterm
 
   sailfish-browser
   okboard
