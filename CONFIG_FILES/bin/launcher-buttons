@@ -84,6 +84,8 @@ my @config = qw(
   sailbook
   discord
   textfree
+
+  sailfish-audiorecorder
 );
 
 my @unused = qw(
