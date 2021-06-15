@@ -33,7 +33,6 @@ my %packages = (
     pbcopy
     qt5-qttools-qdbus
     harbour-storeman
-    whois
   )],
 
   "2-build" => [qw(
