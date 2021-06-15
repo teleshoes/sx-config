@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=kill lipstick2vnc
+Comment=kill lipstick2vnc
+Icon=lipstick-no
+Exec=sudo pkill lipstick2vnc
+Type=Application
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
