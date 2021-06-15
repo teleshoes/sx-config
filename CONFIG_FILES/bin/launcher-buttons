@@ -81,10 +81,8 @@ my @config = qw(
   mimer
 
   fdroid
-  sailbook
   discord
   textfree
-
   sailfish-audiorecorder
 );
 
