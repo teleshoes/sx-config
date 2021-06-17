@@ -39,6 +39,7 @@ my $HOMEBIN_REMOTE_DIR = "/home/$user/bin";
 my @HOMEBIN_EXCLUDES = qw(
   alert-email
   bat
+  chromium
 );
 
 my @SPECIAL_USER_RSYNCS = (
