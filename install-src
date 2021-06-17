@@ -18,6 +18,7 @@ my %INSTALLS = (
   qtbtn          => ["https://github.com/teleshoes/qtbtn",             "./install.pl"],
   qtemail        => ["https://github.com/teleshoes/qtemail",           "./install.sh"],
   sqlite3_pcre   => ["https://github.com/ralight/sqlite3-pcre",        "make && sudo make install"],
+  mhonarc        => ["https://github.com/sympa-community/MHonArc",     "perl Makefile.PL && sudo make install"],
 );
 
 my @INSTALL_NAMES = sort keys %INSTALLS;
