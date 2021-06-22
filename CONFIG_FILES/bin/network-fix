@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 
+sub checkReadyForRestart($);
 sub isActiveVoiceCall();
 sub isScreenLocked();
 sub readProc(@);
@@ -39,8 +40,20 @@ sub main(@){
     }
   }
 
-  my $restart = 0;
+  my $restart = checkReadyForRestart($force);
 
+  if($restart){
+    system "date";
+    print "RESTARTING OFONO\n";
+    system "sudo", "systemctl", "restart", "ofono";
+    system "update-status-led";
+  }
+}
+
+sub checkReadyForRestart($){
+  my ($force) = @_;
+
+  my $restart = 0;
   if($force){
     $restart = 1;
   }elsif(not isScreenLocked()){
@@ -53,12 +66,7 @@ sub main(@){
     $restart = 1;
   }
 
-  if($restart){
-    system "date";
-    print "RESTARTING OFONO\n";
-    system "sudo", "systemctl", "restart", "ofono";
-    system "update-status-led";
-  }
+  return $restart;
 }
 
 sub isActiveVoiceCall(){
