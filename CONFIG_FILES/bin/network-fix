@@ -26,11 +26,11 @@ my $usage = "Usage:
 
     --wait=WAIT_MILLIS | --wait-millis=WAIT_MILLIS
       delay WAIT_MILLIS milliseconds before restarting
-      checks if ready for restart before AND after waiting
+      if --no-force, check if ready for restart before AND after waiting
       if WAIT_MILLIS is 0, check once and do not sleep
-        -cancel restart and exit if not ready
+        -cancel restart and exit if not ready (if --no-force)
         -sleep WAIT_MILLIS milliseconds
-        -cancel restart and exit if not ready
+        -cancel restart and exit if not ready (if --no-force)
         -restart ofono
 ";
 
