@@ -22,10 +22,20 @@ my $usage = "Usage:
     -f | --force | force
       (this is the default)
       restart ofono regardless of current state
+
+    --wait=WAIT_MILLIS | --wait-millis=WAIT_MILLIS
+      delay WAIT_MILLIS milliseconds before restarting
+      checks if ready for restart before AND after waiting
+      if WAIT_MILLIS is 0, check once and do not sleep
+        -cancel restart and exit if not ready
+        -sleep WAIT_MILLIS milliseconds
+        -cancel restart and exit if not ready
+        -restart ofono
 ";
 
 sub main(@){
   my $force = 1;
+  my $waitMillis = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -35,12 +45,20 @@ sub main(@){
       $force = 0;
     }elsif($arg =~ /^(-f|--force|force)$/){
       $force = 1;
+    }elsif($arg =~ /^(?:--wait|--wait-millis)=(\d+)$/){
+      $waitMillis = $1;
     }else{
       die "$usage\nERROR: unknown arg $arg\n";
     }
   }
 
   my $restart = checkReadyForRestart($force);
+
+  if($restart and $waitMillis > 0){
+    print "sleeping for $waitMillis millis\n";
+    sleep ($waitMillis / 1000.0);
+    $restart = checkReadyForRestart($force);
+  }
 
   if($restart){
     system "date";
