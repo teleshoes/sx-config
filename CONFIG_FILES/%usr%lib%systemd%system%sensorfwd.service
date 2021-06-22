@@ -7,7 +7,7 @@ Conflicts=actdead.target
 
 [Service]
 Type=notify
-ExecStart=/usr/sbin/sensorfwd -c=/etc/sensorfw/primaryuse.conf --systemd --log-level=warning --no-magnetometer-bg-calibration
+ExecStart=/usr/sbin/sensorfwd -c=/etc/sensorfw/primaryuse.conf --systemd --log-level=warning
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=1
