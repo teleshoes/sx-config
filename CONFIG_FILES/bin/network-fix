@@ -10,23 +10,33 @@ my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0
-    restart ofono, UNLESS screen is unlocked, OR a voice call is active
+  $0 [OPTS]
+    restart ofono
+
+  OPTS
+    -n | --no-force | no-force | -m | --maybe | maybe
+      (this is the default)
+      do not restart ofono if screen is unlocked, OR a voice call is active
       (only restart when screen is locked and there is no voice call)
 
-  $0 -f|--force|force
-    restart ofono regardless of current state
+    -f | --force | force
+      restart ofono regardless of current state
 ";
 
 sub main(@){
   my $force = 0;
-  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print $usage;
-    exit 0;
-  }elsif(@_ == 1 and $_[0] =~ /^(-f|--force|force)$/){
-    $force = 1;
-  }elsif(@_ > 0){
-    die $usage;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $usage;
+      exit 0;
+    }elsif($arg =~ /^(-n|--no-force|no-force|-m|--maybe|maybe)$/){
+      $force = 0;
+    }elsif($arg =~ /^(-f|--force|force)$/){
+      $force = 1;
+    }else{
+      die "$usage\nERROR: unknown arg $arg\n";
+    }
   }
 
   my $restart = 0;
