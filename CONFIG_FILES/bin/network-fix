@@ -16,16 +16,16 @@ my $usage = "Usage:
 
   OPTS
     -n | --no-force | no-force | -m | --maybe | maybe
-      (this is the default)
       do not restart ofono if screen is unlocked, OR a voice call is active
       (only restart when screen is locked and there is no voice call)
 
     -f | --force | force
+      (this is the default)
       restart ofono regardless of current state
 ";
 
 sub main(@){
-  my $force = 0;
+  my $force = 1;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
