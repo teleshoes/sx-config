@@ -63,6 +63,7 @@ my %packages = (
     jolla-calendar
     sailfish-office
     stellarium
+    youtube-dl
   )],
 
   "5-qtemail" => [qw(
@@ -125,6 +126,7 @@ my @openrepos = qw(
   minitreintje
   Matsav
   MSameer
+  nephros
   NielDK
   nodevel
   osetr
