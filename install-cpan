@@ -21,6 +21,9 @@ my %MODULES = (
   robinhood => [qw(
     JSON
   )],
+  tasmota => [qw(
+    Parallel::ForkManager
+  )],
 );
 my @GROUPS = sort keys %MODULES;
 
