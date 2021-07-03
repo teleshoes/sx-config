@@ -61,6 +61,7 @@
 #ipmagic sx -t # ok any time after config-files and reboot
 
 #ensure SD card inserted and mounted
+#ipmagic sx -s ls /media/sdcard/phone/
 ./sync-home-config
 
 ./set-resolv #necessary for some inexplicable reason sometimes
