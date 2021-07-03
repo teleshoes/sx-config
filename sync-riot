@@ -8,6 +8,7 @@ my $IPMAGIC_USER = "nemo";
 my $DIR_BASE = "$ENV{HOME}/Code/sx";
 my $DIR_BACKUP = "$DIR_BASE/backup";
 
+my $DIR_LOCAL_RIOT = "$DIR_BACKUP/backup-riot/%opt%alien%data%data%im.vector.alpha";
 my $DIR_REMOTE_RIOT = "/opt/alien/data/data/im.vector.alpha/";
 
 my $usage = "Usage:
@@ -19,7 +20,6 @@ my $usage = "Usage:
     set uid/gid to android app user id
 ";
 
-sub nowMillis();
 sub run(@);
 
 sub main(@){
@@ -27,19 +27,8 @@ sub main(@){
   chomp $host;
 
   if(@_ == 1 and $_[0] =~ /^(--backup)$/){
-    my $nowSex = time;
-    my $nowYMD = `date --date=\@$nowSex +'%Y-%m-%d'`;
-    chomp $nowYMD;
-
-    my $destDirName = "riot-${nowYMD}_${nowSex}";
-
-    my $destDir = "$DIR_BACKUP/backup-riot/$destDirName";
-    run "rsync", "-avP", "root\@$host:$DIR_REMOTE_RIOT/", "$destDir/";
-
-    run "rm", "-f", "$DIR_BACKUP/backup-riot/riot-latest";
-    run "ln", "-s", $destDirName, "$DIR_BACKUP/backup-riot/riot-latest";
+    run "rsync", "-avP", "--del", "root\@$host:$DIR_REMOTE_RIOT/", "$DIR_LOCAL_RIOT/";
   }elsif(@_ == 1 and $_[0] =~ /^(--restore)$/){
-    my $srcDir = "$DIR_BACKUP/backup-riot/riot-latest";
     my $appUserId = `ipmagic $IPMAGIC_NAME -u root stat -c %u $DIR_REMOTE_RIOT`;
     chomp $appUserId;
     if($appUserId !~ /^\d+$/){
@@ -47,16 +36,12 @@ sub main(@){
     }elsif($appUserId =~ /^(0|1000|100000)$/){
       die "app user id ($appUserId) should never be 0 or 1000 or 100000\n";
     }
-    run "rsync", "-avP", "--del", "$srcDir/", "root\@$host:$DIR_REMOTE_RIOT/";
+    run "rsync", "-avP", "--del", "$DIR_LOCAL_RIOT/", "root\@$host:$DIR_REMOTE_RIOT/";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "chown", "-R", "$appUserId.$appUserId", $DIR_REMOTE_RIOT;
   }else{
     die $usage;
   }
-}
-
-sub nowMillis(){
-  return int(time * 1000.0 + 0.5);
 }
 
 sub run(@){
