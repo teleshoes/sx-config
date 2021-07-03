@@ -15,9 +15,9 @@ sub main(@){
   chomp $host;
 
   my $now = time;
-  run "ipmagic", $ipmagicName, "mv ~/.klomp/ ~/.klomp-bak-$now";
+  run "ipmagic", $ipmagicName, "rsync -avP /media/sdcard/phone/klomp/ /media/sdcard/phone/klomp-bak-$now";
 
-  run "rsync", "-avP", "$BACKUP_DIR/latest/", "$user\@$host:~/.klomp/";
+  run "rsync", "-avP", "--del", "$BACKUP_DIR/latest/", "$user\@$host:/media/sdcard/phone/klomp/";
 
   print "REMEMBER TO RUN klomp-sync for db and datecache\n";
 }
