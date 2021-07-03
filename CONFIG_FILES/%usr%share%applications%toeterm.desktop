@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=ToeTerm
-Categories=Utility
-Exec=toeterm
-Icon=toeterm
-X-Nemo-Single-Instance=no
-Custom-Launcher=yes
