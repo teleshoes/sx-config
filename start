@@ -115,7 +115,7 @@
 klomp-sync `ipmagic sx`
 
 #maybe:
-#  rsync -avP backup/backup-home/android_storage/ `sx`:~/android_storage/ --del -n
+#  rsync -avP backup/backup-home/android_storage/ `sx`:~/android_storage/ --exclude=SDCARD --del -n
 
 pubkeys
 
