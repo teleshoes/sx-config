@@ -54,7 +54,11 @@ sub main(@){
   }elsif($cmd eq $CMD_RESTORE){
     my $appUserId = getAppUserId("$DIR_REMOTE_RIOT/");
 
-    run "rsync", "-avP", "--del", "$DIR_LOCAL_RIOT/", "root\@$host:$DIR_REMOTE_RIOT/";
+    run "rsync",
+      "-avP", "--del",
+      "$DIR_LOCAL_RIOT/",
+      "root\@$host:$DIR_REMOTE_RIOT/"
+    ;
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "chown", "-R", "$appUserId.$appUserId", "$DIR_REMOTE_RIOT/";
   }else{
