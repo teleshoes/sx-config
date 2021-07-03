@@ -26,6 +26,7 @@ my $usage = "Usage:
     set uid/gid to android app user id
 ";
 
+sub getAppUserId($);
 sub run(@);
 
 sub main(@){
@@ -51,19 +52,29 @@ sub main(@){
   if($cmd eq $CMD_BACKUP){
     run "rsync", "-avP", "--del", "root\@$host:$DIR_REMOTE_RIOT/", "$DIR_LOCAL_RIOT/";
   }elsif($cmd eq $CMD_RESTORE){
-    my $appUserId = `ipmagic $IPMAGIC_NAME -u root stat -c %u "$DIR_REMOTE_RIOT/"`;
-    chomp $appUserId;
-    if($appUserId !~ /^\d+$/){
-      die "could not read android app user ID\n";
-    }elsif($appUserId =~ /^(0|1000|100000)$/){
-      die "app user id ($appUserId) should never be 0 or 1000 or 100000\n";
-    }
+    my $appUserId = getAppUserId("$DIR_REMOTE_RIOT/");
+
     run "rsync", "-avP", "--del", "$DIR_LOCAL_RIOT/", "root\@$host:$DIR_REMOTE_RIOT/";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "chown", "-R", "$appUserId.$appUserId", "$DIR_REMOTE_RIOT/";
   }else{
     die "ERROR: unknown command $cmd\n";
   }
+}
+
+sub getAppUserId($){
+  my ($androidDir) = @_;
+
+  my $appUserId = `ipmagic $IPMAGIC_NAME -u root stat -c %u $androidDir`;
+  chomp $appUserId;
+
+  if($appUserId !~ /^\d+$/){
+    die "could not read android app user ID\n";
+  }elsif($appUserId =~ /^(0|1000|100000)$/){
+    die "app user id ($appUserId) should never be 0 or 1000 or 100000\n";
+  }
+
+  return $appUserId;
 }
 
 sub run(@){
