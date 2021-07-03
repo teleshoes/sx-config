@@ -104,7 +104,7 @@
 
 ./setup-coolreader
 
-#./sync-riot --restore #broken
+./sync-riot --restore
 
 ./launcher-buttons
 
@@ -143,4 +143,3 @@ pubkeys
 #okboard => enable backtracking => DISABLE
 #settings => apps => camera => storage => sdcard
 #orienteeringcompass => calibrate 100%
-#riot => `cat ~/.secrets` => login
