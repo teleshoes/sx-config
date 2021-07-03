@@ -142,6 +142,3 @@ pubkeys
 #settings => apps => camera => storage => sdcard
 #orienteeringcompass => calibrate 100%
 #riot => `cat ~/.secrets` => login
-#jitsi => settings => display name
-#jitsi => settings => start with video muted => yes
-#jitsi => ipmagic sx "echo $(jitsi-meet --room) | pbcopy" => paste room
