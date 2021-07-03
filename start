@@ -57,6 +57,9 @@
 ./restore-contacts
 ./restore-comm
 
+#early, to ensure SD card symlink is in place
+./setup-autostart
+
 #POWER OFF PHONE, insert SIM+sdcard, and reboot
 #ipmagic sx -t # ok any time after config-files and reboot
 
@@ -104,8 +107,6 @@
 #./sync-riot --restore #broken
 
 ./launcher-buttons
-
-./setup-autostart
 
 ./setup-timed-cmds
 
