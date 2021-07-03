@@ -9,7 +9,7 @@ my $DIR_BASE = "$ENV{HOME}/Code/sx";
 my $DIR_BACKUP = "$DIR_BASE/backup";
 
 my $DIR_LOCAL_RIOT = "$DIR_BACKUP/backup-riot/%opt%alien%data%data%im.vector.alpha";
-my $DIR_REMOTE_RIOT = "/opt/alien/data/data/im.vector.alpha/";
+my $DIR_REMOTE_RIOT = "/opt/alien/data/data/im.vector.alpha";
 
 my $usage = "Usage:
   $0 --backup
@@ -29,7 +29,7 @@ sub main(@){
   if(@_ == 1 and $_[0] =~ /^(--backup)$/){
     run "rsync", "-avP", "--del", "root\@$host:$DIR_REMOTE_RIOT/", "$DIR_LOCAL_RIOT/";
   }elsif(@_ == 1 and $_[0] =~ /^(--restore)$/){
-    my $appUserId = `ipmagic $IPMAGIC_NAME -u root stat -c %u $DIR_REMOTE_RIOT`;
+    my $appUserId = `ipmagic $IPMAGIC_NAME -u root stat -c %u "$DIR_REMOTE_RIOT/"`;
     chomp $appUserId;
     if($appUserId !~ /^\d+$/){
       die "could not read android app user ID\n";
@@ -38,7 +38,7 @@ sub main(@){
     }
     run "rsync", "-avP", "--del", "$DIR_LOCAL_RIOT/", "root\@$host:$DIR_REMOTE_RIOT/";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-      "chown", "-R", "$appUserId.$appUserId", $DIR_REMOTE_RIOT;
+      "chown", "-R", "$appUserId.$appUserId", "$DIR_REMOTE_RIOT/";
   }else{
     die $usage;
   }
