@@ -147,7 +147,7 @@ my %replacementRegexs = (
 #desktop files with no launchers
 my @extraIncludePatterns = qw(
   apkd-mime-handler.desktop
-  apkd_launcher_com_cogniance_asoka_srs_android-com_cogniance_asoka_srs_android_MainActivity
+  apkd_launcher_com_cogniance_asoka_srs_android-com_cogniance_asoka_srs_android_MainActivity.desktop
   csd.desktop
   jolla-calendar-import.desktop
   jolla-camera-lockscreen.desktop
@@ -158,11 +158,11 @@ my @extraIncludePatterns = qw(
   jolla-mediaplayer-openfile.desktop
   jolla-messages-openurl.desktop
   jolla-notes-import.desktop
-  l2tp-import
+  l2tp-import.desktop
   new-mail.desktop
   open-url.desktop
   ovpn-import.desktop
-  pptp-import
+  pptp-import.desktop
   sailfish-office-openfile.desktop
   simkit.desktop
   store-client-install.desktop
