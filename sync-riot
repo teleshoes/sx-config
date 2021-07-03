@@ -8,14 +8,14 @@ my $IPMAGIC_USER = "nemo";
 my $DIR_BASE = "$ENV{HOME}/Code/sx";
 my $DIR_BACKUP = "$DIR_BASE/backup";
 
-my $DIR_REMOTE_SHARED_PREFS = "/opt/alien/data/data/im.vector.alpha/shared_prefs";
+my $DIR_REMOTE_RIOT = "/opt/alien/data/data/im.vector.alpha/";
 
 my $usage = "Usage:
   $0 --backup
-    copy shared_prefs remote => backup
+    copy riot dir remote => backup
 
   $0 --restore
-    copy shared_prefs backup => remote
+    copy riot dir backup => remote
     set uid/gid to android app user id
 ";
 
@@ -31,25 +31,25 @@ sub main(@){
     my $nowYMD = `date --date=\@$nowSex +'%Y-%m-%d'`;
     chomp $nowYMD;
 
-    my $destDirName = "shared_prefs-${nowYMD}_${nowSex}";
+    my $destDirName = "riot-${nowYMD}_${nowSex}";
 
     my $destDir = "$DIR_BACKUP/backup-riot/$destDirName";
-    run "rsync", "-avP", "root\@$host:$DIR_REMOTE_SHARED_PREFS/", "$destDir/";
+    run "rsync", "-avP", "root\@$host:$DIR_REMOTE_RIOT/", "$destDir/";
 
-    run "rm", "-f", "$DIR_BACKUP/backup-riot/shared_prefs-latest";
-    run "ln", "-s", $destDirName, "$DIR_BACKUP/backup-riot/shared_prefs-latest";
+    run "rm", "-f", "$DIR_BACKUP/backup-riot/riot-latest";
+    run "ln", "-s", $destDirName, "$DIR_BACKUP/backup-riot/riot-latest";
   }elsif(@_ == 1 and $_[0] =~ /^(--restore)$/){
-    my $srcDir = "$DIR_BACKUP/backup-riot/shared_prefs-latest";
-    my $appUserId = `ipmagic $IPMAGIC_NAME -u root stat -c %u $DIR_REMOTE_SHARED_PREFS`;
+    my $srcDir = "$DIR_BACKUP/backup-riot/riot-latest";
+    my $appUserId = `ipmagic $IPMAGIC_NAME -u root stat -c %u $DIR_REMOTE_RIOT`;
     chomp $appUserId;
     if($appUserId !~ /^\d+$/){
       die "could not read android app user ID\n";
     }elsif($appUserId =~ /^(0|1000|100000)$/){
       die "app user id ($appUserId) should never be 0 or 1000 or 100000\n";
     }
-    run "rsync", "-avP", "--del", "$srcDir/", "root\@$host:$DIR_REMOTE_SHARED_PREFS/";
+    run "rsync", "-avP", "--del", "$srcDir/", "root\@$host:$DIR_REMOTE_RIOT/";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-      "chown", "-R", "$appUserId.$appUserId", $DIR_REMOTE_SHARED_PREFS;
+      "chown", "-R", "$appUserId.$appUserId", $DIR_REMOTE_RIOT;
   }else{
     die $usage;
   }
