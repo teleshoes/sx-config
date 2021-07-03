@@ -12,6 +12,28 @@ my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 my $REMOTE_DATA_DIR = "/opt/alien/data/data";
 my $REMOTE_PROVIDERS_DB = "$REMOTE_DATA_DIR/com.android.providers.settings/databases/settings.db";
 
+my $JITSI_DB = "$REMOTE_DATA_DIR/org.jitsi.meet/databases/RKStorage";
+my $JITSI_DB_CONF = {
+  '@jitsi-meet/features/recent-list' => ''
+    . '['
+    . '{' . '"conference":"https://meet.jit.si/%%%JITSI_ROOM%%%"'
+    . ',' . '"date":%%%NOW_MILLIS%%%'
+    . ',' . '"duration":0'
+    . '}'
+    . ']'
+  ,
+  '@jitsi-meet/features/base/settings' => ''
+    . '{' . '"avatarID":"ffffffffffffffffffffffffffffffff"'
+    . ',' . '"displayName":"%%%JITSI_NAME%%%"'
+    . ',' . '"email":""'
+    . ',' . '"localFlipX":true'
+    . ',' . '"startAudioOnly":true'
+    . ',' . '"startWithAudioMuted":false'
+    . ',' . '"startWithVideoMuted":true'
+    . '}'
+  ,
+};
+
 my $PACKAGE_RESTRICTIONS = {
   "us.zoom.videomeetings" => ''
     . "    <pkg name=\"us.zoom.videomeetings\">\n"
@@ -43,6 +65,32 @@ sub main(@){
     );
   }else{
     print "\n\n\nskipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
+  }
+
+  print "\nsetting up jitsi:\n";
+  my $nowMillis = nowMillis();
+  my $jitsiName = `jitsi-meet --name`;
+  chomp $jitsiName;
+  my $jitsiRoom = `jitsi-meet --room`;
+  chomp $jitsiRoom;
+
+  for my $rowKey(sort keys %$JITSI_DB_CONF){
+    my $rowValue = $$JITSI_DB_CONF{$rowKey};
+    $rowValue =~ s/%%%NOW_MILLIS%%%/$nowMillis/g;
+    $rowValue =~ s/%%%JITSI_ROOM%%%/$jitsiRoom/g;
+    $rowValue =~ s/%%%JITSI_NAME%%%/$jitsiName/g;
+    $rowValue =~ s/"/"\\""/g;
+    print "catalystLocalStorage.$rowKey:\n";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+      sqlite3 $JITSI_DB \"
+        select value FROM catalystLocalStorage WHERE key = '$rowKey';
+        select ' => ';
+        update catalystLocalStorage
+          set value = '$rowValue'
+          where key = '$rowKey';
+        select value FROM catalystLocalStorage WHERE key = '$rowKey';
+      \"
+    ";
   }
 
   print "\nsetting up providers:\n";
