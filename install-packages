@@ -16,7 +16,11 @@ sub tryrun(@);
 sub runIpmagicRoot(@);
 sub tryrunIpmagicRoot(@);
 
-my @removals = qw(busybox-symlinks-tar busybox-symlinks-coreutils busybox-symlinks-bash);
+my @removals = qw(
+  busybox-symlinks-bash
+  busybox-symlinks-coreutils
+  busybox-symlinks-tar
+);
 
 my %packages = (
   "1-essential" => [qw(
