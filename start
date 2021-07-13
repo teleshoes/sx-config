@@ -104,7 +104,7 @@
 
 ./setup-coolreader
 
-./sync-riot --restore
+./sync-android-apps --restore riot
 
 ./launcher-buttons
 
