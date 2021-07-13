@@ -19,6 +19,10 @@ my $backups = {
   },
 };
 
+my $BACKUP_FMT = join "", map {
+    "    $_\n      $$backups{$_}{remoteDir}\n      => $$backups{$_}{localDir}\n"
+} sort keys %$backups;
+
 my $CMD_BACKUP = "backup";
 my $CMD_RESTORE = "restore";
 
@@ -34,6 +38,8 @@ my $usage = "Usage:
     overwrite each dest BACKUP_NAME dir from local backup
     set uid/gid to android app user id
       (restore all if no BACKUP_NAME given)
+
+  BACKUP_NAME\n$BACKUP_FMT
 ";
 
 sub getAppUserId($);
