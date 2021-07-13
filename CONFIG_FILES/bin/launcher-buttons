@@ -86,6 +86,7 @@ my @config = qw(
   sailfish-audiorecorder
 
   youtube-vanced
+  fairynest
 );
 
 my @unused = qw(
@@ -126,6 +127,7 @@ my %replacementRegexs = (
   'cool-reader'      => qw/^apkd_launcher_org_coolreader-org_coolreader_CoolReader$/,
   'discord'          => qw/^apkd_launcher_com_discord-com_discord_app_AppActivity.*$/,
   'facebook-lite'    => qw/^apkd_launcher_com_facebook_lite-com_facebook_lite_MainActivity$/,
+  'fairynest'        => qw/^apkd_launcher_com_spled_aicontrol-com_spled_aicontrol_activity_main_MainActivity$/,
   'fbmessenger-lite' => qw/^apkd_launcher_com_facebook_mlite-com_facebook_mlite_coreui_view_MainActivity$/,
   'fdroid'           => qw/^apkd_launcher_org_fdroid_fdroid-.*$/,
   'google-maps'      => qw/^apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity$/,
