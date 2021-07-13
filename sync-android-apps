@@ -27,10 +27,10 @@ my $usage = "Usage:
     show this message
 
   $0 --backup BACKUP_NAME
-    backup remote APP_NAME dir to local backup
+    backup remote BACKUP_NAME dir to local backup
 
   $0 --restore BACKUP_NAME
-    overwrite dest APP_NAME dir from local backup
+    overwrite dest BACKUP_NAME dir from local backup
     set uid/gid to android app user id
 ";
 
