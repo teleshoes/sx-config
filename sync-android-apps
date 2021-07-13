@@ -26,12 +26,14 @@ my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0 --backup BACKUP_NAME
-    backup remote BACKUP_NAME dir to local backup
+  $0 --backup [BACKUP_NAME BACKUP_NAME ..]
+    backup each remote BACKUP_NAME dir to local backup
+      (backup all if no BACKUP_NAME given)
 
-  $0 --restore BACKUP_NAME
-    overwrite dest BACKUP_NAME dir from local backup
+  $0 --restore [BACKUP_NAME BACKUP_NAME ..]
+    overwrite each dest BACKUP_NAME dir from local backup
     set uid/gid to android app user id
+      (restore all if no BACKUP_NAME given)
 ";
 
 sub getAppUserId($);
@@ -39,7 +41,7 @@ sub run(@);
 
 sub main(@){
   my $cmd;
-  my $backupName = undef;
+  my @backupNames;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -50,36 +52,39 @@ sub main(@){
     }elsif($arg =~ /^(--restore)$/){
       $cmd = $CMD_RESTORE;
     }elsif(defined $$backups{$arg}){
-      $backupName = $arg;
+      push @backupNames, $arg;
     }else{
       die "$usage\nERROR: unknown arg $arg\n";
     }
   }
   die "$usage\nERROR: no command given\n" if not defined $cmd;
-  die "$usage\nERROR: no BACKUP_NAME given\n" if not defined $$backups{$backupName};
-  die "$usage\nERROR: unknown backup $backupName\n" if not defined $$backups{$backupName};
+
+  @backupNames = sort keys %$backups if @backupNames == 0;
 
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
-  my $remoteDir = $$backups{$backupName}{remoteDir};
-  my $localDir = $$backups{$backupName}{localDir};
+  for my $backupName(@backupNames){
+    die "$usage\nERROR: unknown backup $backupName\n" if not defined $$backups{$backupName};
+    my $remoteDir = $$backups{$backupName}{remoteDir};
+    my $localDir = $$backups{$backupName}{localDir};
 
-  if($cmd eq $CMD_BACKUP){
-    run "rsync", "-avP", "--del", "root\@$host:$remoteDir/", "$localDir/";
-  }elsif($cmd eq $CMD_RESTORE){
-    my $appUserId = getAppUserId("$remoteDir/");
+    if($cmd eq $CMD_BACKUP){
+      run "rsync", "-avP", "--del", "root\@$host:$remoteDir/", "$localDir/";
+    }elsif($cmd eq $CMD_RESTORE){
+      my $appUserId = getAppUserId("$remoteDir/");
 
-    run "rsync",
-      "-avP", "--del",
-      "--no-owner", "--no-group",
-      "$localDir/",
-      "root\@$host:$remoteDir/"
-    ;
-    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-      "chown", "-R", "$appUserId.$appUserId", "$remoteDir/";
-  }else{
-    die "ERROR: unknown command $cmd\n";
+      run "rsync",
+        "-avP", "--del",
+        "--no-owner", "--no-group",
+        "$localDir/",
+        "root\@$host:$remoteDir/"
+      ;
+      run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+        "chown", "-R", "$appUserId.$appUserId", "$remoteDir/";
+    }else{
+      die "ERROR: unknown command $cmd\n";
+    }
   }
 }
 
