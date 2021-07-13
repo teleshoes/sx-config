@@ -61,7 +61,9 @@ sub main(@){
     die "$usage\n\nunknown symlink name: $name\n" if not defined $SYMLINKS{$name};
     my $sym = $SYMLINKS{$name};
 
-    my $cmd = "cd $$sym{dir} && rm -f $$sym{dest} && ln -s $$sym{src} $$sym{dest}";
+    my $src = "$$sym{src}";
+    my $dest = "$$sym{dir}/$$sym{dest}";
+    my $cmd = "rmdir $dest 2>/dev/null ; rm -f $dest && ln -s $src $dest";
 
     my $ipmagicUser;
     if($$sym{dir} =~ /^\/home\/(\w+)\//){
