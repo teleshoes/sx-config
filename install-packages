@@ -19,6 +19,7 @@ sub tryrunIpmagicRoot(@);
 my @removals = qw(
   busybox-symlinks-bash
   busybox-symlinks-coreutils
+  busybox-symlinks-findutils
   busybox-symlinks-tar
 );
 
@@ -30,6 +31,7 @@ my %packages = (
     htop git gnupg2 sudo gnu-tar vim-enhanced wget zypper
     expect
     gnu-coreutils
+    gnu-findutils
     bind-utils
     lipstick-qt5-tools
     mce-tools
