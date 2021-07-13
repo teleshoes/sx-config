@@ -13,6 +13,10 @@ my $backups = {
     localDir => "$DIR_BACKUP/backup-riot/%opt%alien%data%data%im.vector.alpha",
     remoteDir => "/opt/alien/data/data/im.vector.alpha",
   },
+  jitsi => {
+    localDir => "$DIR_BACKUP/backup-riot/%opt%alien%data%data%org.jitsi.meet",
+    remoteDir => "/opt/alien/data/data/org.jitsi.meet",
+  },
 };
 
 my $CMD_BACKUP = "backup";
