@@ -100,11 +100,11 @@
 ## to fix systemd:
 #   ipmagic sx -u root rsync -avP /lib/systemd/system/ /usr/lib/systemd/system/ --ignore-existing
 
+./sync-android-apps --restore riot
+
 ./setup-aliendalvik
 
 ./setup-coolreader
-
-./sync-android-apps --restore riot
 
 ./launcher-buttons
 
