@@ -8,8 +8,12 @@ my $IPMAGIC_USER = "nemo";
 my $DIR_BASE = "$ENV{HOME}/Code/sx";
 my $DIR_BACKUP = "$DIR_BASE/backup";
 
-my $DIR_LOCAL_RIOT = "$DIR_BACKUP/backup-riot/%opt%alien%data%data%im.vector.alpha";
-my $DIR_REMOTE_RIOT = "/opt/alien/data/data/im.vector.alpha";
+my $backups = {
+  riot => {
+    localDir => "$DIR_BACKUP/backup-riot/%opt%alien%data%data%im.vector.alpha",
+    remoteDir => "/opt/alien/data/data/im.vector.alpha",
+  },
+};
 
 my $CMD_BACKUP = "backup";
 my $CMD_RESTORE = "restore";
@@ -18,11 +22,11 @@ my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0 --backup
-    backup remote riot dir to local backup
+  $0 --backup BACKUP_NAME
+    backup remote APP_NAME dir to local backup
 
-  $0 --restore
-    overwrite dest riot dir from local backup
+  $0 --restore BACKUP_NAME
+    overwrite dest APP_NAME dir from local backup
     set uid/gid to android app user id
 ";
 
@@ -31,6 +35,7 @@ sub run(@);
 
 sub main(@){
   my $cmd;
+  my $backupName = undef;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -40,28 +45,35 @@ sub main(@){
       $cmd = $CMD_BACKUP;
     }elsif($arg =~ /^(--restore)$/){
       $cmd = $CMD_RESTORE;
+    }elsif(defined $$backups{$arg}){
+      $backupName = $arg;
     }else{
       die "$usage\nERROR: unknown arg $arg\n";
     }
   }
-  die $usage if not defined $cmd;
+  die "$usage\nERROR: no command given\n" if not defined $cmd;
+  die "$usage\nERROR: no BACKUP_NAME given\n" if not defined $$backups{$backupName};
+  die "$usage\nERROR: unknown backup $backupName\n" if not defined $$backups{$backupName};
 
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
+  my $remoteDir = $$backups{$backupName}{remoteDir};
+  my $localDir = $$backups{$backupName}{localDir};
+
   if($cmd eq $CMD_BACKUP){
-    run "rsync", "-avP", "--del", "root\@$host:$DIR_REMOTE_RIOT/", "$DIR_LOCAL_RIOT/";
+    run "rsync", "-avP", "--del", "root\@$host:$remoteDir/", "$localDir/";
   }elsif($cmd eq $CMD_RESTORE){
-    my $appUserId = getAppUserId("$DIR_REMOTE_RIOT/");
+    my $appUserId = getAppUserId("$remoteDir/");
 
     run "rsync",
       "-avP", "--del",
       "--no-owner", "--no-group",
-      "$DIR_LOCAL_RIOT/",
-      "root\@$host:$DIR_REMOTE_RIOT/"
+      "$localDir/",
+      "root\@$host:$remoteDir/"
     ;
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-      "chown", "-R", "$appUserId.$appUserId", "$DIR_REMOTE_RIOT/";
+      "chown", "-R", "$appUserId.$appUserId", "$remoteDir/";
   }else{
     die "ERROR: unknown command $cmd\n";
   }
