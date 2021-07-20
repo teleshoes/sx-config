@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 # hold these packages
-my @PACKAGES_TO_LOCK = qw(lipstick2vnc);
+my @PACKAGES_TO_LOCK = qw();
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
