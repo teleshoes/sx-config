@@ -49,6 +49,8 @@
 ./setup-dconf
 ./setup-mcetool
 
+./setup-tracker
+
 #### IMPORTANT: DO THIS NOW
 #cd backup/backup-mms/parts-repo
 #perl rename-msg-dirs.pl
