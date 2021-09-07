@@ -1,0 +1,3 @@
+#!/bin/sh
+echo RESTARTING LIPSTICK
+systemctl --user restart lipstick
