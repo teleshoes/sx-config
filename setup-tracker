@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $IPMAGIC_NAME = "sx";
+
+my $EXEC_TRACKER_MINER_FS = "/usr/libexec/tracker-miner-fs";
+my $EXEC_TRACKER_MINER_FS_DISABLED = "/usr/libexec/tracker-miner-fs-disabled";
+
+sub run(@);
+
+sub main(@){
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root", ""
+    . "if [ -e $EXEC_TRACKER_MINER_FS ]; then"
+    . "  echo moving $EXEC_TRACKER_MINER_FS to $EXEC_TRACKER_MINER_FS_DISABLED;"
+    . "  mv $EXEC_TRACKER_MINER_FS $EXEC_TRACKER_MINER_FS_DISABLED;"
+    . "else"
+    . "  echo $EXEC_TRACKER_MINER_FS is not present;"
+    . "fi"
+    ;
+}
+
+&main(@ARGV);
