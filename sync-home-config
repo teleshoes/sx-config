@@ -77,8 +77,6 @@ my $INITIAL_ROOT_CMD = "
   echo ok
 ";
 my $FINAL_ROOT_CMD = "
-  sed -i 's/›/>/g' /home/$user/.vimrc && \
-  sed -i 's/›/>/g' /root/.vimrc && \
   echo ok
 ";
 
