@@ -168,6 +168,7 @@ my @extraIncludePatterns = qw(
   ovpn-import.desktop
   pptp-import.desktop
   sailfish-office-openfile.desktop
+  sailfish-share.desktop
   simkit.desktop
   store-client-install.desktop
   voicecall-ui-openurl.desktop
