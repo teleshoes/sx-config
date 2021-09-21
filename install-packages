@@ -68,7 +68,6 @@ my %packages = (
     jolla-notes
     jolla-calendar
     sailfish-office
-    stellarium
     youtube-dl
   )],
 
