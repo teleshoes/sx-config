@@ -652,7 +652,7 @@ SilicaFlickable {
             if (switcherRoot.housekeeping && !switcherRoot.housekeepingMenuActive)
                 switcherRoot.housekeeping = false
             else if (!wasHousekeeping)
-                Lipstick.compositor.launcherHinting = true
+                Lipstick.compositor.launcherLayer.showHint()
         }
 
         function adjustOOMScores() {
