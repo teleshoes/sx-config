@@ -87,6 +87,7 @@ my @config = qw(
 
   youtube-vanced
   fairynest
+  midea
 );
 
 my @unused = qw(
@@ -133,6 +134,7 @@ my %replacementRegexs = (
   'google-maps'      => qw/^apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity$/,
   'jitsi'            => qw/^apkd_launcher_org_jitsi_meet-org_jitsi_meet_MainActivity$/,
   'kasa'             => qw/^apkd_launcher_com_tplink_kasa__android-com_tplink_hellotp_activity_SplashScreenActivity$/,
+  'midea'            => qw/^apkd_launcher_com_midea_aircondition_obm-com_midea_aircondition_obm_activity_LoginActivity$/,
   'nesoid'           => qw/^apkd_launcher_com_androidemu_nes-com_androidemu_nes_MainActivity$/,
   'snes9x'           => qw/^apkd_launcher_com_explusalpha_Snes9x-com_imagine_BaseActivity$/,
   'mta-etix'         => qw/^apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity$/,
