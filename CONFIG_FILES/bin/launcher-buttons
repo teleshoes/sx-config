@@ -13,7 +13,7 @@ my @config = qw(
 
   qtbtn-klomp
   unplayer
-  harbour-advanced-camera
+  jolla-camera
   jolla-settings
 
   google-maps
@@ -73,7 +73,7 @@ my @config = qw(
   snes9x
   jolla-mediaplayer
   jollacompass
-  jolla-camera
+  harbour-advanced-camera
 
   chrome
   torbrowser
