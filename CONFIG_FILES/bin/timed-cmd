@@ -45,7 +45,7 @@ my $usage = "Usage:
     -fetch timed event cookies with APPLICATION=$APPLICATION
     -run --cancel-event for each cookie
 
-  $EXEC -a|--add [SCHED SCHED ..] TITLE COMMAND
+  $EXEC -a|--add [SCHED SCHED ..] --title=TITLE --cmd=COMMAND
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
@@ -206,7 +206,11 @@ sub main(@){
       }
     }
     print "adding command with schedule: " . parseSchedule($sched) . "\n";
-    my ($title, $command) = @_;
+    my $title = $1 if @_[0] =~ /^--title=(.+)$/;
+    my $command = $1 if @_[0] =~ /^--command=(.+)$/;
+    die "ERROR: missing --title\n" if not defined $title;
+    die "ERROR: missing --cmd\n" if not defined $command;
+
     my @recurrenceArgs = getScheduleRecurrenceArgs($sched);
     my $recurrenceArgsFmt = join ";", @recurrenceArgs;
 
