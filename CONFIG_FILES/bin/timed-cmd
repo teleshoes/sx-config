@@ -35,7 +35,7 @@ my $usage = "Usage:
     show this message
 
   $EXEC
-  $EXEC -g
+  $EXEC -g | --get
     -fetch timed event cookies with APPLICATION=$APPLICATION
     -extract schedule/command info for each cookie
     -print one per line:
