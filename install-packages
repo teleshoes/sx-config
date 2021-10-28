@@ -30,6 +30,7 @@ my %packages = (
     perl perl-CPAN
     htop git gnupg2 sudo gnu-tar vim-enhanced wget zypper
     expect
+    connman-tools
     gnu-coreutils
     gnu-findutils
     bind-utils
@@ -63,6 +64,7 @@ my %packages = (
     harbour-modrana
     harbour-screentapshot2
     harbour-unplayer
+    harbour-whisperfish
     jolla-calculator
     jolla-mediaplayer
     jolla-notes
@@ -142,6 +144,7 @@ my @openrepos = qw(
   rgrnetalk
   Rikudou_Sennin
   ROZZ
+  rubdos
   saberaltria
   Sailbook
   sailfish_browser_nightly
