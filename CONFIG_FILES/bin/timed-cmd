@@ -256,10 +256,22 @@ sub main(@){
       die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
     }
 
+    my $addActionArg = "-awhenDue;runCommand=$shellCmd";
+    my $appTitleArg = "-eAPPLICATION=$application;TITLE=$title";
+    my @recurrenceArgs;
+
+    my $sched = {%$SCHED_ALL, %$schedArgs};
+
+    print "adding command with schedule: " . parseSchedule($sched) . "\n";
+    my @recurrenceArgs = getScheduleRecurrenceArgs($sched);
+    my $recurrenceArgsFmt = join ";", @recurrenceArgs;
+
+    @recurrenceArgs = ("-r$recurrenceArgsFmt");
+
     run "timedclient-qt5",
-      "-awhenDue;runCommand=$shellCmd",
-      "-r$recurrenceArgsFmt",
-      "-eAPPLICATION=$application;TITLE=$title",
+      $addActionArg,
+      @recurrenceArgs,
+      $appTitleArg,
       ;
   }else{
     die "ERROR: unknown action $action\n";
