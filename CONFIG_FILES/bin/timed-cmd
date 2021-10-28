@@ -4,7 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 my $EXEC = basename $0;
-my $APPLICATION = do{$_=$EXEC; s/\W+/_/g; $_};
+my $DEFAULT_APPLICATION = do{$_=$EXEC; s/\W+/_/g; $_};
 
 my $ATT_DAYS_OF_WEEK = "Days of week";
 my $ATT_MONTHS = "Months";
@@ -20,7 +20,7 @@ my $SCHED_ALL = {
   $ATT_MINUTES       => [0..59],
 };
 
-sub getTimedCmdEventCookies();
+sub getTimedCmdEventCookies($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
 sub parseSchedule($);
@@ -34,18 +34,18 @@ my $usage = "Usage:
   $EXEC -h | --help
     show this message
 
-  $EXEC
-  $EXEC -g | --get
-    -fetch timed event cookies with APPLICATION=$APPLICATION
+  $EXEC [OPTS]
+  $EXEC [OPTS] -g | --get
+    -fetch timed event cookies with APPLICATION=$DEFAULT_APPLICATION
     -extract schedule/command info for each cookie
     -print one per line:
       cookie,title,human-readable-schedule,command
 
-  $EXEC --clear
-    -fetch timed event cookies with APPLICATION=$APPLICATION
+  $EXEC [OPTS] --clear
+    -fetch timed event cookies with APPLICATION=$DEFAULT_APPLICATION
     -run --cancel-event for each cookie
 
-  $EXEC -a|--add [SCHED SCHED ..] --title=TITLE --cmd=COMMAND
+  $EXEC [OPTS] -a|--add [SCHED SCHED ..] --title=TITLE --cmd=COMMAND
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
@@ -118,6 +118,10 @@ my $usage = "Usage:
       set hours
     --minutes=\"<MIN> <MIN> ...\"
       set minutes
+
+  OPTS
+    --application=APPLICATION | --app=APPLICATION
+      use APPLICATION instead of $DEFAULT_APPLICATION
 ";
 
 my $ACTION_GET = "get";
@@ -129,11 +133,14 @@ sub main(@){
   my $title = undef;
   my $shellCmd = undef;
   my $schedArgs = {};
+  my $application = $DEFAULT_APPLICATION;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print "$usage\n";
       exit 0;
+    }elsif($arg =~ /^(?:--app|--application)=(.+)$/){
+      $application = $1;
     }elsif($arg =~ /^(-g|--get)$/){
       $action = $ACTION_GET;
     }elsif($arg =~ /^(--clear)$/){
@@ -212,7 +219,7 @@ sub main(@){
     die "$usage\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
     die "$usage\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
 
-    my @cookies = getTimedCmdEventCookies();
+    my @cookies = getTimedCmdEventCookies($application);
     for my $cookie(@cookies){
       my $event = getTimedCmdEventInfo $cookie;
       my $sched = parseSchedule $$event{schedule};
@@ -223,7 +230,7 @@ sub main(@){
     die "$usage\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
     die "$usage\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
 
-    my @cookies = getTimedCmdEventCookies();
+    my @cookies = getTimedCmdEventCookies($application);
     for my $cookie(@cookies){
       run "timedclient-qt5", "--cancel-event", $cookie;
     }
@@ -247,15 +254,16 @@ sub main(@){
     run "timedclient-qt5",
       "-awhenDue;runCommand=$shellCmd",
       "-r$recurrenceArgsFmt",
-      "-eAPPLICATION=$APPLICATION;TITLE=$title",
+      "-eAPPLICATION=$application;TITLE=$title",
       ;
   }else{
     die "ERROR: unknown action $action\n";
   }
 }
 
-sub getTimedCmdEventCookies(){
-  my $out = readProc "timedclient-qt5", "--search", "APPLICATION=$APPLICATION";
+sub getTimedCmdEventCookies($){
+  my ($application) = @_;
+  my $out = readProc "timedclient-qt5", "--search", "APPLICATION=$application";
   return $out =~ /\d+/g;
 }
 
