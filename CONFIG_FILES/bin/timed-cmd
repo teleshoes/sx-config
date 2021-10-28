@@ -45,7 +45,7 @@ my $usage = "Usage:
     -fetch timed event cookies with APPLICATION=$DEFAULT_APPLICATION
     -run --cancel-event for each cookie
 
-  $EXEC [OPTS] -a|--add [SCHED SCHED ..] --title=TITLE --cmd=COMMAND
+  $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --cmd=COMMAND
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
@@ -57,6 +57,13 @@ my $usage = "Usage:
   COMMAND:
     a shell command
     cannot contain apostrophes/single-quotes ('), for convenience
+
+  ONCE:
+    instead of scheduling repeating command,
+    add a one-shot to run in TICK_SECONDS from now
+
+    --once=TICK_SECONDS | --tick=TICK_SECOND
+      set tick=TICK_SECONDS and dont use schedule
 
   SCHED:
     restrict which minutes the job will run it
@@ -132,6 +139,7 @@ sub main(@){
   my $action = $ACTION_GET;
   my $title = undef;
   my $shellCmd = undef;
+  my $onceTick = undef;
   my $schedArgs = {};
   my $application = $DEFAULT_APPLICATION;
   while(@_ > 0){
@@ -151,6 +159,8 @@ sub main(@){
       $title = $1;
     }elsif($arg =~ /^--cmd=(.+)$/){
       $shellCmd = $1;
+    }elsif($arg =~ /^(?:--once|--tick)=(\d+)$/){
+      $onceTick = $1;
     }elsif($arg =~ /^(--days-of-week|--months|--days-of-month|--hours|--minutes)=(.+)$/){
       my ($field, $valStr) = ($1, $2);
       my $vals = [split /[ ,]+/, $valStr];
@@ -243,11 +253,9 @@ sub main(@){
     die "$usage\nERROR: must specify TITLE for action=$action\n" if not defined $title;
     die "$usage\nERROR: must specify COMMAND for action=$action\n" if not defined $shellCmd;
 
-    my $sched = {%$SCHED_ALL, %$schedArgs};
-
-    print "adding command with schedule: " . parseSchedule($sched) . "\n";
-    my @recurrenceArgs = getScheduleRecurrenceArgs($sched);
-    my $recurrenceArgsFmt = join ";", @recurrenceArgs;
+    if(defined $onceTick and %$schedArgs > 0){
+      die "ERROR: cannot specify both SCHED and ONCE\n";
+    }
 
     if($title !~ /^[a-zA-Z0-9_\-]+$/){
       die "ERROR: TITLE can only contain letters/numbers/underscores/dashes\n";
@@ -260,13 +268,19 @@ sub main(@){
     my $appTitleArg = "-eAPPLICATION=$application;TITLE=$title";
     my @recurrenceArgs;
 
-    my $sched = {%$SCHED_ALL, %$schedArgs};
+    if(defined $onceTick){
+      print "adding command with ticker=$onceTick\n";
+      $appTitleArg .= ";ticker=$onceTick";
+      @recurrenceArgs = ();
+    }else{
+      my $sched = {%$SCHED_ALL, %$schedArgs};
 
-    print "adding command with schedule: " . parseSchedule($sched) . "\n";
-    my @recurrenceArgs = getScheduleRecurrenceArgs($sched);
-    my $recurrenceArgsFmt = join ";", @recurrenceArgs;
+      print "adding command with schedule: " . parseSchedule($sched) . "\n";
+      my @recArgs = getScheduleRecurrenceArgs($sched);
+      my $recArgsFmt = join ";", @recArgs;
 
-    @recurrenceArgs = ("-r$recurrenceArgsFmt");
+      push @recurrenceArgs, "-r$recArgsFmt";
+    }
 
     run "timedclient-qt5",
       $addActionArg,
