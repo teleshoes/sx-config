@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $IPMAGIC_NAME = "sx";
+
+my $YTDLP_BIN_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
+my $DEST_BIN_DIR = "/usr/local/bin";
+
+my $usage = "Usage:
+  $0
+    install yt-dlp binary
+      $YTDLP_BIN_URL
+      =>
+      $DEST_BIN_DIR/yt-dlp
+";
+
+sub run(@);
+
+sub main(@){
+  die $usage if @_ > 0;
+
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  my $tmpFile = "/tmp/yt-dlp";
+  run "rm", "-f", $tmpFile;
+  run "curl", "-L", $YTDLP_BIN_URL, "-o", $tmpFile;
+  run "chmod", "+x", $tmpFile;
+
+  run "rsync", "-avP", $tmpFile, "root\@$host:$DEST_BIN_DIR/yt-dlp";
+
+  print "\n=====LOCAL\n";
+  run $tmpFile, "--version";
+  print "=====\n";
+
+  print "\n=====REMOTE:\n";
+  run "ipmagic", $IPMAGIC_NAME, "yt-dlp", "--version";
+  print "=====\n";
+
+  run "rm", "-f", $tmpFile;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+  die "ERROR: \"@_\" failed\n" if $? != 0;
+}
+
+&main(@ARGV);
