@@ -16,12 +16,19 @@ DELAY_MILLIS = 500
 usage = """Usage:
   %(exec)s TEXT
     copy TEXT to clipboard
+
+  %(exec)s
+    read TEXT from <STDIN> and copy TEXT to clipboard
 """ % {"exec": sys.argv[0]}
 
 def main():
   text = None
   if len(sys.argv) == 2:
     text = sys.argv[1]
+  elif len(sys.argv) == 1:
+    text = ""
+    for line in sys.stdin:
+      text += line
   else:
     sys.stderr.write(usage)
     sys.exit(2)
