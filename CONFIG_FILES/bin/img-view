@@ -1,0 +1,85 @@
+#!/usr/bin/python
+#img-view.py
+#Copyright 2021 Elliot Wolk
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+from PyQt5.QtCore import *
+from PyQt5.QtQuick import *
+from PyQt5.QtWidgets import *
+
+import os
+import re
+import sys
+import tempfile
+
+usage = """Usage:
+  %(exec)s IMG_FILE
+    open a QT window with the image displayed
+
+""" % {"exec": sys.argv[0]}
+
+def main():
+  imgFile = None
+  if len(sys.argv) == 2:
+    imgFile = sys.argv[1]
+  else:
+    sys.stderr.write(usage)
+    sys.exit(2)
+
+  app = QApplication([])
+
+  qml = """
+        import QtQuick 2.0
+        import QtQuick.Window 2.2
+        import Sailfish.Silica 1.0
+
+        Flickable{
+          id: flick
+          anchors.fill: parent
+          contentWidth: img.width
+          contentHeight: img.height
+
+          Image{
+            id: img
+            anchors.centerIn: parent
+            fillMode: Image.PreserveAspectFit
+            source: 'file://%(imgFile)s'
+            Component.onCompleted: {
+              var scale
+              if(img.paintedWidth > img.paintedHeight){
+                scale = Screen.width / img.paintedWidth
+              }else{
+                scale = Screen.height / img.paintedHeight
+              }
+              img.scale = scale
+              flick.contentX = (img.parent.width-(img.parent.width*scale))/2
+              flick.contentY = (img.parent.height-(img.parent.height*scale))/2
+            }
+
+            PinchArea {
+                anchors.fill: parent
+                pinch.target: img
+                pinch.minimumScale: 0.1
+                pinch.maximumScale: 10
+            }
+          }
+        }
+  """ % {"imgFile": imgFile}
+
+  fd, qmlFile = tempfile.mkstemp(prefix="imgview_", suffix=".qml")
+  fh = open(qmlFile, 'w')
+  fh.write(qml)
+  fh.close()
+
+  mainWindow = QQuickView()
+  mainWindow.setSource(QUrl(qmlFile))
+
+  mainWindow.show()
+
+  app.exec_()
+
+if __name__ == "__main__":
+  sys.exit(main())
