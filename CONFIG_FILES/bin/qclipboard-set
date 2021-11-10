@@ -1,0 +1,40 @@
+#!/usr/bin/python
+#qclipboard-set
+#Copyright 2021 Elliot Wolk
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+
+import sys
+
+DELAY_MILLIS = 500
+
+usage = """Usage:
+  %(exec)s TEXT
+    copy TEXT to clipboard
+""" % {"exec": sys.argv[0]}
+
+def main():
+  text = None
+  if len(sys.argv) == 2:
+    text = sys.argv[1]
+  else:
+    sys.stderr.write(usage)
+    sys.exit(2)
+
+  app = QApplication([])
+
+  app.clipboard().setText(text)
+
+  QTimer.singleShot(DELAY_MILLIS, lambda:
+    QCoreApplication.instance().quit()
+  )
+
+  app.exec_()
+
+if __name__ == "__main__":
+  sys.exit(main())
