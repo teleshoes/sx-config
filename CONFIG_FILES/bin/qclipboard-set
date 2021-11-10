@@ -24,16 +24,20 @@ usage = """Usage:
     read TEXT from <STDIN> and copy TEXT to clipboard
 
   OPTS
+    -s  use mode 'Selection' instead of 'Clipboard'
 """ % {"exec": sys.argv[0]}
 
 def main():
   args = sys.argv[1:]
 
   text = None
+  useSelection = False
   while len(args) > 0 and args[0].startswith("-"):
     if args[0] == "-h" or args[0] == "--help":
       print(usage)
       sys.exit(0)
+    elif args[0] == "-s":
+      useSelection = True
     else:
       sys.stderr.write(usage + "\nERROR: unknown arg " + args[0] + "\n")
       sys.exit(2)
@@ -50,8 +54,13 @@ def main():
     sys.exit(2)
 
   app = QApplication([])
+  clipboard = app.clipboard()
+  if useSelection:
+    mode = clipboard.Selection
+  else:
+    mode = clipboard.Clipboard
 
-  app.clipboard().setText(text)
+  clipboard.setText(text, mode)
 
   QTimer.singleShot(DELAY_MILLIS, lambda:
     QCoreApplication.instance().quit()
