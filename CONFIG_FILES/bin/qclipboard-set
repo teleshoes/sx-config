@@ -14,21 +14,37 @@ import sys
 DELAY_MILLIS = 500
 
 usage = """Usage:
-  %(exec)s TEXT
+  %(exec)s -h | --help
+    show this message
+
+  %(exec)s [OPTS] TEXT
     copy TEXT to clipboard
 
-  %(exec)s
+  %(exec)s [OPTS]
     read TEXT from <STDIN> and copy TEXT to clipboard
+
+  OPTS
 """ % {"exec": sys.argv[0]}
 
 def main():
+  args = sys.argv[1:]
+
   text = None
-  if len(sys.argv) == 2:
-    text = sys.argv[1]
-  elif len(sys.argv) == 1:
+  while len(args) > 0 and args[0].startswith("-"):
+    if args[0] == "-h" or args[0] == "--help":
+      print(usage)
+      sys.exit(0)
+    else:
+      sys.stderr.write(usage + "\nERROR: unknown arg " + args[0] + "\n")
+      sys.exit(2)
+    args = args[1:]
+
+  if len(args) == 0:
     text = ""
     for line in sys.stdin:
       text += line
+  elif len(args) == 1:
+    text = args[0]
   else:
     sys.stderr.write(usage)
     sys.exit(2)
