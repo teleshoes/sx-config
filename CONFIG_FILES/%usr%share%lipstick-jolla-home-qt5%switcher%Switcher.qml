@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Jolla Ltd.
-** Contact: Petri M. Gerdt <petri.gerdt@jollamobile.com>
+** Copyright (c) 2013 - 2021 Jolla Ltd.
+** Copyright (c) 2021 Open Mobile Platform LLC.
 **
 ****************************************************************************/
 
@@ -68,7 +68,7 @@ SilicaFlickable {
         Lipstick.compositor.appLayer.clearPendingWindows()
     }
 
-    function activateWindowFor(launcherItem, launch, addToSwitcher) {
+    function activateWindowFor(launcherItem) {
         if (Desktop.startupWizardRunning)
             return
 
@@ -92,8 +92,13 @@ SilicaFlickable {
             Lipstick.compositor.goToApplication(item.windowId)
 
             launcherItem.isLaunching = false
-        } else if (!Lipstick.compositor.homeLayer.activatePartnerWindow(launcherItem, launch)) {
-
+        } else if (!launcherItem.isLaunching) {
+            // If the conditions for launching the application are met this will loop back around
+            // with isLaunching == true, and then a temporary cover will be created.
+            Lipstick.compositor.launch(launcherItem)
+        } else if (Lipstick.compositor.cameraLayer.application === launcherItem) {
+            // Don't create covers for or show the lockscreen camera on activation.
+        } else if (!Lipstick.compositor.homeLayer.activatePartnerWindow(launcherItem)) {
             // We don't know if D-Bus method call will create a new process, let the respective service handle the loading cover
             var dBusActivationOnly = launcherItem.exec.length === 0 && launcherItem.dBusActivated
             if (launcherItem.shouldDisplay && launcherItem.entryType == "Application" && !dBusActivationOnly) {
@@ -105,18 +110,15 @@ SilicaFlickable {
                     launchingItem = item
 
                     ensureVisible(item)
-                } else if (addToSwitcher) {
+                } else {
                     switcherModel.append(launcherItem)
                 }
                 Lipstick.compositor.goToSwitcher(true)
-            }
-            if (launcherItem.entryType == "Link") {
+            } else if (launcherItem.entryType == "Link") {
                 // Just close the launcher, application handles raising the window
                 Lipstick.compositor.launcherLayer.hide()
             }
-            if (launch) {
-                launcherItem.launchApplication()
-            }
+
             if (dBusActivationOnly) {
                 launcherItem.isLaunching = false
             }
