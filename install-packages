@@ -275,7 +275,7 @@ sub getHostIP($){
   if($hostOut =~ /^$host has address (\d+\.\d+\.\d+\.\d+)$/m){
     return $1;
   }else{
-    die "ERROR: could not find IP of $OPENREPOS_HOST with `host`\n";
+    die "ERROR: could not find IP of $host with `host`\n";
   }
 }
 
