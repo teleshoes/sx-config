@@ -183,7 +183,8 @@ my $usage = "Usage:
       removals
         remove packages: @removals
       hosts
-        lookup $OPENREPOS_HOST locally and insert into /etc/host on phone
+        lookup $OPENREPOS_HOST and $JOLLA_RELEASES_HOST locally (on laptop)
+          and insert into /etc/host on phone
       keys
         use rpm to import keys
       repos
