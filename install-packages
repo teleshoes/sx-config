@@ -8,7 +8,6 @@ my $reposDir = "$ENV{HOME}/Code/sx/repos";
 
 sub installPackages($@);
 sub installRepos(@);
-sub getHostIP($);
 sub zypperForceInstall($);
 sub getZypperForceInstallExpect($);
 sub run(@);
@@ -183,8 +182,12 @@ my $usage = "Usage:
       removals
         remove packages: @removals
       hosts
-        lookup $OPENREPOS_HOST and $JOLLA_RELEASES_HOST locally (on laptop)
-          and insert into /etc/host on phone
+        run: cache-host --ipmagic=$ipmagicName --comment=repos \\
+                $OPENREPOS_HOST \\
+                $JOLLA_RELEASES_HOST \\
+             ;
+          (lookup hosts locally on laptop and insert into /etc/host on phone)
+        running `cache-host --refresh --comment=repos` on phone will refresh
       keys
         use rpm to import keys
       repos
@@ -217,13 +220,10 @@ sub main(@){
         tryrunIpmagicRoot "pkcon", "-y", "remove", $pkg;
       }
     }elsif($command =~ /^hosts$/){
-      my $openreposIP = getHostIP($OPENREPOS_HOST);
-      runIpmagicRoot "sed", "-i", "'/\\t$OPENREPOS_HOST\$/d'", "/etc/hosts";
-      runIpmagicRoot "echo -ne \"$openreposIP\t\t$OPENREPOS_HOST\\n\" >> /etc/hosts";
-
-      my $jollaReleasesIP = getHostIP($JOLLA_RELEASES_HOST);
-      runIpmagicRoot "sed", "-i", "'/\\t$JOLLA_RELEASES_HOST\$/d'", "/etc/hosts";
-      runIpmagicRoot "echo -ne \"$jollaReleasesIP\t\t$JOLLA_RELEASES_HOST\\n\" >> /etc/hosts";
+      run("cache-host", "--ipmagic=$ipmagicName", "--comment=repos",
+        $OPENREPOS_HOST,
+        $JOLLA_RELEASES_HOST,
+      );
     }elsif($command =~ /^keys$/){
       for my $url(@keyUrls){
         runIpmagicRoot "rpm", "--import", $url;
@@ -266,16 +266,6 @@ sub installRepos(@){
     my $repoName = "openrepos-$repo";
     my $url = "https://$OPENREPOS_HOST/$repo/personal/main";
     runIpmagicRoot "ssu", "addrepo", $repoName, $url;
-  }
-}
-
-sub getHostIP($){
-  my ($host) = @_;
-  my $hostOut = `host "$host"`;
-  if($hostOut =~ /^$host has address (\d+\.\d+\.\d+\.\d+)$/m){
-    return $1;
-  }else{
-    die "ERROR: could not find IP of $host with `host`\n";
   }
 }
 
