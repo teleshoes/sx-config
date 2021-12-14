@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
@@ -26,10 +27,11 @@ my @INSTALL_NAMES = sort keys %INSTALLS;
 my %REPOS = map {$_ => ${$INSTALLS{$_}}[0]} @INSTALL_NAMES;
 my %CMDS = map {$_ => ${$INSTALLS{$_}}[1]} @INSTALL_NAMES;
 
+my $EXEC = basename $0;
 my $repoFmt = join '', map {sprintf "      %-20s => %s\n", $_, $REPOS{$_}} @INSTALL_NAMES;
 
 my $usage = "Usage:
-  $0 [NAME NAME ..]
+  $EXEC [NAME NAME ..]
     install from named repos (if no repos are named, default is install all)
 
     NAME => REPO:\n$repoFmt
