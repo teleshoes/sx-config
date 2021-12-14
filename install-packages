@@ -27,7 +27,7 @@ my %packages = (
     rsync screen
     diffutils
     perl perl-CPAN
-    htop git gnupg2 sudo gnu-tar vim-enhanced wget zypper
+    htop git gnupg2 sudo gnu-tar vim-enhanced zypper
     expect
     connman-tools
     gnu-coreutils
