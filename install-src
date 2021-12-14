@@ -2,10 +2,10 @@
 use strict;
 use warnings;
 
-my $ipmagicName = "sx";
-my $user = "nemo";
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
 
-my $srcDir = "/home/$user/Code";
+my $REMOTE_SRC_DIR = "/home/$USER/Code";
 
 sub install($$$);
 
@@ -49,12 +49,12 @@ sub main(@){
 sub install($$$){
   my ($repoName, $repo, $cmd) = @_;
   print "\n\n\ninstalling $repoName\n";
-  system "ipmagic", $ipmagicName, "-s", ""
+  system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", ""
     . " set -x"
-    . " && rm -rf $srcDir/$repoName"
-    . " && mkdir -p $srcDir"
-    . " && git clone $repo $srcDir/$repoName"
-    . " && cd $srcDir/$repoName"
+    . " && rm -rf $REMOTE_SRC_DIR/$repoName"
+    . " && mkdir -p $REMOTE_SRC_DIR"
+    . " && git clone $repo $REMOTE_SRC_DIR/$repoName"
+    . " && cd $REMOTE_SRC_DIR/$repoName"
     . " && echo -ne \"=====\\n=====\\n=====\\n\""
     . " && $cmd"
     ;
