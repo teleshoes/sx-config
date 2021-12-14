@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
+use Time::HiRes qw(time);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
@@ -39,6 +40,7 @@ my $USAGE = "Usage:
 ";
 
 sub install($$$$);
+sub nowMillis();
 
 sub main(@){
   die $USAGE if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
@@ -64,9 +66,27 @@ sub install($$$$){
       . " && echo -ne \"=====\\n=====\\n=====\\n\""
       . " && $cmd"
       ;
+  }elsif($type eq "TAR"){
+    my $nowMillis = nowMillis();
+    my $tmpTar = "/tmp/install-src-$IPMAGIC_NAME-$projectName-$nowMillis-tarfile";
+    system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", ""
+      . " set -x"
+      . " && rm -rf $REMOTE_SRC_DIR/$projectName"
+      . " && mkdir -p $REMOTE_SRC_DIR/$projectName"
+      . " && curl '$url' -o $tmpTar"
+      . " && tar -xf $tmpTar --directory $REMOTE_SRC_DIR/$projectName"
+      . " && rm $tmpTar"
+      . " && cd $REMOTE_SRC_DIR/$projectName"
+      . " && echo -ne \"=====\\n=====\\n=====\\n\""
+      . " && $cmd"
+      ;
   }else{
     die "ERROR: unknown project type $type\n";
   }
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
 }
 
 &main(@ARGV);
