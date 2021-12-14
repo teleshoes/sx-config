@@ -9,21 +9,22 @@ my $USER = "nemo";
 my $REMOTE_SRC_DIR = "/home/$USER/Code";
 
 my %INSTALLS = (
-  sfbm           => ["https://github.com/teleshoes/sf-button-monitor", "./install.sh"],
-  klomp          => ["https://github.com/teleshoes/klomp",             "./install.pl"],
-  lirrtraintime  => ["https://github.com/teleshoes/lirrtraintime",     "./install.sh"],
-  net            => ["https://github.com/teleshoes/net",               "./install.pl"],
-  qtbigtext      => ["https://github.com/teleshoes/qtbigtext",         "./install.pl"],
-  qtbtn          => ["https://github.com/teleshoes/qtbtn",             "./install.pl"],
-  qtemail        => ["https://github.com/teleshoes/qtemail",           "./install.sh"],
-  udotool        => ["https://github.com/teleshoes/udotool",           "make && sudo make install"],
-  sqlite3_pcre   => ["https://github.com/ralight/sqlite3-pcre",        "make && sudo make install"],
-  mhonarc        => ["https://github.com/sympa-community/MHonArc",     "perl Makefile.PL && sudo make install"],
+  sfbm           => ["GIT", "https://github.com/teleshoes/sf-button-monitor", "./install.sh"],
+  klomp          => ["GIT", "https://github.com/teleshoes/klomp",             "./install.pl"],
+  lirrtraintime  => ["GIT", "https://github.com/teleshoes/lirrtraintime",     "./install.sh"],
+  net            => ["GIT", "https://github.com/teleshoes/net",               "./install.pl"],
+  qtbigtext      => ["GIT", "https://github.com/teleshoes/qtbigtext",         "./install.pl"],
+  qtbtn          => ["GIT", "https://github.com/teleshoes/qtbtn",             "./install.pl"],
+  qtemail        => ["GIT", "https://github.com/teleshoes/qtemail",           "./install.sh"],
+  udotool        => ["GIT", "https://github.com/teleshoes/udotool",           "make && sudo make install"],
+  sqlite3_pcre   => ["GIT", "https://github.com/ralight/sqlite3-pcre",        "make && sudo make install"],
+  mhonarc        => ["GIT", "https://github.com/sympa-community/MHonArc",     "perl Makefile.PL && sudo make install"],
 );
 
 my @INSTALL_NAMES = sort keys %INSTALLS;
-my %URLS = map {$_ => ${$INSTALLS{$_}}[0]} @INSTALL_NAMES;
-my %CMDS = map {$_ => ${$INSTALLS{$_}}[1]} @INSTALL_NAMES;
+my %TYPES = map {$_ => ${$INSTALLS{$_}}[0]} @INSTALL_NAMES;
+my %URLS = map {$_ => ${$INSTALLS{$_}}[1]} @INSTALL_NAMES;
+my %CMDS = map {$_ => ${$INSTALLS{$_}}[2]} @INSTALL_NAMES;
 
 my $PROJECT_FMT = join '', map {sprintf "      %-20s => %s\n", $_, $URLS{$_}} @INSTALL_NAMES;
 
@@ -37,7 +38,7 @@ my $USAGE = "Usage:
     NAME => URL:\n$PROJECT_FMT
 ";
 
-sub install($$$);
+sub install($$$$);
 
 sub main(@){
   die $USAGE if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
@@ -46,22 +47,26 @@ sub main(@){
   @names = @INSTALL_NAMES if @_ == 0;
   for my $name(@names){
     die "$USAGE\n\nunknown project name: $name\n" if not defined $URLS{$name};
-    install $name, $URLS{$name}, $CMDS{$name};
+    install $name, $TYPES{$name}, $URLS{$name}, $CMDS{$name};
   }
 }
 
 sub install($$$$){
-  my ($projectName, $url, $cmd) = @_;
+  my ($projectName, $type, $url, $cmd) = @_;
   print "\n\n\ninstalling $projectName\n";
-  system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", ""
-    . " set -x"
-    . " && rm -rf $REMOTE_SRC_DIR/$projectName"
-    . " && mkdir -p $REMOTE_SRC_DIR"
-    . " && git clone $url $REMOTE_SRC_DIR/$projectName"
-    . " && cd $REMOTE_SRC_DIR/$projectName"
-    . " && echo -ne \"=====\\n=====\\n=====\\n\""
-    . " && $cmd"
-    ;
+  if($type eq "GIT"){
+    system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", ""
+      . " set -x"
+      . " && rm -rf $REMOTE_SRC_DIR/$projectName"
+      . " && mkdir -p $REMOTE_SRC_DIR"
+      . " && git clone $url $REMOTE_SRC_DIR/$projectName"
+      . " && cd $REMOTE_SRC_DIR/$projectName"
+      . " && echo -ne \"=====\\n=====\\n=====\\n\""
+      . " && $cmd"
+      ;
+  }else{
+    die "ERROR: unknown project type $type\n";
+  }
 }
 
 &main(@ARGV);
