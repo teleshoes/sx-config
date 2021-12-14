@@ -27,18 +27,21 @@
  *
  */
 
+import com.jolla 1.0 // okboard (import first because of fake KeyboardBackground declaration in qmldir)
+
 import QtQuick 2.0
+import QtQml.Models 2.2
 import Sailfish.Silica 1.0
+import Sailfish.Silica.Background 1.0
 import com.meego.maliitquick 1.0
 import com.jolla.keyboard 1.0
 import org.nemomobile.configuration 1.0
 import "touchpointarray.js" as ActivePoints
 
 import eu.cpbm.okboard 1.0 // okboard
-import com.jolla 1.0 // okboard
 import "curves.js" as InProgress // okboard
 
-Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handling)
+PagedView {
     id: keyboard
 
     property Item layout
@@ -66,7 +69,7 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
     // counts how many character keys have been pressed since the ActivePoints array was empty
     property int characterKeyCounter
     property bool closeSwipeActive
-    property int closeSwipeThreshold: Math.max(height*.3, Theme.itemSizeSmall)
+    property int closeSwipeThreshold: Math.max(currentLayoutHeight*.3, Theme.itemSizeSmall)
 
     /* --- okboard begin --- */
     property bool inCurve
@@ -84,21 +87,18 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
     property int curveIndex
     /* --- okboard end --- */
 
-    property QtObject nextLayoutAttributes: QtObject {
-        property bool isShifted
-        property bool inSymView
-        property bool inSymView2
-        property bool isShiftLocked
-        property bool chineseOverrideForEnter
+    readonly property real currentLayoutHeight: layout ? layout.height : 2 * Theme.itemSizeHuge
+    readonly property real minimumLayoutHeight: {
+        var height = currentLayoutHeight
 
-        function update(layout) {
-            // Figure out what state we want to animate the next layout in
-            isShifted = false
-            inSymView = false
-            inSymView2 = false
-            isShiftLocked = false
-            chineseOverrideForEnter = keyboard.chineseOverrideForEnter
+        if (moving) {
+            var items = keyboard.exposedItems
+            for (var i = 0; i < items.length; ++i) {
+                height = Math.min(height, items[i].height)
+            }
         }
+
+        return height
     }
 
     // Can be changed to PreeditTestHandler to have another mode of input
@@ -106,14 +106,72 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
     }
 
     readonly property bool swipeGestureIsSafe: !releaseTimer.running
+    readonly property string sourceDirectory: "/usr/share/maliit/plugins/com/jolla/layouts/"
 
-    height: layout ? layout.height : 0
-    onLayoutChanged: if (layout) layout.parent = keyboard
+    verticalAlignment: PagedView.AlignBottom
+
     onPortraitModeChanged: cancelAllTouchPoints()
 
     // if height changed while touch point was being held
     // we can't rely on point values anymore
     onHeightChanged: closeSwipeActive = false
+
+    onMovingChanged: {
+        if (moving) {
+            cancelAllTouchPoints()
+        }
+    }
+
+    delegate: Loader {
+        id: layoutLoader
+
+        readonly property bool exposed: status === Loader.Ready && PagedView.exposed
+        readonly property bool current: status === Loader.Ready && PagedView.isCurrentItem
+
+        width: keyboard.width
+        height: status === Loader.Error ? Theme.itemSizeHuge : implicitHeight
+
+        source: keyboard.sourceDirectory + model.file
+
+        onExposedChanged: {
+            // Reset the layout keyboard state when it is dragged into view.
+            var attributes = exposed && !PagedView.isCurrentItem ? item.attributes : null
+
+            if (attributes) {
+                attributes.isShifted = false
+                attributes.inSymView = false
+                attributes.inSymView2 = false
+                attributes.isShiftLocked = false
+            }
+        }
+
+        onCurrentChanged: {
+            var attributes = item.attributes
+
+            if (current) {
+                // Bind to the active keyboad state when made the current layout.
+                attributes.isShifted = Qt.binding(function() { return keyboard.isShifted })
+                attributes.inSymView = Qt.binding(function() { return keyboard.inSymView })
+                attributes.inSymView2 = Qt.binding(function() { return keyboard.inSymView2 })
+                attributes.isShiftLocked = Qt.binding(function() { return keyboard.isShiftLocked })
+            } else {
+                // Break bindings to the active keyboard state when replaced as the current item
+                // to keep the visual appearance stable as it slides away.
+                attributes.isShifted = attributes.isShifted
+                attributes.inSymView = attributes.inSymView
+                attributes.inSymView2 = attributes.inSymView2
+                attributes.isShiftLocked = attributes.isShiftLocked
+            }
+        }
+
+        KeyboardBackground {
+            z: -1
+            width: layoutLoader.width
+            height: layoutLoader.height
+
+            transformItem: keyboard
+        }
+    }
 
     Popper {
         id: popper
@@ -191,6 +249,7 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         defaultValue: false
     }
 
+
     /* --- okboard begin --- */
     Gribouille {
         id: curve
@@ -201,8 +260,11 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
 
 
     MouseArea {
+        id: mouseArea
+
         enabled: useMouseEvents.value
         anchors.fill: parent
+        z: -1
 
         onPressed: keyboard.handlePressed(createPointArray(mouse.x, mouse.y))
         onPositionChanged: keyboard.handleUpdated(createPointArray(mouse.x, mouse.y))
@@ -221,10 +283,29 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         anchors.fill: parent
         enabled: !useMouseEvents.value
 
+        // Position this below the PagedView contentItem so it doesn't intercept events that would
+        // have been handled by an interactive item in a keyboard layout.
+        z: -1
+
         onPressed: keyboard.handlePressed(touchPoints)
         onUpdated: keyboard.handleUpdated(touchPoints)
         onReleased: keyboard.handleReleased(touchPoints)
         onCanceled: keyboard.handleCanceled(touchPoints)
+
+        onGestureStarted: {
+            if (mouseArea.preventStealing) {
+                // QTBUG-48314&QTBUG-44372
+                // MultiPointTouchArea onGestureStarted: gesture.grab() does not get released on a touch release
+                // gesture.grab()
+                keyboard.interactive = false
+            }
+        }
+    }
+
+    function cancelGesture() {
+        if (ActivePoints.array.length > 0) {
+            mouseArea.preventStealing = true
+        }
     }
 
     function handlePressed(touchPoints) {
@@ -265,6 +346,10 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
             if (ActivePoints.array.length === 1 && closeSwipeActive && pressTimer.running) {
                 var yDiff = point.y - point.startY
                 silenceFeedback = (yDiff > Math.abs(point.x - point.startX))
+
+                if (yDiff >= Theme.startDragDistance) {
+                    mouseArea.preventStealing = true
+                }
 
                 if (yDiff > closeSwipeThreshold) {
                     // swiped down to close keyboard
@@ -380,7 +465,12 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
         }
         languageSwitchTimer.stop()
 
-	okbHandleReleased2(touchPoints); // okboard
+        if (ActivePoints.array.length === 0) {
+            keyboard.interactive = true
+            mouseArea.preventStealing = false
+        }
+
+        okbHandleReleased2(touchPoints); // okboard
     }
 
     function handleCanceled(touchPoints) {
@@ -388,7 +478,7 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
             cancelTouchPoint(touchPoints[i].pointId)
         }
 
-	okbHandleCanceled(touchPoints); // okboard
+        okbHandleCanceled(touchPoints); // okboard
     }
 
     function keyAt(x, y) {
@@ -396,9 +486,15 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
             return null
 
         var item = layout
+        var current = currentItem
 
-        x -= layout.x
-        y -= layout.y
+        if (current && current.item === layout) {
+            x -= current.x
+            y -= current.y
+        } else {
+            x -= item.x
+            y -= item.y
+        }
 
         while ((item = item.childAt(x, y)) != null) {
             if (typeof item.keyType !== 'undefined' && item.enabled === true) {
@@ -415,24 +511,27 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
 
     function cancelTouchPoint(pointId) {
         var point = ActivePoints.findById(pointId)
-        if (!point)
-            return
-
-        if (point.pressedKey) {
-            inputHandler._handleKeyRelease()
-            point.pressedKey.pressed = false
-            if (lastPressedKey === point.pressedKey) {
-                lastPressedKey = null
+        if (point) {
+            if (point.pressedKey) {
+                inputHandler._handleKeyRelease()
+                point.pressedKey.pressed = false
+                if (lastPressedKey === point.pressedKey) {
+                    lastPressedKey = null
+                }
             }
-        }
-        if (lastInitialKey === point.initialKey) {
-            lastInitialKey = null
+            if (lastInitialKey === point.initialKey) {
+                lastInitialKey = null
+            }
+
+            languageSwitchTimer.stop()
+            languageSelectionPopup.hide()
+
+            ActivePoints.remove(point)
         }
 
-        languageSwitchTimer.stop()
-        languageSelectionPopup.hide()
-
-        ActivePoints.remove(point)
+        if (ActivePoints.array.length === 0) {
+            mouseArea.preventStealing = false
+        }
     }
 
     function cancelAllTouchPoints() {
@@ -545,12 +644,36 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
 
 
     // send information about layout to curve component
-    function updateCurveContext() {
-        curve.updateContext(canvas.layoutModel.get(layoutRow.loader.index).layout, mode);
+    function updateCurveContext(layout, mode) {
+        curve.updateContext(layout, mode);
+    }
+
+    // as name implies, found on the internet https://newbedev.com/qml-mouse-absolute-position-in-mousearea
+    function getAbsolutePosition(node) {
+        var returnPos = {};
+        returnPos.x = 0;
+        returnPos.y = 0;
+        if(node !== undefined && node !== null) {
+            var parentValue = getAbsolutePosition(node.parent);
+            if ('autocaps' in node) {
+                // position of KeyboardBase seems to contain strange values
+                // and we can assume it's zero related to its parent
+                returnPos.x = parentValue.x;
+                returnPos.y = parentValue.y;
+            } else {
+                returnPos.x = parentValue.x + node.x;
+                returnPos.y = parentValue.y + node.y;
+            }
+        }
+        return returnPos;
     }
 
     // curvekb: dump text keys to c++ plugin
     function dumpKeys() {
+        if (layout) {
+            var abs = getAbsolutePosition(layout);
+            curve.setOffset(abs.x, abs.y);
+        }
         var lst = keyboard.getTextKeys();
         curve.loadKeys(lst);
     }
@@ -600,11 +723,6 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
 	curve.clearError();
     }
 
-    function cancelGesture() {
-	// expose this function because it is called from LanguageSelectionPopup
-    }
-
-
     /* additional processings for event handlers */
 
     function okbHandlePressed(touchPoints) {
@@ -617,7 +735,7 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
             }
         }
 
-        if (curve.is_ready()) {
+        if (curve.is_ready() && ! inSymView) {
             if (! curve.keys_ok) {
                 dumpKeys();
             }
@@ -668,7 +786,6 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
                     curve.addPoint(point, cur.curveIndex);
                     cur.curveLastX = point.x;
                     cur.curveLastY = point.y;
-                    // var s = "==> Curve point #" + id + " " + touchPoints[i].x + "," + touchPoints[i].y; curve.log(s);
                     InProgress.set(id, cur); // needed ?
                 }
                 if (! disablePopper) {
@@ -686,9 +803,9 @@ Item { // <- okboard replace SwipeGestureArea (we are doing our own swipe handli
     }
 
     function okbHandleReleased1(touchPoints) {
-	if (languageSelectionPopup.activeCell > 0) {
-            curve.updateContext(canvas.layoutModel.get(languageSelectionPopup.activeCell).layout);
-        }
+	// if (languageSelectionPopup.activeCell > 0) {
+        //     curve.updateContext(canvas.layoutModel.get(languageSelectionPopup.activeCell).layout);
+        // }
     }
 
     function okbHandleReleased2(touchPoints) {
