@@ -24,17 +24,19 @@ my %INSTALLS = (
 );
 
 my @INSTALL_NAMES = sort keys %INSTALLS;
-my %REPOS = map {$_ => ${$INSTALLS{$_}}[0]} @INSTALL_NAMES;
+my %URLS = map {$_ => ${$INSTALLS{$_}}[0]} @INSTALL_NAMES;
 my %CMDS = map {$_ => ${$INSTALLS{$_}}[1]} @INSTALL_NAMES;
 
+my $PROJECT_FMT = join '', map {sprintf "      %-20s => %s\n", $_, $URLS{$_}} @INSTALL_NAMES;
+
 my $EXEC = basename $0;
-my $repoFmt = join '', map {sprintf "      %-20s => %s\n", $_, $REPOS{$_}} @INSTALL_NAMES;
 
 my $usage = "Usage:
   $EXEC [NAME NAME ..]
-    install from named repos (if no repos are named, default is install all)
+    install named projects from URLs
+    if no projects are named, default is to install all
 
-    NAME => REPO:\n$repoFmt
+    NAME => URL:\n$PROJECT_FMT
 ";
 
 sub main(@){
@@ -43,20 +45,20 @@ sub main(@){
   my @names = @_;
   @names = @INSTALL_NAMES if @_ == 0;
   for my $name(@names){
-    die "$usage\n\nunknown repo name: $name\n" if not defined $REPOS{$name};
-    install $name, $REPOS{$name}, $CMDS{$name};
+    die "$usage\n\nunknown project name: $name\n" if not defined $URLS{$name};
+    install $name, $URLS{$name}, $CMDS{$name};
   }
 }
 
-sub install($$$){
-  my ($repoName, $repo, $cmd) = @_;
-  print "\n\n\ninstalling $repoName\n";
+sub install($$$$){
+  my ($projectName, $url, $cmd) = @_;
+  print "\n\n\ninstalling $projectName\n";
   system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", ""
     . " set -x"
-    . " && rm -rf $REMOTE_SRC_DIR/$repoName"
+    . " && rm -rf $REMOTE_SRC_DIR/$projectName"
     . " && mkdir -p $REMOTE_SRC_DIR"
-    . " && git clone $repo $REMOTE_SRC_DIR/$repoName"
-    . " && cd $REMOTE_SRC_DIR/$repoName"
+    . " && git clone $url $REMOTE_SRC_DIR/$projectName"
+    . " && cd $REMOTE_SRC_DIR/$projectName"
     . " && echo -ne \"=====\\n=====\\n=====\\n\""
     . " && $cmd"
     ;
