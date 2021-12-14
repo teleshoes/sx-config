@@ -8,6 +8,7 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 my $REMOTE_SRC_DIR = "/home/$USER/Code";
+my $BIN_CACHE_BASE_DIR = "$ENV{HOME}/Code/backup/cached-bins",
 
 my %INSTALLS = (
   sfbm           => ["GIT", "https://github.com/teleshoes/sf-button-monitor", "./install.sh"],
@@ -31,12 +32,19 @@ my %INSTALLS = (
                     ],
 );
 
+my %CACHED_BINS = (
+);
+
 my @INSTALL_NAMES = sort keys %INSTALLS;
 my %TYPES = map {$_ => ${$INSTALLS{$_}}[0]} @INSTALL_NAMES;
 my %URLS = map {$_ => ${$INSTALLS{$_}}[1]} @INSTALL_NAMES;
 my %CMDS = map {$_ => ${$INSTALLS{$_}}[2]} @INSTALL_NAMES;
 
 my $PROJECT_FMT = join '', map {sprintf "      %-20s => %s\n", $_, $URLS{$_}} @INSTALL_NAMES;
+
+my $CACHED_NAMES_FMT = join '', map {
+  sprintf "      %s => %s\n", $_, "$BIN_CACHE_BASE_DIR/$_"
+} sort keys %CACHED_BINS;
 
 my $EXEC = basename $0;
 
@@ -46,6 +54,8 @@ my $USAGE = "Usage:
     if no projects are named, default is to install all
 
     NAME => URL:\n$PROJECT_FMT
+
+    the following projects will be installed from cache, if available:\n$CACHED_NAMES_FMT
 ";
 
 sub install($$$$);
@@ -58,7 +68,58 @@ sub main(@){
   @names = @INSTALL_NAMES if @_ == 0;
   for my $name(@names){
     die "$USAGE\n\nunknown project name: $name\n" if not defined $URLS{$name};
-    install $name, $TYPES{$name}, $URLS{$name}, $CMDS{$name};
+    if(isBinCached($name)){
+      restoreBinCache($name);
+    }else{
+      install $name, $TYPES{$name}, $URLS{$name}, $CMDS{$name};
+      backupBinCache($name);
+    }
+  }
+}
+
+sub isBinCached($){
+  my ($projectName) = @_;
+  my $cacheDir = "$BIN_CACHE_BASE_DIR/$projectName";
+
+  my $isCached = 0;
+  if(defined $CACHED_BINS{$projectName}){
+    my @fileNames = sort keys %{$CACHED_BINS{$projectName}};
+    my @missingCacheFiles = grep {not -f "$cacheDir/$_"} @fileNames;
+    if(@missingCacheFiles == 0){
+      $isCached = 1;
+    }
+  }
+  return $isCached;
+}
+sub backupBinCache($){
+  my ($projectName) = @_;
+  my $cacheDir = "$BIN_CACHE_BASE_DIR/$projectName";
+  return if not defined $CACHED_BINS{$projectName};
+
+  system "mkdir", "-p", $cacheDir;
+  my @fileNames = sort keys %{$CACHED_BINS{$projectName}};
+  for my $file(@fileNames){
+    my $localFile = "$cacheDir/$file";
+    my $remoteFile = ${$CACHED_BINS{$projectName}}{$file};
+    system "rm", "-f", $localFile;
+    my $host = `ipmagic $IPMAGIC_NAME`;
+    chomp $host;
+    system "rsync", "-avP", "$host:$remoteFile", "$localFile";
+  }
+}
+sub restoreBinCache($){
+  my ($projectName) = @_;
+  my $cacheDir = "$BIN_CACHE_BASE_DIR/$projectName";
+  return if not defined $CACHED_BINS{$projectName};
+
+  print "\n\n\ninstalling $projectName - FROM CACHE $cacheDir\n";
+  my @fileNames = sort keys %{$CACHED_BINS{$projectName}};
+  for my $file(@fileNames){
+    my $localFile = "$cacheDir/$file";
+    my $remoteFile = ${$CACHED_BINS{$projectName}}{$file};
+    my $host = `ipmagic $IPMAGIC_NAME`;
+    chomp $host;
+    system "rsync", "-avP", "$localFile", "$host:$remoteFile";
   }
 }
 
