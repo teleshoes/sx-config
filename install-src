@@ -33,6 +33,9 @@ my %INSTALLS = (
 );
 
 my %CACHED_BINS = (
+  wget => {
+    wget => "/usr/local/bin/wget",
+  },
 );
 
 my @INSTALL_NAMES = sort keys %INSTALLS;
