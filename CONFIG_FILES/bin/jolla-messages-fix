@@ -1,0 +1,3 @@
+sudo pkcon search jolla-messages | grep installed
+sudo pkcon -y install-local /media/sdcard/phone/rpms/jolla-messages*.rpm
+sudo pkcon search jolla-messages | grep installed
