@@ -1,3 +1,13 @@
 sudo pkcon search jolla-messages | grep installed
 sudo pkcon -y install-local /media/sdcard/phone/rpms/jolla-messages*.rpm
 sudo pkcon search jolla-messages | grep installed
+
+echo
+echo
+for x in \
+  %usr%share%jolla-messages%pages%conversation%SMSMessageDelegate.qml \
+  %usr%share%jolla-messages%pages%groups%GroupDelegate.qml \
+; do
+  echo sudo cp -ar /opt/CONFIG_FILES/$x `unboing $x`
+  sudo cp -ar /opt/CONFIG_FILES/$x `unboing $x`
+done
