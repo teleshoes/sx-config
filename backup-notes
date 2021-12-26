@@ -1,0 +1,101 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+sub readNotesBackup();
+sub writeNotesBackup($);
+sub nowMillis();
+
+my $NOTES_UUID = "8b63c31a7656301b3f7bcbbfef8a2b6f";
+my $REMOTE_DB_PATH = "/home/$USER/.local/share/com.jolla/notes/QML/OfflineStorage/Databases/$NOTES_UUID.sqlite";
+
+my $BACKUP_NOTES_DB_DIR = "$ENV{HOME}/Code/sx/backup/backup-notes-db/";
+my $BACKUP_NOTES_CSV_FILE = "$ENV{HOME}/Code/sx/backup/backup-notes.csv";
+
+sub main(@){
+  system "mkdir", "-p", $BACKUP_NOTES_DB_DIR;
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  my $nowMillis = nowMillis();
+  my $db = "$BACKUP_NOTES_DB_DIR/notes-db-$nowMillis.sqlite";
+  system "rsync", "-avP", "$USER\@$host:$REMOTE_DB_PATH", $db;
+
+  my $notes = readNotesBackup();
+  my %seenBodies = map {$$_{body} => 1} @$notes;
+
+  my @newNoteBodies = readNotesDB($db);
+  for my $body(@newNoteBodies){
+    if(not defined $seenBodies{$body}){
+      print "--$body--\n";
+      my $epoch = `date +%s`;
+      chomp $epoch;
+      my $dateFmt = `date --date=\@$epoch +'%Y-%m-%d %H:%M:%S'`;
+      chomp $dateFmt;
+      my $note = {
+        epoch   => $epoch,
+        dateFmt => $dateFmt,
+        body    => $body,
+      };
+      $seenBodies{$body} = 1;
+      push @$notes, $note;
+    }
+  }
+
+  writeNotesBackup($notes);
+}
+
+sub readNotesDB($){
+  my ($db) = @_;
+  my @lines = `sqlite3 -json "$db" 'select body from notes'`;
+  my @noteBodies;
+  for my $line(@lines){
+    if($line =~ /^\[?{"body":(".*")},?\]?$/){
+      push @noteBodies, $1;
+    }
+  }
+  return @noteBodies;
+}
+
+sub readNotesBackup(){
+  open FH, "< $BACKUP_NOTES_CSV_FILE"
+    or die "ERROR: could not read $BACKUP_NOTES_CSV_FILE\n$!\n";
+  my @lines = <FH>;
+  close FH;
+  my $notes = [];
+  for my $line(@lines){
+    chomp $line;
+    if($line =~ /^(\d+),(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d),(.+)$/){
+      push @$notes, {
+        epoch   => $1,
+        dateFmt => $2,
+        body    => $3,
+      };
+    }else{
+      die "ERROR: malformed line in $BACKUP_NOTES_CSV_FILE\n$line\n";
+    }
+  }
+  return $notes;
+}
+
+sub writeNotesBackup($){
+  my ($notes) = @_;
+  my $csv = "";
+  for my $note(@$notes){
+    $csv .= "$$note{epoch},$$note{dateFmt},$$note{body}\n";
+  }
+  open FH, "> $BACKUP_NOTES_CSV_FILE"
+    or die "ERROR: could not write $BACKUP_NOTES_CSV_FILE\n$!\n";
+  print FH $csv;
+  close FH;
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
+}
+
+&main(@ARGV);
