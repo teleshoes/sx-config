@@ -21,6 +21,7 @@ sub main(@){
   backup "sync-android-apps --backup";
   backup "backup-lap";
   backup "backup-home";
+  backup "backup-notes";
   backup "backup-klomp-lists";
   backup "cleanup-backups";
   backup "backup-comm";
