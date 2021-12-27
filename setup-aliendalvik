@@ -12,6 +12,10 @@ my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 my $REMOTE_DATA_DIR = "/opt/alien/data/data";
 my $REMOTE_PROVIDERS_DB = "$REMOTE_DATA_DIR/com.android.providers.settings/databases/settings.db";
 
+my $BUILD_PROP = {
+};
+my $BUILD_PROP_FILE = "/opt/alien/system/build.prop";
+
 my $JITSI_DB = "$REMOTE_DATA_DIR/org.jitsi.meet/databases/RKStorage";
 my $JITSI_DB_CONF = {
   '@jitsi-meet/features/recent-list' => ''
@@ -46,6 +50,7 @@ my $PACKAGE_RESTRICTIONS = {
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
 sub editStartScript($);
+sub editBuildProp($);
 sub nowMillis();
 sub run(@);
 
@@ -54,6 +59,12 @@ sub main(@){
     "package-restrictions",
     $PACKAGE_RESTRICTIONS_XML_FILE,
     \&editPackageRestrictions,
+  );
+
+  editRemoteFile(
+    "build-prop",
+    $BUILD_PROP_FILE,
+    \&editBuildProp,
   );
 
   run "ipmagic", $IPMAGIC_NAME, "test -f $ALIENDALVIK_START_SCRIPT";
@@ -265,6 +276,53 @@ sub editStartScript($){
   my $isChanged = $contents eq $oldContents ? 0 : 1;
 
   if($isChanged){
+    open FH, "> $file" or die "could not write $file\n$!\n";
+    print FH $contents;
+    close FH;
+  }
+
+  return $isChanged;
+}
+
+sub editBuildProp($){
+  my ($file) = @_;
+  open FH, "< $file" or die "could not read $file\n$!\n";
+  my @lines = <FH>;
+  close FH;
+
+  my %okPropKeys;
+
+  my @origLines;
+  my @cfgLines;
+  my $isChanged = 0;
+  for my $line(@lines){
+    if($line =~ /^([^=]+)\s*=\s*(.+)$/){
+      my ($key, $val) = ($1, $2);
+      my $cfgVal = $$BUILD_PROP{$key};
+      if(defined $cfgVal and $cfgVal ne $val){
+        push @cfgLines, "$key=$cfgVal\n";
+        $isChanged = 1;
+        $okPropKeys{$key} = 1;
+      }elsif(defined $cfgVal and $cfgVal eq $val){
+        push @origLines, $line;
+        $okPropKeys{$key} = 1;
+      }else{
+        push @origLines, $line;
+      }
+    }else{
+      push @origLines, $line;
+    }
+  }
+
+  for my $key(sort keys %$BUILD_PROP){
+    next if defined $okPropKeys{$key};
+    push @cfgLines, "$key=$$BUILD_PROP{$key}\n";
+    $isChanged = 1;
+  }
+
+  if($isChanged){
+    my $contents = join '', (@origLines, @cfgLines);
+
     open FH, "> $file" or die "could not write $file\n$!\n";
     print FH $contents;
     close FH;
