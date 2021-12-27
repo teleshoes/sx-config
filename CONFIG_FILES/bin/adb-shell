@@ -1,0 +1,3 @@
+sudo pkill -9 -f adb
+sudo chroot /opt/alien adbd &
+sudo chroot /opt/alien bash -c 'PATH=$PATH:/system/bin adb shell'
