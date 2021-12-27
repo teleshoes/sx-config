@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $MEDIA_DATA_DIR = '/opt/alien/data/data/com.android.providers.media';
+my $DB = "$MEDIA_DATA_DIR/databases/external.db";
+
+my $DEFAULT_SQL = 'select count(*) from files';
+
+my $USAGE = "
+  $0 SQL
+    run SQL against $DB
+
+  $0
+    same as: $0 '$DEFAULT_SQL'
+
+  $0 --clear
+    remove all files in $MEDIA_DATA_DIR
+    restart aliendalvik
+";
+
+my $CMD_SQL = 'sql';
+my $CMD_CLEAR = 'clear';
+
+sub main(@){
+  my $cmd = $CMD_SQL;
+  my $sql = $DEFAULT_SQL;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(--clear)$/){
+      $cmd = $CMD_CLEAR;
+    }else{
+      $sql = $arg;
+    }
+  }
+
+  if($cmd eq $CMD_SQL){
+    system "sudo", "sqlite3", $DB, $sql;
+  }elsif($cmd eq $CMD_CLEAR){
+    system "sudo rm -rf $MEDIA_DATA_DIR/*";
+    system "sudo systemctl restart aliendalvik.service";
+  }else{
+    die "ERROR: unknown cmd $cmd\n";
+  }
+}
+
+&main(@ARGV);
