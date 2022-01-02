@@ -34,7 +34,7 @@ my @TAPZONES_SHORT = qw(
 my @TAPZONES_LONG = qw(
   PAGE_UP             ZOOM_IN             PAGE_UP
   PAGE_DOWN           TOGGLE_ORIENTATION  PAGE_UP
-  PAGE_DOWN           ZOOM_OUT            PAGE_UP
+  TTS_PLAY            ZOOM_OUT            PAGE_UP
 );
 
 my $CONFIG = {
