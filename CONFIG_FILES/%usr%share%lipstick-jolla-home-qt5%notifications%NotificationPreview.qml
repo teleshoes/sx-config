@@ -19,6 +19,7 @@ SystemWindow {
     id: notificationWindow
 
     property variant appNamesNoPreview: [
+      "Cool Reader",
       "Riot.im",
       "Tor Browser",
       "Lite", //Facebook Lite
