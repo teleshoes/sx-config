@@ -32,6 +32,10 @@ def main():
     print >> sys.stderr, usage
     sys.exit(2)
 
+  os.environ['QT_QPA_PLATFORM']='wayland'
+  os.environ['XDG_RUNTIME_DIR']='/run/user/100000'
+  os.environ['WAYLAND_DISPLAY']='../../display/wayland-0'
+
   app = QApplication([])
 
   qml = """
