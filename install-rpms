@@ -10,7 +10,7 @@ my $USER = "nemo";
 
 my $SRC_DIR = "$ENV{HOME}/Code/sx/rpms",
 my $DEST_DIR_SDCARD = "/media/sdcard/phone/rpms";
-my $DEST_DIR_HOME = "/home/nemo/rpms";
+my $DEST_DIR_HOME = "/home/$USER/rpms";
 
 my $usage = "Usage:
   $0 -h | --help
