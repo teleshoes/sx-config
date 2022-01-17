@@ -1,0 +1,123 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub getPowered();
+
+my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0 get | --get | g | -g
+    print bluetooth status
+
+  $0
+  $0 on | --on | enable | --enable | enabled | --enabled
+    restart bluetooth and bluetooth-rfkill-event
+    enable bluetooth
+
+  $0 off | --off | disable | --disable | disabled | --disabled
+    restart bluetooth and bluetooth-rfkill-event
+    disable bluetooth
+
+  $0 toggle | --toggle | t | -t
+    restart bluetooth and bluetooth-rfkill-event
+    toggle bluetooth
+";
+
+my $CMD_GET = "get";
+my $CMD_ON = "on";
+my $CMD_OFF = "off";
+my $CMD_TOGGLE = "toggle";
+
+sub main(@){
+  my $cmd = $CMD_GET;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(get|--get|g|-g)$/){
+      $cmd = $CMD_GET;
+    }elsif($arg =~ /^(on|--on|enable|--enable|enabled|--enabled)$/){
+      $cmd = $CMD_ON;
+    }elsif($arg =~ /^(off|--off|disable|--disable|disabled|--disabled)$/){
+      $cmd = $CMD_OFF;
+    }elsif($arg =~ /^(toggle|--toggle|t|-t)$/){
+      $cmd = $CMD_TOGGLE;
+    }
+  }
+
+  if($cmd eq $CMD_GET){
+    my $p = getPowered();
+    print "powered: " . ($p ? "yes" : "no") . "\n";
+  }elsif($cmd eq $CMD_ON){
+    fix();
+    setPowered(0);
+    setPowered(1);
+  }elsif($cmd eq $CMD_OFF){
+    fix();
+    setPowered(1);
+    setPowered(0);
+  }elsif($cmd eq $CMD_TOGGLE){
+    my $p = getPowered();
+    fix();
+    setPowered($p);
+    setPowered($p ? 0 : 1);
+  }else{
+    die "ERROR: unknown command $cmd\n";
+  }
+}
+
+sub fix(){
+  system "sudo systemctl stop bluetooth-rfkill-event";
+  system "sudo systemctl stop bluetooth";
+  system "sudo systemctl start bluetooth";
+  system "sudo systemctl start bluetooth-rfkill-event";
+}
+
+sub setPowered($){
+  my ($powered) = @_;
+  if($powered){
+    system "sudo connmanctl enable bluetooth";
+  }else{
+    system "sudo connmanctl disable bluetooth";
+  }
+}
+
+sub getPowered(){
+  my @lines = `sudo connmanctl technologies`;
+  my $tech = {};
+  my $curTechName = undef;
+  for my $line(@lines){
+    if($line =~ /^(\/.+)$/){
+      $curTechName = $1;
+      die "ERROR: dupe techs in connmanctl\n" if defined $$tech{$curTechName};
+      $$tech{$curTechName} = {};
+    }elsif($line =~ /^\s+(\w+)\s*=\s*(.+)$/){
+      my ($key, $val) = ($1, $2);
+      $$tech{$curTechName}{$key} = $val;
+    }else{
+      die "ERROR: malformed line in connmanctl:\n$line\n";
+    }
+  }
+
+  for my $techName(sort keys %$tech){
+    if($techName =~ /bluetooth/i){
+      for my $att(sort keys %{$$tech{$techName}}){
+        if($att =~ /powered/i){
+          my $val = $$tech{$techName}{$att};
+          if($val =~ /true/i){
+            return 1;
+          }elsif($val =~ /false/i){
+            return 0;
+          }
+        }
+      }
+    }
+  }
+
+  die "ERROR: could not find bluetooth tech in connmanctl\n";
+}
+
+&main(@ARGV);
