@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $IPMAGIC_NAME = "sx";
+
+my $CHUM_RPM_QUERY_URL_PREFIX =
+  "https://chumrpm.netlify.app/.netlify/functions/lambda/packages/";
+
+sub main(@){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  my $release = getRelease();
+  my $arch = getArch();
+
+  my $rpms = getRpmUrls($release, $arch);
+
+  my $nowMillis = nowMillis();
+  my $dir = "/tmp/install-chum-$nowMillis";
+  system "mkdir", "-p", $dir;
+
+  system "curl", $$rpms{chum}, "-o", "$dir/chum.rpm";
+  system "curl", $$rpms{gui}, "-o", "$dir/chum-gui.rpm";
+
+  system "scp", "$dir/chum.rpm", "$dir/chum-gui.rpm", "root\@$host:/tmp";
+
+  system "ipmagic $IPMAGIC_NAME -u root pkcon install-local -y /tmp/chum*.rpm";
+
+  system "ipmagic $IPMAGIC_NAME -u root rm /tmp/chum*.rpm";
+  system "rm", "-rf", $dir;
+}
+
+sub getRpmUrls($$){
+  my ($release, $arch) = @_;
+  my $queryUrl = "${CHUM_RPM_QUERY_URL_PREFIX}/${release}_${arch}";
+  my $out = `curl $queryUrl`;
+  chomp $out;
+  my $rpms = {};
+  if($out =~ /"chum":"(https:\/\/[^"]*\.rpm)"/){
+    $$rpms{chum} = $1;
+  }else{
+    die "ERROR: could not parse chum rpm from $queryUrl\n";
+  }
+  if($out =~ /"gui":"(https:\/\/[^"]*\.rpm)"/){
+    $$rpms{gui} = $1;
+  }else{
+    die "ERROR: could not parse chum rpm from $queryUrl\n";
+  }
+  return $rpms;
+}
+
+sub getRelease(){
+  my $out = `ipmagic $IPMAGIC_NAME ssu release 2>/dev/null`;
+  chomp $out;
+  if($out =~ /^Device release is currently: (\d+[\.0-9]*)$/){
+    return $1;
+  }else{
+    die "ERROR: could not read release from `ssu release`\n";
+  }
+}
+
+sub getArch(){
+  my $out = `ipmagic $IPMAGIC_NAME getconf LONG_BIT`;
+  chomp $out;
+  if($out =~ /^32$/){
+    return "armv7hl";
+  }elsif($out =~ /^64$/){
+    return "aarch64";
+  }else{
+    die "ERROR: could not get instruction bit length to guess arch\n";
+  }
+}
+
+sub nowMillis(){
+  return int(time*1000.0 + 0.5);
+}
+
+&main(@ARGV);
