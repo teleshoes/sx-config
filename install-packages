@@ -39,6 +39,7 @@ my %packages = (
     pbcopy
     qt5-qttools-qdbus
     harbour-storeman
+    wget
   )],
 
   "2-build" => [qw(
