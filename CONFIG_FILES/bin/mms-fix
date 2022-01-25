@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 my $MODE_NORMAL_CMD = "sudo resolv f ; sudo connmanctl enable wifi";
-my $MODE_MMS_CMD = "sudo resolv l ; sudo connmanctl disable wifi";
+my $MODE_MMS_CMD = "sudo resolv m ; sudo connmanctl disable wifi";
 
 my $DELAY_TIMEOUT_S = 5 * 60; #5min
 
