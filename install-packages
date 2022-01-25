@@ -19,6 +19,7 @@ my @removals = qw(
   busybox-symlinks-bash
   busybox-symlinks-coreutils
   busybox-symlinks-findutils
+  busybox-symlinks-grep
   busybox-symlinks-tar
 );
 
@@ -32,6 +33,7 @@ my %packages = (
     connman-tools
     gnu-coreutils
     gnu-findutils
+    gnu-grep
     bind-utils
     lipstick-qt5-tools
     mce-tools
