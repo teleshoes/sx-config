@@ -1,1 +1,2 @@
 ipmagic sx -u root usermod -a -G net_raw nemo
+ipmagic sx -u root chmod u+s /bin/ping
