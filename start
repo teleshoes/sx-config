@@ -40,8 +40,6 @@
 
 ./install-chum
 
-#./install-packages refresh # if the startup wizard didnt refresh pkgs
-
 ./install-packages
 
 ./config-files --backup-only
