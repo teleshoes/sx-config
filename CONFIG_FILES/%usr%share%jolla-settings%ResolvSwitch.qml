@@ -10,7 +10,7 @@ SettingsToggle {
     icon.source: "image://theme/icon-m-download"
     showOnOffLabel: false
     onToggled: {
-      readProc(["sudo", "resolv", "--cycle", "f", "l"])
+      readProc(["sudo", "resolv", "--cycle", "f", "m"])
       updateResolvConfName();
     }
     property var resolvConfName: "?"
