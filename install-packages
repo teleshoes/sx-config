@@ -70,6 +70,8 @@ my %packages = (
     jolla-mediaplayer
     jolla-notes
     jolla-calendar
+    python2-dbus
+    python2-pyqt5
     sailfish-office
     youtube-dl
   )],
@@ -94,7 +96,6 @@ my %packages = (
 );
 
 my @zypperForceInstallPackages = qw(
-  pyqt
   perl-CPANPLUS
 );
 
