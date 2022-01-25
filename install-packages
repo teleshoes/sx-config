@@ -52,6 +52,7 @@ my %packages = (
   )],
 
   "4-apps" => [qw(
+    cutes-js
     gpscon
     gstreamer1.0-tools
     harbour-advanced-camera
