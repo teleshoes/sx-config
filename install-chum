@@ -30,8 +30,6 @@ sub main(@){
 
   system "ipmagic $IPMAGIC_NAME -u root rm /tmp/chum*.rpm";
   system "rm", "-rf", $dir;
-
-  system "ipmagic $IPMAGIC_NAME -u root pkcon refresh";
 }
 
 sub getRpmUrls($$){
