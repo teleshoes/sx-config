@@ -177,12 +177,14 @@ my $groupCmdFmt = join "      ", map {
 } @groups;
 
 my $usage = "Usage:
-  $0 [COMMAND COMMAND ..]
-    run COMMANDs as below
-    if none are given, do all of these, in order:
+  $0
+    print the commands in the order they should be run:
         removals hosts keys repos refresh
         @groups
         force-install
+
+  $0 COMMAND [COMMAND ..]
+    run COMMANDs as below
 
     COMMAND:
       removals
@@ -215,7 +217,10 @@ sub main(@){
 
   my @commands = @_;
   if(@commands == 0){
-    @commands = ("removals", "hosts", "keys", "repos", "refresh", @groups, "force-install");
+    print join(" ", "removals", "hosts", "keys", "repos", "refresh") . "\n";
+    print join(" ", @groups) . "\n";
+    print join(" ", "force-install") . "\n";
+    exit 0;
   }
 
   for my $command(@commands){
