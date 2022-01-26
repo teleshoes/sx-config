@@ -213,9 +213,24 @@ my $usage = "Usage:
 ";
 
 sub main(@){
-  die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+  my @commands;
+  for my $arg(@_){
+    if($arg =~ /^(-h|--help)$/){
+      print $usage;
+      exit 0;
+    }elsif($arg =~ /^(removals|hosts|keys|repos|refresh|force-install)$/){
+      push @commands, $arg;
+    }elsif($arg =~ /^(repo-\w+|refresh-\w+)$/){
+      push @commands, $arg;
+    }elsif(defined $packages{$arg}){
+      push @commands, $arg;
+    }elsif(defined $groupsByAlias{$arg}){
+      push @commands, $groupsByAlias{$arg};
+    }else{
+      die "$usage\nERROR: unknown arg $arg\n";
+    }
+  }
 
-  my @commands = @_;
   if(@commands == 0){
     print join(" ", "removals", "hosts", "keys", "repos", "refresh") . "\n";
     print join(" ", @groups) . "\n";
@@ -250,14 +265,8 @@ sub main(@){
     }elsif($command =~ /^refresh-(\w+)$/){
       tryrunIpmagicRoot "pkill", "packagekitd";
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
-    }elsif(defined $groupAliases{$command} or defined $groupsByAlias{$command}){
-      my $group;
-      if(defined $groupAliases{$command}){
-        $group = $command;
-      }elsif(defined $groupsByAlias{$command}){
-        $group = $groupsByAlias{$command};
-      }
-      my @packages = @{$packages{$group}};
+    }elsif(defined $packages{$command}){
+      my @packages = @{$packages{$command}};
       if(@packages > 0){
         runIpmagicRoot "pkcon", "-y", "install", "--allow-reinstall", @packages;
       }
