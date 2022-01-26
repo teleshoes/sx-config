@@ -33,7 +33,7 @@ sub stop();
 sub run(@);
 
 sub main(@){
-  my $cmd;
+  my $cmd = undef;
   for my $arg(@_){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
@@ -49,6 +49,8 @@ sub main(@){
     }
   }
 
+  die "ERROR: missing command\n" if not defined $cmd;
+
   if($cmd eq $CMD_RESTART){
     stop();
     start();
@@ -56,6 +58,8 @@ sub main(@){
     start();
   }elsif($cmd eq $CMD_STOP){
     stop();
+  }else{
+    die "ERROR: unknown command: $cmd\n";
   }
 }
 
