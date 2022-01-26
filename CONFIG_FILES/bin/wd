@@ -7,6 +7,9 @@ use Time::HiRes qw(sleep time);
 my $EXEC = basename $0;
 
 my $APK_DIR = "/media/sdcard/phone/apks-waydroid";
+my $SRC_OBB_DIR = "$APK_DIR/obb";
+my $DEST_OBB_DIR = "/home/waydroid/data/media/obb";
+
 my $SESSION_DELAY_MILLIS = 1000;
 my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
 
@@ -40,12 +43,16 @@ my $USAGE = "Usage:
   $EXEC --install=APK_PREFIX|--app=APK_PREFIX|--apk=APK_PREFIX
     run 'sudo waydroid app install $APK_DIR/<APK_PREFIX>*.apk'
     (if APK_PREFIX is empty, glob matches all available APKs)
+
+  $EXEC obb | --obb
+    sync $SRC_OBB_DIR/ to $DEST_OBB_DIR/
 ";
 
 my $CMD_RESTART = "restart";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
 my $CMD_INSTALL = "install";
+my $CMD_OBB = "obb";
 
 sub start();
 sub stop();
@@ -73,6 +80,8 @@ sub main(@){
     }elsif(getApksForPrefix($arg) > 0 and (not defined $cmd or $cmd eq $CMD_INSTALL)){
       $cmd = $CMD_INSTALL;
       $apkPrefix = $arg;
+    }elsif($arg =~ /^(obb|--obb)$/){
+      $cmd = $CMD_OBB;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -96,6 +105,8 @@ sub main(@){
     for my $apk(@apks){
       run "sudo", "waydroid", "app", "install", $apk;
     }
+  }elsif($cmd eq $CMD_OBB){
+    run "sudo", "rsync", "-avP", "$SRC_OBB_DIR/", "$DEST_OBB_DIR/";
   }else{
     die "ERROR: unknown command: $cmd\n";
   }
