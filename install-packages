@@ -232,6 +232,7 @@ sub main(@){
   }
 
   if(@commands == 0){
+    print "#run these commands in order to initialize:\n";
     print join(" ", "removals", "hosts", "keys", "repos", "refresh") . "\n";
     print join(" ", @groups) . "\n";
     print join(" ", "force-install") . "\n";
