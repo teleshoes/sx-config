@@ -48,7 +48,7 @@ my $CMD_CONTACTS_SORT = "$COMM_TOOLS_DIR/contacts-sort.pl";
 my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
 my $COMMHISTORY_DB_REMOTE_DIR = "/home/nemo/.local/share/commhistory";
-my $CONTACTS_DB_REMOTE_DIR = "/home/nemo/.local/share/system/Contacts/qtcontacts-sqlite";
+my $CONTACTS_DB_REMOTE_DIR = "/home/nemo/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
 my $CONTACTS_PRIV_DB_REMOTE_DIR = "/home/nemo/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
 my $MMS_PARTS_REMOTE_DIR = "/home/nemo/.local/share/commhistory/data";
 
