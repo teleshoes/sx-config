@@ -2,8 +2,13 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
+use Time::HiRes qw(sleep time);
 
 my $EXEC = basename $0;
+
+my $APK_DIR = "/media/sdcard/phone/apks-waydroid";
+my $SESSION_DELAY_MILLIS = 1000;
+my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
 
 my $USAGE = "Usage:
   $EXEC -h | --help
@@ -22,18 +27,34 @@ my $USAGE = "Usage:
       -stop session
       -stop container
       -kill waydroid-sensord
+
+  $EXEC [APK_PREFIX]
+  $EXEC install|--install|app|--app|--apk|--apk|apps|--apps|apks|--apks APK_PREFIX
+    same as: $EXEC --install=<APK_PREFIX>
+    ($APK_DIR/<APK_PREFIX>*.apk must match one or more apks)
+
+  $EXEC --install|install|app|--app|apps|--apps|apk|apks
+    same as: $EXEC --install=''
+    (matches all available APKs)
+
+  $EXEC --install=APK_PREFIX|--app=APK_PREFIX|--apk=APK_PREFIX
+    run 'sudo waydroid app install $APK_DIR/<APK_PREFIX>*.apk'
+    (if APK_PREFIX is empty, glob matches all available APKs)
 ";
 
 my $CMD_RESTART = "restart";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
+my $CMD_INSTALL = "install";
 
 sub start();
 sub stop();
+sub getApksForPrefix($);
 sub run(@);
 
 sub main(@){
   my $cmd = undef;
+  my $apkPrefix;
   for my $arg(@_){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
@@ -44,6 +65,14 @@ sub main(@){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(stop|--stop|end|--end|e)$/){
       $cmd = $CMD_STOP;
+    }elsif($arg =~ /^(?:--install|--app|--apk)=(.+)$/){
+      $cmd = $CMD_INSTALL;
+      $apkPrefix = $1;
+    }elsif($arg =~ /^(?:--install|install|--apps?|apps?|--apks?|apks?)$/){
+      $cmd = $CMD_INSTALL;
+    }elsif(getApksForPrefix($arg) > 0 and (not defined $cmd or $cmd eq $CMD_INSTALL)){
+      $cmd = $CMD_INSTALL;
+      $apkPrefix = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -58,8 +87,40 @@ sub main(@){
     start();
   }elsif($cmd eq $CMD_STOP){
     stop();
+  }elsif($cmd eq $CMD_INSTALL){
+    ensureRunning();
+    my @apks = getApksForPrefix($apkPrefix);
+    if(@apks == 0){
+      die "ERROR: no APKs match $APK_DIR/$apkPrefix*.apk\n";
+    }
+    for my $apk(@apks){
+      run "sudo", "waydroid", "app", "install", $apk;
+    }
   }else{
     die "ERROR: unknown command: $cmd\n";
+  }
+}
+
+sub ensureRunning(){
+  if(not isSessionRunning()){
+    start();
+  }
+  my $start = nowMillis();
+  while(not isSessionRunning()){
+    if(nowMillis() - $start > $ENSURE_SESSION_TIMEOUT_MILLIS){
+      die "ERROR: ensure session timed out after" . (nowMillis() - $start) . "ms\n";
+    }
+    print "session is not running, sleeping for $SESSION_DELAY_MILLIS\n";
+    sleep $SESSION_DELAY_MILLIS/1000.0;
+  }
+}
+
+sub isSessionRunning(){
+  my $out = `sudo waydroid status`;
+  if($out =~ /Session:\s*RUNNING/){
+    return 1;
+  }else{
+    return 0;
   }
 }
 
@@ -76,6 +137,17 @@ sub stop(){
   run qw(screen-daemon waydroid-container --stop);
   run qw(screen-daemon waydroid-runner --stop);
   run qw(screen -wipe);
+}
+
+sub getApksForPrefix($){
+  my ($prefix) = @_;
+  $prefix = "" if not defined $prefix;
+  my @files = grep {-f $_} glob "$APK_DIR/$prefix*.apk";
+  return @files;
+}
+
+sub nowMillis(){
+  return int(time*1000.0 + 0.5);
 }
 
 sub run(@){
