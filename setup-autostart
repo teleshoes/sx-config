@@ -58,6 +58,7 @@ sub main(@){
 
   for my $symlink(@SYSTEMD_SYMLINKS){
     system "ssh", "nemo\@$host", "
+      mkdir -p `dirname $symlink`
       rm -f $symlink
       ln -s $SYSTEMD_SERVICE_FILE $symlink
     ";
