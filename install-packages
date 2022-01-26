@@ -65,6 +65,7 @@ my %packages = (
     harbour-mimer
     harbour-mlsmanager
     harbour-modrana
+    harbour-pure-maps
     harbour-screentapshot2
     harbour-unplayer
     harbour-whisperfish
