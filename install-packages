@@ -183,7 +183,7 @@ my $usage = "Usage:
         @groups
         force-install
 
-  $0 COMMAND [COMMAND ..]
+  $0 [OPTS] COMMAND [COMMAND ..]
     run COMMANDs as below
 
     COMMAND:
@@ -210,14 +210,21 @@ my $usage = "Usage:
       $groupCmdFmt
       force-install
         use zypper and expect to forcibly install: @zypperForceInstallPackages
+
+  OPTS
+    -z | --zypper
+      use 'zypper install' instead of 'pkcon install'
 ";
 
 sub main(@){
   my @commands;
+  my $useZypper = 0;
   for my $arg(@_){
     if($arg =~ /^(-h|--help)$/){
       print $usage;
       exit 0;
+    }elsif($arg =~ /^(-z|--zypper)$/){
+      $useZypper = 1;
     }elsif($arg =~ /^(removals|hosts|keys|repos|refresh|force-install)$/){
       push @commands, $arg;
     }elsif($arg =~ /^(repo-\w+|refresh-\w+)$/){
@@ -269,7 +276,11 @@ sub main(@){
     }elsif(defined $packages{$command}){
       my @packages = @{$packages{$command}};
       if(@packages > 0){
-        runIpmagicRoot "pkcon", "-y", "install", "--allow-reinstall", @packages;
+        if($useZypper){
+          runIpmagicRoot "zypper", "--non-interactive", "install", @packages;
+        }else{
+          runIpmagicRoot "pkcon", "-y", "install", "--allow-reinstall", @packages;
+        }
       }
     }elsif($command =~ /^force-install$/){
       for my $package(@zypperForceInstallPackages){
