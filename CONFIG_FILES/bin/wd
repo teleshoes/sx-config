@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h | --help
+    show this message
+
+  $EXEC restart|--restart|r
+    same as: $EXEC stop ; $EXEC start
+
+  $EXEC start|--start|begin|--begin|b
+    start waydroid
+      -start container
+      -run waydroid-runner
+
+  $EXEC stop|--stop|end|--end|e
+    stop waydroid
+      -stop session
+      -stop container
+      -kill waydroid-sensord
+";
+
+my $CMD_RESTART = "restart";
+my $CMD_START = "start";
+my $CMD_STOP = "stop";
+
+sub start();
+sub stop();
+sub run(@);
+
+sub main(@){
+  my $cmd;
+  for my $arg(@_){
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(restart|--restart|r)$/){
+      $cmd = $CMD_RESTART;
+    }elsif($arg =~ /^(start|--start|begin|--begin|b)$/){
+      $cmd = $CMD_START;
+    }elsif($arg =~ /^(stop|--stop|end|--end|e)$/){
+      $cmd = $CMD_STOP;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($cmd eq $CMD_RESTART){
+    stop();
+    start();
+  }elsif($cmd eq $CMD_START){
+    start();
+  }elsif($cmd eq $CMD_STOP){
+    stop();
+  }
+}
+
+sub start(){
+  run qw(screen-daemon waydroid-container --start 0 0 sudo waydroid container start);
+  run qw(screen-daemon waydroid-runner --start 0 0 waydroid-runner);
+}
+sub stop(){
+  run qw(sudo waydroid session stop);
+  run qw(sudo waydroid container stop);
+  run qw(sudo pkill -9 -f waydroid-runner);
+  run qw(sudo pkill -9 -f waydroid-sensord);
+
+  run qw(screen-daemon waydroid-container --stop);
+  run qw(screen-daemon waydroid-runner --stop);
+  run qw(screen -wipe);
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
