@@ -4,15 +4,18 @@ use warnings;
 use Time::HiRes qw(time);
 
 sub run(@);
-sub readRemoteConfigLines();
-sub writeRemoteConfigLines(@);
+sub getConfigFileRemoteDir();
+sub readRemoteConfigLines($);
+sub writeRemoteConfigLines($@);
 sub updateConfigLines($@);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $configFileRemoteDir = "/home/$USER/android_storage/.cr3";
-my $configFileRemoteFile = "$configFileRemoteDir/cr3.ini";
+my @CONFIG_FILE_REMOTE_DIRS = (
+  "/home/$USER/android_storage/.cr3",
+);
+my $CR3_INI_FILE = "cr3.ini";
 
 my $usage = "Usage:
   $0 -h|--help
@@ -20,7 +23,9 @@ my $usage = "Usage:
 
   $0
   $0 --set
-    update `ipmagic $IPMAGIC_NAME`:$configFileRemoteFile
+    find CONFIG_FILE_REMOTE_DIR:
+      @CONFIG_FILE_REMOTE_DIRS
+    update `ipmagic $IPMAGIC_NAME`:<CONFIG_FILE_REMOTE_DIR>$CR3_INI_FILE
 
   $0 -d|--diff|-n|--dryrun
     show what changes would be made by running --set
@@ -208,26 +213,41 @@ sub main(@){
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $usage;
   }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(--set)$/)){
-    my @configLines = readRemoteConfigLines();
+    my $configFileRemoteDir = getConfigFileRemoteDir();
+    my @configLines = readRemoteConfigLines($configFileRemoteDir);
     my @newConfigLines = updateConfigLines($CONFIG, @configLines);
-    writeRemoteConfigLines(@newConfigLines);
+    writeRemoteConfigLines($configFileRemoteDir, @newConfigLines);
   }elsif(@_ == 1 and $_[0] =~ /^(-d|--diff|-n|--dryrun)$/){
-    updateConfigLines($CONFIG, readRemoteConfigLines());
+    my $configFileRemoteDir = getConfigFileRemoteDir();
+    updateConfigLines($CONFIG, readRemoteConfigLines($configFileRemoteDir));
   }else{
     die $usage;
   }
 }
 
-sub readRemoteConfigLines(){
-  my @cmd = ("ipmagic", $IPMAGIC_NAME, "cat", $configFileRemoteFile);
+sub getConfigFileRemoteDir(){
+  my @lines = `ipmagic $IPMAGIC_NAME ls -d @CONFIG_FILE_REMOTE_DIRS 2>/dev/null`;
+  for my $line(@lines){
+    for my $dir(@CONFIG_FILE_REMOTE_DIRS){
+      if($line =~ /^$dir\/?$/){
+        return $dir;
+      }
+    }
+  }
+  die "ERROR: no config file dirs exist\n@CONFIG_FILE_REMOTE_DIRS\n";
+}
+
+sub readRemoteConfigLines($){
+  my ($configFileRemoteDir) = @_;
+  my @cmd = ("ipmagic", $IPMAGIC_NAME, "cat", "$configFileRemoteDir/$CR3_INI_FILE");
   open CMD, "-|",  @cmd or die "ERROR: @cmd failed\n$!\n";
   my @lines = <CMD>;
   close CMD;
   return @lines;
 }
 
-sub writeRemoteConfigLines(@){
-  my (@lines) = @_;
+sub writeRemoteConfigLines($@){
+  my ($configFileRemoteDir, @lines) = @_;
   my $nowMillis = int(time * 1000.0 + 0.5);
   my $tmpFile = "/tmp/coolreader-$nowMillis-cr3.ini";
 
@@ -239,7 +259,7 @@ sub writeRemoteConfigLines(@){
   chomp $host;
 
   run "ipmagic", $IPMAGIC_NAME, "mkdir -p $configFileRemoteDir";
-  run "scp", $tmpFile, "$USER\@$host:$configFileRemoteFile";
+  run "scp", $tmpFile, "$USER\@$host:$configFileRemoteDir/$CR3_INI_FILE";
 
   run "rm", $tmpFile;
 }
