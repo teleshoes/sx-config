@@ -6,7 +6,7 @@ my $ipmagicName = "sx";
 my $user = "nemo";
 
 my $srcDir = "$ENV{HOME}/Code/sx/apks",
-my $destDir = "/media/sdcard/phone/apks";
+my $destDir = "/media/sdcard/phone/apks-aliendalvik4";
 my $destDirHome = "/home/nemo/apks";
 
 my $usage = "Usage:
