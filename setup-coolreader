@@ -14,6 +14,7 @@ my $USER = "nemo";
 
 my @CONFIG_FILE_REMOTE_DIRS = (
   "/home/$USER/android_storage/.cr3",
+  "/home/$USER/.local/share/waydroid/data/media/0/.cr3",
 );
 my $CR3_INI_FILE = "cr3.ini";
 
