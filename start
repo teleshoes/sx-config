@@ -99,6 +99,8 @@
 
 ./config-files #to overwrite files from installs (e.g.: launchers)
 
+./setup-meecast
+
 ./sync-android-apps --restore riot
 ./sync-android-apps --restore jitsi
 
