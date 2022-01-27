@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+sub run(@);
+
+my $SRC = "/usr/share/harbour-meecast";
+my $DEST = "/usr/share";
+
+my @DIRS = qw(
+  buttons_icons db html iconsets images qml sources xsd
+);
+
+sub main(@){
+  my $cmd = "";
+  for my $dir(@DIRS){
+    $cmd .= ""
+      . "if [ -L $DEST/$dir ]; then\n"
+      . "  rm $DEST/$dir;\n"
+      . "fi\n"
+      . "if [ -e $DEST/$dir ]; then\n"
+      . "  echo ERROR: $DEST/$dir exists;\n"
+      . "  exit\n"
+      . "else\n"
+      . "  echo ln -s $SRC/$dir $DEST/$dir\n"
+      . "  ln -s $SRC/$dir $DEST/$dir\n"
+      . "fi\n"
+      ;
+  }
+
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root", $cmd;
+}
+
+&main(@ARGV);
