@@ -36,12 +36,12 @@ my @config = qw(
   filetug
   screentapshot2
 
-
-
   storeman
   store-client
   sailfishos-chum-gui
   harbour-advanced-camera
+
+
 
   sailfish-office
   jolla-notes
