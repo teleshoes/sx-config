@@ -136,6 +136,7 @@ sub isSessionRunning(){
 }
 
 sub start(){
+  run qw(sudo chmod 777 /var/lib/waydroid/);
   run qw(screen-daemon waydroid-container --start 0 0 sudo waydroid container start);
   run qw(screen-daemon waydroid-runner --start 0 0 waydroid-runner);
 }
