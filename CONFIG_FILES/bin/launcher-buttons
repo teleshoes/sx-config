@@ -40,18 +40,18 @@ my @config = qw(
 
   storeman
   store-client
-  aptoide
-  facebook-lite
+  sailfishos-chum-gui
+  harbour-advanced-camera
 
   sailfish-office
   jolla-notes
   harbour-mlsmanager
   kill-lipstick2vnc
 
-  bromite
   okboard
-  tkts
-  vlc
+  qtscreen-daemon
+  jollacompass
+  compass-calib
 
   lirr_cpg_pen
   lirr_cpg_rvc
@@ -61,37 +61,37 @@ my @config = qw(
   lirr_pen_fdl
   lirr_rvc_cpg
   lirrgui
+  sailfish-audiorecorder
+
+  mimer
+  aptoide
+  facebook-lite
+  bromite
+
+
+
+  tkts
+  vlc
   lirr-traintime
-
   mta-etix
+
   jitsi
-  qtscreen-daemon
   nesoid
-
-
-
   snes9x
   riot
-  jollacompass
-  harbour-advanced-camera
 
   chrome
   torbrowser
-  compass-calib
-  mimer
-
   fdroid
   discord
-  textfree
-  sailfish-audiorecorder
 
+  textfree
   youtube-vanced
   fairynest
   midea
-  google-maps
 
+  google-maps
   cool-reader
-  sailfishos-chum-gui
 );
 
 my @unused = qw(
