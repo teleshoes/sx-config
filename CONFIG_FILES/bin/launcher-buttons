@@ -64,34 +64,6 @@ my @config = qw(
   sailfish-audiorecorder
 
   mimer
-  aptoide
-  facebook-lite
-  bromite
-
-
-
-  tkts
-  vlc
-  lirr-traintime
-  mta-etix
-
-  jitsi
-  nesoid
-  snes9x
-  riot
-
-  chrome
-  torbrowser
-  fdroid
-  discord
-
-  textfree
-  youtube-vanced
-  fairynest
-  midea
-
-  google-maps
-  cool-reader
 );
 
 my @unused = qw(
