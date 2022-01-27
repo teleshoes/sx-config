@@ -88,6 +88,7 @@ my @config = qw(
   youtube-vanced
   fairynest
   midea
+  harbour-pure-maps
 );
 
 my @unused = qw(
@@ -153,6 +154,7 @@ my @extraIncludePatterns = qw(
   apkd-mime-handler.desktop
   apkd_launcher_com_cogniance_asoka_srs_android-com_cogniance_asoka_srs_android_MainActivity.desktop
   csd.desktop
+  harbour-pure-maps-uri-handler
   jolla-calendar-import.desktop
   jolla-camera-lockscreen.desktop
   jolla-camera-viewfinder.desktop
