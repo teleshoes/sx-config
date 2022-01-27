@@ -220,7 +220,7 @@ sub main(@){
 
 sub readRemoteConfigLines(){
   my @cmd = ("ipmagic", $IPMAGIC_NAME, "cat", $configFileRemoteFile);
-  open CMD, "-|",  @cmd or die "could not run @cmd\n";
+  open CMD, "-|",  @cmd or die "ERROR: @cmd failed\n$!\n";
   my @lines = <CMD>;
   close CMD;
   return @lines;
