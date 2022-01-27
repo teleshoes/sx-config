@@ -108,6 +108,8 @@
 
 ./setup-coolreader
 
+#run harbour-storeman-installer app on phone
+
 ./launcher-buttons
 
 ./setup-timed-cmds
