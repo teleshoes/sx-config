@@ -78,6 +78,8 @@ my %packages = (
     python2-dbus
     python2-pyqt5
     sailfish-office
+    waydroid
+    waydroid-runner
     youtube-dl
   )],
 
