@@ -89,6 +89,8 @@ my @config = qw(
   fairynest
   midea
   harbour-pure-maps
+
+  waydroid-runner
 );
 
 my @unused = qw(
