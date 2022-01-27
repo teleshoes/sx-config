@@ -9,17 +9,17 @@ my @config = qw(
   voicecall-ui
   jolla-messages
   fingerterm
-  bromite
+  sailfish-browser
 
   qtbtn-klomp
   unplayer
   jolla-camera
   jolla-settings
 
-  google-maps
+  harbour-pure-maps
   modrana
   gpsinfo
-  cool-reader
+  waydroid-runner
 
   stellarium
   jolla-clock
@@ -29,10 +29,10 @@ my @config = qw(
   jolla-calculator
   qtbtn-lap
   jolla-calendar
-  vlc
+  meecast
 
-  jitsi
-  riot
+  jolla-gallery
+  jolla-mediaplayer
   filetug
   screentapshot2
 
@@ -48,10 +48,10 @@ my @config = qw(
   harbour-mlsmanager
   kill-lipstick2vnc
 
-  sailfish-browser
+  bromite
   okboard
   tkts
-  meecast
+  vlc
 
   lirr_cpg_pen
   lirr_cpg_rvc
@@ -64,14 +64,14 @@ my @config = qw(
   lirr-traintime
 
   mta-etix
-  jolla-gallery
+  jitsi
   qtscreen-daemon
   nesoid
 
 
 
   snes9x
-  jolla-mediaplayer
+  riot
   jollacompass
   harbour-advanced-camera
 
@@ -88,9 +88,9 @@ my @config = qw(
   youtube-vanced
   fairynest
   midea
-  harbour-pure-maps
+  google-maps
 
-  waydroid-runner
+  cool-reader
   sailfishos-chum-gui
 );
 
