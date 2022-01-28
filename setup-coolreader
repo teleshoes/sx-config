@@ -3,11 +3,11 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
-sub run(@);
 sub getConfigFileRemoteDir();
 sub readRemoteConfigLines($);
 sub writeRemoteConfigLines($@);
 sub updateConfigLines($@);
+sub run(@);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
