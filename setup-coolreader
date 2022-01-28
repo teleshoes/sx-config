@@ -3,8 +3,10 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
-sub getConfig();
+sub getConfig($);
 
+sub getScaledFontSize();
+sub getResMinDimension();
 sub getConfigFileRemoteDir();
 sub readRemoteConfigLines($);
 sub writeRemoteConfigLines($@);
@@ -45,7 +47,13 @@ my @TAPZONES_LONG = qw(
   TTS_PLAY            ZOOM_OUT            PAGE_UP
 );
 
-sub getConfig(){
+my $LOW_RES_PX = 720;
+my $HIGH_RES_PX = 1080;
+my $FONT_SIZE_LOW_RES = 52;
+my $FONT_SIZE_HIGH_RES = 84;
+
+sub getConfig($){
+  my ($fontSize) = @_;
   return {
     "app.browser.simple.mode"                                  => "1",
     "app.browser.sort.order"                                   => "FILENAME",
@@ -106,7 +114,7 @@ sub getConfig(){
     "crengine.doc.embedded.fonts.enabled"                      => "0",
     "crengine.doc.embedded.styles.enabled"                     => "1",
     "crengine.file.txt.preformatted"                           => "1",
-    "crengine.font.size"                                       => "52",
+    "crengine.font.size"                                       => $fontSize,
     "crengine.footnotes"                                       => "1",
 
     "crengine.highlight.bookmarks.color.comment.day"           => "0xaaaa55",
@@ -218,18 +226,35 @@ sub main(@){
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $usage;
   }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(--set)$/)){
-    my $cfg = getConfig();
+    my $cfg = getConfig(getScaledFontSize());
     my $configFileRemoteDir = getConfigFileRemoteDir();
     my @configLines = readRemoteConfigLines($configFileRemoteDir);
     my @newConfigLines = updateConfigLines($cfg, @configLines);
     writeRemoteConfigLines($configFileRemoteDir, @newConfigLines);
   }elsif(@_ == 1 and $_[0] =~ /^(-d|--diff|-n|--dryrun)$/){
-    my $cfg = getConfig();
+    my $cfg = getConfig(getScaledFontSize());
     my $configFileRemoteDir = getConfigFileRemoteDir();
     updateConfigLines($cfg, readRemoteConfigLines($configFileRemoteDir));
   }else{
     die $usage;
   }
+}
+
+sub getScaledFontSize(){
+  my $resMinDim = getResMinDimension();
+
+  my $scale = ($resMinDim - $LOW_RES_PX) / ($HIGH_RES_PX - $LOW_RES_PX);
+  my $fontSize = $scale*($FONT_SIZE_HIGH_RES - $FONT_SIZE_LOW_RES) + $FONT_SIZE_LOW_RES;
+  return $fontSize;
+}
+
+sub getResMinDimension(){
+  my $resMin = `ipmagic $IPMAGIC_NAME res --min-dimension`;
+  chomp $resMin;
+  if($resMin !~ /^\d+$/){
+    die "ERROR: `res` command failed\n";
+  }
+  return $resMin;
 }
 
 sub getConfigFileRemoteDir(){
