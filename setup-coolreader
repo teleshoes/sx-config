@@ -249,6 +249,7 @@ sub getScaledFontSize(){
 }
 
 sub getResMinDimension(){
+  print "fetching $IPMAGIC_NAME resolution\n";
   my $resMin = `ipmagic $IPMAGIC_NAME res --min-dimension`;
   chomp $resMin;
   if($resMin !~ /^\d+$/){
@@ -258,6 +259,7 @@ sub getResMinDimension(){
 }
 
 sub getConfigFileRemoteDir(){
+  print "fetching $IPMAGIC_NAME config file remote dir\n";
   my @lines = `ipmagic $IPMAGIC_NAME ls -d @CONFIG_FILE_REMOTE_DIRS 2>/dev/null`;
   for my $line(@lines){
     for my $dir(@CONFIG_FILE_REMOTE_DIRS){
@@ -271,6 +273,7 @@ sub getConfigFileRemoteDir(){
 
 sub readRemoteConfigLines($){
   my ($configFileRemoteDir) = @_;
+  print "reading $IPMAGIC_NAME $CR3_INI_FILE\n";
   my @cmd = ("ipmagic", $IPMAGIC_NAME, "cat", "$configFileRemoteDir/$CR3_INI_FILE");
   open CMD, "-|",  @cmd or die "ERROR: @cmd failed\n$!\n";
   my @lines = <CMD>;
