@@ -1,0 +1,4 @@
+pkill -9 -f sailfish-browser
+
+#this is probably the bad one:
+#/usr/libexec/mapplauncherd/booster-browser --application=sailfish-browser
