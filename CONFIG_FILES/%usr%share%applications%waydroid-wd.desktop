@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=wd
+Icon=waydroid-runner
+Exec=/usr/local/bin/udo wd --restart
+Type=Application
+X-Nemo-Application-Type=no-invoker
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled
