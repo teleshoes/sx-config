@@ -64,6 +64,7 @@ my @config = qw(
   sailfish-audiorecorder
 
   mimer
+  waydroid-wd
 );
 
 my @unused = qw(
