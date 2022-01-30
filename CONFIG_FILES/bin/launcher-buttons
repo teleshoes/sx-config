@@ -19,7 +19,7 @@ my @config = qw(
   harbour-pure-maps
   modrana
   gpsinfo
-  waydroid-runner
+  waydroid-wd
 
   stellarium
   jolla-clock
@@ -64,7 +64,7 @@ my @config = qw(
   sailfish-audiorecorder
 
   mimer
-  waydroid-wd
+  waydroid-runner
 );
 
 my @unused = qw(
