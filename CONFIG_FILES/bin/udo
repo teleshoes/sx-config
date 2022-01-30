@@ -11,6 +11,10 @@ sub main(@){
     die "ERROR: user is not $USER\n";
   }
 
+  $ENV{QT_QPA_PLATFORM} = 'wayland';
+  $ENV{XDG_RUNTIME_DIR} = '/run/user/100000';
+  $ENV{WAYLAND_DISPLAY} = '../../display/wayland-0';
+
   $ENV{PATH} = "/home/$USER/bin:/home/$USER/.cabal/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/games:/usr/games";
   exec @ARGV;
 }
