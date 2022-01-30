@@ -149,6 +149,8 @@ sub stop(){
   run qw(screen-daemon waydroid-container --stop);
   run qw(screen-daemon waydroid-runner --stop);
   run qw(screen -wipe);
+
+  run qw(sudo systemctl restart dbus-org.nemomobile.provisioning);
 }
 
 sub getApksForPrefix($){
