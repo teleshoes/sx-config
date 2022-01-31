@@ -31,6 +31,9 @@ my $USAGE = "Usage:
       -stop container
       -kill waydroid-sensord
 
+  $EXEC shell [ARG ARG...]
+    same as: sudo waydroid ARG ARG...
+
   $EXEC [APK_PREFIX]
   $EXEC install|--install|app|--app|--apk|--apk|apps|--apps|apks|--apks APK_PREFIX
     same as: $EXEC --install=<APK_PREFIX>
@@ -51,6 +54,7 @@ my $USAGE = "Usage:
 my $CMD_RESTART = "restart";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
+my $CMD_SHELL = "shell";
 my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
 
@@ -74,6 +78,10 @@ sub main(@){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(stop|--stop|end|--end|e)$/){
       $cmd = $CMD_STOP;
+    }elsif($arg =~ /^(shell)$/){
+      $cmd = $CMD_SHELL;
+      @shellArgs = @_;
+      @_ = ();
     }elsif($arg =~ /^(?:--install|--app|--apk)=(.+)$/){
       $cmd = $CMD_INSTALL;
       $apkPrefix = $1;
@@ -98,6 +106,8 @@ sub main(@){
     start();
   }elsif($cmd eq $CMD_STOP){
     stop();
+  }elsif($cmd eq $CMD_SHELL){
+    run "sudo", "waydroid", "shell", @shellArgs;
   }elsif($cmd eq $CMD_INSTALL){
     ensureRunning();
     my @apks = getApksForPrefix($apkPrefix);
