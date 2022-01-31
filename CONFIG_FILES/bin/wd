@@ -139,8 +139,8 @@ sub isSessionRunning(){
 
 sub start(){
   run qw(sudo chmod 777 /var/lib/waydroid/);
-  run qw(screen-daemon waydroid-container --start 0 0 sudo waydroid container start);
-  run qw(screen-daemon waydroid-runner --start 0 0 waydroid-runner);
+  run qw(udo screen-daemon waydroid-container --start 0 0 sudo waydroid container start);
+  run qw(udo screen-daemon waydroid-runner --start 0 0 waydroid-runner);
 }
 sub stop(){
   run qw(sudo waydroid session stop);
@@ -148,9 +148,9 @@ sub stop(){
   run qw(sudo pkill -9 -f waydroid-runner);
   run qw(sudo pkill -9 -f waydroid-sensord);
 
-  run qw(screen-daemon waydroid-container --stop);
-  run qw(screen-daemon waydroid-runner --stop);
-  run qw(screen -wipe);
+  run qw(udo screen-daemon waydroid-container --stop);
+  run qw(udo screen-daemon waydroid-runner --stop);
+  run qw(udo screen -wipe);
 
   run qw(sudo systemctl restart dbus-org.nemomobile.provisioning);
 }
