@@ -62,7 +62,9 @@ sub run(@);
 sub main(@){
   my $cmd = undef;
   my $apkPrefix;
-  for my $arg(@_){
+  my @shellArgs;
+  while(@_ > 0){
+    my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
