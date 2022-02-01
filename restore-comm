@@ -28,6 +28,7 @@ my $USAGE = "Usage:
 
   $0 --apply
     overwrite SMS/calls/MMS on `ipmagic $IPMAGIC_NAME`
+    DELETES+REPLACES COMMHISTORY DB (after backing it up)
 
   $0 -m|--print-mms-rsync
     print mms rsync command
