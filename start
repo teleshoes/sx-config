@@ -55,7 +55,7 @@
 #git commit -m 'run rename-msg-dirs (rename all ##### msg dirs to msg-MTIME-##### for sailfish)'
 
 ./restore-contacts
-./restore-comm
+./restore-comm --apply
 
 #early, to ensure SD card symlink is in place
 ./setup-autostart
