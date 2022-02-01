@@ -1,0 +1,288 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $HAR_EXTRACTOR = "$ENV{HOME}/.local/bin/har-extractor";
+my $SMS_DB_IMPORTER = "$ENV{HOME}/Code/sx/comm-tools/sms_db_importer.py";
+
+my $MY_NUMBER_FILE = "$ENV{HOME}/Code/sx/backup/my_number";
+my $MMS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/repo";
+my $MMS_PARTS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
+
+my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0 HAR_FILE
+    do the thing
+";
+
+sub cleanNumber($);
+sub escapeStr($);
+sub nowMillis();
+sub run(@);
+
+sub main(@){
+  my $harFile;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif(-f $arg and $arg =~ /\.har$/i){
+      $harFile = $arg;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  die "$USAGE\nERROR: missing HAR_FILE\n" if not defined $harFile;
+
+  my $myNum = `cat $MY_NUMBER_FILE`;
+  chomp $myNum;
+  $myNum = cleanNumber($myNum);
+  if($myNum !~ /^\d{10}$/){
+    die "ERROR: could not parse $MY_NUMBER_FILE\n";
+  }
+
+  if(not -x $HAR_EXTRACTOR){
+    run "pip", "install", "har-extractor";
+  }
+  if(not -x $HAR_EXTRACTOR){
+    die "ERROR: could not find $HAR_EXTRACTOR\n";
+  }
+
+  my $nowMillis = nowMillis();
+  my $outDir = "/tmp/tmobile-digits-har-$nowMillis/";
+
+  run $HAR_EXTRACTOR, $harFile, "-o", $outDir;
+
+  my @mmsFiles = sort `find $outDir -iregex '.*/objects/.*' -type f`;
+  chomp $_ foreach @mmsFiles;
+  system "dos2unix $_ 2>/dev/null" foreach @mmsFiles;
+
+  for my $file(@mmsFiles){
+    my $mms = parseMMSFile($file);
+    my $millis = $$mms{dtmEpoch} . "000";
+
+    my $dir;
+    my $otherNum;
+    if($$mms{from} eq $myNum){
+      $dir = "OUT";
+      $otherNum = $$mms{to};
+    }elsif($$mms{to} eq $myNum){
+      $dir = "INC";
+      $otherNum = $$mms{from};
+    }else{
+      #MMS sent to other person and 'forwarded' to me
+      $dir = "INC";
+      $otherNum = $$mms{from};
+    }
+
+    if($otherNum !~ /^\d{10}$/){
+      die "ERROR: could not parse MMS phone number \"$otherNum\" for $file\n";
+    }
+
+    my $nowMillis = nowMillis();
+    my $counter = "00000";
+    my $mmsPartsDir;
+    do{
+      $mmsPartsDir = "$MMS_PARTS_REPO/msg-${millis}-$counter";
+      $counter++;
+    }while(-e $mmsPartsDir);
+
+    run "mkdir", "-p", $mmsPartsDir;
+
+    my @attFileList;
+    if(defined $$mms{attContents}){
+      my $attFile = "$mmsPartsDir/$$mms{attName}";
+      push @attFileList, $attFile;
+      open FH, "> $attFile" or die "ERROR: could not write $attFile\n$!\n";
+      print FH $$mms{attContents};
+      close FH;
+    }
+    if(defined $$mms{body}){
+      my $textAttFile = "$mmsPartsDir/$$mms{textAttName}";
+      push @attFileList, $textAttFile;
+      open FH, "> $textAttFile" or die "ERROR: could not write $textAttFile\n$!\n";
+      print FH $$mms{body};
+      close FH;
+    }
+    my $body = $$mms{body};
+    $body = "" if not defined $body;
+
+    my $subject = $$mms{subject};
+
+    my $subjectFmt = escapeStr($subject);
+    my $bodyFmt = escapeStr($body);
+
+    open CMD, "-|", $SMS_DB_IMPORTER, "mms-hash", $subject, $body, @attFileList;
+    my $checksum = join '', <CMD>;
+    close CMD;
+    chomp $checksum;
+
+    if($checksum !~ /^[0-9a-f]{32}$/){
+      die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER for MMS file\n$file\n";
+    }
+
+    my $mmsRepoDir = "$MMS_REPO/${millis}_${otherNum}_${dir}_${checksum}";
+    run "mkdir", "-p", $mmsRepoDir;
+
+    for my $attFile(@attFileList){
+      run "cp", "-a", $attFile, "$mmsRepoDir/";
+    }
+
+    my $subjectFmt = $$mms{subject};
+
+    my $info = ""
+      . "from=$$mms{from}\n"
+      . "to=$$mms{to}\n"
+      . "dir=$dir\n"
+      . "date=$millis\n"
+      . "date_sent=$millis\n"
+      . "subject=\"$subjectFmt\"\n"
+      . "body=\"$bodyFmt\"\n"
+      ;
+    for my $attFile(@attFileList){
+      my $att = $attFile;
+      $att =~ s/^.*\///;
+      $info .= "att=$att\n";
+    }
+    $info .= "checksum=$checksum\n";
+
+    my $infoFile = "$mmsRepoDir/info";
+    open FH, "> $infoFile" or die "ERROR: could not write $infoFile\n$!\n";
+    print FH $info;
+    close FH;
+  }
+}
+
+sub cleanNumber($){
+  my ($number) = @_;
+  $number = "" if not defined $number;
+  $number = $1 if $number =~ /^sip:([+0-9]+)@.*$/;
+  $number =~ s/[^+0-9]//g;
+  $number = $1 if $number =~ /^\+?1(\d{10})$/;
+  return $number
+}
+sub escapeStr($){
+  my ($str) = @_;
+  $str =~ s/&/&amp;/g;
+  $str =~ s/\\/&backslash;/g;
+  $str =~ s/\n/\\n/g;
+  $str =~ s/\r/\\r/g;
+  $str =~ s/"/\\"/g;
+  $str =~ s/&backslash;/\\\\/g;
+  $str =~ s/&amp;/&/g;
+  return $str;
+}
+
+
+sub parseMMSFile($){
+  my ($mmsFile) = @_;
+  my @lines = `cat "$mmsFile"`;
+
+  my $mms = {
+    from        => undef,
+    to          => undef,
+    dtm         => undef,
+    body        => undef,
+    subject     => "NoSubject",
+    textAttName => undef,
+    attName     => undef,
+    attContents => undef,
+  };
+
+  my @parts;
+  my $curPart = undef;
+  for my $line(@lines){
+    if($line =~ /^--/){
+      $curPart = [];
+      push @parts, $curPart;
+    }elsif(not defined $curPart){
+      if($line =~ /^From:\s*(.+)$/){
+        $$mms{from} = cleanNumber($1);
+      }elsif($line =~ /^To:\s*(.+)$/){
+        $$mms{to} = cleanNumber($1);
+      }elsif($line =~ /^DateTime:\s*(.+)$/){
+        $$mms{dtm} = $1;
+      }
+    }else{
+      push @$curPart, $line;
+    }
+  }
+
+  for my $part(@parts){
+    my $text = join "", @$part;
+    next if $text eq "";
+    if($text =~ /^(.*)\n\n(.*)$/s){
+      my ($partHdr, $partBody) = ($1, $2);
+      if($partHdr =~ /base64/i){
+        $partBody = decodeBase64($partBody);
+      }
+      if($partHdr =~ /text/i){
+        die "ERROR: duplicate text parts for $mmsFile\n" if defined $$mms{body};
+        $$mms{body} = $partBody;
+        if($partHdr =~ /Content-Location:(.+)/){
+          $$mms{textAttName} = $1;
+        }
+      }else{
+        die "ERROR: duplicate file atts $mmsFile\n" if defined $$mms{attContents};
+        $$mms{attContents} = $partBody;
+        if($partHdr =~ /Content-Location:(.+)/){
+          $$mms{attName} = $1;
+        }
+      }
+    }else{
+      die "ERROR: malformed MMS part:$text\nin mms file:\n$mmsFile\n";
+    }
+  }
+
+  my $dtmFmt = `date --date='$$mms{dtm}' '+%Y%m%d_%H%M%S'`;
+  chomp $dtmFmt;
+  my $epoch = `date --date='$$mms{dtm}' +%s`;
+  chomp $epoch;
+
+  $$mms{dtmFmt} = $dtmFmt;
+  $$mms{dtmEpoch} = $epoch;
+
+  if(defined $$mms{body} and not defined $$mms{textAttName}){
+    $$mms{textAttName} = "text";
+  }
+  if(defined $$mms{attName} and not defined $$mms{attContents}){
+    die "ERROR: could not parse file contents for att $$mms{attName} in mms file\n$mmsFile\n";
+  }
+  if(defined $$mms{attContents} and not defined $$mms{attName}){
+    die "ERROR: missing file name for att part in mms file\n$mmsFile\n";
+  }
+
+  return $mms;
+}
+
+sub decodeBase64($){
+  my ($str) = @_;
+  my $nowMillis = nowMillis();
+  my $tmpFile = "/tmp/tmobile-digits-base64-$nowMillis";
+  open FH, "> $tmpFile" or die "ERROR: could not write $tmpFile\n$!\n";
+  print FH $str;
+  close FH;
+
+  my $out = `base64 -d $tmpFile`;
+  if($? != 0){
+    die "ERROR: base64 decode failed for:\n$str\n";
+  }
+
+  return $out;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+sub nowMillis(){
+  return int(time*1000.0 + 0.5);
+}
+
+&main(@ARGV);
