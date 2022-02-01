@@ -5,6 +5,7 @@ use Time::HiRes qw(time);
 
 my $HAR_EXTRACTOR = "$ENV{HOME}/.local/bin/har-extractor";
 my $SMS_DB_IMPORTER = "$ENV{HOME}/Code/sx/comm-tools/sms_db_importer.py";
+my $RESTORE_COMM = "$ENV{HOME}/Code/sx/restore-comm";
 
 my $MY_NUMBER_FILE = "$ENV{HOME}/Code/sx/backup/my_number";
 my $MMS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/repo";
@@ -17,6 +18,7 @@ my $INSTRUCTIONS = ""
   . "  some are VERY LIKELY DUPES\n"
   . "  commit the ones you want and remove the rest (maybe git clean -f -d)\n"
   . "  ensure mms dir AND mms parts dir are both correct\n"
+  . "  to test consistency, run: $RESTORE_COMM --dry-run\n"
 ;
 
 my $USAGE = "Usage:
