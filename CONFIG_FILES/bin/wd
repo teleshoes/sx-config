@@ -68,9 +68,12 @@ my $CMD_SHELL = "shell";
 my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
 
+sub ensureRunning();
+sub isSessionRunning();
 sub start();
 sub stop();
 sub getApksForPrefix($);
+sub nowMillis();
 sub run(@);
 sub runQuiet(@);
 
