@@ -35,15 +35,18 @@ my $USAGE = "Usage:
 
 sub main(@){
   my $command = undef;
-  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print "$USAGE\n";
-    exit 0;
-  }elsif(@_ == 1 and $_[0] =~ /^(-m|--print-mms-rsync)$/){
-    shift;
-    $command = "print-mms-rsync";
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print "$USAGE\n";
+      exit 0;
+    }elsif($arg =~ /^(-m|--print-mms-rsync)$/){
+      $command = "print-mms-rsync";
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
   }
 
-  die $USAGE if @_ != 0;
   my $host = `ipmagic $IPMAGIC_NAME`;
   die "failed to get host" if $? != 0;
   chomp $host;
