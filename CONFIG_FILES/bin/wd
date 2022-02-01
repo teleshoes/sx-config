@@ -12,6 +12,8 @@ my $SRC_OBB_DIR = "$APK_DIR/obb";
 my $DEST_OBB_DIR = "/home/waydroid/data/media/obb";
 my $USER_DIR = "/home/$USER/.local/share/waydroid";
 
+my $WAYDROID_RUNNER_DESKTOP_FILE = "/usr/share/applications/waydroid-runner.desktop";
+
 my $WD_CMD_FILE_PREFIX = "$USER_DIR/data/data/wd-cmd";;
 
 my $SESSION_DELAY_MILLIS = 1000;
@@ -34,6 +36,9 @@ my $USAGE = "Usage:
       -stop session
       -stop container
       -kill waydroid-sensord
+
+  $EXEC --activate
+    use invoker to switch lipstick window to waydroid-runner window
 
   $EXEC shell
     same as: sudo waydroid shell
@@ -64,12 +69,14 @@ my $USAGE = "Usage:
 my $CMD_RESTART = "restart";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
+my $CMD_ACTIVATE = "activate";
 my $CMD_SHELL = "shell";
 my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
 
 sub ensureRunning();
 sub isSessionRunning();
+sub activateWaydroidWindow();
 sub start();
 sub stop();
 sub getApksForPrefix($);
@@ -92,6 +99,8 @@ sub main(@){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(stop|--stop|end|--end|e)$/){
       $cmd = $CMD_STOP;
+    }elsif($arg =~ /^(--activate)$/){
+      $cmd = $CMD_ACTIVATE;
     }elsif($arg =~ /^(shell)$/){
       $cmd = $CMD_SHELL;
       @shellArgs = @_;
@@ -120,6 +129,8 @@ sub main(@){
     start();
   }elsif($cmd eq $CMD_STOP){
     stop();
+  }elsif($cmd eq $CMD_ACTIVATE){
+    activateWaydroidWindow();
   }elsif($cmd eq $CMD_SHELL){
     if(@shellArgs == 0){
       runQuiet "sudo", "waydroid", "shell";
@@ -175,6 +186,10 @@ sub isSessionRunning(){
   }else{
     return 0;
   }
+}
+
+sub activateWaydroidWindow(){
+  run "udo invoker --type=generic -F $WAYDROID_RUNNER_DESKTOP_FILE echo hello";
 }
 
 sub start(){
