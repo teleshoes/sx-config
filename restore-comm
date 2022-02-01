@@ -26,43 +26,37 @@ my $USAGE = "Usage:
   $0 -h|--help
     print this message
 
-  $0
+  $0 --apply
     overwrite SMS/calls/MMS on `ipmagic $IPMAGIC_NAME`
 
   $0 -m|--print-mms-rsync
     print mms rsync command
 ";
 
+my $CMD_PRINT_MMS_RSYNC = "print-mms-rsync";
+my $CMD_APPLY = "apply";
+
 sub main(@){
-  my $command = undef;
+  my $cmd;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print "$USAGE\n";
       exit 0;
     }elsif($arg =~ /^(-m|--print-mms-rsync)$/){
-      $command = "print-mms-rsync";
+      $cmd = $CMD_PRINT_MMS_RSYNC;
+    }elsif($arg =~ /^(--apply)$/){
+      $cmd = $CMD_APPLY;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
 
+  die "$USAGE\nERROR missing command\n" if not defined $cmd;
+
   my $host = `ipmagic $IPMAGIC_NAME`;
   die "failed to get host" if $? != 0;
   chomp $host;
-
-  if(defined $command){
-    if($command eq "print-mms-rsync"){
-      my @cmd = ("rsync", "-avP", "--exclude=.git",
-        "$MMS_PARTS_REPO/",
-        "$USER\@$host:$MMS_PARTS_REMOTE_DIR/"
-      );
-      print "@cmd\n";
-      exit 0;
-    }else{
-      die "unknown command: $command\n";
-    }
-  }
 
   my $now = `date +'%Y-%m-%d_%s'`;
   chomp $now;
@@ -71,37 +65,48 @@ sub main(@){
   my $recentSms = "$BASE_DIR/recent-$now.sms";
   my $recentCalls = "$BASE_DIR/recent-$now.call";
 
-  run "cat $EMPTY_COMMHISTORY_DB_DUMP | sqlite3 $commhistoryDb";
-  run "$CMD_RECENT_COMM --sms > $recentSms";
-  run "$CMD_RECENT_COMM --calls > $recentCalls";
+  if($cmd eq $CMD_PRINT_MMS_RSYNC){
+    my @cmd = ("rsync", "-avP", "--exclude=.git",
+      "$MMS_PARTS_REPO/",
+      "$USER\@$host:$MMS_PARTS_REMOTE_DIR/"
+    );
+    print "@cmd\n";
+  }elsif($cmd eq $CMD_APPLY){
+    run "cat $EMPTY_COMMHISTORY_DB_DUMP | sqlite3 $commhistoryDb";
+    run "$CMD_RECENT_COMM --sms > $recentSms";
+    run "$CMD_RECENT_COMM --calls > $recentCalls";
 
-  run "$CMD_SMS_DB_IMPORTER import-to-db-sms $commhistoryDb $recentSms";
-  run "$CMD_SMS_DB_IMPORTER import-to-db-calls $commhistoryDb $recentCalls";
-  run "$CMD_SMS_DB_IMPORTER import-to-db-mms $commhistoryDb $MMS_MSG_REPO $MMS_PARTS_REPO";
+    run "$CMD_SMS_DB_IMPORTER import-to-db-sms $commhistoryDb $recentSms";
+    run "$CMD_SMS_DB_IMPORTER import-to-db-calls $commhistoryDb $recentCalls";
+    run "$CMD_SMS_DB_IMPORTER import-to-db-mms $commhistoryDb $MMS_MSG_REPO $MMS_PARTS_REPO";
 
-  my $remoteCommhistoryDb = "/tmp/recent-$now-commhistory.db";
-  run "scp", $commhistoryDb, "$USER\@$host:$remoteCommhistoryDb";
+    my $remoteCommhistoryDb = "/tmp/recent-$now-commhistory.db";
+    run "scp", $commhistoryDb, "$USER\@$host:$remoteCommhistoryDb";
 
-  run "rsync", "-avP", "--exclude=.git",
-    "$MMS_PARTS_REPO/",
-    "$USER\@$host:$MMS_PARTS_REMOTE_DIR/";
-  run "ssh", "root\@$host", "chown $USER.$USER -R $MMS_PARTS_REMOTE_DIR/";
+    run "rsync", "-avP", "--exclude=.git",
+      "$MMS_PARTS_REPO/",
+      "$USER\@$host:$MMS_PARTS_REMOTE_DIR/";
+    run "ssh", "root\@$host", "chown $USER.$USER -R $MMS_PARTS_REMOTE_DIR/";
 
-  my $backupDir = "$COMMHISTORY_DB_REMOTE_DIR/commhistory-backup-$now";
-  run "ssh", "root\@$host", "
-    mkdir $backupDir && \
-    chown $USER.$USER $backupDir && \
-    mv $COMMHISTORY_DB_REMOTE_DIR/commhistory.db* $backupDir && \
-    gzip $backupDir/commhistory.db*
-    mv $remoteCommhistoryDb $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
-    chown $USER.$USER $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
-    echo success || ( echo FAILED TO REPLACE COMMHISTORY DB && exit 1 )
-  ";
 
-  print "RESTARTING PHONE! ok? [y/N] ";
-  my $line = <STDIN>;
-  if($line =~ /y|Y/){
-    run "ssh", "root\@$host", "reboot";
+    my $backupDir = "$COMMHISTORY_DB_REMOTE_DIR/commhistory-backup-$now";
+    run "ssh", "root\@$host", "
+      mkdir $backupDir && \
+      chown $USER.$USER $backupDir && \
+      mv $COMMHISTORY_DB_REMOTE_DIR/commhistory.db* $backupDir && \
+      gzip $backupDir/commhistory.db*
+      mv $remoteCommhistoryDb $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
+      chown $USER.$USER $COMMHISTORY_DB_REMOTE_DIR/commhistory.db && \
+      echo success || ( echo FAILED TO REPLACE COMMHISTORY DB && exit 1 )
+    ";
+
+    print "RESTARTING PHONE! ok? [y/N] ";
+    my $line = <STDIN>;
+    if($line =~ /y|Y/){
+      run "ssh", "root\@$host", "reboot";
+    }
+  }else{
+    die "$USAGE\nERROR: unknown command $cmd\n";
   }
 }
 
