@@ -10,12 +10,21 @@ my $MY_NUMBER_FILE = "$ENV{HOME}/Code/sx/backup/my_number";
 my $MMS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/repo";
 my $MMS_PARTS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
 
+my $INSTRUCTIONS = ""
+  . "  HAR_FILE messages get written to mms repo + parts-repo\n"
+  . "    $MMS_REPO\n"
+  . "    $MMS_PARTS_REPO\n"
+  . "  some are VERY LIKELY DUPES\n"
+  . "  commit the ones you want and remove the rest (maybe git clean -f -d)\n"
+  . "  ensure mms dir AND mms parts dir are both correct\n"
+;
+
 my $USAGE = "Usage:
   $0 -h|--help
     show this message
 
   $0 HAR_FILE
-    do the thing
+    $INSTRUCTIONS
 ";
 
 sub cleanNumber($);
