@@ -5,10 +5,14 @@ use File::Basename qw(basename);
 use Time::HiRes qw(sleep time);
 
 my $EXEC = basename $0;
+my $USER = "nemo";
 
 my $APK_DIR = "/media/sdcard/phone/apks-waydroid";
 my $SRC_OBB_DIR = "$APK_DIR/obb";
 my $DEST_OBB_DIR = "/home/waydroid/data/media/obb";
+my $USER_DIR = "/home/$USER/.local/share/waydroid";
+
+my $WD_CMD_FILE_PREFIX = "$USER_DIR/data/data/wd-cmd";;
 
 my $SESSION_DELAY_MILLIS = 1000;
 my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
@@ -31,8 +35,14 @@ my $USAGE = "Usage:
       -stop container
       -kill waydroid-sensord
 
-  $EXEC shell [ARG ARG...]
-    same as: sudo waydroid ARG ARG...
+  $EXEC shell
+    same as: sudo waydroid shell
+
+  $EXEC shell ARG [ARG ARG...]
+    create CMD_FILE=$WD_CMD_FILE_PREFIX-<MILLIS>
+    write 'ARG ARG ARG...' to <CMD_FILE>
+    run: sudo waydroid shell <CMD_FILE>
+    remove <CMD_FILE>
 
   $EXEC [APK_PREFIX]
   $EXEC install|--install|app|--app|--apk|--apk|apps|--apps|apks|--apks APK_PREFIX
@@ -62,6 +72,7 @@ sub start();
 sub stop();
 sub getApksForPrefix($);
 sub run(@);
+sub runQuiet(@);
 
 sub main(@){
   my $cmd = undef;
@@ -107,7 +118,23 @@ sub main(@){
   }elsif($cmd eq $CMD_STOP){
     stop();
   }elsif($cmd eq $CMD_SHELL){
-    run "sudo", "waydroid", "shell", @shellArgs;
+    if(@shellArgs == 0){
+      runQuiet "sudo", "waydroid", "shell";
+    }else{
+      my $nowMillis = nowMillis();
+      my $cmdFile = "$WD_CMD_FILE_PREFIX-$nowMillis";
+      open CMD, "|-", "sudo dd status=none of=$cmdFile"
+        or die "ERROR: could not write $cmdFile\n$!\n";
+      print CMD "@shellArgs\n";
+      close CMD;
+      runQuiet "sudo", "chmod", "+x", $cmdFile;
+
+      my $androidCmdFile = $cmdFile;
+      $androidCmdFile =~ s/$USER_DIR\//\//;
+
+      runQuiet "sudo", "waydroid", "shell", $androidCmdFile;
+      runQuiet "sudo", "rm", $cmdFile;
+    }
   }elsif($cmd eq $CMD_INSTALL){
     ensureRunning();
     my @apks = getApksForPrefix($apkPrefix);
@@ -178,6 +205,9 @@ sub nowMillis(){
 
 sub run(@){
   print "@_\n";
+  system @_;
+}
+sub runQuiet(@){
   system @_;
 }
 
