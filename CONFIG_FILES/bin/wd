@@ -74,7 +74,6 @@ my $USAGE = "Usage:
 
     run: $EXEC shell am start <INTENT>
 
-  $EXEC APK_PREFIX
   $EXEC install|--install|-i|i APK_PREFIX
     same as: $EXEC --install=<APK_PREFIX>
     ($APK_DIR/<APK_PREFIX>*.apk must match one or more apks)
@@ -160,9 +159,6 @@ sub main(@){
     }elsif($arg =~ /^(obb|--obb|-o|o)$/){
       $cmd = $CMD_OBB;
     }elsif(getApksForPrefix($arg) > 0){
-      if(not defined $cmd){
-        $cmd = $CMD_INSTALL;
-      }
       $apkPrefix = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
