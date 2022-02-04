@@ -63,15 +63,23 @@ my $USAGE = "Usage:
     wait until line appears in logcat (using -e and -m):
       $UI_READY_LOGCAT_LINE
 
-  $EXEC launch|--launch|-l|l APK_PREFIX
-    same as: $EXEC --launch=APK_PREFIX
+  $EXEC launch|--launch|-l|l LAUNCH_ARG
+    same as: $EXEC --launch=LAUNCH_ARG
 
-  $EXEC --launch=APK_PREFIX
+  $EXEC --launch=LAUNCH_ARG
+    if $APK_DIR/<LAUNCH_ARG>*.apk matches exactly one file:
+      run: $EXEC --launch-apk=<LAUNCH_ARG>
+    otherwise:
+      run: $EXEC --launch-intent=<LAUNCH_ARG>
+
+  $EXEC --launch-apk=APK_PREFIX
     get INTENT
       get APK_FILE=$APK_DIR/<APK_PREFIX>*.apk
         must match exactly one APK_FILE
       use apk-info/aapt to fetch INTENT=`apk-info --intent <APK_FILE>`
+    same as: $EXEC --launch-intent=INTENT
 
+  $EXEC --launch-intent=INTENT
     if session is not started:
       start session as in $EXEC --start
       run: $EXEC --wait-ui
@@ -101,7 +109,7 @@ my $USAGE = "Usage:
     a Activate      =
     x eXecute/shell = [ARG ARG ..]
     w Wait          =
-    l Launch        = APK_PREFIX
+    l Launch        = APK_PREFIX | INTENT
     i Install       = APK_PREFIX
     o Obb           =
 ";
@@ -134,6 +142,7 @@ sub runQuiet(@);
 sub main(@){
   my $cmd = undef;
   my $apkPrefix;
+  my $launchIntent;
   my @shellArgs;
   while(@_ > 0){
     my $arg = shift @_;
@@ -156,10 +165,27 @@ sub main(@){
       $cmd = $CMD_WAIT_UI;
     }elsif($arg =~ /^--launch=(.+)$/){
       $cmd = $CMD_LAUNCH;
+      my $launchArg = $1;
+      if(getApksForPrefix($launchArg) == 1){
+        $apkPrefix = $launchArg;
+      }else{
+        $launchIntent = $launchArg;
+      }
+    }elsif($arg =~ /^--launch-apk=(.+)$/){
+      $cmd = $CMD_LAUNCH;
       $apkPrefix = $1;
+    }elsif($arg =~ /^--launch-intent=(.+)$/){
+      $cmd = $CMD_LAUNCH;
+      $launchIntent = $1;
     }elsif($arg =~ /^(launch|--launch|-l|l)$/){
-      die "ERROR: missing APK_PREFIX\n" if @_ < 1;
-      $apkPrefix = $1;
+      die "ERROR: missing LAUNCH_ARG\n" if @_ < 1;
+      $cmd = $CMD_LAUNCH;
+      my $launchArg = shift;
+      if(getApksForPrefix($launchArg) == 1){
+        $apkPrefix = $launchArg;
+      }else{
+        $launchIntent = $launchArg;
+      }
     }elsif($arg =~ /^--install=(.+)$/){
       $cmd = $CMD_INSTALL;
       $apkPrefix = $1;
@@ -194,7 +220,14 @@ sub main(@){
     waitForLogcatLine($UI_READY_LOGCAT_LINE);
     print "\n";
   }elsif($cmd eq $CMD_LAUNCH){
-    my $intent = getIntentForApkPrefix($apkPrefix);
+    my $intent;
+    if(defined $launchIntent){
+      $intent = $launchIntent;
+    }elsif(defined $apkPrefix){
+      $intent = getIntentForApkPrefix($apkPrefix);
+    }else{
+      die "ERROR: launch cmd requires APK_PREFIX or LAUNCH_INTENT\n";
+    }
 
     if(not isSessionRunning()){
       ensureRunning();
