@@ -166,8 +166,13 @@ sub waydroidShell(@){
     my $androidCmdFile = $cmdFile;
     $androidCmdFile =~ s/$USER_DIR\//\//;
 
-    runQuiet "sudo", "waydroid", "shell", $androidCmdFile;
+    my $outFile = "/tmp/waydroid-cmd-$nowMillis.out";
+    runQuiet "sudo waydroid shell $androidCmdFile 2>&1 | tee $outFile";
+    my $out = `cat $outFile`;
+
     runQuiet "sudo", "rm", $cmdFile;
+    runQuiet "sudo", "rm", $outFile;
+    return $out;
   }
 }
 
