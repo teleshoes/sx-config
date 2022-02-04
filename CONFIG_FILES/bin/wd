@@ -77,6 +77,7 @@ my $CMD_OBB = "obb";
 sub waydroidShell(@);
 sub ensureShell();
 sub isShellUp();
+sub waitForLogcatLine($);
 sub ensureRunning();
 sub isSessionRunning();
 sub activateWaydroidWindow();
@@ -196,6 +197,12 @@ sub isShellUp(){
   }else{
     return 0;
   }
+}
+
+sub waitForLogcatLine($){
+  my ($lineRegex) = @_;
+  ensureShell();
+  waydroidShell("logcat", "-e", $lineRegex, "-m", "1");
 }
 
 sub ensureRunning(){
