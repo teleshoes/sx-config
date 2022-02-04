@@ -75,6 +75,8 @@ my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
 
 sub waydroidShell(@);
+sub ensureShell();
+sub isShellUp();
 sub ensureRunning();
 sub isSessionRunning();
 sub activateWaydroidWindow();
@@ -173,6 +175,26 @@ sub waydroidShell(@){
     runQuiet "sudo", "rm", $cmdFile;
     runQuiet "sudo", "rm", $outFile;
     return $out;
+  }
+}
+
+sub ensureShell(){
+  my $start = nowMillis();
+  while(not isShellUp()){
+    if(nowMillis() - $start > $ENSURE_SESSION_TIMEOUT_MILLIS){
+      die "ERROR: ensure shell timed out after" . (nowMillis() - $start) . "ms\n";
+    }
+    print "shell is not available, sleeping for $SESSION_DELAY_MILLIS\n";
+    sleep $SESSION_DELAY_MILLIS/1000.0;
+  }
+}
+
+sub isShellUp(){
+  my $out = waydroidShell("getprop", "ro.product.odm.brand");
+  if($out =~ /waydroid/){
+    return 1;
+  }else{
+    return 0;
   }
 }
 
