@@ -19,6 +19,8 @@ my $WD_CMD_FILE_PREFIX = "$USER_DIR/data/data/wd-cmd";;
 my $SESSION_DELAY_MILLIS = 1000;
 my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
 
+my $UI_READY_LOGCAT_LINE = "TELLING SURFACE FLINGER WE ARE BOOTED";
+
 my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
@@ -50,6 +52,12 @@ my $USAGE = "Usage:
     remove <CMD_FILE>
 
   $EXEC launch APK_PREFIX
+    if session is not started:
+      start session as in $EXEC --start
+      wait until shell is available
+      wait until line appears in logcat:
+        $UI_READY_LOGCAT_LINE
+
     get <PACKAGE_NAME>
       get APK_FILE=$APK_DIR/<APK_PREFIX>*.apk
         must match exactly one APK_FILE
@@ -154,6 +162,11 @@ sub main(@){
   }elsif($cmd eq $CMD_SHELL){
     waydroidShell(@shellArgs);
   }elsif($cmd eq $CMD_LAUNCH){
+    if(not isSessionRunning()){
+      ensureRunning();
+      waitForLogcatLine($UI_READY_LOGCAT_LINE);
+    }
+
     my @apks = getApksForPrefix($apkPrefix);
     if(@apks == 0){
       die "ERROR: no APKs match $APK_DIR/$apkPrefix*.apk\n";
