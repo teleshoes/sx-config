@@ -192,6 +192,7 @@ sub main(@){
     waydroidShell(@shellArgs);
   }elsif($cmd eq $CMD_WAIT_UI){
     waitForLogcatLine($UI_READY_LOGCAT_LINE);
+    print "\n";
   }elsif($cmd eq $CMD_LAUNCH){
     my $intent = getIntentForApkPrefix($apkPrefix);
 
@@ -202,6 +203,7 @@ sub main(@){
     activateWaydroidWindow();
 
     waydroidShell("am", "start", $intent);
+    print "\n";
   }elsif($cmd eq $CMD_INSTALL){
     ensureRunning();
     my @apks = getApksForPrefix($apkPrefix);
