@@ -46,12 +46,13 @@ my $USAGE = "Usage:
     use invoker to switch lipstick window to waydroid-runner window
 
   $EXEC shell|--shell|-x|x
-    same as: sudo waydroid shell
+    run: sudo waydroid shell
 
   $EXEC shell|--shell|-x|x ARG [ARG ARG...]
     create CMD_FILE=$WD_CMD_FILE_PREFIX-<MILLIS>
     write 'ARG ARG ARG...' to <CMD_FILE>
-    run: sudo waydroid shell <CMD_FILE>
+    run: sudo waydroid shell <CMD_FILE> | tee <TMP_OUTFILE>
+    remove <TMP_OUTFILE>
     remove <CMD_FILE>
 
   $EXEC launch|--launch|-l|l APK_PREFIX
