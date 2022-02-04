@@ -17,8 +17,8 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 my @ANDROID_STORAGE_DIRS = (
-  "/home/$USER/android_storage",
   "/home/$USER/.local/share/waydroid/data/media/0",
+  "/home/$USER/android_storage",
 );
 my $CR3_INI_FILE = "cr3.ini";
 
