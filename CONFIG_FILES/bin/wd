@@ -21,6 +21,8 @@ my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
 
 my $UI_READY_LOGCAT_LINE = "TELLING SURFACE FLINGER WE ARE BOOTED";
 
+my $USE_WAYDROID_APP_LAUNCH = 1;
+
 my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
@@ -178,20 +180,32 @@ sub main(@){
     }
     my $apk = $apks[0];
 
-    my $pkg;
-    if($apk =~ /^(?:.*\/)?([a-zA-Z0-9]+)_(.+)_([^_]+)\.apk$/){
-      $pkg = $2;
-      print "parsed from filename: packageName=$pkg\n";
+    if($USE_WAYDROID_APP_LAUNCH){
+      my $pkg;
+      if($apk =~ /^(?:.*\/)?([a-zA-Z0-9]+)_(.+)_([^_]+)\.apk$/){
+        $pkg = $2;
+        print "parsed from filename: packageName=$pkg\n";
+      }else{
+        $pkg = `apk-info --package $apk`;
+        chomp $pkg;
+        if($pkg !~ /\w/){
+          die "ERROR: invalid intent fetched from `apk-info`\n";
+        }
+        print "fetched with apk-info: packageName=$pkg\n";
+      }
+
+      run "sudo", "waydroid", "app", "launch", $pkg;
     }else{
-      $pkg = `apk-info --package $apk`;
-      chomp $pkg;
-      if($pkg !~ /\w/){
+      my $intent = `apk-info --intent $apk`;
+      chomp $intent;
+      if($intent !~ /\w/){
         die "ERROR: invalid intent fetched from `apk-info`\n";
       }
-      print "fetched with apk-info: packageName=$pkg\n";
+      print "fetched with apk-info: intent=$intent\n";
+
+      waydroidShell("am", "start", $intent);
     }
 
-    run "sudo", "waydroid", "app", "launch", $pkg;
   }elsif($cmd eq $CMD_INSTALL){
     ensureRunning();
     my @apks = getApksForPrefix($apkPrefix);
