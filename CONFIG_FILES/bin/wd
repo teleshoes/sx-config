@@ -58,6 +58,8 @@ my $USAGE = "Usage:
       wait until line appears in logcat:
         $UI_READY_LOGCAT_LINE
 
+    use invoker to activate waydroid window
+
     get <PACKAGE_NAME>
       get APK_FILE=$APK_DIR/<APK_PREFIX>*.apk
         must match exactly one APK_FILE
@@ -166,6 +168,7 @@ sub main(@){
       ensureRunning();
       waitForLogcatLine($UI_READY_LOGCAT_LINE);
     }
+    activateWaydroidWindow();
 
     my @apks = getApksForPrefix($apkPrefix);
     if(@apks == 0){
