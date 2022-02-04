@@ -1,0 +1,3 @@
+set -x
+ipmagic sx -u root systemctl disable --now dnsmasq
+ipmagic sx -u root pkill -9 dnsmasq
