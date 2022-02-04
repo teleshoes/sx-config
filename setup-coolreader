@@ -16,6 +16,9 @@ sub run(@);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
+my $BOOKS_SDCARD_DIR = "/media/sdcard/phone/books";
+my $BOOKS_STORAGE_REL_DIR = "Books";
+
 my @ANDROID_STORAGE_DIRS = (
   "/home/$USER/.local/share/waydroid/data/media/0",
   "/home/$USER/android_storage",
@@ -31,6 +34,8 @@ my $usage = "Usage:
     select <ANDROID_STORAGE_DIR>:
       @ANDROID_STORAGE_DIRS
     update `ipmagic $IPMAGIC_NAME`:<ANDROID_STORAGE_DIR>/.cr3/$CR3_INI_FILE
+
+    also: sync $BOOKS_SDCARD_DIR/ => <ANDROID_STORAGE_DIR>/$BOOKS_STORAGE_REL_DIR/
 
   $0 -d|--diff|-n|--dryrun
     show what changes would be made by running --set
@@ -231,6 +236,7 @@ sub main(@){
     my @configLines = readRemoteConfigLines($androidStorageDir);
     my @newConfigLines = updateConfigLines($cfg, @configLines);
     writeRemoteConfigLines($androidStorageDir, @newConfigLines);
+    copyBooks($androidStorageDir);
   }elsif(@_ == 1 and $_[0] =~ /^(-d|--diff|-n|--dryrun)$/){
     my $cfg = getConfig(getScaledFontSize());
     my $androidStorageDir = getAndroidStorageDir();
@@ -238,6 +244,14 @@ sub main(@){
   }else{
     die $usage;
   }
+}
+
+sub copyBooks($){
+  my ($androidStorageDir) = @_;
+
+  print "\nsyncing books sdcard => android storage dir\n";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+    "rsync -avP $BOOKS_SDCARD_DIR/ $androidStorageDir/$BOOKS_STORAGE_REL_DIR/";
 }
 
 sub getScaledFontSize(){
