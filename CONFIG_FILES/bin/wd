@@ -153,7 +153,7 @@ sub main(@){
 sub waydroidShell(@){
   my @shellArgs = @_;
   if(@shellArgs == 0){
-    runQuiet "sudo", "waydroid", "shell";
+    exec "sudo", "waydroid", "shell";
   }else{
     my $nowMillis = nowMillis();
     my $cmdFile = "$WD_CMD_FILE_PREFIX-$nowMillis";
