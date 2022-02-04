@@ -85,6 +85,17 @@ my $USAGE = "Usage:
 
   $EXEC obb|--obb|-o|o
     sync $SRC_OBB_DIR/ to $DEST_OBB_DIR/
+
+  synopsis:
+    h Help          =
+    r Restart       =
+    b start/Begin   =
+    e stop/End      =
+    x eXecute/shell = [ARG ARG ..]
+    a Activate      =
+    o Obb           =
+    i Install       = APK_PREFIX
+    l Launch        = APK_PREFIX
 ";
 
 my $CMD_RESTART = "restart";
