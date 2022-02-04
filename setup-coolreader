@@ -7,7 +7,7 @@ sub getConfig($);
 
 sub getScaledFontSize();
 sub getResMinDimension();
-sub getConfigFileRemoteDir();
+sub getAndroidStorageDir();
 sub readRemoteConfigLines($);
 sub writeRemoteConfigLines($@);
 sub updateConfigLines($@);
@@ -16,9 +16,9 @@ sub run(@);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my @CONFIG_FILE_REMOTE_DIRS = (
-  "/home/$USER/android_storage/.cr3",
-  "/home/$USER/.local/share/waydroid/data/media/0/.cr3",
+my @ANDROID_STORAGE_DIRS = (
+  "/home/$USER/android_storage",
+  "/home/$USER/.local/share/waydroid/data/media/0",
 );
 my $CR3_INI_FILE = "cr3.ini";
 
@@ -28,9 +28,9 @@ my $usage = "Usage:
 
   $0
   $0 --set
-    find CONFIG_FILE_REMOTE_DIR:
-      @CONFIG_FILE_REMOTE_DIRS
-    update `ipmagic $IPMAGIC_NAME`:<CONFIG_FILE_REMOTE_DIR>$CR3_INI_FILE
+    select <ANDROID_STORAGE_DIR>:
+      @ANDROID_STORAGE_DIRS
+    update `ipmagic $IPMAGIC_NAME`:<ANDROID_STORAGE_DIR>/.cr3/$CR3_INI_FILE
 
   $0 -d|--diff|-n|--dryrun
     show what changes would be made by running --set
@@ -227,14 +227,14 @@ sub main(@){
     print $usage;
   }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(--set)$/)){
     my $cfg = getConfig(getScaledFontSize());
-    my $configFileRemoteDir = getConfigFileRemoteDir();
-    my @configLines = readRemoteConfigLines($configFileRemoteDir);
+    my $androidStorageDir = getAndroidStorageDir();
+    my @configLines = readRemoteConfigLines($androidStorageDir);
     my @newConfigLines = updateConfigLines($cfg, @configLines);
-    writeRemoteConfigLines($configFileRemoteDir, @newConfigLines);
+    writeRemoteConfigLines($androidStorageDir, @newConfigLines);
   }elsif(@_ == 1 and $_[0] =~ /^(-d|--diff|-n|--dryrun)$/){
     my $cfg = getConfig(getScaledFontSize());
-    my $configFileRemoteDir = getConfigFileRemoteDir();
-    updateConfigLines($cfg, readRemoteConfigLines($configFileRemoteDir));
+    my $androidStorageDir = getAndroidStorageDir();
+    updateConfigLines($cfg, readRemoteConfigLines($androidStorageDir));
   }else{
     die $usage;
   }
@@ -258,23 +258,24 @@ sub getResMinDimension(){
   return $resMin;
 }
 
-sub getConfigFileRemoteDir(){
+sub getAndroidStorageDir(){
   print "fetching $IPMAGIC_NAME config file remote dir\n";
-  my @lines = `ipmagic $IPMAGIC_NAME ls -d @CONFIG_FILE_REMOTE_DIRS 2>/dev/null`;
+  my @lines = `ipmagic $IPMAGIC_NAME ls -d @ANDROID_STORAGE_DIRS 2>/dev/null`;
   for my $line(@lines){
-    for my $dir(@CONFIG_FILE_REMOTE_DIRS){
+    for my $dir(@ANDROID_STORAGE_DIRS){
       if($line =~ /^$dir\/?$/){
         return $dir;
       }
     }
   }
-  die "ERROR: no config file dirs exist\n@CONFIG_FILE_REMOTE_DIRS\n";
+  die "ERROR: no android storage dir found\n@ANDROID_STORAGE_DIRS\n";
 }
 
 sub readRemoteConfigLines($){
-  my ($configFileRemoteDir) = @_;
+  my ($androidStorageDir) = @_;
+  my $iniFile = "$androidStorageDir/.cr3/$CR3_INI_FILE";
   print "reading $IPMAGIC_NAME $CR3_INI_FILE\n";
-  my @cmd = ("ipmagic", $IPMAGIC_NAME, "cat", "$configFileRemoteDir/$CR3_INI_FILE");
+  my @cmd = ("ipmagic", $IPMAGIC_NAME, "cat", $iniFile);
   open CMD, "-|",  @cmd or die "ERROR: @cmd failed\n$!\n";
   my @lines = <CMD>;
   close CMD;
@@ -282,7 +283,7 @@ sub readRemoteConfigLines($){
 }
 
 sub writeRemoteConfigLines($@){
-  my ($configFileRemoteDir, @lines) = @_;
+  my ($androidStorageDir, @lines) = @_;
   my $nowMillis = int(time * 1000.0 + 0.5);
   my $tmpFile = "/tmp/coolreader-$nowMillis-cr3.ini";
 
@@ -293,8 +294,11 @@ sub writeRemoteConfigLines($@){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
-  run "ipmagic", $IPMAGIC_NAME, "mkdir -p $configFileRemoteDir";
-  run "scp", $tmpFile, "$USER\@$host:$configFileRemoteDir/$CR3_INI_FILE";
+  my $iniFile = "$androidStorageDir/.cr3/$CR3_INI_FILE";
+  my $iniDir = "$androidStorageDir/.cr3";
+
+  run "ipmagic", $IPMAGIC_NAME, "mkdir -p $iniDir";
+  run "scp", $tmpFile, "$USER\@$host:$iniFile";
 
   run "rm", $tmpFile;
 }
