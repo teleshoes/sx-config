@@ -74,6 +74,7 @@ my $CMD_SHELL = "shell";
 my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
 
+sub waydroidShell(@);
 sub ensureRunning();
 sub isSessionRunning();
 sub activateWaydroidWindow();
@@ -132,23 +133,7 @@ sub main(@){
   }elsif($cmd eq $CMD_ACTIVATE){
     activateWaydroidWindow();
   }elsif($cmd eq $CMD_SHELL){
-    if(@shellArgs == 0){
-      runQuiet "sudo", "waydroid", "shell";
-    }else{
-      my $nowMillis = nowMillis();
-      my $cmdFile = "$WD_CMD_FILE_PREFIX-$nowMillis";
-      open CMD, "|-", "sudo dd status=none of=$cmdFile"
-        or die "ERROR: could not write $cmdFile\n$!\n";
-      print CMD "@shellArgs\n";
-      close CMD;
-      runQuiet "sudo", "chmod", "+x", $cmdFile;
-
-      my $androidCmdFile = $cmdFile;
-      $androidCmdFile =~ s/$USER_DIR\//\//;
-
-      runQuiet "sudo", "waydroid", "shell", $androidCmdFile;
-      runQuiet "sudo", "rm", $cmdFile;
-    }
+    waydroidShell(@shellArgs);
   }elsif($cmd eq $CMD_INSTALL){
     ensureRunning();
     my @apks = getApksForPrefix($apkPrefix);
@@ -162,6 +147,27 @@ sub main(@){
     run "sudo", "rsync", "-avP", "$SRC_OBB_DIR/", "$DEST_OBB_DIR/";
   }else{
     die "ERROR: unknown command: $cmd\n";
+  }
+}
+
+sub waydroidShell(@){
+  my @shellArgs = @_;
+  if(@shellArgs == 0){
+    runQuiet "sudo", "waydroid", "shell";
+  }else{
+    my $nowMillis = nowMillis();
+    my $cmdFile = "$WD_CMD_FILE_PREFIX-$nowMillis";
+    open CMD, "|-", "sudo dd status=none of=$cmdFile"
+      or die "ERROR: could not write $cmdFile\n$!\n";
+    print CMD "@shellArgs\n";
+    close CMD;
+    runQuiet "sudo", "chmod", "+x", $cmdFile;
+
+    my $androidCmdFile = $cmdFile;
+    $androidCmdFile =~ s/$USER_DIR\//\//;
+
+    runQuiet "sudo", "waydroid", "shell", $androidCmdFile;
+    runQuiet "sudo", "rm", $cmdFile;
   }
 }
 
