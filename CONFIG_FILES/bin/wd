@@ -55,6 +55,14 @@ my $USAGE = "Usage:
     remove <TMP_OUTFILE>
     remove <CMD_FILE>
 
+  $EXEC --wait-ui|wait|--wait|-w|w
+    wait until shell is available
+      repeatedly run '@TEST_SHELL_CMD'
+      until output matches '$TEST_SHELL_OUTPUT_REGEX'
+      or timeout (${ENSURE_SESSION_TIMEOUT_MILLIS}ms);
+    wait until line appears in logcat (using -e and -m):
+      $UI_READY_LOGCAT_LINE
+
   $EXEC launch|--launch|-l|l APK_PREFIX
     same as: $EXEC --launch=APK_PREFIX
 
@@ -66,12 +74,8 @@ my $USAGE = "Usage:
 
     if session is not started:
       start session as in $EXEC --start
-      wait until shell is available
-      wait until line appears in logcat:
-        $UI_READY_LOGCAT_LINE
-
+      run: $EXEC --wait-ui
     use invoker to activate waydroid window
-
     run: $EXEC shell am start <INTENT>
 
   $EXEC install|--install|-i|i APK_PREFIX
@@ -98,6 +102,7 @@ my $USAGE = "Usage:
     a Activate      =
     o Obb           =
     i Install       = APK_PREFIX
+    w Wait          =
     l Launch        = APK_PREFIX
 ";
 
@@ -106,6 +111,7 @@ my $CMD_START = "start";
 my $CMD_STOP = "stop";
 my $CMD_ACTIVATE = "activate";
 my $CMD_SHELL = "shell";
+my $CMD_WAIT_UI = "wait-ui";
 my $CMD_LAUNCH = "launch";
 my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
@@ -146,6 +152,8 @@ sub main(@){
       $cmd = $CMD_SHELL;
       @shellArgs = @_;
       @_ = ();
+    }elsif($arg =~ /^(--wait-ui|wait|--wait|-w|w)$/){
+      $cmd = $CMD_WAIT_UI;
     }elsif($arg =~ /^--launch=(.+)$/){
       $cmd = $CMD_LAUNCH;
       $apkPrefix = $1;
@@ -182,6 +190,8 @@ sub main(@){
     activateWaydroidWindow();
   }elsif($cmd eq $CMD_SHELL){
     waydroidShell(@shellArgs);
+  }elsif($cmd eq $CMD_WAIT_UI){
+    waitForLogcatLine($UI_READY_LOGCAT_LINE);
   }elsif($cmd eq $CMD_LAUNCH){
     my $intent = getIntentForApkPrefix($apkPrefix);
 
