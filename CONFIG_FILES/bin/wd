@@ -253,6 +253,8 @@ sub stop(){
 sub getApksForPrefix($){
   my ($prefix) = @_;
   $prefix = "" if not defined $prefix;
+  $prefix =~ s/\.apk$//;
+
   my @files = grep {-f $_} glob "$APK_DIR/$prefix*.apk";
   return @files;
 }
