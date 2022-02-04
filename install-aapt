@@ -1,0 +1,62 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+use Time::HiRes qw(time);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $REMOTE_SRC_DIR = "/home/$USER/Code";
+my $REPO_URL = "https://github.com/JonForShort/android-tools";
+
+my $DEST_BIN_DIR = "/usr/local/bin";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC
+    install pre-build armv7/arm64 binary for aapt
+    from: $REPO_URL
+";
+
+sub getArch();
+
+sub main(@){
+  die $USAGE if @_ != 0;
+
+  my $arch = getArch();
+
+  my $file;
+  if($arch eq "armv7hl"){
+    $file = "build/android-11.0.0_r33/aapt/armeabi-v7a/bin/aapt";
+  }elsif($arch eq "aarch64"){
+    $file = "build/android-11.0.0_r33/aapt/arm64-v8a/bin/aapt";
+  }
+
+  my $projectName = "android-tools";
+
+  system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", ""
+    . " set -x"
+    . " && rm -rf $REMOTE_SRC_DIR/$projectName"
+    . " && mkdir -p $REMOTE_SRC_DIR"
+    . " && git clone $REPO_URL $REMOTE_SRC_DIR/$projectName"
+    . " && cd $REMOTE_SRC_DIR/$projectName"
+    . " && echo -ne \"=====\\n=====\\n=====\\n\""
+    . " && sudo cp -ar $REMOTE_SRC_DIR/$projectName/$file $DEST_BIN_DIR/aapt"
+    ;
+}
+
+sub getArch(){
+  my $out = `ipmagic $IPMAGIC_NAME getconf LONG_BIT`;
+  chomp $out;
+  if($out =~ /^32$/){
+    return "armv7hl";
+  }elsif($out =~ /^64$/){
+    return "aarch64";
+  }else{
+    die "ERROR: could not get instruction bit length to guess arch\n";
+  }
+}
+
+&main(@ARGV);
