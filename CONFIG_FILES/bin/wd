@@ -98,12 +98,12 @@ my $USAGE = "Usage:
     r Restart       =
     b start/Begin   =
     e stop/End      =
-    x eXecute/shell = [ARG ARG ..]
     a Activate      =
-    o Obb           =
-    i Install       = APK_PREFIX
+    x eXecute/shell = [ARG ARG ..]
     w Wait          =
     l Launch        = APK_PREFIX
+    i Install       = APK_PREFIX
+    o Obb           =
 ";
 
 my $CMD_RESTART = "restart";
