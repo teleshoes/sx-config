@@ -90,6 +90,8 @@
 
 ./install-rpms
 
+./install-aapt
+
 ./install-yt-dlp
 
 #TODO: move these files out of config-files and into setup-android or something
