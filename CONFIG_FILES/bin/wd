@@ -158,26 +158,26 @@ sub main(@){
       $cmd = $CMD_LAUNCH;
       $apkPrefix = $1;
     }elsif($arg =~ /^(launch|--launch|-l|l)$/){
-      $cmd = $CMD_LAUNCH;
+      die "ERROR: missing APK_PREFIX\n" if @_ < 1;
+      $apkPrefix = $1;
     }elsif($arg =~ /^--install=(.+)$/){
       $cmd = $CMD_INSTALL;
       $apkPrefix = $1;
     }elsif($arg =~ /^(--install|install|-i|i)$/){
       $cmd = $CMD_INSTALL;
+      if(@_ > 0){
+        $apkPrefix = shift;
+      }else{
+        $apkPrefix = "";
+      }
     }elsif($arg =~ /^(obb|--obb|-o|o)$/){
       $cmd = $CMD_OBB;
-    }elsif(getApksForPrefix($arg) > 0){
-      $apkPrefix = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
 
   die "ERROR: missing command\n" if not defined $cmd;
-
-  if(defined $apkPrefix and $cmd !~ /^($CMD_LAUNCH|$CMD_INSTALL)$/){
-    die "ERROR: APK_PREFIX '$apkPrefix' cannot be specified for command=$cmd\n";
-  }
 
   if($cmd eq $CMD_RESTART){
     stop();
