@@ -297,11 +297,15 @@ sub writeRemoteConfigLines($@){
   my $iniFile = "$androidStorageDir/.cr3/$CR3_INI_FILE";
   my $iniDir = "$androidStorageDir/.cr3";
 
-  run "ipmagic", $IPMAGIC_NAME, "
-    sudo mkdir -p $iniDir
-    sudo chown $USER.$USER $iniDir
+  run "scp", $tmpFile, "$USER\@$host:$tmpFile";
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+    mkdir -p $iniDir
+    cp -a $tmpFile $iniFile
+    uidgid=`stat -c %u.%g $androidStorageDir`
+    chown -R \\\$uidgid $iniDir
+    rm $tmpFile
   ";
-  run "scp", $tmpFile, "$USER\@$host:$iniFile";
 
   run "rm", $tmpFile;
 }
