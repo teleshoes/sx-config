@@ -21,6 +21,9 @@ my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
 
 my $UI_READY_LOGCAT_LINE = "TELLING SURFACE FLINGER WE ARE BOOTED";
 
+my @TEST_SHELL_CMD = qw(getprop ro.product.odm.brand);
+my $TEST_SHELL_OUTPUT_REGEX = "waydroid";
+
 my $USAGE = "Usage:
   $EXEC -h|--help|-h|-h
     show this message
@@ -246,8 +249,8 @@ sub ensureShell(){
 }
 
 sub isShellUp(){
-  my $out = waydroidShell("getprop", "ro.product.odm.brand");
-  if($out =~ /waydroid/){
+  my $out = waydroidShell(@TEST_SHELL_CMD);
+  if($out =~ /$TEST_SHELL_OUTPUT_REGEX/){
     return 1;
   }else{
     return 0;
