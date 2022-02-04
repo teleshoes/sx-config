@@ -22,36 +22,39 @@ my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
 my $UI_READY_LOGCAT_LINE = "TELLING SURFACE FLINGER WE ARE BOOTED";
 
 my $USAGE = "Usage:
-  $EXEC -h | --help
+  $EXEC -h|--help|-h|-h
     show this message
 
-  $EXEC restart|--restart|r
+  $EXEC restart|--restart|-r|r
     same as: $EXEC stop ; $EXEC start
 
-  $EXEC start|--start|begin|--begin|b
+  $EXEC start|--start|begin|--begin|-b|b
     start waydroid
       -start container
       -run waydroid-runner
 
-  $EXEC stop|--stop|end|--end|e
+  $EXEC stop|--stop|end|--end|-e|e
     stop waydroid
       -stop session
       -stop container
       -kill waydroid-sensord
 
-  $EXEC --activate
+  $EXEC activate|--activate|-a|a
     use invoker to switch lipstick window to waydroid-runner window
 
-  $EXEC shell
+  $EXEC shell|--shell|-x|x
     same as: sudo waydroid shell
 
-  $EXEC shell ARG [ARG ARG...]
+  $EXEC shell|--shell|-x|x ARG [ARG ARG...]
     create CMD_FILE=$WD_CMD_FILE_PREFIX-<MILLIS>
     write 'ARG ARG ARG...' to <CMD_FILE>
     run: sudo waydroid shell <CMD_FILE>
     remove <CMD_FILE>
 
-  $EXEC launch APK_PREFIX
+  $EXEC launch|--launch|-l|l APK_PREFIX
+    same as: $EXEC --launch=APK_PREFIX
+
+  $EXEC --launch=APK_PREFIX
     get INTENT
       get APK_FILE=$APK_DIR/<APK_PREFIX>*.apk
         must match exactly one APK_FILE
@@ -67,20 +70,20 @@ my $USAGE = "Usage:
 
     run: $EXEC shell am start <INTENT>
 
-  $EXEC [APK_PREFIX]
-  $EXEC install|--install|app|--app|--apk|--apk|apps|--apps|apks|--apks APK_PREFIX
+  $EXEC APK_PREFIX
+  $EXEC install|--install|-i|i APK_PREFIX
     same as: $EXEC --install=<APK_PREFIX>
     ($APK_DIR/<APK_PREFIX>*.apk must match one or more apks)
 
-  $EXEC --install|install|app|--app|apps|--apps|apk|apks
+  $EXEC --install|install|-i|i
     same as: $EXEC --install=''
     (matches all available APKs)
 
-  $EXEC --install=APK_PREFIX|--app=APK_PREFIX|--apk=APK_PREFIX
+  $EXEC --install=APK_PREFIX
     run 'sudo waydroid app install $APK_DIR/<APK_PREFIX>*.apk'
     (if APK_PREFIX is empty, glob matches all available APKs)
 
-  $EXEC obb | --obb
+  $EXEC obb|--obb|-o|o
     sync $SRC_OBB_DIR/ to $DEST_OBB_DIR/
 ";
 
@@ -114,41 +117,48 @@ sub main(@){
   my @shellArgs;
   while(@_ > 0){
     my $arg = shift @_;
-    if($arg =~ /^(-h|--help)$/){
+    if($arg =~ /^(-h|--help|-h|h)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(restart|--restart|r)$/){
+    }elsif($arg =~ /^(restart|--restart|-r|r)$/){
       $cmd = $CMD_RESTART;
-    }elsif($arg =~ /^(start|--start|begin|--begin|b)$/){
+    }elsif($arg =~ /^(start|--start|begin|--begin|-b|b)$/){
       $cmd = $CMD_START;
-    }elsif($arg =~ /^(stop|--stop|end|--end|e)$/){
+    }elsif($arg =~ /^(stop|--stop|end|--end|-e|e)$/){
       $cmd = $CMD_STOP;
-    }elsif($arg =~ /^(--activate)$/){
+    }elsif($arg =~ /^(--activate|-a|a)$/){
       $cmd = $CMD_ACTIVATE;
-    }elsif($arg =~ /^(shell)$/){
+    }elsif($arg =~ /^(shell|--shell|-x|x)$/){
       $cmd = $CMD_SHELL;
       @shellArgs = @_;
       @_ = ();
-    }elsif($arg =~ /^(launch)$/){
+    }elsif($arg =~ /^--launch=(.+)$/){
       $cmd = $CMD_LAUNCH;
-    }elsif($arg =~ /^(?:--install|--app|--apk)=(.+)$/){
+      $apkPrefix = $1;
+    }elsif($arg =~ /^(launch|--launch|-l|l)$/){
+      $cmd = $CMD_LAUNCH;
+    }elsif($arg =~ /^--install=(.+)$/){
       $cmd = $CMD_INSTALL;
       $apkPrefix = $1;
-    }elsif($arg =~ /^(?:--install|install|--apps?|apps?|--apks?|apks?)$/){
+    }elsif($arg =~ /^(--install|install|-i|i)$/){
       $cmd = $CMD_INSTALL;
-    }elsif(getApksForPrefix($arg) > 0 and (not defined $cmd or $cmd =~ /$CMD_INSTALL|$CMD_LAUNCH/)){
+    }elsif($arg =~ /^(obb|--obb|-o|o)$/){
+      $cmd = $CMD_OBB;
+    }elsif(getApksForPrefix($arg) > 0){
       if(not defined $cmd){
         $cmd = $CMD_INSTALL;
       }
       $apkPrefix = $arg;
-    }elsif($arg =~ /^(obb|--obb)$/){
-      $cmd = $CMD_OBB;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
 
   die "ERROR: missing command\n" if not defined $cmd;
+
+  if(defined $apkPrefix and $cmd !~ /^($CMD_LAUNCH|$CMD_INSTALL)$/){
+    die "ERROR: APK_PREFIX '$apkPrefix' cannot be specified for command=$cmd\n";
+  }
 
   if($cmd eq $CMD_RESTART){
     stop();
