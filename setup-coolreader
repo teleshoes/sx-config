@@ -260,7 +260,7 @@ sub getResMinDimension(){
 
 sub getAndroidStorageDir(){
   print "fetching $IPMAGIC_NAME config file remote dir\n";
-  my @lines = `ipmagic $IPMAGIC_NAME ls -d @ANDROID_STORAGE_DIRS 2>/dev/null`;
+  my @lines = `ipmagic $IPMAGIC_NAME ls -d --sort=none @ANDROID_STORAGE_DIRS 2>/dev/null`;
   for my $line(@lines){
     for my $dir(@ANDROID_STORAGE_DIRS){
       if($line =~ /^$dir\/?$/){
