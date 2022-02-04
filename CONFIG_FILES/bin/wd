@@ -14,7 +14,7 @@ my $USER_DIR = "/home/$USER/.local/share/waydroid";
 
 my $WAYDROID_RUNNER_DESKTOP_FILE = "/usr/share/applications/waydroid-runner.desktop";
 
-my $WD_CMD_FILE_PREFIX = "$USER_DIR/data/data/wd-cmd";;
+my $WD_CMD_FILE_PREFIX = "$USER_DIR/data/data/wd-cmd";
 
 my $SESSION_DELAY_MILLIS = 1000;
 my $ENSURE_SESSION_TIMEOUT_MILLIS = 15000;
