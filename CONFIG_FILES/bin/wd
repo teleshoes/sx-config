@@ -130,6 +130,7 @@ sub isShellUp();
 sub waitForLogcatLine($);
 sub ensureRunning();
 sub isSessionRunning();
+sub isUIWindowOpen();
 sub activateWaydroidWindow();
 sub start();
 sub stop();
@@ -229,6 +230,9 @@ sub main(@){
       die "ERROR: launch cmd requires APK_PREFIX or LAUNCH_INTENT\n";
     }
 
+    if(not isUIWindowOpen()){
+      stop();
+    }
     if(not isSessionRunning()){
       ensureRunning();
       waitForLogcatLine($UI_READY_LOGCAT_LINE);
@@ -326,6 +330,11 @@ sub isSessionRunning(){
   }else{
     return 0;
   }
+}
+
+sub isUIWindowOpen(){
+  run "pgrep", "-fl", "waydroid-runner";
+  return $? == 0 ? 1 : 0;
 }
 
 sub activateWaydroidWindow(){
