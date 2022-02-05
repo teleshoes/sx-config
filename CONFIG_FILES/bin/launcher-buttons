@@ -5,6 +5,7 @@ use File::Basename;
 
 my $ipmagicName = "sx";
 
+my $USE_WAYDROID = 1;
 my $USE_ALIENDALVIK = 0;
 
 my @config = qw(
