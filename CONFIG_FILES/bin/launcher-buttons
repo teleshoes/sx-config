@@ -15,14 +15,14 @@ my @config = qw(
   sailfish-browser
 
   qtbtn-klomp
-  unplayer
+  bromite
   jolla-camera
   jolla-settings
 
   harbour-pure-maps
   modrana
   gpsinfo
-  waydroid-wd
+  coolreader
 
   stellarium
   jolla-clock
@@ -32,16 +32,16 @@ my @config = qw(
   jolla-calculator
   qtbtn-lap
   jolla-calendar
-  meecast
+  waydroid-wd
 
   jolla-gallery
-  jolla-mediaplayer
+  unplayer
   filetug
   screentapshot2
 
-  storeman
-  store-client
-  sailfishos-chum-gui
+  facebook-lite
+  google-maps
+  riot
   harbour-advanced-camera
 
 
@@ -68,29 +68,36 @@ my @config = qw(
 
   mimer
   waydroid-runner
+  jolla-mediaplayer
+  meecast
 
+  storeman
+  store-client
+  sailfishos-chum-gui
   aptoide
-  bromite
-  chrome
-  coolreader
-  discord
-  facebook-lite
-  fairynest
-  fbmessenger-lite
+
   fdroid
-  jitsi
   kingdom
-  midea
-  mtaetix
-  mystrom
   nesoid
-  google-maps
-  riot
   snes9xex
+
+
+
+  chrome
+  tor
+  discord
+  fbmessenger-lite
+
+  fairynest
+  midea
+  mystrom
+  jitsi
+
   textfree
   tkts
+  mtaetix
   traintime
-  tor
+
   vlc
   youtube-vanced
 );
