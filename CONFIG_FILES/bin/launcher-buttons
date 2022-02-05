@@ -77,6 +77,7 @@ my @unused = qw(
   sailfish-archive
   sailfish-installationhandler
   jolla-aptoide
+  mystrom
   openconnect-import
   sailfish-captiveportal
   vpnc-import
@@ -120,6 +121,7 @@ my %replacementRegexsApkd = (
   'nesoid'           => qw/^apkd_launcher_com_androidemu_nes-com_androidemu_nes_MainActivity$/,
   'snes9x'           => qw/^apkd_launcher_com_explusalpha_Snes9x-com_imagine_BaseActivity$/,
   'mta-etix'         => qw/^apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity$/,
+  'mystrom'          => qw/^apkd_launcher_com_cogniance_asoka_srs_android-com_cogniance_asoka_srs_android_MainActivity.desktop$/,
   'lirr-traintime'   => qw/^apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity$/,
   'riot'             => qw/^apkd_launcher_im_vector.*VectorLauncherActivity$/,
   'textfree'         => qw/^apkd_launcher_com_pinger_textfree-com_pinger_textfree_call_activities_TFSplash$/,
@@ -139,7 +141,6 @@ my %replacementRegexs = (
 #desktop files with no launchers
 my @extraIncludePatterns = qw(
   apkd-mime-handler.desktop
-  apkd_launcher_com_cogniance_asoka_srs_android-com_cogniance_asoka_srs_android_MainActivity.desktop
   csd.desktop
   harbour-pure-maps-uri-handler
   jolla-calendar-import.desktop
