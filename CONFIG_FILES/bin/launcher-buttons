@@ -109,6 +109,8 @@ my %waydroidLaunchers = (
 
 
 
+# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
+my %replacementRegexsWaydroid = map {$_ => "^wd-$_\$"} sort keys %waydroidLaunchers;
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %replacementRegexsApkd = (
@@ -143,6 +145,7 @@ my %replacementRegexsApkd = (
 my %replacementRegexs = (
   'lirrgui'          => qw/^lirrtraintime$/,
 
+  ($USE_WAYDROID ? %replacementRegexsWaydroid : ()),
   ($USE_ALIENDALVIK ? %replacementRegexsApkd : ()),
 );
 
