@@ -229,6 +229,9 @@ my $allDir = '/opt/app-launchers';
 my $directoryFileDir = "/home/$user/.config/lipstick";
 my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
+my $waydroidSrcAppIconDir = "/home/waydroid/data/icons";
+my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
+
 sub rearrangeLauncherButtons();
 sub createWaydroidDesktopFiles();
 sub ensureExecScriptOnDevice(@);
@@ -339,10 +342,16 @@ sub createWaydroidDesktopFiles(){
   run "rm -f $activeDir/wd-*.desktop";
   run "rm -f $allDir/wd-*.desktop";
 
+  run "mkdir", "-p", $waydroidDestAppIconDir;
+  run "rsync", "-avP",
+    "$waydroidSrcAppIconDir/",
+    "$waydroidDestAppIconDir/",
+    ;
+
   for my $appName(sort keys %waydroidLaunchers){
     my ($pkg, $intent, $iconPath) = @{$waydroidLaunchers{$appName}};
     if(not defined $iconPath){
-      $iconPath = "/home/waydroid/data/icons/$pkg.png";
+      $iconPath = "$waydroidDestAppIconDir/$pkg.png";
     }
     my $fullIntent = defined $intent ? "$pkg/$intent" : $pkg;
     my $desktopContents = ""
