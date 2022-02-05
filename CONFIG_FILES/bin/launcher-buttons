@@ -96,14 +96,11 @@ my @config = qw(
 );
 
 my @unused = qw(
-  fbmessenger-lite
   jolla-email
   sailfish-weather
   sailfish-tutorial
   sailfish-archive
   sailfish-installationhandler
-  jolla-aptoide
-  mystrom
   openconnect-import
   sailfish-captiveportal
   vpnc-import
