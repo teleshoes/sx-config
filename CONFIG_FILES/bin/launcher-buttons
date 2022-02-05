@@ -102,6 +102,13 @@ my @unused = qw(
 ########################################################
 
 
+# APP_NAME => [PACKAGE, INTENT, ICON_PATH]
+# if USE_WAYDROID, these get created as "/usr/shared/applications/wd-<APP_NAME>.desktop"
+my %waydroidLaunchers = (
+);
+
+
+
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %replacementRegexsApkd = (
@@ -174,6 +181,7 @@ my $directoryFileDir = "/home/$user/.config/lipstick";
 my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
 sub rearrangeLauncherButtons();
+sub createWaydroidDesktopFiles();
 sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
@@ -232,6 +240,10 @@ sub main(@){
 }
 
 sub rearrangeLauncherButtons(){
+  if($USE_WAYDROID){
+    createWaydroidDesktopFiles();
+  }
+
   my @validAppNames = getValidAppNames();
 
   my @configItems = @config;
@@ -272,6 +284,33 @@ sub rearrangeLauncherButtons(){
 
   print "\n\nMISSING (not installed): @missing\n" if @missing > 0;
   print "\n\nREMOVED (newly installed): @removedNew\n" if @removedNew > 0;
+}
+
+sub createWaydroidDesktopFiles(){
+  run "rm -f $activeDir/wd-*.desktop";
+  run "rm -f $allDir/wd-*.desktop";
+
+  for my $appName(sort keys %waydroidLaunchers){
+    my ($pkg, $intent, $iconPath) = @{$waydroidLaunchers{$appName}};
+    if(not defined $iconPath){
+      $iconPath = "/home/waydroid/data/icons/$pkg.png";
+    }
+    my $fullIntent = defined $intent ? "$pkg/$intent" : $pkg;
+    my $desktopContents = ""
+      . "[Desktop Entry]\n"
+      . "Name=$appName\n"
+      . "Comment=Run $fullIntent in waydroid\n"
+      . "Icon=$iconPath\n"
+      . "Exec=/usr/local/bin/udo wd --launch-intent='$fullIntent'\n"
+      . "Type=Application\n"
+      . "X-Nemo-Single-Instance=no\n"
+      . "Custom-Launcher=yes\n"
+      ;
+    my $desktopFile = "$activeDir/wd-$appName.desktop";
+    open FH, "> $desktopFile" or die "ERROR: cannot write $desktopFile\n$!\n";
+    print FH $desktopContents;
+    close FH;
+  }
 }
 
 sub ensureExecScriptOnDevice(@){
