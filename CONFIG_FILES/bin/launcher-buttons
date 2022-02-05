@@ -5,6 +5,8 @@ use File::Basename;
 
 my $ipmagicName = "sx";
 
+my $USE_ALIENDALVIK = 0;
+
 my @config = qw(
   voicecall-ui
   jolla-messages
@@ -97,7 +99,10 @@ my @unused = qw(
 #  appname6-launcher
 ########################################################
 
-my %replacementRegexs = (
+
+
+# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
+my %replacementRegexsApkd = (
   'aptoide'          => qw/^apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity$/,
   'jolla-aptoide'    => qw/^apkd_launcher_com_aptoide_partners-com_aptoide_partners_Start$/,
   'bromite'          => qw/^apkd_launcher_org_bromite_bromite-org_chromium_chrome_browser_document_ChromeLauncherActivity$/,
@@ -116,13 +121,19 @@ my %replacementRegexs = (
   'snes9x'           => qw/^apkd_launcher_com_explusalpha_Snes9x-com_imagine_BaseActivity$/,
   'mta-etix'         => qw/^apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity$/,
   'lirr-traintime'   => qw/^apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity$/,
-  'lirrgui'          => qw/^lirrtraintime$/,
   'riot'             => qw/^apkd_launcher_im_vector.*VectorLauncherActivity$/,
   'textfree'         => qw/^apkd_launcher_com_pinger_textfree-com_pinger_textfree_call_activities_TFSplash$/,
   'tkts'             => qw/^apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity$/,
   'torbrowser'       => qw/^apkd_launcher_org_torproject_torbrowser-org_mozilla_gecko_LauncherActivity$/,
   'vlc'              => qw/^apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity$/,
   'youtube-vanced'   => qw/^apkd_launcher_com_bvanced_.*$/,
+);
+
+# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
+my %replacementRegexs = (
+  'lirrgui'          => qw/^lirrtraintime$/,
+
+  ($USE_ALIENDALVIK ? %replacementRegexsApkd : ()),
 );
 
 #desktop files with no launchers
