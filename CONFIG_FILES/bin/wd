@@ -42,6 +42,16 @@ my $USAGE = "Usage:
       -stop container
       -kill waydroid-sensord
 
+  $EXEC --port-forward|port|--port|-p|p
+    get ANDROID_IP (e.g.: 192.168.250.112) as in:
+      $EXEC shell ip -4 addr show eth0 \\
+        | grep inet \\
+        | sed 's/^ *inet *//' \\
+        | sed 's/ .*$//' \\
+        | sed 's/\/24$//'
+    forward port 5555 localhost => ANDROID_IP as in:
+      ssh -t -t -R 5555:<ANDROID_IP>:5555 localhost
+
   $EXEC activate|--activate|-a|a
     use invoker to switch lipstick window to waydroid-runner window
 
@@ -106,6 +116,7 @@ my $USAGE = "Usage:
     r Restart       =
     b start/Begin   =
     e stop/End      =
+    p Port-forward  =
     a Activate      =
     x eXecute/shell = [ARG ARG ..]
     w Wait          =
@@ -117,6 +128,7 @@ my $USAGE = "Usage:
 my $CMD_RESTART = "restart";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
+my $CMD_PORT_FORWARD = "port-forward";
 my $CMD_ACTIVATE = "activate";
 my $CMD_SHELL = "shell";
 my $CMD_WAIT_UI = "wait-ui";
@@ -156,6 +168,8 @@ sub main(@){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(stop|--stop|end|--end|-e|e)$/){
       $cmd = $CMD_STOP;
+    }elsif($arg =~ /^(--port-forward|port|--port|-p|p)$/){
+      $cmd = $CMD_PORT_FORWARD;
     }elsif($arg =~ /^(--activate|-a|a)$/){
       $cmd = $CMD_ACTIVATE;
     }elsif($arg =~ /^(shell|--shell|-x|x)$/){
@@ -213,6 +227,9 @@ sub main(@){
     start();
   }elsif($cmd eq $CMD_STOP){
     stop();
+  }elsif($cmd eq $CMD_PORT_FORWARD){
+    my $androidIP = getAndroidIP();
+    exec "ssh", "-t", "-t", "-R", "5555:$androidIP:5555", "localhost";
   }elsif($cmd eq $CMD_ACTIVATE){
     activateWaydroidWindow();
   }elsif($cmd eq $CMD_SHELL){
@@ -280,6 +297,16 @@ sub waydroidShell(@){
     runQuiet "sudo", "rm", $cmdFile;
     runQuiet "sudo", "rm", $outFile;
     return $out;
+  }
+}
+
+sub getAndroidIP(){
+  my $out = waydroidShell("ip -4 addr show eth0");
+  print "\n";
+  if($out =~ /^\s*inet\s+(\d+\.\d+\.\d+\.\d+)(?:\/24)?\s*/m){
+    return $1;
+  }else{
+    die "ERROR: could not get android ip with ip -4 addr show eth0\n";
   }
 }
 
