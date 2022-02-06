@@ -2,7 +2,10 @@ IPMAGIC_NAME="sx"
 USER="nemo"
 HOST=$(ipmagic $IPMAGIC_NAME)
 
-ipmagic $IPMAGIC_NAME -s 'su -c "echo PermitRootLogin yes >> /etc/ssh/sshd_config"'
+ipmagic $IPMAGIC_NAME -s 'su -c "
+  sed -i \"s/^\s*#*\s*PermitRootLogin\s.*/PermitRootLogin yes/\" /etc/ssh/sshd_config;
+"'
+
 ipmagic $IPMAGIC_NAME -s 'su -c "systemctl restart sshd"'
 
 sleep 3
