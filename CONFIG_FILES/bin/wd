@@ -35,6 +35,7 @@ my $USAGE = "Usage:
     start waydroid
       -start container in screen-daemon session
       -run waydroid-runner in screen-daemon session
+      -run `$EXEC --port-forward` in screen-daemon session
 
   $EXEC stop|--stop|end|--end|-e|e
     stop waydroid
@@ -376,6 +377,7 @@ sub start(){
   run qw(sudo chmod 777 /var/lib/waydroid/);
   run qw(udo screen-daemon waydroid-container --start 0 0 sudo waydroid container start);
   run qw(udo screen-daemon waydroid-runner --start 0 0 waydroid-runner);
+  run qw(udo screen-daemon waydroid-port-forward --start 0 0 wd --port-forward);
 }
 sub stop(){
   run qw(sudo waydroid session stop);
