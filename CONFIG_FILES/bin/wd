@@ -33,8 +33,8 @@ my $USAGE = "Usage:
 
   $EXEC start|--start|begin|--begin|-b|b
     start waydroid
-      -start container
-      -run waydroid-runner
+      -start container in screen-daemon session
+      -run waydroid-runner in screen-daemon session
 
   $EXEC stop|--stop|end|--end|-e|e
     stop waydroid
