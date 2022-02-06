@@ -43,6 +43,8 @@ my $USAGE = "Usage:
       -kill waydroid-sensord
 
   $EXEC --port-forward|port|--port|-p|p
+    wait for shell+UI as in:
+      $EXEC --wait-ui
     get ANDROID_IP (e.g.: 192.168.250.112) as in:
       $EXEC shell ip -4 addr show eth0 \\
         | grep inet \\
@@ -228,6 +230,7 @@ sub main(@){
   }elsif($cmd eq $CMD_STOP){
     stop();
   }elsif($cmd eq $CMD_PORT_FORWARD){
+    waitForLogcatLine($UI_READY_LOGCAT_LINE);
     my $androidIP = getAndroidIP();
     exec "ssh", "-t", "-t", "-R", "5555:$androidIP:5555", "localhost";
   }elsif($cmd eq $CMD_ACTIVATE){
