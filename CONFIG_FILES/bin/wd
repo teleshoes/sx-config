@@ -326,6 +326,7 @@ sub ensureShell(){
 
 sub isShellUp(){
   my $out = waydroidShell(@TEST_SHELL_CMD);
+  print "\n";
   if($out =~ /$TEST_SHELL_OUTPUT_REGEX/){
     return 1;
   }else{
