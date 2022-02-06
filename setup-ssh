@@ -4,6 +4,7 @@ HOST=$(ipmagic $IPMAGIC_NAME)
 
 ipmagic $IPMAGIC_NAME -s 'su -c "
   sed -i \"s/^\s*#*\s*PermitRootLogin\s.*/PermitRootLogin yes/\" /etc/ssh/sshd_config;
+  sed -i \"s/^\s*#*\s*GatewayPorts\s.*/GatewayPorts yes/\" /etc/ssh/sshd_config;
   systemctl restart sshd;
 "'
 
