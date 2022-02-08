@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+my $TTS_PROC = "com.google.android.tts";
+my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
+my @COOLREADER_TOGGLE_CMD = qw(wd shell am broadcast -a org.coolreader.tts.tts_play_pause);
+
+my $USAGE = "Usage:
+  $EXEC -g|--get
+    if `pgrep $TTS_PROC` is successful:
+      print \"coolreader\"
+    else:
+      print \"klomp\"
+
+  $EXEC -p|--play-pause|--play|--pause
+    if `$EXEC --is-cool-reader` prints \"coolreader\":
+      if `profile` == general:
+        run: @COOLREADER_TOGGLE_CMD
+      else:
+        run: sudo pkill -9 -f $TTS_PROC
+    else:
+      run: @KLOMP_TOGGLE_CMD
+";
+
+my $CMD_GET = "get";
+my $CMD_PLAY_PAUSE = "play-pause";
+
+sub isCoolreader();
+sub isProfileGeneral();
+
+sub main(@){
+  my $cmd = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|--get)$/){
+      $cmd = $CMD_GET;
+    }elsif($arg =~ /^(-p|--play-pause|--play|--pause)$/){
+      $cmd = $CMD_PLAY_PAUSE;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  die "$USAGE\nERROR: missing command\n" if not defined $cmd;
+
+  if($cmd eq $CMD_GET){
+    if(isCoolreader()){
+      print "coolreader\n";
+    }else{
+      print "klomp\n";
+    }
+  }elsif($cmd eq $CMD_PLAY_PAUSE){
+    if(isCoolreader()){
+      if(isProfileGeneral()){
+        system @COOLREADER_TOGGLE_CMD;
+      }else{
+        system "sudo", "pkill", "-9", "-f", $TTS_PROC;
+      }
+    }else{
+      system @KLOMP_TOGGLE_CMD;
+    }
+  }else{
+    die "ERROR: unknown command $cmd\n";
+  }
+}
+
+sub isCoolreader(){
+  system "pgrep $TTS_PROC >/dev/null 2>/dev/null";
+  return $? == 0 ? 1 : 0;
+}
+
+sub isProfileGeneral(){
+  my $profile = `profile`;
+  chomp $profile;
+  return $profile =~ /^general$/ ? 1 : 0;
+}
+
+&main(@ARGV);
