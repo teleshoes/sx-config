@@ -158,6 +158,7 @@ my $CMD_LAUNCH = "launch";
 my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
 
+sub ensureAndroidFullyUp();
 sub waydroidShell(@);
 sub ensureShell();
 sub isShellUp();
@@ -270,13 +271,7 @@ sub main(@){
       die "ERROR: launch cmd requires APK_ARG or LAUNCH_INTENT\n";
     }
 
-    if(not isUIWindowOpen()){
-      stop();
-    }
-    if(not isSessionRunning()){
-      ensureRunning();
-      waitForLogcatLine($UI_READY_LOGCAT_LINE);
-    }
+    ensureAndroidFullyUp();
     activateWaydroidWindow();
 
     waydroidShell("am", "start", $intent);
@@ -294,6 +289,16 @@ sub main(@){
     run "sudo", "rsync", "-avP", "$SRC_OBB_DIR/", "$DEST_OBB_DIR/";
   }else{
     die "ERROR: unknown command: $cmd\n";
+  }
+}
+
+sub ensureAndroidFullyUp(){
+  if(not isUIWindowOpen()){
+    stop();
+  }
+  if(not isSessionRunning()){
+    ensureRunning();
+    waitForLogcatLine($UI_READY_LOGCAT_LINE);
   }
 }
 
