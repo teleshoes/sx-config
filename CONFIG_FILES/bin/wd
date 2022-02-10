@@ -384,8 +384,13 @@ sub isSessionRunning(){
 }
 
 sub isUIWindowOpen(){
-  run "pgrep", "-fl", "waydroid-runner";
-  return $? == 0 ? 1 : 0;
+  my $pid = `pgrep waydroid-runner`;
+  my $exitCode = $?;
+  if($exitCode == 0 and $pid =~ /^\d+$/){
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
 sub activateWaydroidWindow(){
