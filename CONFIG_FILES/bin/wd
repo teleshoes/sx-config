@@ -94,6 +94,8 @@ my $USAGE = "Usage:
   $EXEC --launch-apk=APK_ARG
     get <INTENT>:
       get <APK_FILE>:
+        if <APK_ARG> is an asbolute or relative file:
+          APK_FILE=<APK_ARG>
         if $APK_DIR/<APK_ARG> is a file:
           APK_FILE=$APK_DIR/<APK_ARG>
         otherwise:
@@ -119,6 +121,8 @@ my $USAGE = "Usage:
 
   $EXEC --install=APK_ARG
     get <APK_FILE_LIST>:
+      if <APK_ARG> is an asbolute or relative file:
+        APK_FILE_LIST=<APK_ARG>
       if $APK_DIR/<APK_ARG> is a file:
         APK_FILE_LIST=$APK_DIR/<APK_ARG>
       otherwise:
@@ -429,6 +433,9 @@ sub getIntentForMatchingApk($){
 sub getMatchingApks($){
   my ($apkArg) = @_;
   $apkArg = "" if not defined $apkArg;
+  if(-f $apkArg){
+    return $apkArg;
+  }
   if(-f "$APK_DIR/$apkArg"){
     return "$APK_DIR/$apkArg";
   }
