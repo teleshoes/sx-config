@@ -91,11 +91,16 @@ my $USAGE = "Usage:
     otherwise:
       run: $EXEC --launch-intent=<LAUNCH_ARG>
 
-  $EXEC --launch-apk=APK_PREFIX
-    get INTENT
-      get APK_FILE=$APK_DIR/<APK_PREFIX>*.apk
-        must match exactly one APK_FILE
-      use apk-info/aapt to fetch INTENT=`apk-info --intent <APK_FILE>`
+  $EXEC --launch-apk=APK_ARG
+    get <INTENT>:
+      get <APK_FILE>:
+        if $APK_DIR/<APK_ARG> is a file:
+          APK_FILE=$APK_DIR/<APK_ARG>
+        otherwise:
+          APK_FILE=$APK_DIR/<APK_ARG>*.apk
+          (must match exactly one APK_FILE)
+      use apk-info/aapt to fetch:
+        INTENT=`apk-info --intent <APK_FILE>`
     same as: $EXEC --launch-intent=INTENT
 
   $EXEC --launch-intent=INTENT
@@ -105,17 +110,21 @@ my $USAGE = "Usage:
     use invoker to activate waydroid window
     run: $EXEC shell am start <INTENT>
 
-  $EXEC install|--install|-i|i APK_PREFIX
-    same as: $EXEC --install=<APK_PREFIX>
-    ($APK_DIR/<APK_PREFIX>*.apk must match one or more apks)
+  $EXEC install|--install|-i|i APK_ARG
+    same as: $EXEC --install=<APK_ARG>
 
   $EXEC --install|install|-i|i
     same as: $EXEC --install=''
     (matches all available APKs)
 
-  $EXEC --install=APK_PREFIX
-    run 'sudo waydroid app install $APK_DIR/<APK_PREFIX>*.apk'
-    (if APK_PREFIX is empty, glob matches all available APKs)
+  $EXEC --install=APK_ARG
+    get <APK_FILE_LIST>:
+      if $APK_DIR/<APK_ARG> is a file:
+        APK_FILE_LIST=$APK_DIR/<APK_ARG>
+      otherwise:
+        APK_FILE_LIST=$APK_DIR/<APK_ARG>*.apk
+        (if APK_ARG is empty, glob matches all available APKs)
+    run 'sudo waydroid app install <APK_FILE_LIST>'
 
   $EXEC obb|--obb|-o|o
     sync $SRC_OBB_DIR/ to $DEST_OBB_DIR/
@@ -129,8 +138,8 @@ my $USAGE = "Usage:
     a Activate      =
     x eXecute/shell = [ARG ARG ..]
     w Wait-ui       =
-    l Launch        = APK_PREFIX | INTENT
-    i Install       = APK_PREFIX
+    l Launch        = APK_ARG | INTENT
+    i Install       = APK_ARG
     o Obb           =
 ";
 
@@ -155,15 +164,15 @@ sub isUIWindowOpen();
 sub activateWaydroidWindow();
 sub start();
 sub stop();
-sub getIntentForApkPrefix($);
-sub getApksForPrefix($);
+sub getIntentForMatchingApk($);
+sub getMatchingApks($);
 sub nowMillis();
 sub run(@);
 sub runQuiet(@);
 
 sub main(@){
   my $cmd = undef;
-  my $apkPrefix;
+  my $apkArg;
   my $launchIntent;
   my @shellArgs;
   while(@_ > 0){
@@ -190,14 +199,14 @@ sub main(@){
     }elsif($arg =~ /^--launch=(.+)$/){
       $cmd = $CMD_LAUNCH;
       my $launchArg = $1;
-      if(getApksForPrefix($launchArg) == 1){
-        $apkPrefix = $launchArg;
+      if(getMatchingApks($launchArg) == 1){
+        $apkArg = $launchArg;
       }else{
         $launchIntent = $launchArg;
       }
     }elsif($arg =~ /^--launch-apk=(.+)$/){
       $cmd = $CMD_LAUNCH;
-      $apkPrefix = $1;
+      $apkArg = $1;
     }elsif($arg =~ /^--launch-intent=(.+)$/){
       $cmd = $CMD_LAUNCH;
       $launchIntent = $1;
@@ -205,20 +214,20 @@ sub main(@){
       die "ERROR: missing LAUNCH_ARG\n" if @_ < 1;
       $cmd = $CMD_LAUNCH;
       my $launchArg = shift;
-      if(getApksForPrefix($launchArg) == 1){
-        $apkPrefix = $launchArg;
+      if(getMatchingApks($launchArg) == 1){
+        $apkArg = $launchArg;
       }else{
         $launchIntent = $launchArg;
       }
     }elsif($arg =~ /^--install=(.+)$/){
       $cmd = $CMD_INSTALL;
-      $apkPrefix = $1;
+      $apkArg = $1;
     }elsif($arg =~ /^(install|--install|-i|i)$/){
       $cmd = $CMD_INSTALL;
       if(@_ > 0){
-        $apkPrefix = shift;
+        $apkArg = shift;
       }else{
-        $apkPrefix = "";
+        $apkArg = "";
       }
     }elsif($arg =~ /^(obb|--obb|-o|o)$/){
       $cmd = $CMD_OBB;
@@ -251,10 +260,10 @@ sub main(@){
     my $intent;
     if(defined $launchIntent){
       $intent = $launchIntent;
-    }elsif(defined $apkPrefix){
-      $intent = getIntentForApkPrefix($apkPrefix);
+    }elsif(defined $apkArg){
+      $intent = getIntentForMatchingApk($apkArg);
     }else{
-      die "ERROR: launch cmd requires APK_PREFIX or LAUNCH_INTENT\n";
+      die "ERROR: launch cmd requires APK_ARG or LAUNCH_INTENT\n";
     }
 
     if(not isUIWindowOpen()){
@@ -270,9 +279,9 @@ sub main(@){
     print "\n";
   }elsif($cmd eq $CMD_INSTALL){
     ensureRunning();
-    my @apks = getApksForPrefix($apkPrefix);
+    my @apks = getMatchingApks($apkArg);
     if(@apks == 0){
-      die "ERROR: no APKs match $APK_DIR/$apkPrefix*.apk\n";
+      die "ERROR: no APKs found for '$apkArg'\n";
     }
     for my $apk(@apks){
       run "sudo", "waydroid", "app", "install", $apk;
@@ -398,13 +407,13 @@ sub stop(){
   run qw(sudo systemctl restart dbus-org.nemomobile.provisioning);
 }
 
-sub getIntentForApkPrefix($){
-  my ($apkPrefix) = @_;
-  my @apks = getApksForPrefix($apkPrefix);
+sub getIntentForMatchingApk($){
+  my ($apkArg) = @_;
+  my @apks = getMatchingApks($apkArg);
   if(@apks == 0){
-    die "ERROR: no APKs match $APK_DIR/$apkPrefix*.apk\n";
+    die "ERROR: no APKs found for '$apkArg'\n";
   }elsif(@apks > 1){
-    die "ERROR: too many APKs match $APK_DIR/$apkPrefix*.apk\n";
+    die "ERROR: too many APKs match '$apkArg': @apks\n";
   }
   my $apk = $apks[0];
 
@@ -417,12 +426,14 @@ sub getIntentForApkPrefix($){
   return $intent;
 }
 
-sub getApksForPrefix($){
-  my ($prefix) = @_;
-  $prefix = "" if not defined $prefix;
-  $prefix =~ s/\.apk$//;
+sub getMatchingApks($){
+  my ($apkArg) = @_;
+  $apkArg = "" if not defined $apkArg;
+  if(-f "$APK_DIR/$apkArg"){
+    return "$APK_DIR/$apkArg";
+  }
 
-  my @files = grep {-f $_} glob "$APK_DIR/$prefix*.apk";
+  my @files = grep {-f $_} glob "$APK_DIR/$apkArg*.apk";
   return @files;
 }
 
