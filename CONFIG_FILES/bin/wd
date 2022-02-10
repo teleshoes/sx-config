@@ -25,25 +25,28 @@ my @TEST_SHELL_CMD = qw(getprop ro.product.odm.brand);
 my $TEST_SHELL_OUTPUT_REGEX = "waydroid";
 
 my $USAGE = "Usage:
-  $EXEC -h|--help|-h|-h
+  $EXEC help|--help|-h|h
     show this message
 
   $EXEC restart|--restart|-r|r
     same as: $EXEC stop ; $EXEC start
 
-  $EXEC start|--start|begin|--begin|-b|b
+  $EXEC start|--start
+  $EXEC begin|--begin|-b|b
     start waydroid
       -start container in screen-daemon session
       -run waydroid-runner in screen-daemon session
       -run `$EXEC --port-forward` in screen-daemon session
 
-  $EXEC stop|--stop|end|--end|-e|e
+  $EXEC stop|--stop
+  $EXEC end|--end|-e|e
     stop waydroid
       -stop session
       -stop container
       -kill waydroid-sensord
 
-  $EXEC --port-forward|port|--port|-p|p
+  $EXEC --port-forward
+  $EXEC port|--port|-p|p
     wait for shell+UI as in:
       $EXEC --wait-ui
     get ANDROID_IP (e.g.: 192.168.250.112) as in:
@@ -58,17 +61,20 @@ my $USAGE = "Usage:
   $EXEC activate|--activate|-a|a
     use invoker to switch lipstick window to waydroid-runner window
 
-  $EXEC shell|--shell|-x|x
+  $EXEC shell|--shell
+  $EXEC execute|--execute|-x|x
     run: sudo waydroid shell
 
-  $EXEC shell|--shell|-x|x ARG [ARG ARG...]
+  $EXEC shell|--shell ARG [ARG ARG...]
+  $EXEC execute|--execute|-x|x ARG [ARG ARG...]
     create CMD_FILE=$WD_CMD_FILE_PREFIX-<MILLIS>
     write 'ARG ARG ARG...' to <CMD_FILE>
     run: sudo waydroid shell <CMD_FILE> | tee <TMP_OUTFILE>
     remove <TMP_OUTFILE>
     remove <CMD_FILE>
 
-  $EXEC --wait-ui|wait|--wait|-w|w
+  $EXEC --wait-ui
+  $EXEC wait|--wait|-w|w
     wait until shell is available
       repeatedly run '@TEST_SHELL_CMD'
       until output matches '$TEST_SHELL_OUTPUT_REGEX'
@@ -122,7 +128,7 @@ my $USAGE = "Usage:
     p Port-forward  =
     a Activate      =
     x eXecute/shell = [ARG ARG ..]
-    w Wait          =
+    w Wait-ui       =
     l Launch        = APK_PREFIX | INTENT
     i Install       = APK_PREFIX
     o Obb           =
@@ -162,7 +168,7 @@ sub main(@){
   my @shellArgs;
   while(@_ > 0){
     my $arg = shift @_;
-    if($arg =~ /^(-h|--help|-h|h)$/){
+    if($arg =~ /^(help|--help|-h|h)$/){
       print $USAGE;
       exit 0;
     }elsif($arg =~ /^(restart|--restart|-r|r)$/){
@@ -173,9 +179,9 @@ sub main(@){
       $cmd = $CMD_STOP;
     }elsif($arg =~ /^(--port-forward|port|--port|-p|p)$/){
       $cmd = $CMD_PORT_FORWARD;
-    }elsif($arg =~ /^(--activate|-a|a)$/){
+    }elsif($arg =~ /^(activate|--activate|-a|a)$/){
       $cmd = $CMD_ACTIVATE;
-    }elsif($arg =~ /^(shell|--shell|-x|x)$/){
+    }elsif($arg =~ /^(shell|--shell|execute|--execute|-x|x)$/){
       $cmd = $CMD_SHELL;
       @shellArgs = @_;
       @_ = ();
@@ -207,7 +213,7 @@ sub main(@){
     }elsif($arg =~ /^--install=(.+)$/){
       $cmd = $CMD_INSTALL;
       $apkPrefix = $1;
-    }elsif($arg =~ /^(--install|install|-i|i)$/){
+    }elsif($arg =~ /^(install|--install|-i|i)$/){
       $cmd = $CMD_INSTALL;
       if(@_ > 0){
         $apkPrefix = shift;
