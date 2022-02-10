@@ -136,6 +136,14 @@ my $USAGE = "Usage:
   $EXEC obb|--obb|-o|o
     sync $SRC_OBB_DIR/ to $DEST_OBB_DIR/
 
+  $EXEC WAYDROID_ACTION [ARG ARG...]
+    run: `sudo waydroid WAYDROID_ACTION ARG ARG`
+
+    WAYDROID_ACTION
+      any waydroid 'action' (except 'shell', which is handled by \"$EXEC shell\")
+      i.e.: one of:
+        status log init upgrade session container app prop show-full-ui logcat
+
   synopsis:
     h Help          =
     r Restart       =
@@ -148,6 +156,7 @@ my $USAGE = "Usage:
     l Launch        = APK_ARG | INTENT
     i Install       = APK_ARG
     o Obb           =
+    WAYDROID_ACTION = [ARG ARG...]
 ";
 
 my $CMD_RESTART = "restart";
@@ -160,6 +169,7 @@ my $CMD_WAIT_UI = "wait-ui";
 my $CMD_LAUNCH = "launch";
 my $CMD_INSTALL = "install";
 my $CMD_OBB = "obb";
+my $CMD_WAYDROID_ACTION = "waydroid-action";
 
 sub ensureAndroidFullyUp();
 sub waydroidShell(@);
@@ -183,6 +193,7 @@ sub main(@){
   my $apkArg;
   my $launchIntent;
   my @shellArgs;
+  my @waydroidAction;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(help|--help|-h|h)$/){
@@ -239,6 +250,10 @@ sub main(@){
       }
     }elsif($arg =~ /^(obb|--obb|-o|o)$/){
       $cmd = $CMD_OBB;
+    }elsif($arg =~ /^(status|log|init|upgrade|session|container|app|prop|show-full-ui|logcat)$/){
+      $cmd = $CMD_WAYDROID_ACTION;
+      @waydroidAction = ($arg, @_);
+      @_ = ();
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -290,6 +305,8 @@ sub main(@){
     }
   }elsif($cmd eq $CMD_OBB){
     run "sudo", "rsync", "-avP", "$SRC_OBB_DIR/", "$DEST_OBB_DIR/";
+  }elsif($cmd eq $CMD_WAYDROID_ACTION){
+    run "sudo", "waydroid", @waydroidAction;
   }else{
     die "ERROR: unknown command: $cmd\n";
   }
