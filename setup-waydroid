@@ -50,15 +50,32 @@ sub main(@){
 sub applySettings(){
   print "applying settings\n";
 
+  my $getCmds = "";
   my $setCmds = "";
   for my $namespace(sort keys %$SETTINGS){
     for my $key(sort keys %{$$SETTINGS{$namespace}}){
       my $val = $$SETTINGS{$namespace}{$key};
+      $getCmds .= "echo -ne $namespace.$key=; settings get '$namespace' '$key';\n";
       $setCmds .= "settings put '$namespace' '$key' '$val';\n";
     }
   }
 
+  print "settings (before):\n";
+  my $before = `ipmagic $IPMAGIC_NAME "wd shell \\"$getCmds\\""`;
+  print "$before\n\n";
+
   run "ipmagic", $IPMAGIC_NAME, "wd shell \"$setCmds\"";
+  print "\n\n";
+
+  print "settings (after):\n";
+  my $after = `ipmagic $IPMAGIC_NAME "wd shell \\"$getCmds\\""`;
+  print "$after\n\n";
+
+  if($before eq $after){
+    print "NO CHANGE\n";
+  }else{
+    print "SETTINGS UPDATED\n";
+  }
 }
 
 sub setupJitsi(){
