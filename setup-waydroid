@@ -82,6 +82,16 @@ sub applySettings(){
 
 sub setupJitsi(){
   print "\nsetting up jitsi:\n";
+
+  print "starting jitsi..\n";
+  run "ipmagic", $IPMAGIC_NAME,
+    "wd", "--launch-intent=org.jitsi.meet/org.jitsi.meet.MainActivity";
+  print "waiting 2s\n";
+  sleep 2;
+  print "stopping jitsi..\n";
+  run "ipmagic", $IPMAGIC_NAME,
+    "wd", "shell", "am force-stop org.jitsi.meet";
+
   my $nowMillis = nowMillis();
   my $jitsiName = `jitsi-meet --name`;
   chomp $jitsiName;
