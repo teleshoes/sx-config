@@ -8,6 +8,8 @@ my $USER = "nemo";
 
 my $DATA_DIR = "/home/nemo/.local/share/waydroid/data";
 
+my $REMOTE_PROVIDERS_DB = "$DATA_DIR/data/com.android.providers.settings/databases/settings.db";
+
 my $JITSI_DB = "$DATA_DIR/data/org.jitsi.meet/databases/RKStorage";
 my $JITSI_DB_CONF = {
   '@jitsi-meet/features/recent-list' => ''
@@ -30,13 +32,28 @@ my $JITSI_DB_CONF = {
   ,
 };
 
+sub applySettings();
 sub setupJitsi();
 sub nowMillis();
 sub run(@);
 sub runQuiet(@);
 
 sub main(@){
+  applySettings();
   setupJitsi();
+}
+
+sub applySettings(){
+  print "\nsetting up providers:\n";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+    sqlite3 $REMOTE_PROVIDERS_DB \"
+      select * FROM secure WHERE name LIKE 'tts_default_synth';
+      select ' => ';
+      delete FROM secure WHERE name LIKE 'tts_default_synth';
+      insert into secure (_id, name, value) values (null, 'tts_default_synth', 'com.google.android.tts');
+      select * FROM secure WHERE name LIKE 'tts_default_synth';
+    \"
+  ";
 }
 
 sub setupJitsi(){
