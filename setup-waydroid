@@ -43,6 +43,8 @@ sub run(@);
 sub runQuiet(@);
 
 sub main(@){
+  run "ipmagic", $IPMAGIC_NAME, "wd", "--restart";
+  run "ipmagic", $IPMAGIC_NAME, "wd", "--wait-ui";
   applySettings();
   setupJitsi();
 }
