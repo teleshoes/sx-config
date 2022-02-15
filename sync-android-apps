@@ -12,11 +12,11 @@ my $APP_DATA_DIR = "/opt/alien/data/data";
 
 my $backups = {
   riot => {
-    localDir => "$DIR_BACKUP/backup-riot/im.vector.alpha",
+    localDir => "$DIR_BACKUP/backup-android-apps/riot/im.vector.alpha",
     remoteDir => "$APP_DATA_DIR/im.vector.alpha",
   },
   jitsi => {
-    localDir => "$DIR_BACKUP/backup-jitsi/org.jitsi.meet",
+    localDir => "$DIR_BACKUP/backup-android-apps/jitsi/org.jitsi.meet",
     remoteDir => "$APP_DATA_DIR/org.jitsi.meet",
   },
 };
