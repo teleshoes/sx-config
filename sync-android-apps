@@ -8,14 +8,16 @@ my $IPMAGIC_USER = "nemo";
 my $DIR_BASE = "$ENV{HOME}/Code/sx";
 my $DIR_BACKUP = "$DIR_BASE/backup";
 
+my $APP_DATA_DIR = "/opt/alien/data/data";
+
 my $backups = {
   riot => {
-    localDir => "$DIR_BACKUP/backup-riot/%opt%alien%data%data%im.vector.alpha",
-    remoteDir => "/opt/alien/data/data/im.vector.alpha",
+    localDir => "$DIR_BACKUP/backup-riot/im.vector.alpha",
+    remoteDir => "$APP_DATA_DIR/im.vector.alpha",
   },
   jitsi => {
-    localDir => "$DIR_BACKUP/backup-jitsi/%opt%alien%data%data%org.jitsi.meet",
-    remoteDir => "/opt/alien/data/data/org.jitsi.meet",
+    localDir => "$DIR_BACKUP/backup-jitsi/org.jitsi.meet",
+    remoteDir => "$APP_DATA_DIR/org.jitsi.meet",
   },
 };
 
