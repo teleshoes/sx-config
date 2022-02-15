@@ -14,6 +14,9 @@ my $SETTINGS = {
     "tts_default_rate"  => "122",
     "tts_default_pitch" => "92",
   },
+  system => {
+    "accelerometer_rotation" => "1",
+  },
 };
 
 my $JITSI_DB = "$DATA_DIR/data/org.jitsi.meet/databases/RKStorage";
