@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $DATA_DIR = "/home/nemo/.local/share/waydroid/data";
+
+sub nowMillis();
+sub run(@);
+sub runQuiet(@);
+
+sub main(@){
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+sub runQuiet(@){
+  system @_;
+}
+
+&main(@ARGV);
