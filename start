@@ -108,7 +108,7 @@
 ./sync-android-apps --restore riot
 ./sync-android-apps --restore jitsi
 
-./setup-aliendalvik
+./setup-waydroid
 
 ./setup-coolreader
 
