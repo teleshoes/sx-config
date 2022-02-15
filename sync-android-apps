@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 my $IPMAGIC_NAME = "sx";
-my $IPMAGIC_USER = "nemo";
+my $USER = "nemo";
 
 my $DIR_BASE = "$ENV{HOME}/Code/sx";
 my $DIR_BACKUP = "$DIR_BASE/backup";
