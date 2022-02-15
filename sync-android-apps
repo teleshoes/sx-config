@@ -14,7 +14,7 @@ my $backups = {
     remoteDir => "/opt/alien/data/data/im.vector.alpha",
   },
   jitsi => {
-    localDir => "$DIR_BACKUP/backup-riot/%opt%alien%data%data%org.jitsi.meet",
+    localDir => "$DIR_BACKUP/backup-jitsi/%opt%alien%data%data%org.jitsi.meet",
     remoteDir => "/opt/alien/data/data/org.jitsi.meet",
   },
 };
