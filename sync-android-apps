@@ -10,20 +10,20 @@ my $DIR_BACKUP = "$DIR_BASE/backup";
 
 my $APP_DATA_DIR = "/opt/alien/data/data";
 
-my $backups = {
-  riot => {
-    localDir => "$DIR_BACKUP/backup-android-apps/riot/im.vector.alpha",
-    remoteDir => "$APP_DATA_DIR/im.vector.alpha",
-  },
-  jitsi => {
-    localDir => "$DIR_BACKUP/backup-android-apps/jitsi/org.jitsi.meet",
-    remoteDir => "$APP_DATA_DIR/org.jitsi.meet",
-  },
-};
+my %BACKUPS = (
+  riot  => "im.vector.alpha",
+  jitsi => "org.jitsi.meet",
+);
+
+my %BACKUP_LOCAL_DIRS = map {$_ =>
+  "$DIR_BACKUP/backup-android-apps/$_/$BACKUPS{$_}" } sort keys %BACKUPS;
+
+my %BACKUP_REMOTE_DIRS = map {$_ =>
+  "$APP_DATA_DIR/$BACKUPS{$_}"} sort keys %BACKUPS;
 
 my $BACKUP_FMT = join "", map {
-    "    $_\n      $$backups{$_}{remoteDir}\n      => $$backups{$_}{localDir}\n"
-} sort keys %$backups;
+    "    $_\n      $BACKUP_REMOTE_DIRS{$_}\n      => $BACKUP_LOCAL_DIRS{$_}\n"
+} sort keys %BACKUPS;
 
 my $CMD_BACKUP = "backup";
 my $CMD_RESTORE = "restore";
@@ -59,7 +59,7 @@ sub main(@){
       $cmd = $CMD_BACKUP;
     }elsif($arg =~ /^(--restore)$/){
       $cmd = $CMD_RESTORE;
-    }elsif(defined $$backups{$arg}){
+    }elsif(defined $BACKUPS{$arg}){
       push @backupNames, $arg;
     }else{
       die "$usage\nERROR: unknown arg $arg\n";
@@ -67,15 +67,15 @@ sub main(@){
   }
   die "$usage\nERROR: no command given\n" if not defined $cmd;
 
-  @backupNames = sort keys %$backups if @backupNames == 0;
+  @backupNames = sort keys %BACKUPS if @backupNames == 0;
 
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
   for my $backupName(@backupNames){
-    die "$usage\nERROR: unknown backup $backupName\n" if not defined $$backups{$backupName};
-    my $remoteDir = $$backups{$backupName}{remoteDir};
-    my $localDir = $$backups{$backupName}{localDir};
+    die "$usage\nERROR: unknown backup $backupName\n" if not defined $BACKUPS{$backupName};
+    my $remoteDir = $BACKUP_REMOTE_DIRS{$backupName};
+    my $localDir = $BACKUP_LOCAL_DIRS{$backupName};
 
     if($cmd eq $CMD_BACKUP){
       run "rsync", "-avP", "--del", "root\@$host:$remoteDir/", "$localDir/";
