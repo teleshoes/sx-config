@@ -80,6 +80,7 @@ sub main(@){
     my $localDir = $BACKUP_LOCAL_DIRS{$backupName};
 
     if($cmd eq $CMD_BACKUP){
+      run "mkdir", "-p", "$localDir/";
       run "rsync", "-avP", "--del", "root\@$host:$remoteDir/", "$localDir/";
     }elsif($cmd eq $CMD_RESTORE){
       my $appUserId = getAppUserId("$remoteDir/");
