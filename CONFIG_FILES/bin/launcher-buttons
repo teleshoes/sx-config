@@ -8,6 +8,8 @@ my $ipmagicName = "sx";
 my $USE_WAYDROID = 1;
 my $USE_ALIENDALVIK = 0;
 
+my $SDCARD_DIR = "/media/sdcard/phone";
+
 my @config = qw(
   voicecall-ui
   jolla-messages
@@ -237,6 +239,7 @@ my $directoryFileDir = "/home/$user/.config/lipstick";
 my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
 my $waydroidSrcAppIconDir = "/home/waydroid/data/icons";
+my $waydroidBackupAppIconDir = "$SDCARD_DIR/android-app-icons";
 my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
 
 sub rearrangeLauncherButtons();
@@ -352,6 +355,10 @@ sub createWaydroidDesktopFiles(){
   run "mkdir", "-p", $waydroidDestAppIconDir;
   run "rsync", "-avP",
     "$waydroidSrcAppIconDir/",
+    "$waydroidBackupAppIconDir/",
+    ;
+  run "rsync", "-avP",
+    "$waydroidBackupAppIconDir/",
     "$waydroidDestAppIconDir/",
     ;
 
