@@ -8,7 +8,7 @@ my $USER = "nemo";
 my $DIR_BASE = "$ENV{HOME}/Code/sx";
 my $DIR_BACKUP = "$DIR_BASE/backup";
 
-my $APP_DATA_DIR = "/opt/alien/data/data";
+my $APP_DATA_DIR = "/home/$USER/.local/share/waydroid/data/data";
 
 my %BACKUPS = (
   riot  => "im.vector.alpha",
