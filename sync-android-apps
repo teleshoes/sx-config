@@ -13,6 +13,7 @@ my $APP_DATA_DIR = "/home/$USER/.local/share/waydroid/data/data";
 my %BACKUPS = (
   coolreader => "org.coolreader",
   facebook   => "com.facebook.lite",
+  kingdom    => "com.rawfury.kingdom2crowns",
   riot       => "im.vector.alpha",
   jitsi      => "org.jitsi.meet",
 );
