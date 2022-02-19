@@ -19,6 +19,9 @@ my $SETTINGS = {
   },
 };
 
+my $PROPS = {
+};
+
 my $JITSI_DB = "$DATA_DIR/data/org.jitsi.meet/databases/RKStorage";
 my $JITSI_DB_CONF = {
   '@jitsi-meet/features/recent-list' => ''
@@ -42,6 +45,7 @@ my $JITSI_DB_CONF = {
 };
 
 sub applySettings();
+sub applyProps();
 sub setupJitsi();
 sub nowMillis();
 sub run(@);
@@ -51,6 +55,7 @@ sub main(@){
   run "ipmagic", $IPMAGIC_NAME, "wd", "--restart";
   run "ipmagic", $IPMAGIC_NAME, "wd", "--wait-ui";
   applySettings();
+  applyProps();
   setupJitsi();
 }
 
@@ -82,6 +87,35 @@ sub applySettings(){
     print "NO CHANGE\n";
   }else{
     print "SETTINGS UPDATED\n";
+  }
+}
+
+sub applyProps(){
+  print "applying props\n";
+
+  my $getCmds = "";
+  my $setCmds = "";
+  for my $key(sort keys %$PROPS){
+    my $val = $$PROPS{$key};
+    $getCmds .= "echo -ne $key=; getprop '$key';\n";
+    $setCmds .= "setprop '$key' '$val';\n";
+  }
+
+  print "props (before):\n";
+  my $before = `ipmagic $IPMAGIC_NAME "wd shell \\"$getCmds\\""`;
+  print "$before\n\n";
+
+  run "ipmagic", $IPMAGIC_NAME, "wd shell \"$setCmds\"";
+  print "\n\n";
+
+  print "props (after):\n";
+  my $after = `ipmagic $IPMAGIC_NAME "wd shell \\"$getCmds\\""`;
+  print "$after\n\n";
+
+  if($before eq $after){
+    print "NO CHANGE\n";
+  }else{
+    print "PROPS UPDATED\n";
   }
 }
 
