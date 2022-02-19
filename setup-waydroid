@@ -17,9 +17,14 @@ my $SETTINGS = {
   system => {
     "accelerometer_rotation" => "1",
   },
+  global => {
+    "time_zone"      => "America/New_York",
+    "auto_time_zone" => "0",
+  },
 };
 
 my $PROPS = {
+  "persist.sys.timezone" => "America/New_York",
 };
 
 my $JITSI_DB = "$DATA_DIR/data/org.jitsi.meet/databases/RKStorage";
