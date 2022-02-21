@@ -18,6 +18,7 @@ my %BACKUPS = (
   riot        => "im.vector.alpha",
   jitsi       => "org.jitsi.meet",
 );
+my @ALL_BACKUP_NAMES = sort keys %BACKUPS;
 
 my %BACKUP_LOCAL_DIRS = map {$_ =>
   "$DIR_BACKUP/backup-android-apps/$_/$BACKUPS{$_}" } sort keys %BACKUPS;
@@ -38,14 +39,27 @@ my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0 -b|--backup|b|backup [BACKUP_NAME BACKUP_NAME ..]
-    backup each remote BACKUP_NAME dir to local backup
-      (backup all if no BACKUP_NAME given)
+  $0 -b|--backup|b|backup
+    -backup all <BACKUP_NAME>s
+      same as: $0 --backup @ALL_BACKUP_NAMES
 
-  $0 -r|--restore|r|restore [BACKUP_NAME BACKUP_NAME ..]
-    overwrite each dest BACKUP_NAME dir from local backup
-    set uid/gid to android app user id
-      (restore all if no BACKUP_NAME given)
+  $0 -b|--backup|b|backup BACKUP_NAME BACKUP_NAME ..
+    -backup remote app data files locally for each <BACKUP_NAME>
+      <IPMAGIC_HOST>:$APP_DATA_DIR/<PKG_NAME>
+        => $DIR_BACKUP/backup-android-apps/<BACKUP_NAME>/<PKG_NAME>
+
+
+  $0 -r|--restore|r|restore
+    -restore all <BACKUP_NAME>s
+      same as: $0 --restore @ALL_BACKUP_NAMES
+
+  $0 -r|--restore|r|restore BACKUP_NAME BACKUP_NAME ..
+    -get android app user id (UID of owner of remote android app data dir)
+    -overwrite remote app data files from local backup for each <BACKUP_NAME>
+      $DIR_BACKUP/backup-android-apps/<BACKUP_NAME>/<PKG_NAME>
+        => <IPMAGIC_HOST>:$APP_DATA_DIR/<PKG_NAME>
+    -chown all files under app data dir, setting UID+GID to android app user id
+
 
   BACKUP_NAME\n$BACKUP_FMT
 ";
@@ -73,7 +87,7 @@ sub main(@){
   }
   die "$usage\nERROR: no command given\n" if not defined $cmd;
 
-  @backupNames = sort keys %BACKUPS if @backupNames == 0;
+  @backupNames = @ALL_BACKUP_NAMES if @backupNames == 0;
 
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
