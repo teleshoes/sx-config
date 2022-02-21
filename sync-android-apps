@@ -11,11 +11,11 @@ my $DIR_BACKUP = "$DIR_BASE/backup";
 my $APP_DATA_DIR = "/home/$USER/.local/share/waydroid/data/data";
 
 my %BACKUPS = (
-  coolreader => "org.coolreader",
-  facebook   => "com.facebook.lite",
-  kingdom    => "com.rawfury.kingdom2crowns",
-  riot       => "im.vector.alpha",
-  jitsi      => "org.jitsi.meet",
+  coolreader  => "org.coolreader",
+  facebook    => "com.facebook.lite",
+  kingdom     => "com.rawfury.kingdom2crowns",
+  riot        => "im.vector.alpha",
+  jitsi       => "org.jitsi.meet",
 );
 
 my %BACKUP_LOCAL_DIRS = map {$_ =>
