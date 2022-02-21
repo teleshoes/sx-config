@@ -26,7 +26,7 @@ my %BACKUP_REMOTE_DIRS = map {$_ =>
   "$APP_DATA_DIR/$BACKUPS{$_}"} sort keys %BACKUPS;
 
 my $BACKUP_FMT = join "", map {""
-    . "    $_\n"
+    . "    $_ (PKG_NAME=$BACKUPS{$_})\n"
     . "      $BACKUP_REMOTE_DIRS{$_}\n"
     . "      => $BACKUP_LOCAL_DIRS{$_}\n"
 } sort keys %BACKUPS;
