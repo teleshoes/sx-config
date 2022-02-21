@@ -115,7 +115,7 @@ my $USAGE = "Usage:
   $EXEC install|--install|-i|i APK_ARG
     same as: $EXEC --install=<APK_ARG>
 
-  $EXEC --install|install|-i|i
+  $EXEC install|--install|-i|i
     same as: $EXEC --install=''
     (matches all available APKs)
 
