@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use List::Util qw(max);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
@@ -26,10 +27,10 @@ my %BACKUP_LOCAL_DIRS = map {$_ =>
 my %BACKUP_REMOTE_DIRS = map {$_ =>
   "$APP_DATA_DIR/$BACKUPS{$_}"} sort keys %BACKUPS;
 
-my $BACKUP_FMT = join "", map {""
-    . "    $_ (PKG_NAME=$BACKUPS{$_})\n"
-    . "      $BACKUP_REMOTE_DIRS{$_}\n"
-    . "      => $BACKUP_LOCAL_DIRS{$_}\n"
+my $MAX_BACKUP_NAME_LEN = max map { length $_ } @ALL_BACKUP_NAMES;
+
+my $BACKUP_FMT = join "", map {
+  sprintf("    %-${MAX_BACKUP_NAME_LEN}s => %s\n", $_, $BACKUPS{$_})
 } sort keys %BACKUPS;
 
 my $CMD_BACKUP = "backup";
@@ -61,7 +62,7 @@ my $usage = "Usage:
     -chown all files under app data dir, setting UID+GID to android app user id
 
 
-  BACKUP_NAME\n$BACKUP_FMT
+  BACKUP_NAME => PKG_NAME\n$BACKUP_FMT
 ";
 
 sub getAppUserId($);
