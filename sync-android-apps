@@ -36,11 +36,11 @@ my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0 --backup [BACKUP_NAME BACKUP_NAME ..]
+  $0 -b|--backup|b|backup [BACKUP_NAME BACKUP_NAME ..]
     backup each remote BACKUP_NAME dir to local backup
       (backup all if no BACKUP_NAME given)
 
-  $0 --restore [BACKUP_NAME BACKUP_NAME ..]
+  $0 -r|--restore|r|restore [BACKUP_NAME BACKUP_NAME ..]
     overwrite each dest BACKUP_NAME dir from local backup
     set uid/gid to android app user id
       (restore all if no BACKUP_NAME given)
@@ -59,9 +59,9 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $usage;
       exit 0;
-    }elsif($arg =~ /^(--backup)$/){
+    }elsif($arg =~ /^(-b|--backup|b|backup)$/){
       $cmd = $CMD_BACKUP;
-    }elsif($arg =~ /^(--restore)$/){
+    }elsif($arg =~ /^(-r|--restore|r|restore)$/){
       $cmd = $CMD_RESTORE;
     }elsif(defined $BACKUPS{$arg}){
       push @backupNames, $arg;
