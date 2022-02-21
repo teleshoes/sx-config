@@ -35,6 +35,7 @@ my $BACKUP_FMT = join "", map {
 
 my $CMD_BACKUP = "backup";
 my $CMD_RESTORE = "restore";
+my $CMD_SNAPSHOT = "snapshot";
 
 my $usage = "Usage:
   $0 -h|--help
@@ -62,10 +63,20 @@ my $usage = "Usage:
     -chown all files under app data dir, setting UID+GID to android app user id
 
 
+  $0 -s|--snapshot|s|snapshot BACKUP_NAME BACKUP_NAME ..
+    snapshot all <BACKUP_NAME>s
+      same as: $0 --snapshot @ALL_BACKUP_NAMES
+
+  $0 -s|--snapshot|s|snapshot BACKUP_NAME BACKUP_NAME ..
+    -copy most recent local backup to another local dir using mtime of backup
+      $DIR_BACKUP/backup-android-apps/<BACKUP_NAME>/<PKG_NAME>
+        => $DIR_BACKUP/backup-android-apps/<BACKUP_NAME>/<YYYY-MM-DD>_<EPOCH>_<PKG_NAME>
+
   BACKUP_NAME => PKG_NAME\n$BACKUP_FMT
 ";
 
 sub getAppUserId($);
+sub mtime($);
 sub run(@);
 
 sub main(@){
@@ -80,6 +91,8 @@ sub main(@){
       $cmd = $CMD_BACKUP;
     }elsif($arg =~ /^(-r|--restore|r|restore)$/){
       $cmd = $CMD_RESTORE;
+    }elsif($arg =~ /^(-s|--snapshot|s|snapshot)$/){
+      $cmd = $CMD_SNAPSHOT;
     }elsif(defined $BACKUPS{$arg}){
       push @backupNames, $arg;
     }else{
@@ -97,6 +110,7 @@ sub main(@){
     die "$usage\nERROR: unknown backup $backupName\n" if not defined $BACKUPS{$backupName};
     my $remoteDir = $BACKUP_REMOTE_DIRS{$backupName};
     my $localDir = $BACKUP_LOCAL_DIRS{$backupName};
+    my $pkgName = $BACKUPS{$backupName};
 
     if($cmd eq $CMD_BACKUP){
       run "mkdir", "-p", "$localDir/";
@@ -112,6 +126,18 @@ sub main(@){
       ;
       run "ipmagic", $IPMAGIC_NAME, "-u", "root",
         "chown", "-R", "$appUserId.$appUserId", "$remoteDir/";
+    }elsif($cmd eq $CMD_SNAPSHOT){
+      if(not -d $localDir){
+        die "ERROR: cannot snapshot $backupName, no backup exists\n";
+      }
+      my $mtime = mtime $localDir;
+      my $mtimeFmt = `date --date=\@$mtime +%Y-%m-%d`;
+      chomp $mtimeFmt;
+
+      my $snapshotName = "${mtimeFmt}_${mtime}_${pkgName}";
+      my $snapshotDir = "$DIR_BACKUP/backup-android-apps/$backupName/$snapshotName";
+
+      run "rsync", "-avP", "--del", "$localDir/", "$snapshotDir/"
     }else{
       die "ERROR: unknown command $cmd\n";
     }
@@ -131,6 +157,11 @@ sub getAppUserId($){
   }
 
   return $appUserId;
+}
+
+sub mtime($){
+  my @stat = stat $_[0];
+  return $stat[9];
 }
 
 sub run(@){
