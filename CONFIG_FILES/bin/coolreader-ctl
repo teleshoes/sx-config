@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+my $INTENT = 'org.coolreader/.CoolReader';
+
+my $CMDS = {
+  next    => "wd shell am start -n $INTENT -a org.coolreader.cmd.PAGE_DOWN",
+  prev    => "wd shell am start -n $INTENT -a org.coolreader.cmd.PAGE_UP",
+  ttsInit => "wd shell am start -n $INTENT -a org.coolreader.cmd.TTS_PLAY",
+};
+
+my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0 next | --next | --page-down
+    if coolreader is running:
+      $$CMDS{next}
+
+  $0 prev | --prev | --page-up
+    if coolreader is running:
+      $$CMDS{prev}
+
+  $0 ttsInit | --tts-init
+    if coolreader is running:
+      $$CMDS{ttsInit}
+";
+
+sub isRunning();
+
+sub main(@){
+  my $cmd = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(next|--next|--page-down)$/){
+      $cmd = $$CMDS{next};
+    }elsif($arg =~ /^(prev|--prev|--page-up)$/){
+      $cmd = $$CMDS{prev};
+    }elsif($arg =~ /^(ttsInit|--tts-init)$/){
+      $cmd = $$CMDS{ttsInit};
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if(not defined $cmd){
+    die "$USAGE\nERROR: no command given\n";
+  }
+
+  if(isRunning()){
+    system $cmd;
+  }else{
+    print "coolreader is not running\n";
+  }
+}
+
+sub isRunning(){
+  my $pid = `pgrep '^org.coolreader\$'`;
+  chomp $pid;
+  return $pid =~ /^\d+$/ ? 1 : 0;
+}
+
+&main(@ARGV);
