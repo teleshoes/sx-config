@@ -28,6 +28,15 @@ my $PROPS = {
   "persist.sys.timezone" => "America/New_York",
 };
 
+my $INPUT_METHOD_SHARED_PREFS_DIR =
+  "$DATA_DIR/user_de/0/com.android.inputmethod.latin/shared_prefs";
+
+my $INPUT_METHOD_XML_FILE =
+  "$INPUT_METHOD_SHARED_PREFS_DIR/com.android.inputmethod.latin_preferences.xml";
+
+my $INPUT_SETTINGS = {
+};
+
 my $JITSI_DB = "$DATA_DIR/data/org.jitsi.meet/databases/RKStorage";
 my $JITSI_DB_CONF = {
   '@jitsi-meet/features/recent-list' => ''
@@ -62,6 +71,7 @@ sub main(@){
   run "ipmagic", $IPMAGIC_NAME, "wd", "--wait-ui";
   applySettings();
   applyProps();
+  applyInputSettings();
   setupJitsi();
 }
 
@@ -123,6 +133,38 @@ sub applyProps(){
   }else{
     print "PROPS UPDATED\n";
   }
+}
+
+sub applyInputSettings(){
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
+
+  my $nowMillis = nowMillis();
+  my $tmpFile = "/tmp/waydroid-input-file-$nowMillis";
+  run "rm", "-f", $tmpFile;
+
+  run "rsync -avP root\@$host:$INPUT_METHOD_XML_FILE $tmpFile";
+  die "ERROR: could not fetch $INPUT_METHOD_XML_FILE\n" if not -f $tmpFile;
+
+  my $contents = `cat $tmpFile`;
+  for my $name(sort keys %$INPUT_SETTINGS){
+    my ($datatype, $value) = @{$$INPUT_SETTINGS{$name}};
+    if($contents !~ s/(<$datatype \s+ name="$name" \s+ value=)"[^"]*"/$1"$value"/x){
+      die "ERROR: $datatype $name missing from $INPUT_METHOD_XML_FILE\n";
+    }
+  }
+
+  open FH, "> $tmpFile" or die "ERROR: could not write $tmpFile\n$!\n";
+  print FH $contents;
+  close FH;
+
+  run "rsync -avP --no-owner --no-group $tmpFile root\@$host:$INPUT_METHOD_XML_FILE";
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", ""
+    . "chown"
+    . " --reference=$INPUT_METHOD_SHARED_PREFS_DIR"
+    . " $INPUT_METHOD_XML_FILE"
+    ;
 }
 
 sub setupJitsi(){
