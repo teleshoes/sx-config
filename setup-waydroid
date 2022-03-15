@@ -35,8 +35,8 @@ my $INPUT_METHOD_XML_FILE =
   "$INPUT_METHOD_SHARED_PREFS_DIR/com.android.inputmethod.latin_preferences.xml";
 
 my $INPUT_SETTINGS = {
-  "auto_cap"                               => ["boolean", "true"],
-  "pref_key_auto_correction"               => ["boolean", "true"],
+  "auto_cap"                               => ["boolean", "false"],
+  "pref_key_auto_correction"               => ["boolean", "false"],
 
   "next_word_prediction"                   => ["boolean", "true"],
   "popup_on"                               => ["boolean", "true"],
