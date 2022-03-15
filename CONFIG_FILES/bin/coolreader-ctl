@@ -10,6 +10,7 @@ my $CMDS = {
   next    => "wd shell am start -n $INTENT -a org.coolreader.cmd.PAGE_DOWN",
   prev    => "wd shell am start -n $INTENT -a org.coolreader.cmd.PAGE_UP",
   ttsInit => "wd shell am start -n $INTENT -a org.coolreader.cmd.TTS_PLAY",
+  toggleOrientation => "wd shell am start -n $INTENT -a org.coolreader.cmd.TOGGLE_ORIENTATION",
 };
 
 my $USAGE = "Usage:
@@ -27,6 +28,10 @@ my $USAGE = "Usage:
   $0 ttsInit | --tts-init
     if coolreader is running:
       $$CMDS{ttsInit}
+
+  $0 toggleOrientation | --toggle-orientation
+    if coolreader is running:
+      $$CMDS{toggleOrientation}
 ";
 
 sub isRunning();
@@ -44,6 +49,8 @@ sub main(@){
       $cmd = $$CMDS{prev};
     }elsif($arg =~ /^(ttsInit|--tts-init)$/){
       $cmd = $$CMDS{ttsInit};
+    }elsif($arg =~ /^(toggleOrientation|--toggle-orientation)$/){
+      $cmd = $$CMDS{toggleOrientation};
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
