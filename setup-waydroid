@@ -35,6 +35,21 @@ my $INPUT_METHOD_XML_FILE =
   "$INPUT_METHOD_SHARED_PREFS_DIR/com.android.inputmethod.latin_preferences.xml";
 
 my $INPUT_SETTINGS = {
+  "auto_cap"                               => ["boolean", "true"],
+  "pref_key_auto_correction"               => ["boolean", "true"],
+
+  "next_word_prediction"                   => ["boolean", "true"],
+  "popup_on"                               => ["boolean", "true"],
+  "pref_key_block_potentially_offensive"   => ["boolean", "true"],
+  "pref_key_use_contacts_dict"             => ["boolean", "false"],
+  "pref_key_use_double_space_period"       => ["boolean", "true"],
+  "pref_key_use_personalized_dicts"        => ["boolean", "true"],
+  "pref_split_keyboard"                    => ["boolean", "false"],
+  "pref_voice_input_key"                   => ["boolean", "true"],
+  "show_suggestions"                       => ["boolean", "true"],
+  "sound_on"                               => ["boolean", "false"],
+  "vibrate_on"                             => ["boolean", "true"],
+  "last_shown_emoji_category_id"           => ["int",     "8"],
 };
 
 my $JITSI_DB = "$DATA_DIR/data/org.jitsi.meet/databases/RKStorage";
