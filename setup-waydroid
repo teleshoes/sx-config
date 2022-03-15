@@ -10,9 +10,9 @@ my $DATA_DIR = "/home/nemo/.local/share/waydroid/data";
 
 my $SETTINGS = {
   secure => {
-    "tts_default_synth" => "com.google.android.tts",
-    "tts_default_rate"  => "122",
-    "tts_default_pitch" => "92",
+    "tts_default_synth"           => "com.google.android.tts",
+    "tts_default_rate"            => "122",
+    "tts_default_pitch"           => "92",
   },
   system => {
     "accelerometer_rotation" => "1",
