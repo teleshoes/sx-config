@@ -6,7 +6,7 @@ use Time::HiRes qw(time);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $DATA_DIR = "/home/nemo/.local/share/waydroid/data";
+my $DATA_DIR = "/home/$USER/.local/share/waydroid/data";
 
 my $SETTINGS = {
   secure => {
