@@ -77,6 +77,7 @@ my $JITSI_DB_CONF = {
 sub applySettings();
 sub applyProps();
 sub setupJitsi();
+sub setupSymlinks();
 sub nowMillis();
 sub run(@);
 sub runQuiet(@);
@@ -88,6 +89,16 @@ sub main(@){
   applyProps();
   applyInputSettings();
   setupJitsi();
+  setupSymlinks();
+}
+
+sub setupSymlinks(){
+  run "ipmagic", $IPMAGIC_NAME, "
+    mkdir -p /home/$USER/android_storage/
+    sudo chown $USER.$USER /home/$USER/android_storage
+    sudo rm -f /home/$USER/android_storage/internal
+    ln -s $DATA_DIR/media/0 /home/$USER/android_storage/internal
+  ";
 }
 
 sub applySettings(){
