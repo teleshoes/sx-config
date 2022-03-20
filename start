@@ -139,7 +139,10 @@ pubkeys
 #setup APN for internet+MMS if not set
 #settings => cellular network => mms access point => protocol => IPv6
 #settings => apps => messages => MMS message size => 600KB
-#settings => location => high-accuracy positioning
+#settings => location => custom
+#settings => location => select custom settings => GPS     checked
+#settings => location => select custom settings => Offline checked
+#settings => location => select custom settings => Online  unchecked
 #settings => text input => keyboards => English (Arrows) => on
 #settings => text input => keyboards => English => off
 #okboard => enable okboard => enable
