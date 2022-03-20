@@ -1,0 +1,2 @@
+sudo zypper refresh nubecula-mls-offline-repo
+sudo zypper install harbour-mls-offline-us
