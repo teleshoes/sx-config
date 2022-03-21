@@ -6,6 +6,8 @@ use Time::HiRes qw(time);
 my $user = "nemo";
 my $ipmagicName = "sx";
 
+my $skipMissing = "skip-missing";
+
 my $localDir = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @backups = (
   [ $localDir, "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
@@ -39,12 +41,16 @@ sub remoteDirExists($;$);
 
 sub main(@){
   for my $backup(@backups){
-    my ($localDCIM, $remoteDCIM, $backupSuffix) = @$backup;
+    my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
     dcimBackup($localDCIM, $remoteDCIM, $backupSuffix);
   }
   for my $backup(@backups){
-    my ($localDCIM, $remoteDCIM, $backupSuffix) = @$backup;
-    checkMissing($localDCIM, $remoteDCIM);
+    my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
+    if(defined $extraArg and $extraArg =~ /$skipMissing/){
+      print "SKIP check-missing for $remoteDCIM\n";
+    }else{
+      checkMissing($localDCIM, $remoteDCIM);
+    }
   }
 }
 
