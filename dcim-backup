@@ -19,6 +19,7 @@ my @backups = (
   [ $localDir, "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
   [ $localDir, "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
   [ $localDir, "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
+  [ $localDir, "/home/nemo/Pictures/",                     "int-pix_sf", $skipMissing],
 );
 my $remoteTmpDir = "/media/sdcard/phone/dcim-tmp";
 my $localTmpDir = "$ENV{HOME}/dcim-tmp";
