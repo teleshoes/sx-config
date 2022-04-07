@@ -20,6 +20,7 @@ my @removals = qw(
   busybox-symlinks-coreutils
   busybox-symlinks-findutils
   busybox-symlinks-grep
+  busybox-symlinks-procps
   busybox-symlinks-tar
 );
 
@@ -39,6 +40,7 @@ my %packages = (
     mce-tools
     libkeepalive-glib-tools
     pbcopy
+    procps-ng
     qt5-qttools-qdbus
     harbour-storeman
     wget
