@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=qtemail
 Icon=/opt/qtemail/icons/qtemail.png
-Exec=/bin/sh -c 'PATH=/home/nemo/bin:$PATH python /opt/qtemail/bin/email-gui.py'
+Exec=/usr/local/bin/launch-app email-gui.py
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes
