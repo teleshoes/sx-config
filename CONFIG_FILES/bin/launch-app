@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use POSIX;
+use File::Basename qw(basename);
+
+my $USER_ID = 100000;
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC CMD ARG ARG..
+    invoker workaround - daemonize and run command
+      -daemonize
+        -fork and exit parent proc
+        -setsid on child
+        -fork and exit new parent proc
+        -close STDIN/STDOUT/STDERR on new child
+        -continue as new child
+      -get USERNAME for uid $USER_ID
+      -add /home/<USERNAME>/bin to PATH if dir exists and is not on PATH
+      -run command with sh like:
+        /bin/sh -c 'PATH=<PATH> <CMD> <ARG> <ARG>..'
+";
+
+sub main(@){
+  while(@_ > 0 and $_[0] =~ /^-/){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  my @CMD = @_;
+
+  #daemonize
+  fork and exit;
+  POSIX::setsid();
+  fork and exit;
+
+  close STDIN;
+  close STDOUT;
+  close STDERR;
+
+
+  #add home bin to PATH
+  my $user = `getent passwd 100000 | cut -d: -f1`;
+  chomp $user;
+
+  my $homeBin = "";
+  if($user =~ /\w/){
+    $homeBin = "/home/$user/bin";
+  }
+
+  my $path = $ENV{PATH};
+  if(-d $homeBin and $path !~ /(^|:)$homeBin\/*(:|$)/){
+    my $sep = $path eq "" ? "" : ":";
+    $path = $homeBin . $sep . $path;
+  }
+
+
+  #exec
+  exec "/bin/sh", "-c", "PATH=$path @CMD";
+}
+
+&main(@ARGV);
