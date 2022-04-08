@@ -10,7 +10,7 @@ my @COOLREADER_TOGGLE_CMD = qw(wd shell am broadcast -a org.coolreader.tts.tts_p
 
 my $USAGE = "Usage:
   $EXEC -g|--get
-    if `pgrep $TTS_PROC` is successful:
+    if `pgrep -f '^$TTS_PROC\\s*\$'` is successful:
       print \"coolreader\"
     else:
       print \"klomp\"
@@ -71,7 +71,7 @@ sub main(@){
 }
 
 sub isCoolreader(){
-  system "pgrep $TTS_PROC >/dev/null 2>/dev/null";
+  system "pgrep -f '^$TTS_PROC\\s*\$' >/dev/null 2>/dev/null";
   return $? == 0 ? 1 : 0;
 }
 
