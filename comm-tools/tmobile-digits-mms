@@ -106,11 +106,11 @@ sub main(@){
     run "mkdir", "-p", $mmsPartsDir;
 
     my @attFileList;
-    if(defined $$mms{attContents}){
-      my $attFile = "$mmsPartsDir/$$mms{attName}";
+    for my $att(@{$$mms{atts}}){
+      my $attFile = "$mmsPartsDir/$$att{attName}";
       push @attFileList, $attFile;
       open FH, "> $attFile" or die "ERROR: could not write $attFile\n$!\n";
-      print FH $$mms{attContents};
+      print FH $$att{attContents};
       close FH;
     }
     if(defined $$mms{body}){
@@ -204,8 +204,7 @@ sub parseMMSFile($){
     body        => undef,
     subject     => "NoSubject",
     textAttName => undef,
-    attName     => undef,
-    attContents => undef,
+    atts        => [],
   };
 
   my @parts;
@@ -242,11 +241,15 @@ sub parseMMSFile($){
           $$mms{textAttName} = $1;
         }
       }else{
-        die "ERROR: duplicate file atts $mmsFile\n" if defined $$mms{attContents};
-        $$mms{attContents} = $partBody;
+        my $attName = undef;
         if($partHdr =~ /Content-Location:(.+)/){
-          $$mms{attName} = $1;
+          $attName = $1;
         }
+        my $att = {
+          attName     => $attName,
+          attContents => $partBody,
+        };
+        push @{$$mms{atts}}, $att;
       }
     }else{
       die "ERROR: malformed MMS part:$text\nin mms file:\n$mmsFile\n";
@@ -264,11 +267,13 @@ sub parseMMSFile($){
   if(defined $$mms{body} and not defined $$mms{textAttName}){
     $$mms{textAttName} = "text";
   }
-  if(defined $$mms{attName} and not defined $$mms{attContents}){
-    die "ERROR: could not parse file contents for att $$mms{attName} in mms file\n$mmsFile\n";
-  }
-  if(defined $$mms{attContents} and not defined $$mms{attName}){
-    die "ERROR: missing file name for att part in mms file\n$mmsFile\n";
+  for my $att(@{$$mms{atts}}){
+    if(not defined $$att{attName}){
+      die "ERROR: missing file name for att part in mms file\n$mmsFile\n";
+    }
+    if(not defined $$att{attContents}){
+      die "ERROR: could not parse file contents for att $$att{attName} in mms file\n$mmsFile\n";
+    }
   }
 
   return $mms;
