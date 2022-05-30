@@ -187,7 +187,8 @@ my $groupCmdFmt = join "      ", map {
 my $usage = "Usage:
   $0
     print the commands in the order they should be run:
-        removals hosts keys repos refresh
+        hosts keys repos refresh
+        removals
         @groups
         force-install
 
@@ -195,8 +196,6 @@ my $usage = "Usage:
     run COMMANDs as below
 
     COMMAND:
-      removals
-        remove packages: @removals
       hosts
         run: cache-host --ipmagic=$ipmagicName --comment=repos \\
                 $OPENREPOS_HOST \\
@@ -215,6 +214,8 @@ my $usage = "Usage:
       refresh-<OPENREPOS_USERNAME>
         use zypper to update package lists for a single repo
         CAUTION: before running zypper, kills packagekitd
+      removals
+        remove packages: @removals
       $groupCmdFmt
       force-install
         use zypper and expect to forcibly install: @zypperForceInstallPackages
