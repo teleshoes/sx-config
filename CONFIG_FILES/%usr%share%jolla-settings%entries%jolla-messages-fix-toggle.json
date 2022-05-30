@@ -1,0 +1,16 @@
+{
+    "translation_catalog": "settings-networking",
+    "entries": [
+        {
+            "path": "system_settings/connectivity/wlan/jolla_messages_fix_toggle_switch",
+            "title": "msg-fix",
+            "type": "custom",
+            "icon": "image://theme/icon-m-download",
+            "params": {
+                "source": "/usr/share/jolla-settings/JollaMessagesFixToggleSwitch.qml",
+                "type": "grid",
+                "settings_path": "system_settings/connectivity/wlan"
+            }
+        }
+    ]
+}
