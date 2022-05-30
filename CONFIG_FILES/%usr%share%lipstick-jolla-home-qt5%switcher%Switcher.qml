@@ -663,7 +663,7 @@ SilicaFlickable {
                 if (i == 0) {
                     oomScore = 0 // most recently used
                 } else {
-                    oomScore = 69 + i
+                    oomScore = 99 + i
                 }
                 JollaSystemInfo.adjustOOMScore(oomScore, Lipstick.compositor.windowForId(switcherModel.windowId(mruSwitcherModel.mapRowToSource(i))))
             }
