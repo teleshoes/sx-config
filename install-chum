@@ -8,6 +8,11 @@ my $IPMAGIC_NAME = "sx";
 my $CHUM_RPM_QUERY_URL_PREFIX =
   "https://chumrpm.netlify.app/.netlify/functions/lambda/packages/";
 
+sub getRpmUrls($$);
+sub getRelease();
+sub getArch();
+sub nowMillis();
+
 sub main(@){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
