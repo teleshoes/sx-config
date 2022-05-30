@@ -12,6 +12,7 @@ sub getRpmUrls($$);
 sub getRelease();
 sub getArch();
 sub nowMillis();
+sub run(@);
 
 sub main(@){
   my $host = `ipmagic $IPMAGIC_NAME`;
@@ -24,17 +25,20 @@ sub main(@){
 
   my $nowMillis = nowMillis();
   my $dir = "/tmp/install-chum-$nowMillis";
-  system "mkdir", "-p", $dir;
+  run "mkdir", "-p", $dir;
 
-  system "curl", $$rpms{chum}, "-o", "$dir/chum.rpm";
-  system "curl", $$rpms{gui}, "-o", "$dir/chum-gui.rpm";
+  run "curl", $$rpms{chum}, "-o", "$dir/chum.rpm";
+  run "curl", $$rpms{gui}, "-o", "$dir/chum-gui.rpm";
 
-  system "scp", "$dir/chum.rpm", "$dir/chum-gui.rpm", "root\@$host:/tmp";
+  run "scp",
+    "$dir/chum.rpm",
+    "$dir/chum-gui.rpm",
+    "root\@$host:/tmp";
 
-  system "ipmagic $IPMAGIC_NAME -u root pkcon install-local -y /tmp/chum*.rpm";
+  run "ipmagic $IPMAGIC_NAME -u root pkcon install-local -y /tmp/chum*.rpm";
 
-  system "ipmagic $IPMAGIC_NAME -u root rm /tmp/chum*.rpm";
-  system "rm", "-rf", $dir;
+  run "ipmagic $IPMAGIC_NAME -u root rm /tmp/chum*.rpm";
+  run "rm", "-rf", $dir;
 }
 
 sub getRpmUrls($$){
@@ -80,6 +84,11 @@ sub getArch(){
 
 sub nowMillis(){
   return int(time*1000.0 + 0.5);
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 &main(@ARGV);
