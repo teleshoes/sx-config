@@ -175,6 +175,7 @@ my @openrepos = qw(
 
 my $OPENREPOS_HOST = "sailfish.openrepos.net";
 my $JOLLA_RELEASES_HOST = "releases.jolla.com";
+my $SFOS_REPO_HOST = "repo.sailfishos.org";
 
 my @keyUrls = (
   "https://$OPENREPOS_HOST/openrepos.key",
@@ -200,6 +201,7 @@ my $usage = "Usage:
         run: cache-host --ipmagic=$ipmagicName --comment=repos \\
                 $OPENREPOS_HOST \\
                 $JOLLA_RELEASES_HOST \\
+                $SFOS_REPO_HOST \\
              ;
           (lookup hosts locally on laptop and insert into /etc/host on phone)
         running `cache-host --refresh --comment=repos` on phone will refresh
@@ -266,6 +268,7 @@ sub main(@){
       run("cache-host", "--ipmagic=$ipmagicName", "--comment=repos",
         $OPENREPOS_HOST,
         $JOLLA_RELEASES_HOST,
+        $SFOS_REPO_HOST,
       );
     }elsif($command =~ /^keys$/){
       for my $url(@keyUrls){
