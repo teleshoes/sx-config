@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Messages
+X-MeeGo-Logical-Id=messages-ap-name
+X-MeeGo-Translation-Catalog=messages
+Icon=icon-launcher-messaging
+Exec=/usr/bin/sailjail -- /usr/bin/jolla-messages
+Comment=Jolla messaging
+MimeType=x-scheme-handler/sms;
+X-Maemo-Service=org.sailfishos.Messages
+X-Maemo-Method=org.sailfishos.Messages.openUrl
+
+[X-Sailjail]
+Permissions=Contacts;Messages;CommunicationHistory;Privileged;Ambience;RemovableMedia;Pictures
+OrganizationName=org.sailfishos
+ApplicationName=Messages
