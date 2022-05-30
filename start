@@ -106,6 +106,13 @@
 #
 #  ./install-apks
 
+#waydroid:
+#  chum install waydroid + waydroid-runner
+#  rsync -avP apks-waydroid/ `sx`:/media/sdcard/phone/apks-waydroid/ --del -n
+#  rsync -avP apks-waydroid/ `sx`:/media/sdcard/phone/apks-waydroid/ --del
+#  wd init
+#  wd install
+
 ./sync-android-apps --restore
 #./sync-android-apps --restore riot jitsi
 
