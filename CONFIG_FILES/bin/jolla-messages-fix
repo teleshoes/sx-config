@@ -7,6 +7,7 @@ my $RPMS_DIR = "/media/sdcard/phone/rpms";
 my @CONFIG_FILES = qw(
   %usr%share%jolla-messages%pages%conversation%SMSMessageDelegate.qml
   %usr%share%jolla-messages%pages%groups%GroupDelegate.qml
+  %usr%share%applications%jolla-messages.desktop
 );
 
 sub run(@);
