@@ -92,7 +92,9 @@ sub main(@){
     }
 
     if($otherNum !~ /^\d{10}$/){
-      die "ERROR: could not parse MMS phone number \"$otherNum\" for $file\n";
+      print "\n\n\n\n\n\n";
+      print "WARNING: could not parse MMS phone number \"$otherNum\" for $file\n";
+      next;
     }
 
     my $nowMillis = nowMillis();
