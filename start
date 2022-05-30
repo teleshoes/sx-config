@@ -94,19 +94,20 @@
 
 ./install-yt-dlp
 
-#TODO: move these files out of config-files and into setup-android or something
-#for now, just do:
-#  ipmagic sx -u root rm -rf /opt/alien/data/data/com.androidemu.nes/
-#  ipmagic sx -u root rm -rf /opt/alien/data/data/com.explusalpha.Snes9x/
-
-./install-apks
-
 ./config-files #to overwrite files from installs (e.g.: launchers)
 
 ./setup-meecast
 
-./sync-android-apps --restore riot
-./sync-android-apps --restore jitsi
+#aliendalvik:
+#  TODO: move these files out of config-files and into setup-android or something
+#  for now, just do:
+#    ipmagic sx -u root rm -rf /opt/alien/data/data/com.androidemu.nes/
+#    ipmagic sx -u root rm -rf /opt/alien/data/data/com.explusalpha.Snes9x/
+#
+#  ./install-apks
+
+./sync-android-apps --restore
+#./sync-android-apps --restore riot jitsi
 
 ./setup-waydroid
 
