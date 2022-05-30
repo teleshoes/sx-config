@@ -38,7 +38,7 @@
 
 ./set-resolv #necessary for some inexplicable reason sometimes
 
-./setup-dnsmasq #dnsmasq is probably the culprit, so disable it forever
+./setup-dns #dnsmasq is probably the culprit, so disable it forever
 
 ./install-chum
 
