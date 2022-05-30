@@ -1,13 +1,32 @@
-sudo pkcon search jolla-messages | grep installed
-sudo pkcon -y install-local /media/sdcard/phone/rpms/jolla-messages*.rpm
-sudo pkcon search jolla-messages | grep installed
+#!/usr/bin/perl
+use strict;
+use warnings;
 
-echo
-echo
-for x in \
-  %usr%share%jolla-messages%pages%conversation%SMSMessageDelegate.qml \
-  %usr%share%jolla-messages%pages%groups%GroupDelegate.qml \
-; do
-  echo sudo cp -ar /opt/CONFIG_FILES/$x `unboing $x`
-  sudo cp -ar /opt/CONFIG_FILES/$x `unboing $x`
-done
+my $RPMS_DIR = "/media/sdcard/phone/rpms";
+
+my @CONFIG_FILES = qw(
+  %usr%share%jolla-messages%pages%conversation%SMSMessageDelegate.qml
+  %usr%share%jolla-messages%pages%groups%GroupDelegate.qml
+);
+
+sub run(@);
+
+sub main(@){
+  run "sudo pkcon search jolla-messages | grep installed";
+  run "sudo pkcon -y install-local $RPMS_DIR/jolla-messages*.rpm";
+  run "sudo pkcon search jolla-messages | grep installed";
+
+  print "\n\n";
+  for my $boingFile(@CONFIG_FILES){
+    my $file = `unboing $boingFile`;
+    chomp $file;
+    run "sudo cp -ar /opt/CONFIG_FILES/$boingFile $file";
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
