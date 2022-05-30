@@ -27,11 +27,13 @@ sub main(@){
   my $dir = "/tmp/install-chum-$nowMillis";
   run "mkdir", "-p", $dir;
 
-  run "curl", $$rpms{chum}, "-o", "$dir/chum.rpm";
+  print "only installing chum-gui (seems to conflict with and not need chum now)\n";
+
+  #run "curl", $$rpms{chum}, "-o", "$dir/chum.rpm";
   run "curl", $$rpms{gui}, "-o", "$dir/chum-gui.rpm";
 
   run "scp",
-    "$dir/chum.rpm",
+    #"$dir/chum.rpm",
     "$dir/chum-gui.rpm",
     "root\@$host:/tmp";
 
