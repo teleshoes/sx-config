@@ -102,6 +102,7 @@ my @config = qw(
 
   vlc
   youtube-vanced
+  ytmusic-vanced
 );
 
 my @unused = qw(
@@ -160,6 +161,7 @@ my %waydroidLaunchers = (
   "tor"              => ["org.torproject.torbrowser",                 ".App",                                      undef],
   "vlc"              => ["org.videolan.vlc",                          ".StartActivity",                            undef],
   "youtube-vanced"   => ["com.vanced.android.youtube",                undef,                                       undef],
+  "ytmusic-vanced"   => ["com.vanced.android.apps.youtube.music",     undef,                                       undef],
 );
 
 
