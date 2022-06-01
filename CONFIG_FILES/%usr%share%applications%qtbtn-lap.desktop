@@ -6,3 +6,6 @@ Exec=/usr/local/bin/qtbtn.py --landscape /home/nemo/.config/qtbtn-lap.conf
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled

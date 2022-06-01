@@ -5,3 +5,6 @@ Exec=/usr/local/bin/launch-app email-gui.py
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled

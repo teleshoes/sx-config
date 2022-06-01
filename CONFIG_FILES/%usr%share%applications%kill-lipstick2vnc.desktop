@@ -6,3 +6,6 @@ Exec=sudo pkill lipstick2vnc
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled

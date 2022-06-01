@@ -6,3 +6,6 @@ Exec=/opt/lirrtraintime/bin/lirr_train_time -b fdl pen
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled
