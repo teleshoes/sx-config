@@ -190,7 +190,7 @@ sub runQuiet(@);
 
 sub main(@){
   my $cmd = undef;
-  my $apkArg;
+  my @apkArgs;
   my $launchIntent;
   my @shellArgs;
   my @waydroidAction;
@@ -219,13 +219,13 @@ sub main(@){
       $cmd = $CMD_LAUNCH;
       my $launchArg = $1;
       if(getMatchingApks($launchArg) == 1){
-        $apkArg = $launchArg;
+        @apkArgs = ($launchArg);
       }else{
         $launchIntent = $launchArg;
       }
     }elsif($arg =~ /^--launch-apk=(.+)$/){
       $cmd = $CMD_LAUNCH;
-      $apkArg = $1;
+      @apkArgs = ($1);
     }elsif($arg =~ /^--launch-intent=(.+)$/){
       $cmd = $CMD_LAUNCH;
       $launchIntent = $1;
@@ -234,19 +234,20 @@ sub main(@){
       $cmd = $CMD_LAUNCH;
       my $launchArg = shift;
       if(getMatchingApks($launchArg) == 1){
-        $apkArg = $launchArg;
+        @apkArgs = ($launchArg);
       }else{
         $launchIntent = $launchArg;
       }
     }elsif($arg =~ /^--install=(.+)$/){
       $cmd = $CMD_INSTALL;
-      $apkArg = $1;
+      @apkArgs = ($1);
     }elsif($arg =~ /^(install|--install|-i|i)$/){
       $cmd = $CMD_INSTALL;
       if(@_ > 0){
-        $apkArg = shift;
+        my $apkArg = shift @_;
+        @apkArgs = ($apkArg);
       }else{
-        $apkArg = "";
+        @apkArgs = (""); #match all
       }
     }elsif($arg =~ /^(obb|--obb|-o|o)$/){
       $cmd = $CMD_OBB;
@@ -283,10 +284,11 @@ sub main(@){
     my $intent;
     if(defined $launchIntent){
       $intent = $launchIntent;
-    }elsif(defined $apkArg){
+    }elsif(@apkArgs == 1){
+      my $apkArg = $apkArgs[0];
       $intent = getIntentForMatchingApk($apkArg);
     }else{
-      die "ERROR: launch cmd requires APK_ARG or LAUNCH_INTENT\n";
+      die "ERROR: launch cmd requires LAUNCH_INTENT or exactly one APK_ARG\n";
     }
 
     ensureAndroidFullyUp();
@@ -295,10 +297,14 @@ sub main(@){
     waydroidShell("am", "start", $intent);
     print "\n";
   }elsif($cmd eq $CMD_INSTALL){
-    my @apks = getMatchingApks($apkArg);
-    if(@apks == 0){
-      die "ERROR: no APKs found for '$apkArg'\n";
+    my @apks;
+    for my $apkArg(@apkArgs){
+      @apks = (@apks, getMatchingApks($apkArg));
     }
+    if(@apks == 0){
+      die "ERROR: no APKs found for APK_ARGs: @apkArgs\n";
+    }
+
     ensureAndroidFullyUp();
     for my $apk(@apks){
       run "sudo", "waydroid", "app", "install", $apk;
