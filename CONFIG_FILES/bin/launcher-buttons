@@ -377,6 +377,9 @@ sub createWaydroidDesktopFiles(){
       . "Type=Application\n"
       . "X-Nemo-Single-Instance=no\n"
       . "Custom-Launcher=yes\n"
+      . "\n"
+      . "[X-Sailjail]\n"
+      . "Sandboxing=Disabled\n"
       ;
     my $desktopFile = "$activeDir/wd-$appName.desktop";
     open FH, "> $desktopFile" or die "ERROR: cannot write $desktopFile\n$!\n";
