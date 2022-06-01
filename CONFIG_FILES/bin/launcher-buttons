@@ -159,7 +159,7 @@ my %waydroidLaunchers = (
   "traintime"        => ["org.lirr.portal",                           ".MainActivity",                             undef],
   "tor"              => ["org.torproject.torbrowser",                 ".App",                                      undef],
   "vlc"              => ["org.videolan.vlc",                          ".StartActivity",                            undef],
-  "youtube-vanced"   => ["com.bvanced.android.youtube",               undef,                                       undef],
+  "youtube-vanced"   => ["com.vanced.android.youtube",                undef,                                       undef],
 );
 
 
