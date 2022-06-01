@@ -33,6 +33,7 @@ my $USAGE = "Usage:
 ";
 
 sub run(@);
+sub runQuiet(@);
 
 sub main(@){
   my $prefix = undef;
@@ -58,17 +59,28 @@ sub main(@){
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  run "apk-name", glob "$SRC_DIR/*";
-  if($? != 0){
-    die "ERROR: apk-name exited with non-zero code\n";
+  print "\n\nrenaming ALL local apk files\n";
+  my @apkFiles = glob "$SRC_DIR/*.apk";
+  for my $apkFile(@apkFiles){
+    runQuiet "apk-name", $apkFile;
+    if($? != 0){
+      die "ERROR: apk-name failed for $apkFile\n";
+    }
   }
 
+  print "\n\ncopying ALL apk files local => remote\n";
   run "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$destDir/";
 
+  my @baseApkFiles = map {/(^.*\/)?([^\/]+)/; $2} @apkFiles;
+  my @filteredApkFiles = grep {/^$prefix/} @baseApkFiles;
+  my @destApkFiles = map {"$destDir/$_"} @filteredApkFiles;
+
+  print "\n\ninstalling apk files remotely\n";
   run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-    "apkd-install-preload $destDir/$prefix*.apk";
+    "echo", "apkd-install-preload", @destApkFiles;
+  print "\n";
   run "ipmagic", $IPMAGIC_NAME,
-    "apkd-install $destDir/$prefix*.apk";
+    "apkd-install", @destApkFiles;
 
   print "\n\nignore the installation UIs\n";
   print "just watch each app install on its own in order, and then close the UIs\n";
@@ -76,6 +88,9 @@ sub main(@){
 
 sub run(@){
   print "@_\n";
+  system @_;
+}
+sub runQuiet(@){
   system @_;
 }
 
