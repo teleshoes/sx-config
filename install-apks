@@ -6,9 +6,13 @@ use File::Basename qw(basename);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik4",
-my $DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
-my $DEST_DIR_HOME = "/home/nemo/apks-aliendalvik4";
+my $WAYDROID_SRC_DIR = "$ENV{HOME}/Code/sx/apks-waydroid",
+my $WAYDROID_DEST_DIR_SD = "/media/sdcard/phone/apks-waydroid";
+my $WAYDROID_DEST_DIR_HOME = "/home/nemo/apks-waydroid";
+
+my $ALIENDALVIK4_SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik4",
+my $ALIENDALVIK4_DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
+my $ALIENDALVIK4_DEST_DIR_HOME = "/home/nemo/apks-aliendalvik4";
 
 my $EXEC = basename $0;
 
@@ -16,41 +20,74 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-
   $EXEC [OPTS] [PREFIX]
     -run apk-name on all local apk files:
-      apk-name $SRC_DIR/*.apk
+      apk-name $WAYDROID_SRC_DIR/*.apk
     -copy all apks local to remote:
-      $SRC_DIR => $USER\@`$IPMAGIC_NAME`:$DEST_DIR_SD
+      $WAYDROID_SRC_DIR => $USER\@`$IPMAGIC_NAME`:$WAYDROID_DEST_DIR_SD
     -list <APK>s that match <PREFIX> (or all, if not given)
-      $SRC_DIR/<PREFIX>*.apk
-    -on remote, run: apkd-install-preload <APK> <APK> ..
-    -on remote, run: apkd-install <APK> <APK> ..
+      $WAYDROID_SRC_DIR/<PREFIX>*.apk
+    -for --waydroid (default):
+      -on remote, run: wd -i $WAYDROID_DEST_DIR_SD/<APK> ..
+    -for --aliendalvik:
+      -on remote, run: apkd-install-preload $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
+      -on remote, run: apkd-install $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
 
   OPTS
+    --waydroid | --wd
+      use waydroid apk dirs and install with `wd`
+        src  => $WAYDROID_SRC_DIR
+        dest => $WAYDROID_DEST_DIR_SD
+      (this is the default)
+
+    --aliendalvik | --ad | --alien | --aliendalvik4
+      use aliendalvik4 apk dirs and install with `apkd-install-preload`+`apkd-install`
+        src  => $ALIENDALVIK4_SRC_DIR
+        dest => $ALIENDALVIK4_DEST_DIR_SD
+
     --home
-      use $DEST_DIR_HOME instead of $DEST_DIR_SD
+      use $WAYDROID_DEST_DIR_HOME instead of $WAYDROID_DEST_DIR_SD
+        (or $ALIENDALVIK4_DEST_DIR_HOME instead of $ALIENDALVIK4_DEST_DIR_SD)
 ";
 
 sub run(@);
 sub runQuiet(@);
 
+my $MODE_WAYDROID = "waydroid";
+my $MODE_ALIENDALVIK4 = "aliendalvik4";
+
 sub main(@){
+  my $mode = $MODE_WAYDROID;
   my $prefix = undef;
-  my $destDir = $DEST_DIR_SD;
+  my $useHomeDir = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(--waydroid|--wd)$/){
+      $mode = $MODE_WAYDROID;
+    }elsif($arg =~ /^(--aliendalvik|--ad|--alien|--aliendalvik4)$/){
+      $mode = $MODE_ALIENDALVIK4;
     }elsif($arg =~ /^(--home)$/){
-      $destDir = $DEST_DIR_HOME;
+      $useHomeDir = 1;
     }elsif($arg =~ /^[a-zA-Z0-9]/){
       die "$USAGE\nERROR: only one PREFIX allowed\n" if defined $prefix;
       $prefix = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
+  }
+
+  my ($srcDir, $destDir);
+  if($mode eq $MODE_WAYDROID){
+    $srcDir = $WAYDROID_SRC_DIR;
+    $destDir = $useHomeDir ? $WAYDROID_DEST_DIR_HOME : $WAYDROID_DEST_DIR_SD;
+  }elsif($mode eq $MODE_ALIENDALVIK4){
+    $srcDir = $ALIENDALVIK4_SRC_DIR;
+    $destDir = $useHomeDir ? $ALIENDALVIK4_DEST_DIR_HOME : $ALIENDALVIK4_DEST_DIR_SD;
+  }else{
+    die "ERROR: unknown mode $mode\n";
   }
 
   $prefix = "" if not defined $prefix;
@@ -60,7 +97,7 @@ sub main(@){
   die "could not find host\n" if $host !~ /\w/;
 
   print "\n\nrenaming ALL local apk files\n";
-  my @apkFiles = glob "$SRC_DIR/*.apk";
+  my @apkFiles = glob "$srcDir/*.apk";
   for my $apkFile(@apkFiles){
     runQuiet "apk-name", $apkFile;
     if($? != 0){
@@ -69,21 +106,28 @@ sub main(@){
   }
 
   print "\n\ncopying ALL apk files local => remote\n";
-  run "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$destDir/";
+  run "rsync", "-avP", "--del", "$srcDir/", "$USER\@$host:$destDir/";
 
   my @baseApkFiles = map {/(^.*\/)?([^\/]+)/; $2} @apkFiles;
   my @filteredApkFiles = grep {/^$prefix/} @baseApkFiles;
   my @destApkFiles = map {"$destDir/$_"} @filteredApkFiles;
 
-  print "\n\ninstalling apk files remotely\n";
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-    "echo", "apkd-install-preload", @destApkFiles;
-  print "\n";
-  run "ipmagic", $IPMAGIC_NAME,
-    "apkd-install", @destApkFiles;
+  if($mode eq $MODE_WAYDROID){
+    print "\n\ninstalling apk files remotely with `wd -i`\n";
+    run "ipmagic", $IPMAGIC_NAME, "wd", "-i", @destApkFiles;
+  }elsif($mode eq $MODE_ALIENDALVIK4){
+    print "\n\ninstalling apk files remotely with apkd\n";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "echo", "apkd-install-preload", @destApkFiles;
+    print "\n";
+    run "ipmagic", $IPMAGIC_NAME,
+      "apkd-install", @destApkFiles;
 
-  print "\n\nignore the installation UIs\n";
-  print "just watch each app install on its own in order, and then close the UIs\n";
+    print "\n\nignore the installation UIs\n";
+    print "just watch each app install on its own in order, and then close the UIs\n";
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
 }
 
 sub run(@){
