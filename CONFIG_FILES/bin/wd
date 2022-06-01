@@ -112,8 +112,9 @@ my $USAGE = "Usage:
     use invoker to activate waydroid window
     run: $EXEC shell am start <INTENT>
 
-  $EXEC install|--install|-i|i APK_ARG
-    same as: $EXEC --install=<APK_ARG>
+  $EXEC install|--install|-i|i APK_ARG APK_ARG APK_ARG ...
+    for each <APK_ARG>:
+      same as: $EXEC --install=<APK_ARG>
 
   $EXEC install|--install|-i|i
     same as: $EXEC --install=''
@@ -244,8 +245,8 @@ sub main(@){
     }elsif($arg =~ /^(install|--install|-i|i)$/){
       $cmd = $CMD_INSTALL;
       if(@_ > 0){
-        my $apkArg = shift @_;
-        @apkArgs = ($apkArg);
+        @apkArgs = @_;
+        @_ = ();
       }else{
         @apkArgs = (""); #match all
       }
