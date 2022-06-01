@@ -6,9 +6,9 @@ use File::Basename qw(basename);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $SRC_DIR = "$ENV{HOME}/Code/sx/apks",
+my $SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik4",
 my $DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
-my $DEST_DIR_HOME = "/home/nemo/apks";
+my $DEST_DIR_HOME = "/home/nemo/apks-aliendalvik4";
 
 my $EXEC = basename $0;
 
