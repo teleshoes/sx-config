@@ -103,18 +103,15 @@
 #  for now, just do:
 #    ipmagic sx -u root rm -rf /opt/alien/data/data/com.androidemu.nes/
 #    ipmagic sx -u root rm -rf /opt/alien/data/data/com.explusalpha.Snes9x/
-#
-#  ./install-apks
 
-#waydroid:
+#waydroid
 #  chum install waydroid + waydroid-runner
-#  rsync -avP apks-waydroid/ `sx`:/media/sdcard/phone/apks-waydroid/ --del -n
-#  rsync -avP apks-waydroid/ `sx`:/media/sdcard/phone/apks-waydroid/ --del
 #  wd init
 #  wd install
 
+./install-apks
+
 ./sync-android-apps --restore
-#./sync-android-apps --restore riot jitsi
 
 ./setup-waydroid
 
