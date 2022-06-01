@@ -6,7 +6,7 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 my $SRC_DIR = "$ENV{HOME}/Code/sx/apks",
-my $DEST_DIR = "/media/sdcard/phone/apks-aliendalvik4";
+my $DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
 my $DEST_DIR_HOME = "/home/nemo/apks";
 
 my $usage = "Usage:
@@ -22,15 +22,18 @@ my $usage = "Usage:
 
   OPTS
     --home
-      use $DEST_DIR_HOME instead of $DEST_DIR
+      use $DEST_DIR_HOME instead of $DEST_DIR_SD
 ";
 
 sub run(@);
 
 sub main(@){
+  my $destDir;
   if(@_ > 0 and $_[0] =~ /^(--home)$/){
     shift;
-    $DEST_DIR = $DEST_DIR_HOME;
+    $destDir = $DEST_DIR_HOME;
+  }else{
+    $destDir = $DEST_DIR_SD;
   }
 
   my $prefix = "";
@@ -52,12 +55,12 @@ sub main(@){
     die "ERROR: apk-name exited with non-zero code\n";
   }
 
-  run "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$DEST_DIR/";
+  run "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$destDir/";
 
   run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-    "apkd-install-preload $DEST_DIR/$prefix*.apk";
+    "apkd-install-preload $destDir/$prefix*.apk";
   run "ipmagic", $IPMAGIC_NAME,
-    "apkd-install $DEST_DIR/$prefix*.apk";
+    "apkd-install $destDir/$prefix*.apk";
 
   print "\n\nignore the installation UIs\n";
   print "just watch each app install on its own in order, and then close the UIs\n";
