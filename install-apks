@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
@@ -9,14 +10,16 @@ my $SRC_DIR = "$ENV{HOME}/Code/sx/apks",
 my $DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
 my $DEST_DIR_HOME = "/home/nemo/apks";
 
-my $usage = "Usage:
-  $0 -h|--help
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
     show this message
 
-  $0 [OPTS]
+  $EXEC [OPTS]
     install all apks in $SRC_DIR
 
-  $0 [OPTS] PREFIX
+  $EXEC [OPTS] PREFIX
     install all apks in $SRC_DIR with filename starting with PREFIX
     (all APK files are copied to the phone first, not just PREFIX*)
 
@@ -28,23 +31,24 @@ my $usage = "Usage:
 sub run(@);
 
 sub main(@){
-  my $destDir;
-  if(@_ > 0 and $_[0] =~ /^(--home)$/){
-    shift;
-    $destDir = $DEST_DIR_HOME;
-  }else{
-    $destDir = $DEST_DIR_SD;
+  my $prefix = undef;
+  my $destDir = $DEST_DIR_SD;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(--home)$/){
+      $destDir = $DEST_DIR_HOME;
+    }elsif($arg =~ /^[a-zA-Z0-9]/){
+      die "$USAGE\nERROR: only one PREFIX allowed\n" if defined $prefix;
+      $prefix = $arg;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
   }
 
-  my $prefix = "";
-  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print $usage;
-    exit 0;
-  }elsif(@_ == 1){
-    $prefix = $_[0];
-  }elsif(@_ > 0){
-    die $usage;
-  }
+  $prefix = "" if not defined $prefix;
 
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
