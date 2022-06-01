@@ -2,27 +2,27 @@
 use strict;
 use warnings;
 
-my $ipmagicName = "sx";
-my $user = "nemo";
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
 
-my $srcDir = "$ENV{HOME}/Code/sx/apks",
-my $destDir = "/media/sdcard/phone/apks-aliendalvik4";
-my $destDirHome = "/home/nemo/apks";
+my $SRC_DIR = "$ENV{HOME}/Code/sx/apks",
+my $DEST_DIR = "/media/sdcard/phone/apks-aliendalvik4";
+my $DEST_DIR_HOME = "/home/nemo/apks";
 
 my $usage = "Usage:
   $0 -h|--help
     show this message
 
   $0 [OPTS]
-    install all apks in $srcDir
+    install all apks in $SRC_DIR
 
   $0 [OPTS] PREFIX
-    install all apks in $srcDir with filename starting with PREFIX
+    install all apks in $SRC_DIR with filename starting with PREFIX
     (all APK files are copied to the phone first, not just PREFIX*)
 
   OPTS
     --home
-      use $destDirHome instead of $destDir
+      use $DEST_DIR_HOME instead of $DEST_DIR
 ";
 
 sub run(@);
@@ -30,7 +30,7 @@ sub run(@);
 sub main(@){
   if(@_ > 0 and $_[0] =~ /^(--home)$/){
     shift;
-    $destDir = $destDirHome;
+    $DEST_DIR = $DEST_DIR_HOME;
   }
 
   my $prefix = "";
@@ -43,21 +43,21 @@ sub main(@){
     die $usage;
   }
 
-  my $host = `ipmagic $ipmagicName`;
+  my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  run "apk-name", glob "$srcDir/*";
+  run "apk-name", glob "$SRC_DIR/*";
   if($? != 0){
     die "ERROR: apk-name exited with non-zero code\n";
   }
 
-  run "rsync", "-avP", "--del", "$srcDir/", "$user\@$host:$destDir/";
+  run "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$DEST_DIR/";
 
-  run "ipmagic", $ipmagicName, "-u", "root",
-    "apkd-install-preload $destDir/$prefix*.apk";
-  run "ipmagic", $ipmagicName,
-    "apkd-install $destDir/$prefix*.apk";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+    "apkd-install-preload $DEST_DIR/$prefix*.apk";
+  run "ipmagic", $IPMAGIC_NAME,
+    "apkd-install $DEST_DIR/$prefix*.apk";
 
   print "\n\nignore the installation UIs\n";
   print "just watch each app install on its own in order, and then close the UIs\n";
