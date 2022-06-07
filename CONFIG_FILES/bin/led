@@ -105,6 +105,16 @@ sub ensureRoot(){
 }
 
 sub selectDevice(){
+  my $hwRelease = `cat /etc/hw-release 2>/dev/null`;
+  my $targetDevName = $1 if $hwRelease =~ /^NAME="(.+)"$/m;
+  if(defined $targetDevName){
+    for my $devID(sort keys %$DEVICES){
+      my $dev = $$DEVICES{$devID};
+      if($targetDevName =~ /$$dev{name}/){
+        return $dev;
+      }
+    }
+  }
   return $$DEVICES{$DEFAULT_DEVICE_NAME};
 }
 
