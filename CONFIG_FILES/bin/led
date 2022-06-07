@@ -3,6 +3,13 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub ensureRoot();
+sub readLEDs();
+sub writeLEDs($$$);
+sub readDevInt($);
+sub writeDevInt($$);
+sub allInts(@);
+
 my $EXEC = basename $0;
 
 my $DEV_LEDS_DIR = "/sys/devices/soc.0/7af6000.i2c/i2c-6/6-0042/leds";
@@ -28,13 +35,6 @@ my @COLORS_ARR = (
 my %COLORS_BY_NAME = @COLORS_ARR;
 my @COLOR_NAMES = map {$COLORS_ARR[$_]} grep {$_ % 2 == 0} (0..$#COLORS_ARR);
 my $COLOR_FMT = join "\n    ", map {"$_ => @{$COLORS_BY_NAME{$_}}"} @COLOR_NAMES;
-
-sub ensureRoot();
-sub readLEDs();
-sub writeLEDs($$$);
-sub readDevInt($);
-sub writeDevInt($$);
-sub allInts(@);
 
 my $usage = "Usage:
   $EXEC -h|--help
