@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 sub ensureRoot();
+sub selectDevice();
 sub readLEDs();
 sub writeLEDs($$$);
 sub readDevInt($);
@@ -12,25 +13,34 @@ sub allInts(@);
 
 my $EXEC = basename $0;
 
-my $DEV_LEDS_DIR = "/sys/devices/soc.0/7af6000.i2c/i2c-6/6-0042/leds";
-my $DEV_RED = "$DEV_LEDS_DIR/led:rgb_red/brightness";
-my $DEV_GREEN = "$DEV_LEDS_DIR/led:rgb_green/brightness";
-my $DEV_BLUE = "$DEV_LEDS_DIR/led:rgb_blue/brightness";
+my $DEFAULT_DEVICE_NAME = 'XC';
 
-my $MAX_BRIGHTNESS = 12;
+my $XC_DEV_LEDS_DIR = '/sys/devices/soc.0/7af6000.i2c/i2c-6/6-0042/leds';
+
+my $DEVICES = {
+  XC => {
+    name           => 'Sony Xperia X Compact',
+    led_red        => "$XC_DEV_LEDS_DIR/led:rgb_red/brightness",
+    led_green      => "$XC_DEV_LEDS_DIR/led:rgb_green/brightness",
+    led_blue       => "$XC_DEV_LEDS_DIR/led:rgb_blue/brightness",
+    max_brightness => 12,
+  },
+};
+
+my $DEV = selectDevice();
 
 my @COLORS_ARR = (
-  off    => [map{$MAX_BRIGHTNESS*$_} (0.0, 0.0, 0.0)],
-  white  => [map{$MAX_BRIGHTNESS*$_} (1.0, 1.0, 1.0)],
-  black  => [map{$MAX_BRIGHTNESS*$_} (0.0, 0.0, 0.0)],
+  off    => [map{$$DEV{max_brightness}*$_} (0.0, 0.0, 0.0)],
+  white  => [map{$$DEV{max_brightness}*$_} (1.0, 1.0, 1.0)],
+  black  => [map{$$DEV{max_brightness}*$_} (0.0, 0.0, 0.0)],
 
-  red    => [map{$MAX_BRIGHTNESS*$_} (1.0, 0.0, 0.0)],
-  green  => [map{$MAX_BRIGHTNESS*$_} (0.0, 1.0, 0.0)],
-  blue   => [map{$MAX_BRIGHTNESS*$_} (0.0, 0.0, 1.0)],
+  red    => [map{$$DEV{max_brightness}*$_} (1.0, 0.0, 0.0)],
+  green  => [map{$$DEV{max_brightness}*$_} (0.0, 1.0, 0.0)],
+  blue   => [map{$$DEV{max_brightness}*$_} (0.0, 0.0, 1.0)],
 
-  yellow => [map{$MAX_BRIGHTNESS*$_} (1.0, 1.0, 0.0)],
-  purple => [map{$MAX_BRIGHTNESS*$_} (1.0, 0.0, 1.0)],
-  teal   => [map{$MAX_BRIGHTNESS*$_} (0.0, 1.0, 1.0)],
+  yellow => [map{$$DEV{max_brightness}*$_} (1.0, 1.0, 0.0)],
+  purple => [map{$$DEV{max_brightness}*$_} (1.0, 0.0, 1.0)],
+  teal   => [map{$$DEV{max_brightness}*$_} (0.0, 1.0, 1.0)],
 );
 my %COLORS_BY_NAME = @COLORS_ARR;
 my @COLOR_NAMES = map {$COLORS_ARR[$_]} grep {$_ % 2 == 0} (0..$#COLORS_ARR);
@@ -53,13 +63,13 @@ my $usage = "Usage:
   COLOR
     $COLOR_FMT
   RED_BRIGHTNESS
-    integer value in $DEV_RED
+    integer value in $$DEV{led_red}
     (seems to be 0 - 27 on SFOS Xperia X Compact)
   GREEN_BRIGHTNESS
-    integer value in $DEV_GREEN
+    integer value in $$DEV{led_green}
     (seems to be 0 - 20 on SFOS Xperia X Compact)
   BLUE_BRIGHTNESS
-    integer value in $DEV_BLUE
+    integer value in $$DEV{led_blue}
     (seems to be 0 - 120 on SFOS Xperia X Compact)
 ";
 
@@ -94,18 +104,22 @@ sub ensureRoot(){
   }
 }
 
+sub selectDevice(){
+  return $$DEVICES{$DEFAULT_DEVICE_NAME};
+}
+
 sub readLEDs(){
-  my $r = readDevInt $DEV_RED;
-  my $g = readDevInt $DEV_GREEN;
-  my $b = readDevInt $DEV_BLUE;
+  my $r = readDevInt $$DEV{led_red};
+  my $g = readDevInt $$DEV{led_green};
+  my $b = readDevInt $$DEV{led_blue};
   return ($r, $g, $b);
 }
 
 sub writeLEDs($$$){
   my ($r, $g, $b) = @_;
-  writeDevInt $DEV_RED, $r;
-  writeDevInt $DEV_GREEN, $g;
-  writeDevInt $DEV_BLUE, $b;
+  writeDevInt $$DEV{led_red}, $r;
+  writeDevInt $$DEV{led_green}, $g;
+  writeDevInt $$DEV{led_blue}, $b;
 }
 
 sub readDevInt($){
