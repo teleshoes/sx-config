@@ -10,18 +10,20 @@ my $DEV_RED = "$DEV_LEDS_DIR/led:rgb_red/brightness";
 my $DEV_GREEN = "$DEV_LEDS_DIR/led:rgb_green/brightness";
 my $DEV_BLUE = "$DEV_LEDS_DIR/led:rgb_blue/brightness";
 
+my $MAX_BRIGHTNESS = 12;
+
 my @COLORS_ARR = (
-  off    => [0, 0, 0],
-  white  => [12, 12, 12],
-  black  => [0, 0, 0],
+  off    => [map{$MAX_BRIGHTNESS*$_} (0.0, 0.0, 0.0)],
+  white  => [map{$MAX_BRIGHTNESS*$_} (1.0, 1.0, 1.0)],
+  black  => [map{$MAX_BRIGHTNESS*$_} (0.0, 0.0, 0.0)],
 
-  red    => [12, 0, 0],
-  green  => [0, 12, 0],
-  blue   => [0, 0, 12],
+  red    => [map{$MAX_BRIGHTNESS*$_} (1.0, 0.0, 0.0)],
+  green  => [map{$MAX_BRIGHTNESS*$_} (0.0, 1.0, 0.0)],
+  blue   => [map{$MAX_BRIGHTNESS*$_} (0.0, 0.0, 1.0)],
 
-  yellow => [12, 12, 0],
-  purple => [12, 0, 12],
-  teal   => [0, 12, 12]
+  yellow => [map{$MAX_BRIGHTNESS*$_} (1.0, 1.0, 0.0)],
+  purple => [map{$MAX_BRIGHTNESS*$_} (1.0, 0.0, 1.0)],
+  teal   => [map{$MAX_BRIGHTNESS*$_} (0.0, 1.0, 1.0)],
 );
 my %COLORS_BY_NAME = @COLORS_ARR;
 my @COLOR_NAMES = map {$COLORS_ARR[$_]} grep {$_ % 2 == 0} (0..$#COLORS_ARR);
