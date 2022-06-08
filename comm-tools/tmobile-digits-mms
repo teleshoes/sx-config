@@ -11,6 +11,8 @@ my $MY_NUMBER_FILE = "$ENV{HOME}/Code/sx/backup/my_number";
 my $MMS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/repo";
 my $MMS_PARTS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
 
+my $HAR_FILE_BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits-har-files";
+
 my $INSTRUCTIONS = ""
   . "  HAR_FILE messages get written to mms repo + parts-repo\n"
   . "    $MMS_REPO\n"
@@ -25,14 +27,20 @@ my $USAGE = "Usage:
   $0 -h|--help
     show this message
 
+  $0 -l | --latest
+    select LATEST_HAR_FILE, by mtime, from $HAR_FILE_BACKUP_DIR
+    same as: $0 <LATEST_HAR_FILE>
+
   $0 HAR_FILE
     $INSTRUCTIONS
 ";
 
+sub getLatestBackupHarFile();
 sub cleanNumber($);
 sub escapeStr($);
 sub parseMMSFile($);
 sub decodeBase64($);
+sub mtime($);
 sub run(@);
 sub nowMillis();
 
@@ -43,6 +51,8 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-l|--latest)$/i){
+      $harFile = getLatestBackupHarFile();
     }elsif(-f $arg and $arg =~ /\.har$/i){
       $harFile = $arg;
     }else{
@@ -176,6 +186,18 @@ sub main(@){
   print $INSTRUCTIONS;
 }
 
+sub getLatestBackupHarFile(){
+  my @harFiles = grep {-f $_} glob "$HAR_FILE_BACKUP_DIR/*.har";
+  if(@harFiles == 0){
+    die "ERROR: no har files found in $HAR_FILE_BACKUP_DIR\n";
+  }
+  my %mtimes = map {$_ => mtime $_} @harFiles;
+
+  @harFiles = sort {$mtimes{$a} <=> $mtimes{$b}} @harFiles;
+
+  return $harFiles[-1];
+}
+
 sub cleanNumber($){
   my ($number) = @_;
   $number = "" if not defined $number;
@@ -297,6 +319,11 @@ sub decodeBase64($){
   }
 
   return $out;
+}
+
+sub mtime($){
+  my @stat = stat $_[0];
+  return $stat[9];
 }
 
 sub run(@){
