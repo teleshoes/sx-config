@@ -158,8 +158,6 @@ sub main(@){
       run "cp", "-a", $attFile, "$mmsRepoDir/";
     }
 
-    my $subjectFmt = $$mms{subject};
-
     my $info = ""
       . "from=$$mms{from}\n"
       . "to=$$mms{to}\n"
