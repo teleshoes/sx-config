@@ -31,8 +31,10 @@ my $USAGE = "Usage:
 
 sub cleanNumber($);
 sub escapeStr($);
-sub nowMillis();
+sub parseMMSFile($);
+sub decodeBase64($);
 sub run(@);
+sub nowMillis();
 
 sub main(@){
   my $harFile;
