@@ -754,7 +754,7 @@ def readCallsFromCommHistory(db_file):
   return calls
 
 def readMMSFromMsgDir(mmsMsgDir, mms_parts_dir):
-  msgDirs = glob.glob(mmsMsgDir + "/*")
+  msgDirs = filter(lambda f: os.path.isdir(f), glob.glob(mmsMsgDir + "/*"))
 
   mmsMessages = []
   keyValRegex = re.compile(r'^\s*(\w+)\s*=\s*"?(.*?)"?\s*$')
