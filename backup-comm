@@ -183,7 +183,7 @@ sub main(@){
   print "MMS REPO\n";
   gitCommit $MMS_MSG_REPO, "-A", "diff", "automatic commit";
 
-  my @msgDirs = glob "$MMS_MSG_REPO/*";
+  my @msgDirs = grep {-d $_} glob "$MMS_MSG_REPO/*";
   my $msgDirCount = @msgDirs;
   print "touching $msgDirCount MMS message dirs\n";
   for my $msgDir(@msgDirs){
