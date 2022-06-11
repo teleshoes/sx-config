@@ -92,6 +92,8 @@ my %packages = (
     qt5-qtdeclarative-qtquick qt5-qtopengl qt5-qtnetwork qt5-qtwidgets
 
     perl-libwww-perl
+
+    python3-lxml
   )],
 
   "6-klomp" => [qw(
