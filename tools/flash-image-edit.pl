@@ -7,6 +7,8 @@ my $SRC_SPARSE_IMG = "sailfish.img001";
 my $DEST_RAW_IMG = "sfos_lvm_raw.img";
 
 sub editFlashSh();
+sub createRawImg();
+sub restoreSparseImg();
 sub startGuestfish(@);
 sub writeCmd($$);
 sub readOut($);
@@ -16,20 +18,7 @@ sub run(@);
 sub main(@){
   editFlashSh();
 
-  print "\n\n### creating raw img from sparse img\n";
-  if(-e $DEST_RAW_IMG){
-    run "rm", $DEST_RAW_IMG;
-  }
-
-  if(not -f $SRC_SPARSE_IMG){
-    die "ERROR: could not find sailfish.img001\n";
-  }
-
-  run "simg2img", $SRC_SPARSE_IMG, $DEST_RAW_IMG;
-
-  if(not -f $DEST_RAW_IMG){
-    die "ERROR: simg2img failed\n";
-  }
+  createRawImg();
 
   print "\n\n### starting guestfish\n";
   my $gf = startGuestfish qw(
@@ -104,16 +93,7 @@ sub main(@){
 
   $$gf{h}->finish();
 
-  print "\n\n### creating sparse img from raw img\n";
-  my $nowMillis = nowMillis();
-  run "mv", $SRC_SPARSE_IMG, "sailfish.img001.bak.$nowMillis";
-
-  run "img2simg", $DEST_RAW_IMG, $SRC_SPARSE_IMG;
-  if(not -f $SRC_SPARSE_IMG){
-    die "ERROR: img2simg failed\n";
-  }
-
-  run "rm", $DEST_RAW_IMG;
+  restoreSparseImg();
 
   print "\n\n### updating md5.list\n";
   updateMd5("md5.lst", "flash.sh", $SRC_SPARSE_IMG);
@@ -138,6 +118,36 @@ sub editFlashSh(){
   run "sed", "-i", "-E",
     "s/grep -e \"[^\"]*H8314[^\"]*\"/grep -e \"\\\\(H8314\\\\|SO-05K\\\\)\"/",
     "flash.sh";
+}
+
+sub createRawImg(){
+  print "\n\n### creating raw img from sparse img\n";
+  if(-e $DEST_RAW_IMG){
+    run "rm", $DEST_RAW_IMG;
+  }
+
+  if(not -f $SRC_SPARSE_IMG){
+    die "ERROR: could not find sailfish.img001\n";
+  }
+
+  run "simg2img", $SRC_SPARSE_IMG, $DEST_RAW_IMG;
+
+  if(not -f $DEST_RAW_IMG){
+    die "ERROR: simg2img failed\n";
+  }
+}
+
+sub restoreSparseImg(){
+  print "\n\n### creating sparse img from raw img\n";
+  my $nowMillis = nowMillis();
+  run "mv", $SRC_SPARSE_IMG, "sailfish.img001.bak.$nowMillis";
+
+  run "img2simg", $DEST_RAW_IMG, $SRC_SPARSE_IMG;
+  if(not -f $SRC_SPARSE_IMG){
+    die "ERROR: img2simg failed\n";
+  }
+
+  run "rm", $DEST_RAW_IMG;
 }
 
 sub startGuestfish(@){
