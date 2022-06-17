@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use IPC::Run qw(start finish);
 
+sub editFlashSh();
 sub startGuestfish(@);
 sub writeCmd($$);
 sub readOut($);
@@ -10,10 +11,7 @@ sub nowMillis();
 sub run(@);
 
 sub main(@){
-  print "\n\n### editing flash.sh for SO-05K\n";
-  run "sed", "-i", "-E",
-    "s/grep -e \"[^\"]*H8314[^\"]*\"/grep -e \"\\\\(H8314\\\\|SO-05K\\\\)\"/",
-    "flash.sh";
+  editFlashSh();
 
   print "\n\n### creating raw img from sparse img\n";
   if(-e "sfos_lvm_raw.img"){
@@ -130,6 +128,13 @@ sub updateMd5($@){
 
     run("sed", "-i", "s/^[0-9a-f]*\\s*$f\$/$md5/", $checkListFile);
   }
+}
+
+sub editFlashSh(){
+  print "\n\n### editing flash.sh for SO-05K\n";
+  run "sed", "-i", "-E",
+    "s/grep -e \"[^\"]*H8314[^\"]*\"/grep -e \"\\\\(H8314\\\\|SO-05K\\\\)\"/",
+    "flash.sh";
 }
 
 sub startGuestfish(@){
