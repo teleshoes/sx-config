@@ -38,6 +38,9 @@ sub main(@){
   ready($gf);
   print "ready!\n";
 
+  print "\n\n### remove encrypt-home, if present\n";
+  writeCmd($gf, "rm-f /var/lib/sailfish-device-encryption/encrypt-home");
+
   print "\n\n### editing autologin\n";
   editAutologin($gf);
 
