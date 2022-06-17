@@ -38,24 +38,7 @@ sub main(@){
   ############
   print "\n\n### editing the root image\n";
 
-  if(-e "start-autologin"){
-    run "rm", "start-autologin";
-  }
-
   editAutologin($gf);
-
-  writeCmd($gf, "sync");
-  ready($gf);
-
-  writeCmd($gf, "cat /usr/lib/startup/start-autologin");
-  my $res = readOut($gf);
-  if($res =~ /useradd.*-g nemo.*nemo/){
-    print "  #OK: start-autologin contains useradd -g nemo nemo\n";
-  }else{
-    die "ERROR: expected 'useradd -g nemo nemo' in start-autologin\n";
-  }
-
-  run "rm", "start-autologin";
   ############
 
   print "\n\n### guestfish cleanup + exit\n";
@@ -91,6 +74,10 @@ sub editFlashSh(){
 sub editAutologin($){
   my ($gf) = @_;
 
+  if(-e "start-autologin"){
+    run "rm", "start-autologin";
+  }
+
   writeCmd($gf, "stat /usr/lib/startup/start-autologin");
   my $stat = readOut($gf);
   my $mode = $1 if $stat =~ /^mode: (\d+)$/m;
@@ -117,6 +104,19 @@ sub editAutologin($){
 
   writeCmd($gf, "chown $uid $gid /usr/lib/startup/start-autologin");
   ready($gf);
+
+  writeCmd($gf, "sync");
+  ready($gf);
+
+  writeCmd($gf, "cat /usr/lib/startup/start-autologin");
+  my $res = readOut($gf);
+  if($res =~ /useradd.*-g nemo.*nemo/){
+    print "  #OK: start-autologin contains useradd -g nemo nemo\n";
+  }else{
+    die "ERROR: expected 'useradd -g nemo nemo' in start-autologin\n";
+  }
+
+  run "rm", "start-autologin";
 }
 
 sub createRawImg(){
