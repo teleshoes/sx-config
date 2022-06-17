@@ -10,6 +10,7 @@ sub editFlashSh();
 sub createRawImg();
 sub restoreSparseImg();
 sub startGuestfish(@);
+sub stopGuestfish($);
 sub writeCmd($$);
 sub readOut($);
 sub nowMillis();
@@ -82,16 +83,7 @@ sub main(@){
   ############
 
   print "\n\n### guestfish cleanup + exit\n";
-  writeCmd($gf, "umount /");
-  sleep 3;
-
-  writeCmd($gf, "shutdown");
-  sleep 3;
-
-  writeCmd($gf, "quit");
-  sleep 3;
-
-  $$gf{h}->finish();
+  stopGuestfish($gf);
 
   restoreSparseImg();
 
@@ -163,6 +155,21 @@ sub startGuestfish(@){
   $$gf{h} = start \@cmd, \$$gf{in}, \$$gf{out};
 
   return $gf;
+}
+
+sub stopGuestfish($){
+  my ($gf) = @_;
+
+  writeCmd($gf, "umount /");
+  sleep 3;
+
+  writeCmd($gf, "shutdown");
+  sleep 3;
+
+  writeCmd($gf, "quit");
+  sleep 3;
+
+  $$gf{h}->finish();
 }
 
 sub ready($){
