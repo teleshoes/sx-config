@@ -14,6 +14,7 @@ sub startGuestfish(@);
 sub stopGuestfish($);
 sub writeCmd($$);
 sub readOut($);
+sub grepFile($$);
 sub nowMillis();
 sub run(@);
 
@@ -65,10 +66,14 @@ sub updateMd5($@){
 }
 
 sub editFlashSh(){
-  print "\n\n### editing flash.sh for SO-05K\n";
-  run "sed", "-i", "-E",
-    "s/grep -e \"[^\"]*H8314[^\"]*\"/grep -e \"\\\\(H8314\\\\|SO-05K\\\\)\"/",
-    "flash.sh";
+  if(grepFile("H8314", "flash.sh")){
+    print "editing flash.sh for SO-05K\n";
+    run "sed", "-i", "-E",
+      "s/grep -e \"[^\"]*H8314[^\"]*\"/grep -e \"\\\\(H8314\\\\|SO-05K\\\\)\"/",
+      "flash.sh";
+  }else{
+    print "no devices need modifying\n";
+  }
 }
 
 sub editAutologin($){
@@ -198,6 +203,16 @@ sub readOut($){
   my $s = "$$gf{out}";
   $$gf{out} = '';
   return $s;
+}
+
+sub grepFile($$){
+  my ($ptrn, $file) = @_;
+  system "grep", "--silent", $ptrn, $file;
+  if($? == 0){
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
 sub nowMillis(){
