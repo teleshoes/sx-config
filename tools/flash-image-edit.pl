@@ -18,8 +18,10 @@ sub nowMillis();
 sub run(@);
 
 sub main(@){
+  print "\n\n### editing flash.sh to fix supported device product codes\n";
   editFlashSh();
 
+  print "\n\n### creating raw img from sparse img\n";
   createRawImg();
 
   print "\n\n### starting guestfish\n";
@@ -35,15 +37,13 @@ sub main(@){
   ready($gf);
   print "ready!\n";
 
-  ############
-  print "\n\n### editing the root image\n";
-
+  print "\n\n### editing autologin\n";
   editAutologin($gf);
-  ############
 
   print "\n\n### guestfish cleanup + exit\n";
   stopGuestfish($gf);
 
+  print "\n\n### creating sparse img from raw img\n";
   restoreSparseImg();
 
   print "\n\n### updating md5.list\n";
@@ -120,7 +120,6 @@ sub editAutologin($){
 }
 
 sub createRawImg(){
-  print "\n\n### creating raw img from sparse img\n";
   if(-e $DEST_RAW_IMG){
     run "rm", $DEST_RAW_IMG;
   }
@@ -137,7 +136,6 @@ sub createRawImg(){
 }
 
 sub restoreSparseImg(){
-  print "\n\n### creating sparse img from raw img\n";
   my $nowMillis = nowMillis();
   run "mv", $SRC_SPARSE_IMG, "sailfish.img001.bak.$nowMillis";
 
