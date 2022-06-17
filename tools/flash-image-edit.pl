@@ -7,6 +7,7 @@ my $SRC_SPARSE_IMG = "sailfish.img001";
 my $DEST_RAW_IMG = "sfos_lvm_raw.img";
 
 sub editFlashSh();
+sub editAutologin($);
 sub createRawImg();
 sub restoreSparseImg();
 sub startGuestfish(@);
@@ -41,32 +42,7 @@ sub main(@){
     run "rm", "start-autologin";
   }
 
-  writeCmd($gf, "stat /usr/lib/startup/start-autologin");
-  my $stat = readOut($gf);
-  my $mode = $1 if $stat =~ /^mode: (\d+)$/m;
-  my $uid = $1 if $stat =~ /^uid: (\d+)$/m;
-  my $gid = $1 if $stat =~ /^gid: (\d+)$/m;
-  if(not defined $mode or not defined $uid or not defined $gid){
-    die "ERROR: stat failed on start-autologin\n";
-  }
-
-  writeCmd($gf, "copy-out /usr/lib/startup/start-autologin .");
-  ready($gf);
-
-  if(-e "start-autologin"){
-    run "sed", "-i", "s/defaultuser/nemo/g", "start-autologin";
-  }else{
-    die "ERROR: copy-out start-autologin failed\n";
-  }
-
-  writeCmd($gf, "copy-in start-autologin /usr/lib/startup/");
-  ready($gf);
-
-  writeCmd($gf, "chmod $mode /usr/lib/startup/start-autologin");
-  ready($gf);
-
-  writeCmd($gf, "chown $uid $gid /usr/lib/startup/start-autologin");
-  ready($gf);
+  editAutologin($gf);
 
   writeCmd($gf, "sync");
   ready($gf);
@@ -110,6 +86,37 @@ sub editFlashSh(){
   run "sed", "-i", "-E",
     "s/grep -e \"[^\"]*H8314[^\"]*\"/grep -e \"\\\\(H8314\\\\|SO-05K\\\\)\"/",
     "flash.sh";
+}
+
+sub editAutologin($){
+  my ($gf) = @_;
+
+  writeCmd($gf, "stat /usr/lib/startup/start-autologin");
+  my $stat = readOut($gf);
+  my $mode = $1 if $stat =~ /^mode: (\d+)$/m;
+  my $uid = $1 if $stat =~ /^uid: (\d+)$/m;
+  my $gid = $1 if $stat =~ /^gid: (\d+)$/m;
+  if(not defined $mode or not defined $uid or not defined $gid){
+    die "ERROR: stat failed on start-autologin\n";
+  }
+
+  writeCmd($gf, "copy-out /usr/lib/startup/start-autologin .");
+  ready($gf);
+
+  if(-e "start-autologin"){
+    run "sed", "-i", "s/defaultuser/nemo/g", "start-autologin";
+  }else{
+    die "ERROR: copy-out start-autologin failed\n";
+  }
+
+  writeCmd($gf, "copy-in start-autologin /usr/lib/startup/");
+  ready($gf);
+
+  writeCmd($gf, "chmod $mode /usr/lib/startup/start-autologin");
+  ready($gf);
+
+  writeCmd($gf, "chown $uid $gid /usr/lib/startup/start-autologin");
+  ready($gf);
 }
 
 sub createRawImg(){
