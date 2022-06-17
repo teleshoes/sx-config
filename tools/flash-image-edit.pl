@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use IPC::Run qw(start finish);
 
+my $SRC_SPARSE_IMG = "sailfish.img001";
+my $DEST_RAW_IMG = "sfos_lvm_raw.img";
+
 sub editFlashSh();
 sub startGuestfish(@);
 sub writeCmd($$);
@@ -14,17 +17,17 @@ sub main(@){
   editFlashSh();
 
   print "\n\n### creating raw img from sparse img\n";
-  if(-e "sfos_lvm_raw.img"){
-    run "rm", "sfos_lvm_raw.img";
+  if(-e $DEST_RAW_IMG){
+    run "rm", $DEST_RAW_IMG;
   }
 
-  if(not -f "sailfish.img001"){
+  if(not -f $SRC_SPARSE_IMG){
     die "ERROR: could not find sailfish.img001\n";
   }
 
-  run "simg2img", "sailfish.img001", "sfos_lvm_raw.img";
+  run "simg2img", $SRC_SPARSE_IMG, $DEST_RAW_IMG;
 
-  if(not -f "sfos_lvm_raw.img"){
+  if(not -f $DEST_RAW_IMG){
     die "ERROR: simg2img failed\n";
   }
 
@@ -103,17 +106,17 @@ sub main(@){
 
   print "\n\n### creating sparse img from raw img\n";
   my $nowMillis = nowMillis();
-  run "mv", "sailfish.img001", "sailfish.img001.bak.$nowMillis";
+  run "mv", $SRC_SPARSE_IMG, "sailfish.img001.bak.$nowMillis";
 
-  run "img2simg", "sfos_lvm_raw.img", "sailfish.img001";
-  if(not -f "sailfish.img001"){
+  run "img2simg", $DEST_RAW_IMG, $SRC_SPARSE_IMG;
+  if(not -f $SRC_SPARSE_IMG){
     die "ERROR: img2simg failed\n";
   }
 
-  run "rm", "sfos_lvm_raw.img";
+  run "rm", $DEST_RAW_IMG;
 
   print "\n\n### updating md5.list\n";
-  updateMd5("md5.lst", "flash.sh", "sailfish.img001");
+  updateMd5("md5.lst", "flash.sh", $SRC_SPARSE_IMG);
 
   print "\n\n### done\n";
 }
