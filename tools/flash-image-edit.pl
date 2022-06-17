@@ -38,6 +38,9 @@ sub main(@){
   ready($gf);
   print "ready!\n";
 
+  print "\n\n### ensuring root filesystem fills available space\n";
+  writeCmd($gf, "resize2fs /dev/mapper/sailfish-root");
+
   print "\n\n### remove encrypt-home, if present\n";
   writeCmd($gf, "rm-f /var/lib/sailfish-device-encryption/encrypt-home");
 
