@@ -17,7 +17,7 @@ sub main(@){
 
   my $key = "";
   while(my $line = <CMD>){
-    if($line =~ /URI Record: https:\/\/my\.yubico\.com\/neo\/([a-z]+)/){
+    if($line =~ /URI Record: https:\/\/my\.yubico\.com\/\w+\/#?([a-z]+)/){
       $key = $1;
       system $killNfcdCmd;
       close CMD;
