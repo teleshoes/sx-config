@@ -17,6 +17,7 @@ my $DEFAULT_DEVICE_NAME = 'XC';
 
 my $XC_DEV_LEDS_DIR = '/sys/devices/soc.0/7af6000.i2c/i2c-6/6-0042/leds';
 my $XZ2C_DEV_LEDS_DIR = '/sys/devices/platform/soc/c440000.qcom,spmi/spmi-0/spmi0-03/c440000.qcom,spmi:qcom,pmi8998@3:qcom,leds@d000/leds';
+my $X10III_DEV_LEDS_DIR = '/sys/devices/platform/soc/c440000.qcom,spmi/spmi-0/spmi0-05/c440000.qcom,spmi:qcom,pm6150l@5:qcom,leds@d000/leds';
 
 my $DEVICES = {
   XC => {
@@ -32,6 +33,13 @@ my $DEVICES = {
     led_green      => "$XZ2C_DEV_LEDS_DIR/green/brightness",
     led_blue       => "$XZ2C_DEV_LEDS_DIR/blue/brightness",
     max_brightness => 127,
+  },
+  X10III => {
+    name           => 'Sony Xperia 10 III',
+    led_red        => "$X10III_DEV_LEDS_DIR/red/brightness",
+    led_green      => "$X10III_DEV_LEDS_DIR/green/brightness",
+    led_blue       => "$X10III_DEV_LEDS_DIR/blue/brightness",
+    max_brightness => 255,
   },
 };
 
