@@ -1,0 +1,186 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub getVolteStatus();
+sub getVolteEnabled();
+sub setVolteEnabled($);
+sub formatProps($);
+sub formatPropsSummary($);
+
+my $usage = "Usage:
+  $0 -h | --help
+    show this message
+
+  $0
+  $0 g | -g | --get
+    print volte status (enabled, on/off, sms/voice)
+
+  $0 --summary
+    if volte is disabled:
+      print OFF
+    if volte is enabled, on, sms-capable, and voice-capable:
+      print GOOD
+    otherwise:
+      print BAD
+
+  $0 on | --on
+    set volte registration = auto
+
+  $0 off | --off
+    set volte registration = disabled
+
+  $0 t | -t | --toggle
+    if volte registration = auto, set it to disabled
+    otherwise, set it to auto
+";
+
+my $CMD_GET = "get";
+my $CMD_SUMMARY = "summary";
+my $CMD_ON = "on";
+my $CMD_OFF = "off";
+my $CMD_TOGGLE = "toggle";
+
+sub main(@){
+
+  #fix insecure PATH for use in toggle
+  $ENV{PATH} = "/bin:/usr/bin:/usr/local/bin";
+
+  my $cmd = $CMD_SUMMARY;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $usage;
+      exit 0;
+    }elsif($arg =~ /^(g|-g|--get)$/){
+      $cmd = $CMD_GET;
+    }elsif($arg =~ /^(--summary)$/){
+      $cmd = $CMD_SUMMARY;
+    }elsif($arg =~ /^(on|--on)$/){
+      $cmd = $CMD_ON;
+    }elsif($arg =~ /^(off|--off)$/){
+      $cmd = $CMD_OFF;
+    }elsif($arg =~ /^(t|-t|--toggle)$/){
+      $cmd = $CMD_TOGGLE;
+    }else{
+      die "$usage\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($cmd eq $CMD_GET){
+    print formatProps(getVolteStatus()) . "\n";
+  }elsif($cmd eq $CMD_SUMMARY){
+    print formatPropsSummary(getVolteStatus()) . "\n";
+  }elsif($cmd eq $CMD_ON){
+    setVolteEnabled(1);
+    print "waiting 3s\n";
+    sleep 3;
+    print formatProps(getVolteStatus()) . "\n";
+  }elsif($cmd eq $CMD_OFF){
+    setVolteEnabled(0);
+    print "waiting 3s\n";
+    sleep 3;
+    print formatProps(getVolteStatus()) . "\n";
+  }elsif($cmd eq $CMD_TOGGLE){
+    setVolteEnabled(not getVolteEnabled());
+    print "waiting 3s\n";
+    sleep 3;
+    print formatProps(getVolteStatus()) . "\n";
+  }else{
+    die "ERROR: unknown cmd $cmd\n";
+  }
+}
+
+sub getVolteStatus(){
+  my @dbusSendCmd = qw(dbus-send --system --print-reply --type=method_call
+    --dest=org.ofono
+    /ril_0
+    org.ofono.IpMultimediaSystem.GetProperties
+  );
+
+  my $out = `@dbusSendCmd`;
+  my $props = {};
+  for my $prop(qw(Registered Registration VoiceCapable SmsCapable)){
+    if($out =~ /string "$prop"\s*\n*\s+variant\s+(boolean|string)\s+("[^"]*"|true|false)/){
+      my $val = $2;
+      $val = $1 if $val =~ /^"(.+)"$/;
+      $$props{$prop} = $val;
+    }
+  }
+  return $props;
+}
+
+sub getVolteEnabled(){
+  my $props = getVolteStatus();
+  if(defined $$props{Registration} and $$props{Registration} eq "auto"){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+sub setVolteEnabled($){
+  my ($enabled) = @_;
+  my $registration = $enabled ? "auto" : "disabled";
+  my @dbusSendCmd = qw(dbus-send --system --print-reply --type=method_call
+    --dest=org.ofono
+    /ril_0
+    org.ofono.IpMultimediaSystem.SetProperty
+    string:Registration
+  );
+  push @dbusSendCmd, "variant:string:$registration";
+
+  system "sudo", @dbusSendCmd;
+}
+
+sub formatProps($){
+  my ($props) = @_;
+
+  my $fmt = "";
+  if(defined $$props{Registration} and $$props{Registration} eq "auto"){
+    $fmt .= "enabled";
+  }elsif(defined $$props{Registration} and $$props{Registration} eq "disabled"){
+    $fmt .= "disabled";
+  }else{
+    $fmt .= "???";
+  }
+
+  $fmt .= " ";
+
+  if(defined $$props{Registered} and $$props{Registered} eq "true"){
+    $fmt .= "ON";
+    if(defined $$props{VoiceCapable} and $$props{VoiceCapable} eq "true"){
+      $fmt .= " +voice";
+    }else{
+      $fmt .= " MISSING-VOICE\n";
+    }
+    if(defined $$props{SmsCapable} and $$props{SmsCapable} eq "true"){
+      $fmt .= " +sms";
+    }else{
+      $fmt .= " MISSING-SMS\n";
+    }
+  }elsif(defined $$props{Registered} and $$props{Registered} eq "false"){
+    $fmt .= "OFF";
+  }else{
+    $fmt .= "???";
+  }
+}
+
+sub formatPropsSummary($){
+  my ($props) = @_;
+
+  if(defined $$props{Registration} and $$props{Registration} eq "disabled"){
+    return "OFF";
+  }elsif(1
+    and defined $$props{Registration} and $$props{Registration} eq "auto"
+    and defined $$props{Registered}   and $$props{Registered} eq "true"
+    and defined $$props{VoiceCapable} and $$props{VoiceCapable} eq "true"
+    and defined $$props{SmsCapable}   and $$props{SmsCapable} eq "true"
+  ){
+    return "GOOD";
+  }else{
+    return "BAD";
+  }
+}
+
+&main(@ARGV);
