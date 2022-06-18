@@ -1,0 +1,16 @@
+{
+    "translation_catalog": "settings-networking",
+    "entries": [
+        {
+            "path": "system_settings/connectivity/volte_toggle_switch",
+            "title": "volte",
+            "type": "custom",
+            "icon": "image://theme/icon-m-media-radio",
+            "params": {
+                "source": "/usr/share/jolla-settings/VoLTESwitch.qml",
+                "type": "grid",
+                "settings_path": "system_settings/connectivity"
+            }
+        }
+    ]
+}
