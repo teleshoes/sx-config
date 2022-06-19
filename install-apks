@@ -71,7 +71,7 @@ my $MODE_ALIENDALVIK = "aliendalvik";
 my $MODE_ALIENDALVIK4 = "aliendalvik4";
 
 sub main(@){
-  my $mode = $MODE_WAYDROID;
+  my $mode = $MODE_ALIENDALVIK;
   my $prefix = undef;
   my $useHomeDir = 0;
   while(@_ > 0){
