@@ -8,17 +8,41 @@ my $EXEC = basename $0;
 my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
+
+  $EXEC
+  $EXEC shell | --shell | -x
+    run: sudo lxc-attach --name=aliendalvik
+
+  $EXEC CMD_ARG [CMD_ARG CMD_ARG ..]
+  $EXEC shell CMD_ARG [CMD_ARG CMD_ARG]
+    run: sudo lxc-attach --name=aliendalvik -- CMD_ARG CMD_ARG CMD_ARG..
 ";
 
+my $MODE_SHELL = "shell";
+
 sub main(@){
+  my $mode = $MODE_SHELL;
+  my @cmdArgs;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(shell|--shell|-x)$/ and @cmdArgs == 0){
+      $mode = $MODE_SHELL;
+    }elsif($mode eq $MODE_SHELL){
+      push @cmdArgs, $arg;
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
+  }
+
+  if($mode eq $MODE_SHELL){
+    my @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik");
+    @cmd = (@cmd, "--", @cmdArgs) if @cmdArgs > 0;
+    exec @cmd;
+  }else{
+    die "ERROR: unknown mode $mode\n";
   }
 }
 
