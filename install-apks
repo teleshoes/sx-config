@@ -10,6 +10,10 @@ my $WAYDROID_SRC_DIR = "$ENV{HOME}/Code/sx/apks-waydroid",
 my $WAYDROID_DEST_DIR_SD = "/media/sdcard/phone/apks-waydroid";
 my $WAYDROID_DEST_DIR_HOME = "/home/nemo/apks-waydroid";
 
+my $ALIENDALVIK_SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik",
+my $ALIENDALVIK_DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik";
+my $ALIENDALVIK_DEST_DIR_HOME = "/home/nemo/apks-aliendalvik";
+
 my $ALIENDALVIK4_SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik4",
 my $ALIENDALVIK4_DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
 my $ALIENDALVIK4_DEST_DIR_HOME = "/home/nemo/apks-aliendalvik4";
@@ -30,6 +34,9 @@ my $USAGE = "Usage:
     -for --waydroid (default):
       -on remote, run: wd -i $WAYDROID_DEST_DIR_SD/<APK> ..
     -for --aliendalvik:
+      -on remote, run: apkd-install-preload $ALIENDALVIK_DEST_DIR_SD/<APK> ..
+      -on remote, run: apkd-install $ALIENDALVIK_DEST_DIR_SD/<APK> ..
+    -for --aliendalvik4:
       -on remote, run: apkd-install-preload $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
       -on remote, run: apkd-install $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
 
@@ -40,13 +47,19 @@ my $USAGE = "Usage:
         dest => $WAYDROID_DEST_DIR_SD
       (this is the default)
 
-    --aliendalvik | --ad | --alien | --aliendalvik4
+    --aliendalvik | --ad | --alien
+      use aliendalvik apk dirs and install with `apkd-install-preload`+`apkd-install`
+        src  => $ALIENDALVIK_SRC_DIR
+        dest => $ALIENDALVIK_DEST_DIR_SD
+
+    --aliendalvik4
       use aliendalvik4 apk dirs and install with `apkd-install-preload`+`apkd-install`
         src  => $ALIENDALVIK4_SRC_DIR
         dest => $ALIENDALVIK4_DEST_DIR_SD
 
     --home
       use $WAYDROID_DEST_DIR_HOME instead of $WAYDROID_DEST_DIR_SD
+        (or $ALIENDALVIK_DEST_DIR_HOME instead of $ALIENDALVIK_DEST_DIR_SD)
         (or $ALIENDALVIK4_DEST_DIR_HOME instead of $ALIENDALVIK4_DEST_DIR_SD)
 ";
 
@@ -54,6 +67,7 @@ sub run(@);
 sub runQuiet(@);
 
 my $MODE_WAYDROID = "waydroid";
+my $MODE_ALIENDALVIK = "aliendalvik";
 my $MODE_ALIENDALVIK4 = "aliendalvik4";
 
 sub main(@){
@@ -67,7 +81,9 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(--waydroid|--wd)$/){
       $mode = $MODE_WAYDROID;
-    }elsif($arg =~ /^(--aliendalvik|--ad|--alien|--aliendalvik4)$/){
+    }elsif($arg =~ /^(--aliendalvik|--ad|--alien)$/){
+      $mode = $MODE_ALIENDALVIK;
+    }elsif($arg =~ /^(--aliendalvik4)$/){
       $mode = $MODE_ALIENDALVIK4;
     }elsif($arg =~ /^(--home)$/){
       $useHomeDir = 1;
@@ -83,6 +99,9 @@ sub main(@){
   if($mode eq $MODE_WAYDROID){
     $srcDir = $WAYDROID_SRC_DIR;
     $destDir = $useHomeDir ? $WAYDROID_DEST_DIR_HOME : $WAYDROID_DEST_DIR_SD;
+  }elsif($mode eq $MODE_ALIENDALVIK){
+    $srcDir = $ALIENDALVIK_SRC_DIR;
+    $destDir = $useHomeDir ? $ALIENDALVIK_DEST_DIR_HOME : $ALIENDALVIK_DEST_DIR_SD;
   }elsif($mode eq $MODE_ALIENDALVIK4){
     $srcDir = $ALIENDALVIK4_SRC_DIR;
     $destDir = $useHomeDir ? $ALIENDALVIK4_DEST_DIR_HOME : $ALIENDALVIK4_DEST_DIR_SD;
@@ -115,7 +134,7 @@ sub main(@){
   if($mode eq $MODE_WAYDROID){
     print "\n\ninstalling apk files remotely with `wd -i`\n";
     run "ipmagic", $IPMAGIC_NAME, "wd", "-i", @destApkFiles;
-  }elsif($mode eq $MODE_ALIENDALVIK4){
+  }elsif($mode eq $MODE_ALIENDALVIK or $mode eq $MODE_ALIENDALVIK4){
     print "\n\ninstalling apk files remotely with apkd\n";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "echo", "apkd-install-preload", @destApkFiles;
