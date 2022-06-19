@@ -7,10 +7,10 @@ my $EXEC = basename $0;
 my $INTENT = 'org.coolreader/.CoolReader';
 
 my $CMDS = {
-  next    => "wd shell am start -n $INTENT -a org.coolreader.cmd.PAGE_DOWN",
-  prev    => "wd shell am start -n $INTENT -a org.coolreader.cmd.PAGE_UP",
-  ttsInit => "wd shell am start -n $INTENT -a org.coolreader.cmd.TTS_PLAY",
-  toggleOrientation => "wd shell am start -n $INTENT -a org.coolreader.cmd.TOGGLE_ORIENTATION",
+  next    => "ad shell am start -n $INTENT -a org.coolreader.cmd.PAGE_DOWN",
+  prev    => "ad shell am start -n $INTENT -a org.coolreader.cmd.PAGE_UP",
+  ttsInit => "ad shell am start -n $INTENT -a org.coolreader.cmd.TTS_PLAY",
+  toggleOrientation => "ad shell am start -n $INTENT -a org.coolreader.cmd.TOGGLE_ORIENTATION",
 };
 
 my $USAGE = "Usage:
