@@ -90,7 +90,8 @@ sub main(@){
   run "mkdir", "-p", $sqliteDbsDestDir;
   for my $dbName(sort keys %sqliteDbs){
     my $destGzipFile = "$sqliteDbsDestDir/$dbName.gz";
-    run "backup-sqlite-db", $sqliteDbs{$dbName}, $destGzipFile;
+    run "sudo", "backup-sqlite-db", $sqliteDbs{$dbName}, $destGzipFile;
+    run "sudo", "chown", "$user.$user", $destGzipFile;
   }
   run rsyncCmd($config, "$sqliteDbsDestDir/", $backupDir);
   ######
