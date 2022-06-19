@@ -24,7 +24,7 @@ my $dcimDir = "/media/sdcard/phone/Pictures/Camera";
 my $mmsPartsDir = "/home/$user/.local/share/commhistory/data";
 my %sqliteDbs = (
   commhistory => "/home/$user/.local/share/commhistory/commhistory.db",
-  contacts => "/home/$user/.local/share/system/Contacts/qtcontacts-sqlite/contacts.db",
+  contacts => "/home/$user/.local/share/system/privileged/Contacts/qtcontacts-sqlite/contacts.db",
 );
 
 my $notificationIdsCache = "/home/$user/.cache/backup-remote-notificationIds";
