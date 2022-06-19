@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub run(@);
+
+sub main(@){
+  my $serviceName = getMobileServiceName();
+  my $interface = getMobileInterface($serviceName);
+  my $ip6Routes = getDefaultIP6Routes();
+
+  print "======\n";
+  print "connman mobile interface: $interface\n";
+  run "ip", "-6", "route";
+  print "======\n";
+
+  my $routeCount = keys %$ip6Routes;
+  if($routeCount > 1 and defined $$ip6Routes{$interface}){
+    for my $routeInterface(sort keys %$ip6Routes){
+      if($routeInterface ne $interface){
+        my $addr = $$ip6Routes{$routeInterface};
+        print "DELETING route for $routeInterface (mobile is $interface)\n";
+        run "sudo ip -6 route del default via $addr"
+      }
+    }
+  }
+}
+
+sub getDefaultIP6Routes(){
+  my @lines = `ip -6 route`;
+  my $routes = {};
+  for my $line(@lines){
+    if($line =~ /^default via ([0-9a-f:]+) dev (\w+)/){
+      $$routes{$2} = $1;
+    }
+  }
+  return $routes;
+}
+
+sub getMobileServiceName(){
+  my @lines = `connmanctl services`;
+  for my $line(@lines){
+    if($line =~ /^(.*)\s+(.+)\s+(cellular_\d+_context1)$/){
+      return $3;
+    }
+  }
+  return undef;
+}
+
+sub getMobileInterface($){
+  my ($mobileServiceName) = @_;
+  my @lines = `connmanctl services $mobileServiceName`;
+  for my $line(@lines){
+    if($line =~ /^\s*Ethernet.*Interface\s*=\s*(\w+)/){
+      return $1;
+    }
+  }
+  return undef;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
