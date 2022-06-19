@@ -5,8 +5,8 @@ use File::Basename;
 
 my $ipmagicName = "sx";
 
-my $USE_WAYDROID = 1;
-my $USE_ALIENDALVIK = 0;
+my $USE_WAYDROID = 0;
+my $USE_ALIENDALVIK = 1;
 
 my $SDCARD_DIR = "/media/sdcard/phone";
 
