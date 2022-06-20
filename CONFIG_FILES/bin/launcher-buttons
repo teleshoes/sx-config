@@ -514,6 +514,9 @@ sub createAppDesktopFiles(@){
   my @appNames = @_;
   run "mkdir", "-p", $allDir;
   my @active = glob "$activeDir/*.desktop";
+
+  run "chattr", "-i", @active;
+
   run "rsync", "-avP", "--ignore-existing", @active, $allDir;
   run "rm -rf $activeDir";
   run "mkdir", "-p", $activeDir;
@@ -523,6 +526,26 @@ sub createAppDesktopFiles(@){
   for my $pattern(@extraIncludePatterns){
     for my $file(glob "$allDir/$pattern"){
       run "cp", "-a", $file, $activeDir;
+    }
+  }
+
+  if($USE_ALIENDALVIK){
+    my %okPkgNameFmts;
+    for my $appName(sort keys %androidLaunchers){
+      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
+      my $pkgNameFmt = $pkg;
+      $pkgNameFmt =~ s/\W/_/g;
+      $okPkgNameFmts{$pkgNameFmt} = 1;
+    }
+    for my $oldActive(@active){
+      if(not -f $oldActive and $oldActive =~ /^$activeDir\/apkd_launcher_(\w+)-/){
+        my $pkgNameFmt = $1;
+        if(defined $okPkgNameFmts{$pkgNameFmt}){
+          #create empty placeholder desktop file, and prevent deletion
+          run "touch", $oldActive;
+          run "chattr", "+i", $oldActive;
+        }
+      }
     }
   }
 }
