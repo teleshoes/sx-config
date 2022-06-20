@@ -137,7 +137,7 @@ my @unused = qw(
 
 # APP_NAME => [PACKAGE, ACTION, ICON_PATH]
 # if USE_WAYDROID, these get created as "/usr/shared/applications/android-wd-<APP_NAME>.desktop"
-my %waydroidLaunchers = (
+my %androidLaunchers = (
   "aptoide"            => ["cm.aptoide.pt",                             ".view.MainActivity",                                              undef],
   "bromite"            => ["org.bromite.bromite",                       "com.google.android.apps.chrome.Main",                             undef],
   "chrome"             => ["com.android.chrome",                        "com.google.android.apps.chrome.Main",                             undef],
@@ -169,7 +169,7 @@ my %waydroidLaunchers = (
 
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
-my %replacementRegexsWaydroid = map {$_ => "^android-wd-$_\$"} sort keys %waydroidLaunchers;
+my %replacementRegexsWaydroid = map {$_ => "^android-wd-$_\$"} sort keys %androidLaunchers;
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %replacementRegexsApkd = (
@@ -367,8 +367,8 @@ sub createAndroidDesktopFiles(){
     "$waydroidDestAppIconDir/",
   ;
 
-  for my $appName(sort keys %waydroidLaunchers){
-    my ($pkg, $action, $iconPath) = @{$waydroidLaunchers{$appName}};
+  for my $appName(sort keys %androidLaunchers){
+    my ($pkg, $action, $iconPath) = @{$androidLaunchers{$appName}};
     if(not defined $iconPath){
       $iconPath = "$waydroidDestAppIconDir/$pkg.png";
     }
