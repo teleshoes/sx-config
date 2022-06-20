@@ -104,8 +104,6 @@ my @config = qw(
   youtube
   youtube-music
   youtube-vanced-mgr
-
-  riot
 );
 
 my @unused = qw(
@@ -158,7 +156,6 @@ my %androidLaunchers = (
   "mtaetix"            => ["com.mta.mobileapp",                         ".MainActivity",                                                   undef],
   "mystrom"            => ["com.cogniance.asoka.srs.android",           ".MainActivity",                                                   undef],
   "nesoid"             => ["com.androidemu.nes",                        ".MainActivity",                                                   undef],
-  "riot"               => ["im.vector.alpha",                           "im.vector.activity.VectorLauncherActivity",                       undef],
   "snes9x"             => ["com.explusalpha.Snes9xPlus",                "com.imagine.BaseActivity",                                        undef],
   "textfree"           => ["com.pinger.textfree",                       ".call.activities.TFSplash",                                       undef],
   "tkts"               => ["com.TDF.AndroidTdf",                        ".applicationwide.TktsSplashScreenActivity",                       undef],
