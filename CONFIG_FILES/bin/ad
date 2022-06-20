@@ -16,13 +16,25 @@ my $USAGE = "Usage:
   $EXEC CMD_ARG [CMD_ARG CMD_ARG ..]
   $EXEC shell CMD_ARG [CMD_ARG CMD_ARG]
     run: sudo lxc-attach --name=aliendalvik -- CMD_ARG CMD_ARG CMD_ARG..
+
+  $EXEC -l INTENT
+  $EXEC --launch INTENT
+  $EXEC --launch-intent INTENT
+  $EXEC --launch-intent=INTENT
+    INTENT must match: PKG_NAME/ACTIVITY
+      note: if ACTIVITY starts with a '.', PKG_NAME will be appended to it
+
+    run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
+    e.g.: $EXEC -l org.coolreader org.coolreader.CoolReader
 ";
 
 my $MODE_SHELL = "shell";
+my $MODE_LAUNCH = "launch";
 
 sub main(@){
   my $mode = $MODE_SHELL;
   my @cmdArgs;
+  my $intent;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -30,8 +42,15 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(shell|--shell|-x)$/ and @cmdArgs == 0){
       $mode = $MODE_SHELL;
+    }elsif($arg =~ /^(-l|--launch|--launch-intent)$/){
+      $mode = $MODE_LAUNCH;
+    }elsif($arg =~ /^(--launch|--launch-intent)=(.+)$/){
+      $mode = $MODE_LAUNCH;
+      $intent = $2;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
+    }elsif($mode eq $MODE_LAUNCH and not defined $intent){
+      $intent = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
@@ -40,6 +59,21 @@ sub main(@){
   if($mode eq $MODE_SHELL){
     my @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik");
     @cmd = (@cmd, "--", @cmdArgs) if @cmdArgs > 0;
+    exec @cmd;
+  }elsif($mode eq $MODE_LAUNCH){
+    die "ERROR: missing intent\n" if not defined $intent;
+    my ($pkgName, $activity);
+    if($intent =~ /^(.+)\/(.+)$/){
+      ($pkgName, $activity) = ($1, $2);
+      if($activity =~ /^\./){
+        #this is NOT implemented by apkd-launcher, apparently
+        $activity = "$pkgName$activity";
+      }
+    }else{
+      die "ERROR: malformed intent (must be PKG_NAME/ACTIVITY)\n";
+    }
+    my $apk = "$pkgName.apk";
+    my @cmd = ("apkd-launcher", $apk, "$pkgName/$activity");
     exec @cmd;
   }else{
     die "ERROR: unknown mode $mode\n";
