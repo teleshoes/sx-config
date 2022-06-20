@@ -136,7 +136,8 @@ my @unused = qw(
 
 
 # APP_NAME => [PACKAGE, ACTION, ICON_PATH]
-# if USE_WAYDROID, these get created as "/usr/shared/applications/android-wd-<APP_NAME>.desktop"
+# these get created as "/usr/shared/applications/<PREFIX>-<APP_NAME>.desktop"
+#   PREFIX is "android-ad" for USE_ALIENDALVIK and "android-wd" for USE_WAYDROID
 my %androidLaunchers = (
   "aptoide"            => ["cm.aptoide.pt",                             ".view.MainActivity",                                              undef],
   "bromite"            => ["org.bromite.bromite",                       "com.google.android.apps.chrome.Main",                             undef],
@@ -172,10 +173,14 @@ my %androidLaunchers = (
 my %replacementRegexsWaydroid = map {$_ => "^android-wd-$_\$"} sort keys %androidLaunchers;
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
+my %replacementRegexsAliendalvik = map {$_ => "^android-ad-$_\$"} sort keys %androidLaunchers;
+
+# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %replacementRegexs = (
   'lirrgui'          => qw/^lirrtraintime$/,
 
   ($USE_WAYDROID ? %replacementRegexsWaydroid : ()),
+  ($USE_ALIENDALVIK ? %replacementRegexsAliendalvik : ()),
 );
 
 #desktop files with no launchers
@@ -215,6 +220,10 @@ my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 my $waydroidSrcAppIconDir = "/home/waydroid/data/icons";
 my $waydroidBackupAppIconDir = "$SDCARD_DIR/android-app-icons-wd";
 my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
+
+my $aliendalvikSrcAppIconDir = "/var/lib/apkd";
+my $aliendalvikBackupAppIconDir = "$SDCARD_DIR/android-app-icons-ad";
+my $aliendalvikDestAppIconDir = "/usr/share/icons/aliendalvik";
 
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
@@ -325,6 +334,9 @@ sub createAndroidDesktopFiles(){
   run "rm -f $activeDir/android-wd-*.desktop";
   run "rm -f $allDir/android-wd-*.desktop";
 
+  run "rm -f $activeDir/android-ad-*.desktop";
+  run "rm -f $allDir/android-ad-*.desktop";
+
   if($USE_WAYDROID){
     run "mkdir", "-p", $waydroidBackupAppIconDir;
     run "rsync", "-avP",
@@ -337,10 +349,43 @@ sub createAndroidDesktopFiles(){
       "$waydroidDestAppIconDir/",
     ;
   }
+  if($USE_ALIENDALVIK){
+    my $adIcons = {};
+    for my $iconFile(glob "$aliendalvikSrcAppIconDir/*.png"){
+      if($iconFile =~ /apkd_launcher_(\w+)-(\w+).png/){
+        my ($pkgNameFmt, $intentFmt) = ($1, $2);
+        $$adIcons{$pkgNameFmt} = $iconFile;
+      }
+    }
+
+    run "mkdir", "-p", $aliendalvikBackupAppIconDir;
+    for my $appName(sort keys %androidLaunchers){
+      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
+      my $pkgNameFmt = $pkg;
+      $pkgNameFmt =~ s/\W/_/g;
+      my $iconFile = $$adIcons{$pkgNameFmt};
+      if(defined $iconFile){
+        run "cp", "-ar", "$iconFile", "$aliendalvikBackupAppIconDir/$pkg.png";
+      }else{
+        print "\n\nWARNING: no aliendalvik icon found for $appName - $pkg\n";
+      }
+    }
+
+    run "mkdir", "-p", $aliendalvikDestAppIconDir;
+    run "rsync", "-avP",
+      "$aliendalvikBackupAppIconDir/",
+      "$aliendalvikDestAppIconDir/",
+    ;
+  }
 
   if($USE_WAYDROID){
     for my $appName(sort keys %androidLaunchers){
       createAndroidDesktopFile($appName, "waydroid", "wd", $waydroidDestAppIconDir);
+    }
+  }
+  if($USE_ALIENDALVIK){
+    for my $appName(sort keys %androidLaunchers){
+      createAndroidDesktopFile($appName, "aliendalvik", "ad", $aliendalvikDestAppIconDir);
     }
   }
 }
