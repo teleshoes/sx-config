@@ -307,9 +307,7 @@ sub main(@){
 }
 
 sub rearrangeLauncherButtons(){
-  if($USE_WAYDROID){
-    createAndroidDesktopFiles();
-  }
+  createAndroidDesktopFiles();
 
   my @validAppNames = getValidAppNames();
 
@@ -357,19 +355,23 @@ sub createAndroidDesktopFiles(){
   run "rm -f $activeDir/android-wd-*.desktop";
   run "rm -f $allDir/android-wd-*.desktop";
 
-  run "mkdir", "-p", $waydroidBackupAppIconDir;
-  run "rsync", "-avP",
-    "$waydroidSrcAppIconDir/",
-    "$waydroidBackupAppIconDir/",
-  ;
-  run "mkdir", "-p", $waydroidDestAppIconDir;
-  run "rsync", "-avP",
-    "$waydroidBackupAppIconDir/",
-    "$waydroidDestAppIconDir/",
-  ;
+  if($USE_WAYDROID){
+    run "mkdir", "-p", $waydroidBackupAppIconDir;
+    run "rsync", "-avP",
+      "$waydroidSrcAppIconDir/",
+      "$waydroidBackupAppIconDir/",
+    ;
+    run "mkdir", "-p", $waydroidDestAppIconDir;
+    run "rsync", "-avP",
+      "$waydroidBackupAppIconDir/",
+      "$waydroidDestAppIconDir/",
+    ;
+  }
 
-  for my $appName(sort keys %androidLaunchers){
-    createAndroidDesktopFile($appName);
+  if($USE_WAYDROID){
+    for my $appName(sort keys %androidLaunchers){
+      createAndroidDesktopFile($appName);
+    }
   }
 }
 
