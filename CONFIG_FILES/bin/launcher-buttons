@@ -115,6 +115,9 @@ my @unused = qw(
   openconnect-import
   sailfish-captiveportal
   vpnc-import
+  google-tts
+  tmobile-digits
+  vanced-microg
 );
 
 ########################################################
