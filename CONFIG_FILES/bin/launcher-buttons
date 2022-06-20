@@ -101,8 +101,8 @@ my @config = qw(
   traintime
 
   vlc
-  youtube-vanced
-  ytmusic-vanced
+  youtube
+  youtube-music
 );
 
 my @unused = qw(
@@ -160,8 +160,8 @@ my %waydroidLaunchers = (
   "traintime"          => ["org.lirr.portal",                           ".MainActivity",                                                   undef],
   "tor"                => ["org.torproject.torbrowser",                 ".App",                                                            undef],
   "vlc"                => ["org.videolan.vlc",                          ".StartActivity",                                                  undef],
-  "youtube-vanced"     => ["com.vanced.android.youtube",                undef,                                                             undef],
-  "ytmusic-vanced"     => ["com.vanced.android.apps.youtube.music",     undef,                                                             undef],
+  "youtube"            => ["com.vanced.android.youtube",                undef,                                                             undef],
+  "youtube-music"      => ["com.vanced.android.apps.youtube.music",     undef,                                                             undef],
 );
 
 
