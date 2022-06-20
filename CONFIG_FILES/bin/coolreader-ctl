@@ -10,6 +10,7 @@ my $CMDS = {
   next    => "ad shell am start -n $INTENT -a org.coolreader.cmd.PAGE_DOWN",
   prev    => "ad shell am start -n $INTENT -a org.coolreader.cmd.PAGE_UP",
   ttsInit => "ad shell am start -n $INTENT -a org.coolreader.cmd.TTS_PLAY",
+  ttsPlayPause => "ad shell am broadcast -a org.coolreader.tts.tts_play_pause",
   toggleOrientation => "ad shell am start -n $INTENT -a org.coolreader.cmd.TOGGLE_ORIENTATION",
 };
 
@@ -26,6 +27,10 @@ my $USAGE = "Usage:
       $$CMDS{prev}
 
   $0 ttsInit | --tts-init
+    if coolreader is running:
+      $$CMDS{ttsInit}
+
+  $0 ttsPlayPause | --tts-play-pause
     if coolreader is running:
       $$CMDS{ttsInit}
 
@@ -49,6 +54,8 @@ sub main(@){
       $cmd = $$CMDS{prev};
     }elsif($arg =~ /^(ttsInit|--tts-init)$/){
       $cmd = $$CMDS{ttsInit};
+    }elsif($arg =~ /^(ttsPlayPause|--tts-playPause)$/){
+      $cmd = $$CMDS{ttsPlayPause};
     }elsif($arg =~ /^(toggleOrientation|--toggle-orientation)$/){
       $cmd = $$CMDS{toggleOrientation};
     }else{
