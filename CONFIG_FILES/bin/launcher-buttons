@@ -135,7 +135,7 @@ my @unused = qw(
 ########################################################
 
 
-# APP_NAME => [PACKAGE, INTENT, ICON_PATH]
+# APP_NAME => [PACKAGE, ACTION, ICON_PATH]
 # if USE_WAYDROID, these get created as "/usr/shared/applications/wd-<APP_NAME>.desktop"
 my %waydroidLaunchers = (
   "aptoide"            => ["cm.aptoide.pt",                             ".view.MainActivity",                                              undef],
@@ -367,11 +367,11 @@ sub createWaydroidDesktopFiles(){
     ;
 
   for my $appName(sort keys %waydroidLaunchers){
-    my ($pkg, $intent, $iconPath) = @{$waydroidLaunchers{$appName}};
+    my ($pkg, $action, $iconPath) = @{$waydroidLaunchers{$appName}};
     if(not defined $iconPath){
       $iconPath = "$waydroidDestAppIconDir/$pkg.png";
     }
-    my $fullIntent = defined $intent ? "$pkg/$intent" : $pkg;
+    my $fullIntent = "$pkg/$action";
     my $desktopContents = ""
       . "[Desktop Entry]\n"
       . "Name=$appName\n"
