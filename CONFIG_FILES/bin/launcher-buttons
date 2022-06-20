@@ -172,40 +172,10 @@ my %androidLaunchers = (
 my %replacementRegexsWaydroid = map {$_ => "^android-wd-$_\$"} sort keys %androidLaunchers;
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
-my %replacementRegexsApkd = (
-  'aptoide'          => qw/^apkd_launcher_cm_aptoide_pt-cm_aptoide_pt_view_entry_EntryActivity$/,
-  'jolla-aptoide'    => qw/^apkd_launcher_com_aptoide_partners-com_aptoide_partners_Start$/,
-  'bromite'          => qw/^apkd_launcher_org_bromite_bromite-org_chromium_chrome_browser_document_ChromeLauncherActivity$/,
-  'chrome'           => qw/^apkd_launcher_com_android_chrome-.*$/,
-  'cool-reader'      => qw/^apkd_launcher_org_coolreader-org_coolreader_CoolReader$/,
-  'discord'          => qw/^apkd_launcher_com_discord-com_discord_app_AppActivity.*$/,
-  'facebook-lite'    => qw/^apkd_launcher_com_facebook_lite-com_facebook_lite_MainActivity$/,
-  'fairynest'        => qw/^apkd_launcher_com_spled_aicontrol-com_spled_aicontrol_activity_main_MainActivity$/,
-  'fbmessenger-lite' => qw/^apkd_launcher_com_facebook_mlite-com_facebook_mlite_coreui_view_MainActivity$/,
-  'fdroid'           => qw/^apkd_launcher_org_fdroid_fdroid-.*$/,
-  'google-maps'      => qw/^apkd_launcher_com_google_android_apps_maps-com_google_android_maps_MapsActivity$/,
-  'jitsi'            => qw/^apkd_launcher_org_jitsi_meet-org_jitsi_meet_MainActivity$/,
-  'kasa'             => qw/^apkd_launcher_com_tplink_kasa__android-com_tplink_hellotp_activity_SplashScreenActivity$/,
-  'midea'            => qw/^apkd_launcher_com_midea_aircondition_obm-com_midea_aircondition_obm_activity_LoginActivity$/,
-  'nesoid'           => qw/^apkd_launcher_com_androidemu_nes-com_androidemu_nes_MainActivity$/,
-  'snes9x'           => qw/^apkd_launcher_com_explusalpha_Snes9x-com_imagine_BaseActivity$/,
-  'mta-etix'         => qw/^apkd_launcher_com_mta_mobileapp-com_mta_mobileapp_MainActivity$/,
-  'mystrom'          => qw/^apkd_launcher_com_cogniance_asoka_srs_android-com_cogniance_asoka_srs_android_MainActivity.desktop$/,
-  'lirr-traintime'   => qw/^apkd_launcher_org_lirr_portal-org_lirr_portal_MainActivity$/,
-  'riot'             => qw/^apkd_launcher_im_vector.*VectorLauncherActivity$/,
-  'textfree'         => qw/^apkd_launcher_com_pinger_textfree-com_pinger_textfree_call_activities_TFSplash$/,
-  'tkts'             => qw/^apkd_launcher_com_TDF_AndroidTdf-com_TDF_AndroidTdf_applicationwide_TktsSplashScreenActivity$/,
-  'torbrowser'       => qw/^apkd_launcher_org_torproject_torbrowser-org_mozilla_gecko_LauncherActivity$/,
-  'vlc'              => qw/^apkd_launcher_org_videolan_vlc-org_videolan_vlc_StartActivity$/,
-  'youtube-vanced'   => qw/^apkd_launcher_com_bvanced_.*$/,
-);
-
-# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %replacementRegexs = (
   'lirrgui'          => qw/^lirrtraintime$/,
 
   ($USE_WAYDROID ? %replacementRegexsWaydroid : ()),
-  ($USE_ALIENDALVIK ? %replacementRegexsApkd : ()),
 );
 
 #desktop files with no launchers
