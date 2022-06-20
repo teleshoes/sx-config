@@ -43,7 +43,7 @@ my @config = qw(
 
   facebook
   google-maps
-  riot
+  element
   harbour-advanced-camera
 
 
@@ -105,7 +105,7 @@ my @config = qw(
   youtube-music
   youtube-vanced-mgr
 
-  element
+  riot
 );
 
 my @unused = qw(
