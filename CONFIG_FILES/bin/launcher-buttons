@@ -352,7 +352,7 @@ sub createAndroidDesktopFiles(){
   if($USE_ALIENDALVIK){
     my $adIcons = {};
     for my $iconFile(glob "$aliendalvikSrcAppIconDir/*.png"){
-      if($iconFile =~ /apkd_launcher_(\w+)-(\w+).png/){
+      if($iconFile =~ /apkd_launcher_(\w+)-(.+).png/){
         my ($pkgNameFmt, $intentFmt) = ($1, $2);
         $$adIcons{$pkgNameFmt} = $iconFile;
       }
