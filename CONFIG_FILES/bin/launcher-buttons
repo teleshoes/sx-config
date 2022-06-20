@@ -248,6 +248,7 @@ my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
 
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
+sub createAndroidDesktopFile($);
 sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
@@ -368,29 +369,34 @@ sub createAndroidDesktopFiles(){
   ;
 
   for my $appName(sort keys %androidLaunchers){
-    my ($pkg, $action, $iconPath) = @{$androidLaunchers{$appName}};
-    if(not defined $iconPath){
-      $iconPath = "$waydroidDestAppIconDir/$pkg.png";
-    }
-    my $fullIntent = "$pkg/$action";
-    my $desktopContents = ""
-      . "[Desktop Entry]\n"
-      . "Name=$appName\n"
-      . "Comment=Run $fullIntent in waydroid\n"
-      . "Icon=$iconPath\n"
-      . "Exec=/usr/local/bin/udo wd --launch-intent='$fullIntent'\n"
-      . "Type=Application\n"
-      . "X-Nemo-Single-Instance=no\n"
-      . "Custom-Launcher=yes\n"
-      . "\n"
-      . "[X-Sailjail]\n"
-      . "Sandboxing=Disabled\n"
-      ;
-    my $desktopFile = "$activeDir/android-wd-$appName.desktop";
-    open FH, "> $desktopFile" or die "ERROR: cannot write $desktopFile\n$!\n";
-    print FH $desktopContents;
-    close FH;
+    createAndroidDesktopFile($appName);
   }
+}
+
+sub createAndroidDesktopFile($){
+  my ($appName) = @_;
+  my ($pkg, $action, $iconPath) = @{$androidLaunchers{$appName}};
+  if(not defined $iconPath){
+    $iconPath = "$waydroidDestAppIconDir/$pkg.png";
+  }
+  my $fullIntent = "$pkg/$action";
+  my $desktopContents = ""
+    . "[Desktop Entry]\n"
+    . "Name=$appName\n"
+    . "Comment=Run $fullIntent in waydroid\n"
+    . "Icon=$iconPath\n"
+    . "Exec=/usr/local/bin/udo wd --launch-intent='$fullIntent'\n"
+    . "Type=Application\n"
+    . "X-Nemo-Single-Instance=no\n"
+    . "Custom-Launcher=yes\n"
+    . "\n"
+    . "[X-Sailjail]\n"
+    . "Sandboxing=Disabled\n"
+    ;
+  my $desktopFile = "$activeDir/android-wd-$appName.desktop";
+  open FH, "> $desktopFile" or die "ERROR: cannot write $desktopFile\n$!\n";
+  print FH $desktopContents;
+  close FH;
 }
 
 sub ensureExecScriptOnDevice(@){
