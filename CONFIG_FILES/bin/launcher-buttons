@@ -104,6 +104,8 @@ my @config = qw(
   youtube
   youtube-music
   youtube-vanced-mgr
+
+  element
 );
 
 my @unused = qw(
