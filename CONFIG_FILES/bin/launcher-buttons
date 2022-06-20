@@ -356,15 +356,16 @@ sub createWaydroidDesktopFiles(){
   run "rm -f $activeDir/wd-*.desktop";
   run "rm -f $allDir/wd-*.desktop";
 
-  run "mkdir", "-p", $waydroidDestAppIconDir;
+  run "mkdir", "-p", $waydroidBackupAppIconDir;
   run "rsync", "-avP",
     "$waydroidSrcAppIconDir/",
     "$waydroidBackupAppIconDir/",
-    ;
+  ;
+  run "mkdir", "-p", $waydroidDestAppIconDir;
   run "rsync", "-avP",
     "$waydroidBackupAppIconDir/",
     "$waydroidDestAppIconDir/",
-    ;
+  ;
 
   for my $appName(sort keys %waydroidLaunchers){
     my ($pkg, $action, $iconPath) = @{$waydroidLaunchers{$appName}};
