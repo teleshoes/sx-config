@@ -247,7 +247,7 @@ my $waydroidBackupAppIconDir = "$SDCARD_DIR/android-app-icons-wd";
 my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
 
 sub rearrangeLauncherButtons();
-sub createWaydroidDesktopFiles();
+sub createAndroidDesktopFiles();
 sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
@@ -307,7 +307,7 @@ sub main(@){
 
 sub rearrangeLauncherButtons(){
   if($USE_WAYDROID){
-    createWaydroidDesktopFiles();
+    createAndroidDesktopFiles();
   }
 
   my @validAppNames = getValidAppNames();
@@ -352,7 +352,7 @@ sub rearrangeLauncherButtons(){
   print "\n\nREMOVED (newly installed): @removedNew\n" if @removedNew > 0;
 }
 
-sub createWaydroidDesktopFiles(){
+sub createAndroidDesktopFiles(){
   run "rm -f $activeDir/wd-*.desktop";
   run "rm -f $allDir/wd-*.desktop";
 
