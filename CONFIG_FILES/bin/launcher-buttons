@@ -248,7 +248,7 @@ my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
 
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
-sub createAndroidDesktopFile($);
+sub createAndroidDesktopFile($$$$);
 sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
@@ -370,30 +370,30 @@ sub createAndroidDesktopFiles(){
 
   if($USE_WAYDROID){
     for my $appName(sort keys %androidLaunchers){
-      createAndroidDesktopFile($appName);
+      createAndroidDesktopFile($appName, "waydroid", "wd", $waydroidDestAppIconDir);
     }
   }
 }
 
-sub createAndroidDesktopFile($){
-  my ($appName) = @_;
+sub createAndroidDesktopFile($$$$){
+  my ($appName, $androidEnvName, $wdAdLauncherCmdExec, $androidIconDir) = @_;
 
   my ($pkg, $action, $iconPathOverride) = @{$androidLaunchers{$appName}};
 
-  my $iconPath = "$waydroidDestAppIconDir/$pkg.png";
+  my $iconPath = "$androidIconDir/$pkg.png";
   $iconPath = $iconPathOverride if defined $iconPathOverride;
 
   my $fullIntent = "$pkg/$action";
 
-  my $desktopFilePrefix = "android-wd";
+  my $desktopFilePrefix = "android-$wdAdLauncherCmdExec";
 
   my $desktopFile = "$activeDir/$desktopFilePrefix-$appName.desktop";
   my $desktopContents = ""
     . "[Desktop Entry]\n"
     . "Name=$appName\n"
-    . "Comment=Run $fullIntent in waydroid\n"
+    . "Comment=Run $fullIntent in $androidEnvName\n"
     . "Icon=$iconPath\n"
-    . "Exec=/usr/local/bin/udo wd --launch-intent='$fullIntent'\n"
+    . "Exec=/usr/local/bin/udo $wdAdLauncherCmdExec --launch-intent='$fullIntent'\n"
     . "Type=Application\n"
     . "X-Nemo-Single-Instance=no\n"
     . "Custom-Launcher=yes\n"
