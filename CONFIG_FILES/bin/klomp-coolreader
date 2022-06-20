@@ -6,7 +6,7 @@ use File::Basename qw(basename);
 my $EXEC = basename $0;
 my $TTS_PROC = "com.google.android.tts";
 my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
-my @COOLREADER_TOGGLE_CMD = qw(wd shell am broadcast -a org.coolreader.tts.tts_play_pause);
+my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
 my $USAGE = "Usage:
   $EXEC -g|--get
