@@ -139,8 +139,8 @@ my @unused = qw(
 # if USE_WAYDROID, these get created as "/usr/shared/applications/wd-<APP_NAME>.desktop"
 my %waydroidLaunchers = (
   "aptoide"            => ["cm.aptoide.pt",                             ".view.MainActivity",                                              undef],
-  "bromite"            => ["org.bromite.bromite",                       undef,                                                             undef],
-  "chrome"             => ["com.android.chrome",                        undef,                                                             undef],
+  "bromite"            => ["org.bromite.bromite",                       "com.google.android.apps.chrome.Main",                             undef],
+  "chrome"             => ["com.android.chrome",                        "com.google.android.apps.chrome.Main",                             undef],
   "coolreader"         => ["org.coolreader",                            ".CoolReader",                                                     undef],
   "discord"            => ["com.discord",                               ".app.AppActivity\$Main",                                          undef],
   "facebook"           => ["com.facebook.lite",                         ".MainActivity",                                                   undef],
@@ -161,9 +161,9 @@ my %waydroidLaunchers = (
   "traintime"          => ["org.lirr.portal",                           ".MainActivity",                                                   undef],
   "tor"                => ["org.torproject.torbrowser",                 ".App",                                                            undef],
   "vlc"                => ["org.videolan.vlc",                          ".StartActivity",                                                  undef],
-  "youtube"            => ["com.vanced.android.youtube",                undef,                                                             undef],
-  "youtube-music"      => ["com.vanced.android.apps.youtube.music",     undef,                                                             undef],
-  "youtube-vanced-mgr" => ["com.vanced.manager",                        undef,                                                             undef],
+  "youtube"            => ["com.vanced.android.youtube",                "com.google.android.youtube.app.honeycomb.Shell\$HomeActivity",    undef],
+  "youtube-music"      => ["com.vanced.android.apps.youtube.music",     "com.google.android.apps.youtube.music.activities.MusicActivity",  undef],
+  "youtube-vanced-mgr" => ["com.vanced.manager",                        ".ui.MainActivity",                                                undef],
 );
 
 
