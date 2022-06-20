@@ -103,6 +103,7 @@ my @config = qw(
   vlc
   youtube
   youtube-music
+  youtube-vanced-mgr
 );
 
 my @unused = qw(
@@ -162,6 +163,7 @@ my %waydroidLaunchers = (
   "vlc"                => ["org.videolan.vlc",                          ".StartActivity",                                                  undef],
   "youtube"            => ["com.vanced.android.youtube",                undef,                                                             undef],
   "youtube-music"      => ["com.vanced.android.apps.youtube.music",     undef,                                                             undef],
+  "youtube-vanced-mgr" => ["com.vanced.manager",                        undef,                                                             undef],
 );
 
 
