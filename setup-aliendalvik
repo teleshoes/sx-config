@@ -11,6 +11,15 @@ my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
 my $REMOTE_DATA_DIR = "/home/.android/data/data";
 
+my $SETTINGS = {
+  secure => {
+  },
+  system => {
+  },
+  global => {
+  },
+};
+
 my $JITSI_DB = "$REMOTE_DATA_DIR/org.jitsi.meet/databases/RKStorage";
 my $JITSI_DB_CONF = {
   '@jitsi-meet/features/recent-list' => ''
@@ -42,6 +51,7 @@ my $PACKAGE_RESTRICTIONS = {
     . "    </pkg>\n"
 };
 
+sub applySettings();
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
 sub editStartScript($);
@@ -54,6 +64,9 @@ sub run(@);
 sub runQuiet(@);
 
 sub main(@){
+  print "\n\n\napplying settings\n";
+  applySettings();
+
   print "\n\n\nediting package restrictions\n";
   editRemoteFile(
     "package-restrictions",
@@ -75,6 +88,35 @@ sub main(@){
 
   print "\n\n\nsetting up jitsi:\n";
   setupJitsi();
+}
+
+sub applySettings(){
+  my $getCmds = "";
+  my $setCmds = "";
+  for my $namespace(sort keys %$SETTINGS){
+    for my $key(sort keys %{$$SETTINGS{$namespace}}){
+      my $val = $$SETTINGS{$namespace}{$key};
+      $getCmds .= "echo -ne $namespace.$key=; ad shell settings get '$namespace' '$key';\n";
+      $setCmds .= "ad shell settings put '$namespace' '$key' '$val';\n";
+    }
+  }
+
+  print "settings (before):\n";
+  my $before = `ipmagic $IPMAGIC_NAME "$getCmds"`;
+  print "$before\n\n";
+
+  run "ipmagic", $IPMAGIC_NAME, "$setCmds";
+  print "\n\n";
+
+  print "settings (after):\n";
+  my $after = `ipmagic $IPMAGIC_NAME "$getCmds"`;
+  print "$after\n\n";
+
+  if($before eq $after){
+    print "NO CHANGE\n";
+  }else{
+    print "SETTINGS UPDATED\n";
+  }
 }
 
 sub editRemoteFile($$$){
