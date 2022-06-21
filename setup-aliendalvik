@@ -54,14 +54,14 @@ sub run(@);
 sub runQuiet(@);
 
 sub main(@){
-  print "\nediting package restrictions\n";
+  print "\n\n\nediting package restrictions\n";
   editRemoteFile(
     "package-restrictions",
     $PACKAGE_RESTRICTIONS_XML_FILE,
     \&editPackageRestrictions,
   );
 
-  print "\nediting start script\n";
+  print "\n\n\nediting start script\n";
   run "ipmagic", $IPMAGIC_NAME, "test -f $ALIENDALVIK_START_SCRIPT";
   if($? == 0){
     editRemoteFile(
@@ -70,16 +70,16 @@ sub main(@){
       \&editStartScript,
     );
   }else{
-    print "\n\n\nskipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
+    print "skipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
   }
 
-  print "\nsetting up jitsi:\n";
+  print "\n\n\nsetting up jitsi:\n";
   setupJitsi();
 }
 
 sub editRemoteFile($$$){
   my ($editName, $remoteFile, $editSub) = @_;
-  print "\n\n\nchecking $editName\n";
+  print "checking $editName\n";
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
@@ -96,7 +96,7 @@ sub editRemoteFile($$$){
 
   my $isChanged = &$editSub($tmpFileNew);
 
-  print "\n\n\n";
+  print "\n";
   if($isChanged){
     print "$editName changed, updating..\n";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
