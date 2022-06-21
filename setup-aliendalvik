@@ -248,7 +248,11 @@ sub setupJitsi(){
     initJitsi();
   }
 
-  updateJitsiDB();
+  if(not isJitsiInitialized()){
+    print "WARNING: $JITSI_DB file does not exist\n";
+  }else{
+    updateJitsiDB();
+  }
 }
 
 sub isJitsiInitialized(){
