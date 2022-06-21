@@ -51,6 +51,7 @@ sub initJitsi();
 sub updateJitsiDB();
 sub nowMillis();
 sub run(@);
+sub runQuiet(@);
 
 sub main(@){
   editRemoteFile(
@@ -291,6 +292,7 @@ sub updateJitsiDB(){
     $rowValue =~ s/"/"\\""/g;
     print "catalystLocalStorage.$rowKey:\n";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+    runQuiet "ipmagic", $IPMAGIC_NAME, "-u", "root", "
       sqlite3 $JITSI_DB \"
         select '   ' || value FROM catalystLocalStorage WHERE key = '$rowKey';
         select '    => ';
@@ -309,6 +311,9 @@ sub nowMillis(){
 
 sub run(@){
   print "@_\n";
+  system @_;
+}
+sub runQuiet(@){
   system @_;
 }
 
