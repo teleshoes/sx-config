@@ -54,12 +54,14 @@ sub run(@);
 sub runQuiet(@);
 
 sub main(@){
+  print "\nediting package restrictions\n";
   editRemoteFile(
     "package-restrictions",
     $PACKAGE_RESTRICTIONS_XML_FILE,
     \&editPackageRestrictions,
   );
 
+  print "\nediting start script\n";
   run "ipmagic", $IPMAGIC_NAME, "test -f $ALIENDALVIK_START_SCRIPT";
   if($? == 0){
     editRemoteFile(
