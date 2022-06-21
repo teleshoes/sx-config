@@ -73,6 +73,8 @@
 
 #xperia x compact only: ./setup-sensor-diversions
 
+#xperia XZ2 compact only: ./setup-mixer-levels
+
 ./setup-symlinks
 
 ./setup-backgrounds
