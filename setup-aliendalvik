@@ -6,7 +6,7 @@ use Time::HiRes qw(time);
 my $IPMAGIC_NAME = "sx";
 my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-restrictions.xml";
 
-my $ALIENDALVIK_START_SCRIPT = "/usr/bin/start-aliendalvik.sh";
+my $ALIENDALVIK_START_SCRIPT = "/usr/sbin/start-aliendalvik.sh";
 my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
 my $REMOTE_DATA_DIR = "/home/.android/data/data";
