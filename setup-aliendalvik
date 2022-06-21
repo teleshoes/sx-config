@@ -45,6 +45,7 @@ my $PACKAGE_RESTRICTIONS = {
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
 sub editStartScript($);
+sub setupJitsi();
 sub nowMillis();
 sub run(@);
 
@@ -67,30 +68,7 @@ sub main(@){
   }
 
   print "\nsetting up jitsi:\n";
-  my $nowMillis = nowMillis();
-  my $jitsiName = `jitsi-meet --name`;
-  chomp $jitsiName;
-  my $jitsiRoom = `jitsi-meet --room`;
-  chomp $jitsiRoom;
-
-  for my $rowKey(sort keys %$JITSI_DB_CONF){
-    my $rowValue = $$JITSI_DB_CONF{$rowKey};
-    $rowValue =~ s/%%%NOW_MILLIS%%%/$nowMillis/g;
-    $rowValue =~ s/%%%JITSI_ROOM%%%/$jitsiRoom/g;
-    $rowValue =~ s/%%%JITSI_NAME%%%/$jitsiName/g;
-    $rowValue =~ s/"/"\\""/g;
-    print "catalystLocalStorage.$rowKey:\n";
-    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
-      sqlite3 $JITSI_DB \"
-        select value FROM catalystLocalStorage WHERE key = '$rowKey';
-        select ' => ';
-        update catalystLocalStorage
-          set value = '$rowValue'
-          where key = '$rowKey';
-        select value FROM catalystLocalStorage WHERE key = '$rowKey';
-      \"
-    ";
-  }
+  setupJitsi();
 }
 
 sub editRemoteFile($$$){
@@ -259,6 +237,33 @@ sub editStartScript($){
   }
 
   return $isChanged;
+}
+
+sub setupJitsi(){
+  my $nowMillis = nowMillis();
+  my $jitsiName = `jitsi-meet --name`;
+  chomp $jitsiName;
+  my $jitsiRoom = `jitsi-meet --room`;
+  chomp $jitsiRoom;
+
+  for my $rowKey(sort keys %$JITSI_DB_CONF){
+    my $rowValue = $$JITSI_DB_CONF{$rowKey};
+    $rowValue =~ s/%%%NOW_MILLIS%%%/$nowMillis/g;
+    $rowValue =~ s/%%%JITSI_ROOM%%%/$jitsiRoom/g;
+    $rowValue =~ s/%%%JITSI_NAME%%%/$jitsiName/g;
+    $rowValue =~ s/"/"\\""/g;
+    print "catalystLocalStorage.$rowKey:\n";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+      sqlite3 $JITSI_DB \"
+        select value FROM catalystLocalStorage WHERE key = '$rowKey';
+        select ' => ';
+        update catalystLocalStorage
+          set value = '$rowValue'
+          where key = '$rowKey';
+        select value FROM catalystLocalStorage WHERE key = '$rowKey';
+      \"
+    ";
+  }
 }
 
 sub nowMillis(){
