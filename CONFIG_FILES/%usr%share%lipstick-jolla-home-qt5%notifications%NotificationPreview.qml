@@ -23,6 +23,7 @@ SystemWindow {
       "Riot.im",
       "Tor Browser",
       "Lite", //Facebook Lite
+      "Maps", //google-maps
       "backup",
     ]
 
