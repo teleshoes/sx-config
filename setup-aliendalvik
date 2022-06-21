@@ -9,7 +9,7 @@ my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-
 my $ALIENDALVIK_START_SCRIPT = "/usr/bin/start-aliendalvik.sh";
 my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
-my $REMOTE_DATA_DIR = "/opt/alien/data/data";
+my $REMOTE_DATA_DIR = "/home/.android/data/data";
 my $REMOTE_PROVIDERS_DB = "$REMOTE_DATA_DIR/com.android.providers.settings/databases/settings.db";
 
 my $BUILD_PROP = {
