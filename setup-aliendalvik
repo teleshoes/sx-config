@@ -46,6 +46,7 @@ sub editRemoteFile($$$);
 sub editPackageRestrictions($);
 sub editStartScript($);
 sub setupJitsi();
+sub isJitsiInitialized();
 sub initJitsi();
 sub updateJitsiDB();
 sub nowMillis();
@@ -242,8 +243,21 @@ sub editStartScript($){
 }
 
 sub setupJitsi(){
-  initJitsi();
+  if(not isJitsiInitialized()){
+    print "jitsi DB file not found, initializing jitsi\n";
+    initJitsi();
+  }
+
   updateJitsiDB();
+}
+
+sub isJitsiInitialized(){
+  my $file = `ipmagic $IPMAGIC_NAME -u root ls $JITSI_DB 2>/dev/null`;
+  if($file =~ /$JITSI_DB/){
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
 sub initJitsi(){
