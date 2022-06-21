@@ -10,7 +10,6 @@ my $ALIENDALVIK_START_SCRIPT = "/usr/sbin/start-aliendalvik.sh";
 my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
 my $REMOTE_DATA_DIR = "/home/.android/data/data";
-my $REMOTE_PROVIDERS_DB = "$REMOTE_DATA_DIR/com.android.providers.settings/databases/settings.db";
 
 my $JITSI_DB = "$REMOTE_DATA_DIR/org.jitsi.meet/databases/RKStorage";
 my $JITSI_DB_CONF = {
@@ -92,17 +91,6 @@ sub main(@){
       \"
     ";
   }
-
-  print "\nsetting up providers:\n";
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
-    sqlite3 $REMOTE_PROVIDERS_DB \"
-      select * FROM secure WHERE name LIKE 'tts_default_synth';
-      select ' => ';
-      delete FROM secure WHERE name LIKE 'tts_default_synth';
-      insert into secure (_id, name, value) values (null, 'tts_default_synth', 'com.google.android.tts');
-      select * FROM secure WHERE name LIKE 'tts_default_synth';
-    \"
-  ";
 }
 
 sub editRemoteFile($$$){
