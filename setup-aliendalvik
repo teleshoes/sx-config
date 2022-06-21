@@ -290,8 +290,9 @@ sub updateJitsiDB(){
     $rowValue =~ s/%%%JITSI_ROOM%%%/$jitsiRoom/g;
     $rowValue =~ s/%%%JITSI_NAME%%%/$jitsiName/g;
     $rowValue =~ s/"/"\\""/g;
-    print "catalystLocalStorage.$rowKey:\n";
-    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+    print "====================\n";
+    print "$JITSI_DB:\n";
+    print "sqlite - update catalystLocalStorage.$rowKey\n";
     runQuiet "ipmagic", $IPMAGIC_NAME, "-u", "root", "
       sqlite3 $JITSI_DB \"
         select '   ' || value FROM catalystLocalStorage WHERE key = '$rowKey';
