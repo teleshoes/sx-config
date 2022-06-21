@@ -521,7 +521,12 @@ sub createAppDesktopFiles(@){
   run "mkdir", "-p", $allDir;
   my @active = glob "$activeDir/*.desktop";
 
-  run "chattr", "-i", @active;
+  for my $file(@active){
+    if(-z $file){
+      run "chattr", "-i", $file;
+      run "rm", $file;
+    }
+  }
 
   run "rsync", "-avP", "--ignore-existing", @active, $allDir;
   run "rm -rf $activeDir";
