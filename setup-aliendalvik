@@ -292,12 +292,12 @@ sub updateJitsiDB(){
     print "catalystLocalStorage.$rowKey:\n";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
       sqlite3 $JITSI_DB \"
-        select value FROM catalystLocalStorage WHERE key = '$rowKey';
-        select ' => ';
+        select '   ' || value FROM catalystLocalStorage WHERE key = '$rowKey';
+        select '    => ';
         update catalystLocalStorage
           set value = '$rowValue'
           where key = '$rowKey';
-        select value FROM catalystLocalStorage WHERE key = '$rowKey';
+        select '   ' || value FROM catalystLocalStorage WHERE key = '$rowKey';
       \"
     ";
   }
