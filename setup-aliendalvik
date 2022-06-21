@@ -13,10 +13,17 @@ my $REMOTE_DATA_DIR = "/home/.android/data/data";
 
 my $SETTINGS = {
   secure => {
+    "tts_default_synth"           => "com.google.android.tts",
+    "tts_default_rate"            => "122",
+    "tts_default_pitch"           => "92",
+    "show_ime_with_hard_keyboard" => "1",
   },
   system => {
+    "accelerometer_rotation" => "1",
   },
   global => {
+    "time_zone"      => "America/New_York",
+    "auto_time_zone" => "0",
   },
 };
 
