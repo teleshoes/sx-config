@@ -32,7 +32,7 @@ my $USAGE = "Usage:
 
   $0 ttsPlayPause | --tts-play-pause
     if coolreader is running:
-      $$CMDS{ttsInit}
+      $$CMDS{ttsPlayPause}
 
   $0 toggleOrientation | --toggle-orientation
     if coolreader is running:
