@@ -16,7 +16,7 @@ my $USAGE = "Usage:
       print \"klomp\"
 
   $EXEC -p|--play-pause|--play|--pause
-    if `$EXEC --is-cool-reader` prints \"coolreader\":
+    if `$EXEC --get` prints \"coolreader\":
       if `profile` == general:
         run: @COOLREADER_TOGGLE_CMD
       else:
