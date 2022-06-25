@@ -4,7 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 my $EXEC = basename $0;
-my $TTS_PROC_REGEX = "(com.google.android.tts)";
+my $TTS_PROC_REGEX = "(com.google.android.tts|com.ivona.tts)";
 my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
 my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
