@@ -4,13 +4,13 @@ use warnings;
 use File::Basename qw(basename);
 
 my $EXEC = basename $0;
-my $TTS_PROC = "com.google.android.tts";
+my $TTS_PROC_REGEX = "(com.google.android.tts)";
 my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
 my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
 my $USAGE = "Usage:
   $EXEC -g|--get
-    if `pgrep -f '^$TTS_PROC\\s*\$'` is successful:
+    if `pgrep -f '^$TTS_PROC_REGEX\\s*\$'` is successful:
       print \"coolreader\"
     else:
       print \"klomp\"
@@ -20,7 +20,7 @@ my $USAGE = "Usage:
       if `profile` == general:
         run: @COOLREADER_TOGGLE_CMD
       else:
-        run: sudo pkill -9 -f $TTS_PROC
+        run: sudo pkill -9 -f $TTS_PROC_REGEX
     else:
       run: @KLOMP_TOGGLE_CMD
 ";
@@ -60,7 +60,7 @@ sub main(@){
       if(isProfileGeneral()){
         system @COOLREADER_TOGGLE_CMD;
       }else{
-        system "sudo", "pkill", "-9", "-f", $TTS_PROC;
+        system "sudo", "pkill", "-9", "-f", $TTS_PROC_REGEX;
       }
     }else{
       system @KLOMP_TOGGLE_CMD;
@@ -71,7 +71,7 @@ sub main(@){
 }
 
 sub isCoolreader(){
-  system "pgrep -f '^$TTS_PROC\\s*\$' >/dev/null 2>/dev/null";
+  system "pgrep -f '^$TTS_PROC_REGEX\\s*\$' >/dev/null 2>/dev/null";
   return $? == 0 ? 1 : 0;
 }
 
