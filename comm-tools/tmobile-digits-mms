@@ -27,13 +27,22 @@ my $USAGE = "Usage:
   $0 -h|--help
     show this message
 
-  $0 -l | --latest
+  $0 [OPTS] -l | --latest
     -run: cd $HAR_FILE_BACKUP_DIR && ./rename.sh
     -select LATEST_HAR_FILE, by mtime, from $HAR_FILE_BACKUP_DIR
     -same as: $0 <LATEST_HAR_FILE>
 
-  $0 HAR_FILE
+  $0 [OPTS] HAR_FILE
     $INSTRUCTIONS
+
+  --offset-hours=OFFSET_HOURS
+    adjust msg info date and dateSent by positive or negative hours
+    OFFSET_HOURS must be an integer
+      same as: --offset-millis=\$((\$OFFSET_HOURS * 60 * 60 * 1000))
+
+  --offset-millis=OFFSET_MILLIS
+    adjust msg info date and dateSent by positive or negative milliseconds
+    OFFSET_MILLIS must be an integer
 ";
 
 sub getLatestBackupHarFile();
@@ -47,6 +56,7 @@ sub nowMillis();
 
 sub main(@){
   my $harFile;
+  my $offsetMillis = 0;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -56,6 +66,10 @@ sub main(@){
       $harFile = getLatestBackupHarFile();
     }elsif(-f $arg and $arg =~ /\.har$/i){
       $harFile = $arg;
+    }elsif($arg =~ /^--offset-hours=(-?\d+)$/){
+      $offsetMillis = $1*60*60*1000;
+    }elsif($arg =~ /^--offset-millis=(-?\d+)$/){
+      $offsetMillis = $1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -90,6 +104,8 @@ sub main(@){
     my $mms = parseMMSFile($file);
     my $millis = $$mms{dtmEpoch} . "000";
 
+    my $msgDateMillis = $millis + $offsetMillis;
+
     my $dir;
     my $otherNum;
     if($$mms{from} eq $myNum){
@@ -114,7 +130,7 @@ sub main(@){
     my $counter = "00000";
     my $mmsPartsDir;
     do{
-      $mmsPartsDir = "$MMS_PARTS_REPO/msg-${millis}-$counter";
+      $mmsPartsDir = "$MMS_PARTS_REPO/msg-${msgDateMillis}-$counter";
       $counter++;
     }while(-e $mmsPartsDir);
 
@@ -152,7 +168,7 @@ sub main(@){
       die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER for MMS file\n$file\n";
     }
 
-    my $mmsRepoDir = "$MMS_REPO/${millis}_${otherNum}_${dir}_${checksum}";
+    my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNum}_${dir}_${checksum}";
     run "mkdir", "-p", $mmsRepoDir;
 
     for my $attFile(@attFileList){
@@ -163,8 +179,8 @@ sub main(@){
       . "from=$$mms{from}\n"
       . "to=$$mms{to}\n"
       . "dir=$dir\n"
-      . "date=$millis\n"
-      . "date_sent=$millis\n"
+      . "date=$msgDateMillis\n"
+      . "date_sent=$msgDateMillis\n"
       . "subject=\"$subjectFmt\"\n"
       . "body=\"$bodyFmt\"\n"
       ;
