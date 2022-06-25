@@ -66,7 +66,28 @@ my $REMOTE_BYCONTACT_DIR_CALL = "/media/sdcard/phone/comm-repos/call/by-contact"
 my $REMOTE_BYCONTACT_DIR_MMS = "/media/sdcard/phone/comm-repos/mms/msg-by-contact";
 my $REMOTE_BYCONTACT_DIR_MMSPIX = "/media/sdcard/phone/comm-repos/mms/pix-by-contact";
 
+my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+    backup commhistory DB, contacts/contacts-priv DB, and MMS parts repo
+    process sms/calls/mms into repos
+    create sms/call/mms/mms-pix by-contact symlinks locally
+    copy by-contact symlinks to device
+";
+
 sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
   my $host = `ipmagic $ipmagicName`;
   die "failed to get host" if $? != 0;
   chomp $host;
