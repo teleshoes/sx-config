@@ -18,7 +18,7 @@ my @config = qw(
 
   qtbtn-klomp
   bromite
-  jolla-camera
+  harbour-advanced-camera
   jolla-settings
 
   harbour-pure-maps
@@ -44,7 +44,7 @@ my @config = qw(
   facebook
   google-maps
   element
-  harbour-advanced-camera
+  jolla-camera
 
 
 
