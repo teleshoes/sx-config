@@ -29,11 +29,11 @@ my $USAGE = "Usage:
   $EXEC --launch INTENT
   $EXEC --launch-intent INTENT
   $EXEC --launch-intent=INTENT
-    INTENT must match: PKG_NAME/ACTIVITY
-      note: if ACTIVITY starts with a '.', PKG_NAME will be appended to it
-
-    run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
-    e.g.: $EXEC -l org.coolreader org.coolreader.CoolReader
+    -parse INTENT into: PKG_NAME/ACTIVITY
+      -if ACTIVITY starts with a '.', PKG_NAME will be prepended
+    -run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
+    e.g.: $EXEC -l org.coolreader/.CoolReader
+          => apkd-launcher org.coolreader.apk org.coolreader/org.coolreader.CoolReader
 ";
 
 my $MODE_SHELL = "shell";
