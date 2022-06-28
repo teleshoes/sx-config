@@ -17,6 +17,14 @@ my $USAGE = "Usage:
   $EXEC shell CMD_ARG [CMD_ARG CMD_ARG]
     run: sudo lxc-attach --name=aliendalvik -- CMD_ARG CMD_ARG CMD_ARG..
 
+  $EXEC -i APK_FILE APK_FILE...
+  $EXEC i APK_FILE APK_FILE...
+  $EXEC --install APK_FILE APK_FILE...
+  $EXEC install APK_FILE APK_FILE...
+  $EXEC --install=APK_FILE
+    run: apkd-install-preload APK_FILE APK_FILE...
+         apkd-install APK_FILE APK_FILE...
+
   $EXEC -l INTENT
   $EXEC --launch INTENT
   $EXEC --launch-intent INTENT
@@ -29,11 +37,13 @@ my $USAGE = "Usage:
 ";
 
 my $MODE_SHELL = "shell";
+my $MODE_INSTALL = "install";
 my $MODE_LAUNCH = "launch";
 
 sub main(@){
   my $mode = $MODE_SHELL;
   my @cmdArgs;
+  my @apkFileArgs;
   my $intent;
   while(@_ > 0){
     my $arg = shift @_;
@@ -42,6 +52,11 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(shell|--shell|-x)$/ and @cmdArgs == 0){
       $mode = $MODE_SHELL;
+    }elsif($arg =~ /^(-i|i|--install|install)$/){
+      $mode = $MODE_INSTALL;
+    }elsif($arg =~ /^(--install)=(.+)$/){
+      $mode = $MODE_INSTALL;
+      push @apkFileArgs, $2;
     }elsif($arg =~ /^(-l|--launch|--launch-intent)$/){
       $mode = $MODE_LAUNCH;
     }elsif($arg =~ /^(--launch|--launch-intent)=(.+)$/){
@@ -49,6 +64,8 @@ sub main(@){
       $intent = $2;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
+    }elsif($mode eq $MODE_INSTALL and -f $arg){
+      push @apkFileArgs, $arg;
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
     }else{
@@ -60,6 +77,10 @@ sub main(@){
     my @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik");
     @cmd = (@cmd, "--", @cmdArgs) if @cmdArgs > 0;
     exec @cmd;
+  }elsif($mode eq $MODE_INSTALL){
+    die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
+    system "sudo", "apkd-install-preload", @apkFileArgs;
+    system "sudo", "apkd-install", @apkFileArgs;
   }elsif($mode eq $MODE_LAUNCH){
     die "ERROR: missing intent\n" if not defined $intent;
     my ($pkgName, $activity);
