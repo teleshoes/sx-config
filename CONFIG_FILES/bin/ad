@@ -6,28 +6,24 @@ use File::Basename qw(basename);
 my $EXEC = basename $0;
 
 my $USAGE = "Usage:
-  $EXEC -h | --help
+  $EXEC -h|--help
     show this message
 
   $EXEC
-  $EXEC shell | --shell | -x
+  $EXEC -x|x|--shell|shell
     run: sudo lxc-attach --name=aliendalvik
 
-  $EXEC CMD_ARG [CMD_ARG CMD_ARG ..]
-  $EXEC shell CMD_ARG [CMD_ARG CMD_ARG]
+  $EXEC -x|x|--shell|shell CMD_ARG CMD_ARG...
+  $EXEC CMD_ARG CMD_ARG...
     run: sudo lxc-attach --name=aliendalvik -- CMD_ARG CMD_ARG CMD_ARG..
 
-  $EXEC -i APK_FILE APK_FILE...
-  $EXEC i APK_FILE APK_FILE...
-  $EXEC --install APK_FILE APK_FILE...
-  $EXEC install APK_FILE APK_FILE...
+  $EXEC -i|-i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
     run: apkd-install-preload APK_FILE APK_FILE...
          apkd-install APK_FILE APK_FILE...
 
-  $EXEC -l INTENT
-  $EXEC --launch INTENT
-  $EXEC --launch-intent INTENT
+  $EXEC -l|l|--launch|launch|--launch-intent|launch-intent INTENT
+  $EXEC --launch=INTENT
   $EXEC --launch-intent=INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
       -if ACTIVITY starts with a '.', PKG_NAME will be prepended
@@ -50,14 +46,14 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(shell|--shell|-x)$/ and @cmdArgs == 0){
+    }elsif($arg =~ /^(-x|x|--shell|shell)$/ and @cmdArgs == 0){
       $mode = $MODE_SHELL;
     }elsif($arg =~ /^(-i|i|--install|install)$/){
       $mode = $MODE_INSTALL;
     }elsif($arg =~ /^(--install)=(.+)$/){
       $mode = $MODE_INSTALL;
       push @apkFileArgs, $2;
-    }elsif($arg =~ /^(-l|--launch|--launch-intent)$/){
+    }elsif($arg =~ /^(-l|l|--launch|launch|--launch-intent|launch-intent)$/){
       $mode = $MODE_LAUNCH;
     }elsif($arg =~ /^(--launch|--launch-intent)=(.+)$/){
       $mode = $MODE_LAUNCH;
