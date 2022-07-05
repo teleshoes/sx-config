@@ -1,8 +1,12 @@
-IPMAGIC_NAME="sx"
-USER="nemo"
-HOST=$(ipmagic $IPMAGIC_NAME)
+#!/usr/bin/perl
+use strict;
+use warnings;
 
-ipmagic $IPMAGIC_NAME -s '
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+sub main(@){
+  system "ipmagic", $IPMAGIC_NAME, "-s", "
   set -x
   mkdir -p /home/$USER/Pictures/Camera
   mkdir -p /home/$USER/Videos/Camera
@@ -14,4 +18,7 @@ ipmagic $IPMAGIC_NAME -s '
   mkdir -p /media/sdcard/phone/Videos/Camera
   mkdir -p /media/sdcard/phone/Pictures/AdvancedCam
   mkdir -p /media/sdcard/phone/Videos/AdvancedCam
-'
+  ";
+}
+
+&main(@ARGV);
