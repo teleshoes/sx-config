@@ -6,6 +6,7 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 sub main(@){
+  print "\n\ncreating camera dirs\n";
   system "ipmagic", $IPMAGIC_NAME, "-s", "
     set -x
     mkdir -p /home/$USER/Pictures/Camera
