@@ -5,6 +5,21 @@ use warnings;
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
+my $ADV_CAM_QML_FILE = "/usr/share/harbour-advanced-camera/qml/pages/CameraUI.qml";
+my $ADV_CAM_PATCH = ""
+  . "--- CameraUI.qml\n"
+  . "+++ /usr/share/harbour-advanced-camera/qml/pages/CameraUI.qml\n"
+  . "@@ -583,7 +583,7 @@\n"
+  . "         id: mouseFocusArea\n"
+  . "         anchors.fill: parent\n"
+  . "         z: -1 //Send to back\n"
+  . "-        onClicked: {\n"
+  . "+        onPressAndHold: {\n"
+  . " \n"
+  . "             if (settingsOverlay.panelOpen) {\n"
+  . "                 settingsOverlay.hideAllPanels()\n"
+;
+
 sub main(@){
   print "\n\ncreating camera dirs\n";
   system "ipmagic", $IPMAGIC_NAME, "-s", "
@@ -20,6 +35,27 @@ sub main(@){
     mkdir -p /media/sdcard/phone/Pictures/AdvancedCam
     mkdir -p /media/sdcard/phone/Videos/AdvancedCam
   ";
+
+  my $tmpPatch = "/tmp/adv-cam-patch";
+  print "\n\npatchin adv-cam to use long-press instead of tap to focus\n";
+  open FH, "> $tmpPatch" or die "$!\n";
+  print FH $ADV_CAM_PATCH;
+  close FH;
+
+  system "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP",
+    "$tmpPatch",
+    ":$tmpPatch";
+
+  system "rm", $tmpPatch;
+
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root", "-s", ""
+    . "echo"
+    . "  && echo -ne reversing patch: "
+    . "  && ( patch --silent -R -f $ADV_CAM_QML_FILE $tmpPatch >/dev/null"
+    . "       && echo reversed || echo skipped )"
+    . "  && patch -N -f $ADV_CAM_QML_FILE $tmpPatch"
+    . "  && rm $tmpPatch"
+  ;
 }
 
 &main(@ARGV);
