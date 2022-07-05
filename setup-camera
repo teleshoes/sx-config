@@ -7,17 +7,17 @@ my $USER = "nemo";
 
 sub main(@){
   system "ipmagic", $IPMAGIC_NAME, "-s", "
-  set -x
-  mkdir -p /home/$USER/Pictures/Camera
-  mkdir -p /home/$USER/Videos/Camera
-  mkdir -p /home/$USER/Videos/Camera/.recording
-  mkdir -p /home/$USER/Pictures/AdvancedCam
-  mkdir -p /home/$USER/Videos/AdvancedCam
+    set -x
+    mkdir -p /home/$USER/Pictures/Camera
+    mkdir -p /home/$USER/Videos/Camera
+    mkdir -p /home/$USER/Videos/Camera/.recording
+    mkdir -p /home/$USER/Pictures/AdvancedCam
+    mkdir -p /home/$USER/Videos/AdvancedCam
 
-  mkdir -p /media/sdcard/phone/Pictures/Camera
-  mkdir -p /media/sdcard/phone/Videos/Camera
-  mkdir -p /media/sdcard/phone/Pictures/AdvancedCam
-  mkdir -p /media/sdcard/phone/Videos/AdvancedCam
+    mkdir -p /media/sdcard/phone/Pictures/Camera
+    mkdir -p /media/sdcard/phone/Videos/Camera
+    mkdir -p /media/sdcard/phone/Pictures/AdvancedCam
+    mkdir -p /media/sdcard/phone/Videos/AdvancedCam
   ";
 }
 
