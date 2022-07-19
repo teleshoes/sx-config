@@ -13,7 +13,7 @@ sleep 3
 ipmagic $IPMAGIC_NAME -s "
   set -x
   if [ ! -f ~/.ssh/$HOST.pub ]; then
-    ssh-keygen -t rsa
+    ssh-keygen -f ~/.ssh/id_rsa -N '' -t rsa
     mv ~/.ssh/id_rsa.pub ~/.ssh/$HOST.pub
   fi
 "
