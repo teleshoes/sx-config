@@ -1,0 +1,12 @@
+#!/bin/sh
+DIR=/home/nemo/.cache/logs/mms-engine
+DTM=`date +%Y%m%d_%H%M%S_%3N`
+LOG="$DIR/$DTM.log"
+
+mkdir -p $DIR
+rm -f $DIR/latest
+ln -s $DTM.log $DIR/latest
+
+stty -echo -onlcr
+script -q -c "/usr/bin/invoker --type=generic /usr/sbin/mms-engine -v -o stdout" /dev/null | tee $LOG
+stty echo onlcr
