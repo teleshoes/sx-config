@@ -2,20 +2,25 @@ IPMAGIC_NAME="sx"
 USER="nemo"
 HOST=$(ipmagic $IPMAGIC_NAME)
 
+echo setup sshc nemo
 sshc --close $USER@$HOST
 sshc $USER@$HOST echo ok $USER
 
+echo enable ssh root login
 sshc $USER@$HOST 'su -c "
   sed -i \"s/^\s*#*\s*PermitRootLogin\s.*/PermitRootLogin yes/\" /etc/ssh/sshd_config;
   sed -i \"s/^\s*#*\s*GatewayPorts\s.*/GatewayPorts yes/\" /etc/ssh/sshd_config;
   systemctl restart sshd;
 "'
 
+echo sleep 3s
 sleep 3
 
+echo setup sshc root
 sshc --close root@$HOST
 sshc root@$HOST echo ok root
 
+echo ssh-keygen
 sshc $USER@$HOST "
   set -x
   if [ ! -f ~/.ssh/$HOST.pub ]; then
@@ -24,19 +29,24 @@ sshc $USER@$HOST "
   fi
 "
 
+echo create root ssh dir
 sshc root@$HOST "
   set -x
   mkdir -p /root/.ssh/
 "
 
+echo fetch pubkey
 sshc --scp $USER@$HOST:~/.ssh/$HOST.pub ~/.ssh/$HOST.pub
 
+echo run pubkeys
 pubkeys $IPMAGIC_NAME scp
 pubkeys $IPMAGIC_NAME-root scp
 
 
+echo set perms on ssh config
 ipmagic $IPMAGIC_NAME -u $USER touch /home/$USER/.ssh/config
 ipmagic $IPMAGIC_NAME -u $USER chmod 655 /home/$USER/.ssh/config
 
+echo cleanup
 sshc --close $USER@$HOST
 sshc --close root@$HOST
