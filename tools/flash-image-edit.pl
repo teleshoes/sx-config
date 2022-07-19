@@ -8,6 +8,7 @@ my $DEST_RAW_IMG = "sfos_lvm_raw.img";
 
 sub editFlashSh();
 sub editAutologin($);
+sub editBinaryBBE($$$);
 sub createRawImg();
 sub restoreSparseImg();
 sub startGuestfish(@);
@@ -44,11 +45,21 @@ sub main(@){
   print "\n\n### remove encrypt-home, if present\n";
   writeCmd($gf, "rm-f /var/lib/sailfish-device-encryption/encrypt-home");
 
-  print "\n\n### editing autologin\n";
-  editAutologin($gf);
-
   print "\n\n### guestfish cleanup + exit\n";
   stopGuestfish($gf);
+
+  print "\n\n### editing autologin\n";
+  print "fix groupadd with bbe\n";
+  editBinaryBBE("sfos_lvm_raw.img",
+    'groupadd -fg ${LAST_LOGIN_UID} defaultuser',
+    'groupadd -fg ${LAST_LOGIN_UID}        nemo',
+  );
+
+  print "fix useradd with bbe\n";
+  editBinaryBBE("sfos_lvm_raw.img",
+    'useradd -g defaultuser -u ${LAST_LOGIN_UID} -m defaultuser',
+    'useradd -g        nemo -u ${LAST_LOGIN_UID} -m        nemo',
+  );
 
   print "\n\n### creating sparse img from raw img\n";
   restoreSparseImg();
@@ -128,6 +139,14 @@ sub editAutologin($){
   }
 
   run "rm", "start-autologin";
+}
+
+sub editBinaryBBE($$$){
+  my ($file, $search, $replace) = @_;
+
+  my $tmpFile = "$file-bbe-edit-" . time;
+  run "bbe", "-e", "s/$search/$replace/", $file, "-o", $tmpFile;
+  run "mv", $tmpFile, $file;
 }
 
 sub createRawImg(){
