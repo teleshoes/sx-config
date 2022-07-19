@@ -2,4 +2,5 @@
 Description=MMS engine service
 
 [Service]
-ExecStart=/usr/bin/invoker --type=generic /usr/sbin/mms-engine -o syslog
+ExecStart=/usr/local/bin/mms-engine-wrapper
+#ExecStart=/usr/bin/invoker --type=generic /usr/sbin/mms-engine -o syslog
