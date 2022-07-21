@@ -1,0 +1,261 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub readProxyCache();
+sub updateProxyCache();
+sub resetProxyCache();
+sub parseContexts();
+sub getContextNames();
+sub getContextProperties($);
+sub readProcLines(@);
+sub run(@);
+
+my $CFG = {
+  internet => {
+    Name                 => "T-Mobile",
+    AccessPointName      => "fast.t-mobile.com",
+    Protocol             => "dual",
+    AuthenticationMethod => "none",
+    Username             => "",
+    Password             => "",
+  },
+  mms => {
+    Name                 => "T-Mobile MMS",
+    AccessPointName      => "fast.t-mobile.com",
+    Protocol             => "dual",
+    AuthenticationMethod => "none",
+    Username             => "",
+    Password             => "",
+    MessageProxy         => "<PROXY>",
+    MessageCenter        => "http://<PROXY>/mms/wapenc",
+  },
+};
+
+my $MMS_HOST = "mms.msg.eng.t-mobile.com";
+my $MMS_PROXY_CACHE_FILE = "/etc/mms-proxy-cache";
+my $MMS_DEFAULT_PROXY = "10.188.239.145";
+
+my @PROPERTIES_INTERNET = qw(
+  Name Type Active
+  Protocol
+  AccessPointName
+  AuthenticationMethod
+  Username Password
+  Settings IPv6.Settings
+);
+my @PROPERTIES_MMS = (@PROPERTIES_INTERNET, qw(
+  MessageProxy MessageCenter
+));
+my @PROPERTIES_ALL = @PROPERTIES_MMS;
+
+my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+  $0 -g|--get
+    print APN+MMS settings
+
+  $0 -s|--set
+    set APN+MMS settings (use <PROXY> in $MMS_PROXY_CACHE_FILE)
+
+  $0 -u|--update-proxy
+    ping $MMS_HOST and put address in $MMS_PROXY_CACHE_FILE
+
+  $0 -r|--reset-proxy
+    write $MMS_DEFAULT_PROXY to $MMS_PROXY_CACHE_FILE
+";
+
+my $MODE_GET = "get";
+my $MODE_SET = "set";
+my $MODE_UPDATE_PROXY = "update-proxy";
+my $MODE_RESET_PROXY = "reset-proxy";
+
+sub main(@){
+  my $mode = $MODE_GET;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|--get)$/){
+      $mode = $MODE_GET;
+    }elsif($arg =~ /^(-s|--set)$/){
+      $mode = $MODE_SET;
+    }elsif($arg =~ /^(-u|--update-proxy)$/){
+      $mode = $MODE_UPDATE_PROXY;
+    }elsif($arg =~ /^(-r|--reset-proxy)$/){
+      $mode = $MODE_RESET_PROXY;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  my $contexts = parseContexts();
+  die "ERROR: could not find internet context\n" if not defined $$contexts{internet};
+  die "ERROR: could not find mms context\n" if not defined $$contexts{mms};
+
+  if($mode eq $MODE_GET){
+    print "internet:\n";
+    for my $p(@PROPERTIES_INTERNET){
+      my $sp = ' ' x (25-(length $p));
+      my ($contextName, $props) = @{$$contexts{internet}};
+      my $val = $$props{$p};
+      next if not defined $val;
+      print "  $p:$sp$val\n";
+    }
+    print "mms:\n";
+    for my $p(@PROPERTIES_MMS){
+      my $sp = ' ' x (25-(length $p));
+      my ($contextName, $props) = @{$$contexts{mms}};
+      my $val = $$props{$p};
+      next if not defined $val or $val eq "";
+      print "  $p:$sp$val\n";
+    }
+  }elsif($mode eq $MODE_SET){
+    my $proxy = readProxyCache();
+    for my $contextType(sort keys %$CFG){
+      my ($contextName, $oldProps) = @{$$contexts{$contextType}};
+      my $newProps = $$CFG{$contextType};
+      for my $prop(sort keys %$newProps){
+        my $val = $$newProps{$prop};
+        if($contextType eq "mms"){
+          $val =~ s/<PROXY>/$proxy/g;
+        }
+        run "sudo", "qdbus",
+          "--system",
+          "org.ofono",
+          $contextName,
+          "org.ofono.ConnectionContext.SetProperty",
+          $prop,
+          $val;
+      }
+    }
+  }elsif($mode eq $MODE_UPDATE_PROXY){
+    updateProxyCache();
+  }elsif($mode eq $MODE_RESET_PROXY){
+    resetProxyCache();
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub readProxyCache(){
+  my $proxy = `cat $MMS_PROXY_CACHE_FILE`;
+  chomp $proxy;
+  if($proxy =~ /^(\d+\.\d+\.\d+\.\d+)$/){
+    return $1;
+  }else{
+    return $MMS_DEFAULT_PROXY;
+  }
+}
+sub updateProxyCache(){
+  my $proxy = getIP($MMS_HOST);
+  if($proxy =~ /^10\.\d+\.\d+\.\d+$/){
+    print "UPDATING PROXY => $proxy\n";
+    system "echo $proxy | sudo tee $MMS_PROXY_CACHE_FILE >/dev/null";
+  }else{
+    print "skipping proxy update\n";
+  }
+}
+sub resetProxyCache(){
+  system "echo $MMS_DEFAULT_PROXY | sudo tee $MMS_PROXY_CACHE_FILE >/dev/null";
+}
+
+sub getIP($){
+  my ($host) = @_;
+  my $out = `host '$host'`;
+  if($out =~ /^$host has address (.+)$/){
+    return $1;
+  }else{
+    return undef;
+  }
+}
+
+sub parseContexts(){
+  my $contexts = {};
+  my @contextNames = getContextNames();
+  for my $contextName(sort @contextNames){
+    my $props = getContextProperties($contextName);
+    my $type = $$props{Type};
+    if(not defined $type){
+      print STDERR "WARNING: skipping context $contextName - no Type defined\n";
+      next;
+    }
+    if(defined $$contexts{$type}){
+      print STDERR "WARNING: duplicate context type $type ($contextName + $$contexts{$type})\n";
+      next;
+    }
+    $$contexts{$type} = [$contextName, $props];
+  }
+  return $contexts;
+}
+
+sub getContextNames(){
+  my @contextNames;
+  for my $line(readProcLines(qw(sudo qdbus --system org.ofono))){
+    chomp $line;
+    push @contextNames, $line if $line =~ /context\d+$/;
+  }
+  return @contextNames;
+}
+
+sub getContextProperties($){
+  my ($contextName) = @_;
+  my @cmd = ("dbus-send",
+    "--system",
+    "--print-reply",
+    "--dest=org.ofono",
+    $contextName,
+    "org.ofono.ConnectionContext.GetProperties",
+  );
+
+  my $out = join '', readProcLines @cmd;
+
+  my $props = {};
+  for my $p(@PROPERTIES_ALL){
+    if($out =~ /
+      \s* dict \s+ entry \s* \(
+      \s*  string \s* "$p"  \s+  variant
+      \s*    ( string \s+ "[^"]*"
+             | boolean \s+ (?:true|false)
+             | array \s+ \[  [^\]]*  \]
+             )
+      \s* \)
+    /x){
+      $$props{$p} = $1;
+    }
+  }
+
+  for my $key(sort keys %$props){
+    my $val = $$props{$key};
+    if($val =~ /^string "(.*)"$/){
+      $val = $1;
+    }elsif($val =~ /^boolean (true|false)$/){
+      $val = $1;
+    }elsif($val =~ /^array \[\s*([^\]]*?)\s*\]$/){
+      $val = "[$1]";
+    }else{
+      die "ERROR: could not parse $contextName.$key=$val in:\n$out\n";
+    }
+    $$props{$key} = $val;
+  }
+
+  return $props;
+}
+
+sub readProcLines(@){
+  my @cmd = @_;
+  open FH, "-|", @cmd or die "ERROR: could not run @cmd\n$!\n";
+  my @lines = <FH>;
+  close FH;
+  return @lines;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
