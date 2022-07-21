@@ -54,6 +54,9 @@ my $usage = "Usage:
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
 
+  $EXEC [OPTS] --get-alarms
+    same as: $EXEC OPTS --application=$ALARM_APPLICATION --get
+
   $EXEC [OPTS] --clear-alarms
     same as: $EXEC OPTS --application=$ALARM_APPLICATION --clear
 
@@ -211,6 +214,9 @@ sub main(@){
       push @extraEventArgs, $1;
     }elsif($arg =~ /^(-g|--get)$/){
       $action = $ACTION_GET;
+    }elsif($arg =~ /^--get-alarms$/){
+      $action = $ACTION_GET;
+      $application = $ALARM_APPLICATION;
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR;
     }elsif($arg =~ /^(--clear-alarms)$/){
