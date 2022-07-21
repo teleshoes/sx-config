@@ -9,6 +9,7 @@ sub parseContexts();
 sub getContextNames();
 sub getContextProperties($);
 sub formatContextProperties($);
+sub performConfigReplacements($$);
 sub readProcLines(@);
 sub run(@);
 
@@ -101,14 +102,20 @@ sub main(@){
     print formatContextProperties($contexts);
   }elsif($mode eq $MODE_SET){
     my $proxy = readProxyCache();
-    for my $contextType(sort keys %$CFG){
+    my $replacementsByType = {
+      "internet" => {},
+      "mms" => {
+        "<PROXY>" => $proxy,
+      },
+    };
+
+    my $config = performConfigReplacements($CFG, $replacementsByType);
+
+    for my $contextType(sort keys %$config){
       my ($contextName, $oldProps) = @{$$contexts{$contextType}};
       my $newProps = $$CFG{$contextType};
-      for my $prop(sort keys %$newProps){
-        my $val = $$newProps{$prop};
-        if($contextType eq "mms"){
-          $val =~ s/<PROXY>/$proxy/g;
-        }
+      for my $prop(sort keys %{$$config{$contextType}}){
+        my $val = $$config{$contextType}{$prop};
         run "sudo", "qdbus",
           "--system",
           "org.ofono",
@@ -251,6 +258,26 @@ sub formatContextProperties($){
     $fmt .= "  $p:$sp$val\n";
   }
   return $fmt;
+}
+
+sub performConfigReplacements($$){
+  my ($origConfig, $replacementsByType) = @_;
+
+  my $replConfig = {};
+  for my $contextType(sort keys %$origConfig){
+    $$replConfig{$contextType} = {};
+    for my $prop(sort keys %{$$origConfig{$contextType}}){
+      my $val = $$origConfig{$contextType}{$prop};
+      my $replacements = $$replacementsByType{$contextType};
+      for my $ptrn(sort keys %$replacements){
+        my $repl = $$replacements{$ptrn};
+        $val =~ s/$ptrn/$repl/g;
+      }
+      $$replConfig{$contextType}{$prop} = $val;
+    }
+  }
+
+  return $replConfig;
 }
 
 sub readProcLines(@){
