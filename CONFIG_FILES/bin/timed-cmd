@@ -76,6 +76,7 @@ my $usage = "Usage:
       --event-arg=\"reminder\" \\
       --event-arg=\"boot\" \\
       --event-arg=\"keepAlive\" \\
+      --event-arg=\"alignedSnooze\" \\
     ;
 
   TITLE:
