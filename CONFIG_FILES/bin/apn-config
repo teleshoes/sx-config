@@ -9,6 +9,7 @@ sub parseContexts();
 sub getContextNames();
 sub getContextProperties($);
 sub formatContextProperties($);
+sub formatConfig($);
 sub isConfigMatchesContexts($$);
 sub diffContextProperties($$);
 sub performConfigReplacements($$);
@@ -69,6 +70,8 @@ my $USAGE = "Usage:
 
   $0 -r|--reset-proxy
     write $MMS_DEFAULT_PROXY to $MMS_PROXY_CACHE_FILE
+
+  config is:\n=====\n" . formatConfig($CFG) . "=====
 ";
 
 my $MODE_GET = "get";
@@ -281,6 +284,17 @@ sub formatContextProperties($){
     my $val = $$props{$p};
     next if not defined $val or $val eq "";
     $fmt .= "  $p:$sp$val\n";
+  }
+  return $fmt;
+}
+sub formatConfig($){
+  my ($config) = @_;
+  my $fmt = "";
+  for my $contextType(sort keys %$config){
+    for my $prop(sort keys %{$$config{$contextType}}){
+      my $val = $$config{$contextType}{$prop};
+      $fmt .= "$contextType.$prop = $val\n";
+    }
   }
   return $fmt;
 }
