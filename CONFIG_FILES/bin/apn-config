@@ -101,6 +101,10 @@ sub main(@){
   if($mode eq $MODE_GET){
     print formatContextProperties($contexts);
   }elsif($mode eq $MODE_SET){
+    print "\n\n====OLD\n";
+    print formatContextProperties($contexts);
+    print "\n";
+
     my $proxy = readProxyCache();
     my $replacementsByType = {
       "internet" => {},
@@ -125,6 +129,14 @@ sub main(@){
           $val;
       }
     }
+
+    my $newContexts = parseContexts();
+    die "ERROR: could not find internet context\n" if not defined $$newContexts{internet};
+    die "ERROR: could not find mms context\n" if not defined $$newContexts{mms};
+
+    print "\n\n====NEW\n";
+    print formatContextProperties($newContexts);
+    print "\n";
   }elsif($mode eq $MODE_UPDATE_PROXY){
     updateProxyCache();
   }elsif($mode eq $MODE_RESET_PROXY){
