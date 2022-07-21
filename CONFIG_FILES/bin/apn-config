@@ -9,6 +9,7 @@ sub parseContexts();
 sub getContextNames();
 sub getContextProperties($);
 sub formatContextProperties($);
+sub isConfigMatchesContexts($$);
 sub performConfigReplacements($$);
 sub readProcLines(@);
 sub run(@);
@@ -137,6 +138,10 @@ sub main(@){
     print "\n\n====NEW\n";
     print formatContextProperties($newContexts);
     print "\n";
+
+    if(not isConfigMatchesContexts($config, $newContexts)){
+      die "\nERROR: new context values do not reflect config\n";
+    }
   }elsif($mode eq $MODE_UPDATE_PROXY){
     updateProxyCache();
   }elsif($mode eq $MODE_RESET_PROXY){
@@ -270,6 +275,24 @@ sub formatContextProperties($){
     $fmt .= "  $p:$sp$val\n";
   }
   return $fmt;
+}
+
+sub isConfigMatchesContexts($$){
+  my ($config, $contexts) = @_;
+
+  for my $contextType(sort keys %$config){
+    if(not defined $$contexts{$contextType}){
+      return 0;
+    }
+    my ($contextName, $props) = @{$$contexts{$contextType}};
+    for my $prop(sort keys %{$$config{$contextType}}){
+      if(not defined $$props{$prop} or $$props{$prop} ne $$config{$contextType}{$prop}){
+        return 0;
+      }
+    }
+  }
+
+  return 1;
 }
 
 sub performConfigReplacements($$){
