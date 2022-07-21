@@ -24,6 +24,7 @@ sub getTimedCmdEventCookies($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
 sub parseSchedule($);
+sub parseDaysOfTheWeekLetters($);
 sub filterByDivisible($$);
 sub arrSameElems($$);
 sub run(@);
@@ -115,6 +116,10 @@ my $usage = "Usage:
     --weekends
       same as: --days-of-week=\"Sat Sun\"
 
+    --days-of-week-leters=DAYS_OF_WEEK_LETTERS
+      parse DAYS_OF_WEEK_LETERS into \"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
+      same as: --days-of-week=\"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
+
     --days-of-week=\"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
       set days-of-week
     --months=\"<MONTH> <MONTH> ...\"
@@ -125,6 +130,18 @@ my $usage = "Usage:
       set hours
     --minutes=\"<MIN> <MIN> ...\"
       set minutes
+
+  DAY_OF_WEEK_LETTERS
+    case-sensitive string of up to 7 characters, one for each day of the week to include
+      e.g.:   mtwTfsS = every day
+              mtwTf   = weekdays
+    m = monday
+    t = tuesday
+    w = wednesday
+    T = thursday
+    f = friday
+    s = saturday
+    S = sunday
 
   OPTS
     --application=APPLICATION | --app=APPLICATION
@@ -167,7 +184,7 @@ sub main(@){
       $shellCmd = ""; #empty command omits '-a'
     }elsif($arg =~ /^(?:--once|--tick)=(\d+)$/){
       $onceTick = $1;
-    }elsif($arg =~ /^(--days-of-week|--months|--days-of-month|--hours|--minutes)=(.+)$/){
+    }elsif($arg =~ /^(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes)=(.+)$/){
       my ($field, $valStr) = ($1, $2);
       my $vals = [split /[ ,]+/, $valStr];
       if($field =~ /^(--days-of-week)$/){
@@ -176,6 +193,8 @@ sub main(@){
             if $dayOfWeek !~ /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/;
         }
         $$schedArgs{$ATT_DAYS_OF_WEEK} = $vals;
+      }elsif($field =~ /^(--days-of-week-letters)$/){
+        $$schedArgs{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($valStr);
       }elsif($field =~ /^(--months)$/){
         for my $month(@$vals){
           die "ERROR: malformed month: $month\n"
@@ -432,6 +451,34 @@ sub parseSchedule($){
   }
 
   return "@schedArgs";
+}
+
+sub parseDaysOfTheWeekLetters($){
+  my ($daysOfTheWeekLetters) = @_;
+  my @letters = split //, $daysOfTheWeekLetters;
+  my $daysOfTheWeek = [];
+
+  for my $letter(@letters){
+    if($letter eq "m"){
+      push @$daysOfTheWeek, "Mon";
+    }elsif($letter eq "t"){
+      push @$daysOfTheWeek, "Tue";
+    }elsif($letter eq "w"){
+      push @$daysOfTheWeek, "Wed";
+    }elsif($letter eq "T"){
+      push @$daysOfTheWeek, "Thu";
+    }elsif($letter eq "f"){
+      push @$daysOfTheWeek, "Fri";
+    }elsif($letter eq "s"){
+      push @$daysOfTheWeek, "Sat";
+    }elsif($letter eq "S"){
+      push @$daysOfTheWeek, "Sun";
+    }else{
+      die "ERROR: malformed day-of-week letter $letter\n";
+    }
+  }
+
+  return $daysOfTheWeek;
 }
 
 sub filterByDivisible($$){
