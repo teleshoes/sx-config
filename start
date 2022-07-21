@@ -133,6 +133,7 @@ ipmagic sx mms-msg-size --set large
 
 ./launcher-buttons
 
+#commands and alarms
 ./setup-timed-cmds
 
 ./sync-games --restore
@@ -152,7 +153,6 @@ pubkeys
 
 
 #MANUAL SETTINGS FOR NOW:
-#add work alarm
 #settings => location => custom
 #settings => location => select custom settings => GPS     checked
 #settings => location => select custom settings => Offline checked
