@@ -1,0 +1,139 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my @SIZES_ARR = (
+  small      => {size=>102400,  format=>' 100 KiB', aliases=>[qw(s sm small)]},
+  medium     => {size=>307200,  format=>' 300 KiB', aliases=>[qw(m med medium)]},
+  large      => {size=>614400,  format=>' 600 KiB', aliases=>[qw(l large)]},
+  extralarge => {size=>1048576, format=>'1024 KiB', aliases=>[qw(xl xlarge extralarge extra-large)]},
+);
+
+my %SIZES = map {$SIZES_ARR[$_] => $SIZES_ARR[$_+1]} grep {$_ % 2 == 0} (0..$#SIZES_ARR);
+
+my %NAMES_BY_SIZE = map {$SIZES{$_}{size} => $_} sort keys %SIZES;
+
+my @SIZE_NAMES_ORDER = map {$SIZES_ARR[$_]} grep {$_ % 2 == 0} (0..$#SIZES_ARR);
+
+my $SIZE_FORMAT = join '', map {
+  sprintf "    %-40s => %7d (%s)\n",
+      join(" | ", @{$SIZES{$_}{aliases}}),
+      $SIZES{$_}{size},
+      $SIZES{$_}{format}
+} @SIZE_NAMES_ORDER;
+
+my $USAGE = "Usage:
+  $0 -h | --help
+    show this message
+
+  $0
+  $0 -g | --get
+    print message size in bytes and config name (one line per sim card)
+
+  $0 -s SIZE_ARG | --set SIZE_ARG | --set=SIZE_ARG
+    set message size for all sim cards
+
+  SIZE_ARG = BYTES | SIZE_NAME
+  BYTES = positive integer number of bytes
+  SIZE_NAME =\n$SIZE_FORMAT
+";
+
+my $MODE_GET = "get";
+my $MODE_SET = "set";
+
+sub getIMSIs();
+sub getSize($);
+sub setSize($$);
+sub formatSize($);
+sub parseSizeArg($);
+
+sub main(@){
+  my $mode = $MODE_GET;
+  my $sizeBytes = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|--get)$/){
+      $mode = $MODE_GET;
+    }elsif($arg =~ /^(-s|--set)$/){
+      $mode = $MODE_SET;
+      my $sizeArg = shift @_;
+      $sizeBytes = parseSizeArg($sizeArg);
+      die "$USAGE\nERROR: missing/invalid SIZE_ARG\n" if not defined $sizeBytes;
+    }elsif($arg =~ /^--set=(.+)$/){
+      $mode = $MODE_SET;
+      my $sizeArg = $1;
+      $sizeBytes = parseSizeArg($sizeArg);
+      die "$USAGE\nERROR: missing/invalid SIZE_ARG\n" if not defined $sizeBytes;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+
+  if($mode eq $MODE_GET){
+    print formatSize(getSize($_)) foreach getIMSIs();
+  }elsif($mode eq $MODE_SET){
+    print formatSize(getSize($_)) foreach getIMSIs();
+    setSize($_, $sizeBytes) foreach getIMSIs();
+    print " =>\n";
+    print formatSize(getSize($_)) foreach getIMSIs();
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub formatSize($){
+  my ($size) = @_;
+  my $name = $NAMES_BY_SIZE{$size};
+  $name = "???" if not defined $name;
+  return "$size ($name)\n";
+}
+
+sub getIMSIs(){
+  my @imsi;
+  for my $line(`dconf list /imsi/`){
+    if($line =~ /^(\d+)\/?$/){
+      push @imsi, $1;
+    }
+  }
+  return @imsi;
+}
+
+sub getSize($){
+  my ($imsi) = @_;
+  my $out = `dconf read /imsi/$imsi/mms/max-message-size`;
+  chomp $out;
+  if($out =~ /^(\d+)$/){
+    return $1;
+  }else{
+    return undef;
+  }
+}
+
+sub setSize($$){
+  my ($imsi, $sizeBytes) = @_;
+  system "dconf write /imsi/$imsi/mms/max-message-size $sizeBytes";
+}
+
+sub parseSizeArg($){
+  my ($sizeArg) = @_;
+  if(not defined $sizeArg){
+    return undef;
+  }elsif($sizeArg =~ /^[1-9]\d*$/){
+    return $sizeArg;
+  }
+
+  for my $sizeName(sort keys %SIZES){
+    my $aliasRegex = join "|", @{$SIZES{$sizeName}{aliases}};
+    if($sizeArg =~ /^$aliasRegex$/i){
+      return $SIZES{$sizeName}{size};
+    }
+  }
+
+  return undef;
+}
+
+&main(@ARGV);
