@@ -264,29 +264,27 @@ sub main(@){
       die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
     }
 
-    my $addActionArg = "-awhenDue;runCommand=$shellCmd";
-    my $appTitleArg = "-eAPPLICATION=$application;TITLE=$title";
-    my @recurrenceArgs;
+    my @actionArgs = ("whenDue", "runCommand=$shellCmd");
+    my @eventArgs = ("APPLICATION=$application", "TITLE=$title");
 
+    my @recurrenceArgs;
     if(defined $onceTick){
       print "adding command with ticker=$onceTick\n";
-      $appTitleArg .= ";ticker=$onceTick";
+      push @eventArgs, "ticker=$onceTick";
       @recurrenceArgs = ();
     }else{
       my $sched = {%$SCHED_ALL, %$schedArgs};
 
       print "adding command with schedule: " . parseSchedule($sched) . "\n";
-      my @recArgs = getScheduleRecurrenceArgs($sched);
-      my $recArgsFmt = join ";", @recArgs;
-
-      push @recurrenceArgs, "-r$recArgsFmt";
+      @recurrenceArgs = getScheduleRecurrenceArgs($sched);
     }
 
-    run "timedclient-qt5",
-      $addActionArg,
-      @recurrenceArgs,
-      $appTitleArg,
-      ;
+    my @cmd = ("timedclient-qt5");
+    @cmd = (@cmd, "-a", join(";", @actionArgs)) if @actionArgs > 0;
+    @cmd = (@cmd, "-r", join(";", @recurrenceArgs)) if @recurrenceArgs > 0;
+    @cmd = (@cmd, "-e", join(";", @eventArgs)) if @eventArgs > 0;
+
+    run @cmd;
   }else{
     die "ERROR: unknown action $action\n";
   }
