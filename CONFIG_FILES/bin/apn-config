@@ -8,6 +8,7 @@ sub resetProxyCache();
 sub parseContexts();
 sub getContextNames();
 sub getContextProperties($);
+sub formatContextProperties($);
 sub readProcLines(@);
 sub run(@);
 
@@ -97,22 +98,7 @@ sub main(@){
   die "ERROR: could not find mms context\n" if not defined $$contexts{mms};
 
   if($mode eq $MODE_GET){
-    print "internet:\n";
-    for my $p(@PROPERTIES_INTERNET){
-      my $sp = ' ' x (25-(length $p));
-      my ($contextName, $props) = @{$$contexts{internet}};
-      my $val = $$props{$p};
-      next if not defined $val;
-      print "  $p:$sp$val\n";
-    }
-    print "mms:\n";
-    for my $p(@PROPERTIES_MMS){
-      my $sp = ' ' x (25-(length $p));
-      my ($contextName, $props) = @{$$contexts{mms}};
-      my $val = $$props{$p};
-      next if not defined $val or $val eq "";
-      print "  $p:$sp$val\n";
-    }
+    print formatContextProperties($contexts);
   }elsif($mode eq $MODE_SET){
     my $proxy = readProxyCache();
     for my $contextType(sort keys %$CFG){
@@ -243,6 +229,28 @@ sub getContextProperties($){
   }
 
   return $props;
+}
+
+sub formatContextProperties($){
+  my ($contexts) = @_;
+  my $fmt = "";
+  $fmt .= "internet:\n";
+  for my $p(@PROPERTIES_INTERNET){
+    my $sp = ' ' x (25-(length $p));
+    my ($contextName, $props) = @{$$contexts{internet}};
+    my $val = $$props{$p};
+    next if not defined $val;
+    $fmt .= "  $p:$sp$val\n";
+  }
+  $fmt .= "mms:\n";
+  for my $p(@PROPERTIES_MMS){
+    my $sp = ' ' x (25-(length $p));
+    my ($contextName, $props) = @{$$contexts{mms}};
+    my $val = $$props{$p};
+    next if not defined $val or $val eq "";
+    $fmt .= "  $p:$sp$val\n";
+  }
+  return $fmt;
 }
 
 sub readProcLines(@){
