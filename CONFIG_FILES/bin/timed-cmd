@@ -238,7 +238,9 @@ sub main(@){
       }elsif(defined $$event{tick}){
         $timingFmt = "$$event{tick} ($$event{tickFmt})";
       }
-      print "$cookie: $timingFmt $$event{TITLE} '$$event{COMMAND}'\n";
+      my $command = $$event{COMMAND};
+      $command = "" if not defined $command;
+      print "$cookie: $timingFmt $$event{TITLE} '$command'\n";
     }
   }elsif($action eq $ACTION_CLEAR){
     die "$usage\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
