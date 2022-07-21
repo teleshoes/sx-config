@@ -266,7 +266,7 @@ sub main(@){
       die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
     }
 
-    my @actionArgs = ("whenDue", "runCommand=$shellCmd");
+    my @actionArgs = length $shellCmd > 0 ? ("whenDue", "runCommand=$shellCmd") : ();
     my @eventArgs = ("APPLICATION=$application", "TITLE=$title");
 
     my @recurrenceArgs;
