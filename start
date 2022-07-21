@@ -62,16 +62,23 @@
 #early, to ensure SD card symlink is in place
 ./setup-autostart
 
+
+
 #POWER OFF PHONE, insert SIM+sdcard, and reboot
 #ipmagic sx -t # ok any time after config-files and reboot
+
+
+
+# APN + MMSC
+ipmagic sx apn-config --set
+
+
 
 #ensure SD card inserted and mounted
 #ipmagic sx -s ls /media/sdcard/phone/
 ./sync-home-config
 
 ./set-resolv #necessary for some inexplicable reason sometimes
-
-ipmagic sx apn-config --set
 
 #xperia x compact only: ./setup-sensor-diversions
 
