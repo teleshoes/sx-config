@@ -157,6 +157,11 @@ my $usage = "Usage:
     --no-cmd
       same as: --cmd=''
       do not include a 'whenDue runComand' action
+
+    --event-arg=EXTRA_EVENT_ARG
+      (can be given multiple times)
+      when adding events, append EXTRA_EVENT_ARG to semicolon-separated list
+        in 'timedclient-t5 -e'
 ";
 
 my $ACTION_GET = "get";
@@ -170,6 +175,7 @@ sub main(@){
   my $onceTick = undef;
   my $schedArgs = {};
   my $application = $DEFAULT_APPLICATION;
+  my @extraEventArgs;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -177,6 +183,8 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(?:--app|--application)=(.+)$/){
       $application = $1;
+    }elsif($arg =~ /^--event-arg=(.+)$/){
+      push @extraEventArgs, $1;
     }elsif($arg =~ /^(-g|--get)$/){
       $action = $ACTION_GET;
     }elsif($arg =~ /^(--clear)$/){
@@ -309,7 +317,7 @@ sub main(@){
     }
 
     my @actionArgs = length $shellCmd > 0 ? ("whenDue", "runCommand=$shellCmd") : ();
-    my @eventArgs = ("APPLICATION=$application", "TITLE=$title");
+    my @eventArgs = ("APPLICATION=$application", "TITLE=$title", @extraEventArgs);
 
     my @recurrenceArgs;
     if(defined $onceTick){
