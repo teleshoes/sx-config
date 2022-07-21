@@ -6,6 +6,7 @@ use Time::HiRes qw(time);
 
 my $EXEC = basename $0;
 my $DEFAULT_APPLICATION = do{$_=$EXEC; s/\W+/_/g; $_};
+my $ALARM_APPLICATION = "nemoalarms";
 
 my $ATT_DAYS_OF_WEEK = "Days of week";
 my $ATT_MONTHS = "Months";
@@ -52,6 +53,27 @@ my $usage = "Usage:
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
+
+  $EXEC [OPTS] --clear-alarms
+    same as: $EXEC OPTS --application=$ALARM_APPLICATION --clear
+
+  $EXEC [OPTS] --add-alarm TITLE TIME_HHMM DAYS_OF_WEEK_LETTERS
+    same as: $EXEC OPTS \\
+      --add \\
+      --application=$ALARM_APPLICATION \\
+      --title=TITLE \\
+      --no-cmd \\
+      --time=TIME_HHMM \\
+      --days-of-week-letters=DAYS_OF_WEEK_LETTERS \\
+      --event-arg=\"createdDate=`date +%s%3N`\" \\
+      --event-arg=\"daysOfWeek=DAYS_OF_WEEK_LETTERS\" \\
+      --event-arg=\"timeOfDayWithSeconds=\$((HH*60*60 + MM*60))\" \\
+      --event-arg=\"type=clock\" \\
+      --event-arg=\"alarm\" \\
+      --event-arg=\"reminder\" \\
+      --event-arg=\"boot\" \\
+      --event-arg=\"keepAlive\" \\
+    ;
 
   TITLE:
     name of event
@@ -191,8 +213,42 @@ sub main(@){
       $action = $ACTION_GET;
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR;
+    }elsif($arg =~ /^(--clear-alarms)$/){
+      $action = $ACTION_CLEAR;
+      $application = $ALARM_APPLICATION;
     }elsif($arg =~ /^(-a|--add)$/){
       $action = $ACTION_ADD;
+    }elsif($arg =~ /^(--add-alarm)$/){
+      if(@_ != 3){
+        die "$usage\nERROR: --add-alarm requires 3 arguments\n";
+      }
+      my ($titleArg, $hhmmArg, $daysOfTheWeekLettersArg) = @_;
+      @_ = ();
+
+      my ($h, $m);
+      if($hhmmArg =~ /^(\d|\d\d):(\d\d)$/){
+        ($h, $m) = ($1, $2);
+      }else{
+        die "ERROR: malformed HH:MM $hhmmArg\n";
+      }
+      die "ERROR: malformed HH:MM $hhmmArg\n" if $h >= 24;
+      die "ERROR: malformed HH:MM $hhmmArg\n" if $m >= 60;
+
+      $action = $ACTION_ADD;
+      $application = $ALARM_APPLICATION;
+      $title = $titleArg;
+      $shellCmd = '';
+      $$schedArgs{$ATT_HOURS} = [$h];
+      $$schedArgs{$ATT_MINUTES} = [$m];
+      $$schedArgs{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($daysOfTheWeekLettersArg);
+      push @extraEventArgs, "createdDate=" . nowMillis();
+      push @extraEventArgs, "daysOfWeek=$daysOfTheWeekLettersArg";
+      push @extraEventArgs, "timeOfDayWithSeconds=" . ($h*60*60 + $m*60);
+      push @extraEventArgs, "type=clock";
+      push @extraEventArgs, "alarm";
+      push @extraEventArgs, "reminder";
+      push @extraEventArgs, "boot";
+      push @extraEventArgs, "keepAlive";
     }elsif($arg =~ /^--title=(.+)$/){
       $title = $1;
     }elsif($arg =~ /^--cmd=(.*)$/){
