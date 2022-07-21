@@ -71,6 +71,8 @@
 
 ./set-resolv #necessary for some inexplicable reason sometimes
 
+ipmagic sx apn-config --set
+
 #xperia x compact only: ./setup-sensor-diversions
 
 #xperia XZ2 compact only: ./setup-mixer-levels
@@ -143,10 +145,6 @@ pubkeys
 
 #MANUAL SETTINGS FOR NOW:
 #add work alarm
-#settings => cellular network => mms access point
-# protocol = Dual
-# proxyaddr = 10.188.239.145
-# mmsc = http://10.188.239.145/mms/wapenc
 #settings => apps => messages => MMS message size => 600KB
 #settings => location => custom
 #settings => location => select custom settings => GPS     checked
