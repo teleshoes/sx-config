@@ -143,8 +143,10 @@ pubkeys
 
 #MANUAL SETTINGS FOR NOW:
 #add work alarm
-#setup APN for internet+MMS if not set
-#settings => cellular network => mms access point => protocol => IPv6
+#settings => cellular network => mms access point
+# protocol = Dual
+# proxyaddr = 10.188.239.145
+# mmsc = http://10.188.239.145/mms/wapenc
 #settings => apps => messages => MMS message size => 600KB
 #settings => location => custom
 #settings => location => select custom settings => GPS     checked
