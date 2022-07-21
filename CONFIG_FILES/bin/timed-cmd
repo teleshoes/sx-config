@@ -102,6 +102,10 @@ my $usage = "Usage:
           --every-6-hours    => --hours='0 6 12 18'      --minutes=0
           --every-n-hours=8  => --hours='0 8 16'         --minutes=0
 
+    --time=TIME_HHMM
+      clock time formatted as HH:MM
+      same as: --hours=HH --minutes=MM
+
     --every-min
       same as: 1m   (this is the default)
 
@@ -130,6 +134,9 @@ my $usage = "Usage:
       set hours
     --minutes=\"<MIN> <MIN> ...\"
       set minutes
+
+  TIME_HHMM
+    clock time, 24-hour, formatted 'HH:MM'
 
   DAY_OF_WEEK_LETTERS
     case-sensitive string of up to 7 characters, one for each day of the week to include
@@ -184,7 +191,7 @@ sub main(@){
       $shellCmd = ""; #empty command omits '-a'
     }elsif($arg =~ /^(?:--once|--tick)=(\d+)$/){
       $onceTick = $1;
-    }elsif($arg =~ /^(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes)=(.+)$/){
+    }elsif($arg =~ /^(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes|--time)=(.+)$/){
       my ($field, $valStr) = ($1, $2);
       my $vals = [split /[ ,]+/, $valStr];
       if($field =~ /^(--days-of-week)$/){
@@ -217,6 +224,16 @@ sub main(@){
           die "ERROR: malformed min: $min\n" if $min !~ /^\d+$/ or $min >=60;
         }
         $$schedArgs{$ATT_MINUTES} = [map {0+$_} @$vals];
+      }elsif($field =~ /^(--time)$/){
+        for my $time(@$vals){
+          if($time =~ /^(\d|\d\d):(\d\d)$/){
+            my ($h, $m) = ($1, $2);
+            push @{$$schedArgs{$ATT_HOURS}}, $h;
+            push @{$$schedArgs{$ATT_MINUTES}}, $m;
+          }else{
+            die "ERROR: malformed time $time\n";
+          }
+        }
       }else{
         die "ERROR: malformed sched arg: $arg\n";
       }
