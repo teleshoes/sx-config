@@ -11,6 +11,8 @@ my $CMDS = {
   "gps-mls-update-daemon" => {sched=>"8h", timeout=>"5min", cmd=>"gps-mls-update"},
 };
 
+my @alarms = ();
+
 sub main(@){
   print "\nclearing commands\n";
   system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--clear";
@@ -35,8 +37,22 @@ sub main(@){
   }
 
   print "\n";
+
+  print "\nclearing alarms\n";
+  system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--clear-alarms";
+
+  print "\nadding alarms\n";
+  for my $alarm(@alarms){
+    system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--add-alarm", @$alarm;
+  }
+
+  print "\n";
+
   print "\n\ncommands:\n";
   system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--get";
+
+  print "\n\nalarms:\n";
+  system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--get-alarms";
 }
 
 &main(@ARGV);
