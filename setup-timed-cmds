@@ -11,7 +11,7 @@ my $CMDS = {
   "gps-mls-update-daemon" => {sched=>"8h", timeout=>"5min", cmd=>"gps-mls-update"},
 };
 
-my @alarms = ();
+my @alarms = (["wk", "09:00", "mtwTf"]);
 
 sub main(@){
   print "\nclearing commands\n";
