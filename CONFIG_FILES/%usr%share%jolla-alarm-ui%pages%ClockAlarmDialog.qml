@@ -4,7 +4,7 @@ import com.jolla.alarmui 1.0
 import org.nemomobile.time 1.0
 
 AlarmDialogBase {
-    onTimeout: closeDialog(AlarmDialogStatus.Closed)
+    onTimeout: closeDialog(AlarmDialogStatus.Snoozed)
 
     topIconSource: "image://theme/icon-l-snooze?" + Theme.highlightColor
 
