@@ -12,9 +12,11 @@ my $CMDS = {
 };
 
 sub main(@){
+  print "\nclearing commands\n";
   system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--clear";
   print "\n\n\n";
 
+  print "\nadding commands\n";
   for my $title(sort keys %$CMDS){
     my $sched = $$CMDS{$title}{sched};
     my $timeout = $$CMDS{$title}{timeout};
@@ -32,7 +34,8 @@ sub main(@){
       "timed-cmd --add $sched --title=$title --cmd='@daemonRunCmd'";
   }
 
-  print "\n\n\n";
+  print "\n";
+  print "\n\ncommands:\n";
   system "ipmagic", $IPMAGIC_NAME, "timed-cmd", "--get";
 }
 
