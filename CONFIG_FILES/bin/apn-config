@@ -10,6 +10,7 @@ sub getContextNames();
 sub getContextProperties($);
 sub formatContextProperties($);
 sub isConfigMatchesContexts($$);
+sub diffContextProperties($$);
 sub performConfigReplacements($$);
 sub readProcLines(@);
 sub run(@);
@@ -141,6 +142,13 @@ sub main(@){
 
     if(not isConfigMatchesContexts($config, $newContexts)){
       die "\nERROR: new context values do not reflect config\n";
+    }
+
+    my $diff = diffContextProperties($contexts, $newContexts);
+    if($diff eq ""){
+      print "\n\ncontexts unchanged\n";
+    }else{
+      print "\n\ncontexts updated:\n$diff\n";
     }
   }elsif($mode eq $MODE_UPDATE_PROXY){
     updateProxyCache();
@@ -293,6 +301,41 @@ sub isConfigMatchesContexts($$){
   }
 
   return 1;
+}
+
+sub diffContextProperties($$){
+  my ($oldContexts, $newContexts) = @_;
+
+  my $fmt = "";
+
+  my %okContextTypes = (keys %$oldContexts, keys %$newContexts);
+  for my $contextType(sort keys %okContextTypes){
+    if(not defined $$oldContexts{$contextType}){
+      $fmt .= "added $contextType context\n"
+    }elsif(not defined $$newContexts{$contextType}){
+      $fmt .= "removed $contextType context\n"
+    }else{
+      my ($oldContextName, $oldProps) = @{$$oldContexts{$contextType}};
+      my ($newContextName, $newProps) = @{$$newContexts{$contextType}};
+
+      if($oldContextName ne $newContextName){
+        $fmt .= "changed $contextType context $oldContextName => $newContextName\n";
+      }
+
+      my %okProps = (keys %$oldProps, keys %$newProps);
+      for my $prop(sort keys %okProps){
+        if(not defined $$oldProps{$prop}){
+          $fmt .= "added $contextType.$prop=$$newProps{$prop}\n";
+        }elsif(not defined $$newProps{$prop}){
+          $fmt .= "removed $contextType.$prop=$$oldProps{$prop}\n";
+        }elsif($$oldProps{$prop} ne $$newProps{$prop}){
+          $fmt .= "$contextType.$prop  \"$$oldProps{$prop}\" => \"$$newProps{$prop}\"\n";
+        }
+      }
+    }
+  }
+
+  return $fmt;
 }
 
 sub performConfigReplacements($$){
