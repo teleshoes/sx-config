@@ -157,7 +157,7 @@ sub main(@){
       $action = $ACTION_ADD;
     }elsif($arg =~ /^--title=(.+)$/){
       $title = $1;
-    }elsif($arg =~ /^--cmd=(.+)$/){
+    }elsif($arg =~ /^--cmd=(.*)$/){
       $shellCmd = $1;
     }elsif($arg =~ /^(?:--once|--tick)=(\d+)$/){
       $onceTick = $1;
