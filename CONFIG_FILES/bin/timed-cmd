@@ -71,6 +71,7 @@ my $usage = "Usage:
       --event-arg=\"createdDate=`date +%s%3N`\" \\
       --event-arg=\"daysOfWeek=DAYS_OF_WEEK_LETTERS\" \\
       --event-arg=\"timeOfDayWithSeconds=\$((HH*60*60 + MM*60))\" \\
+      --event-arg=\"MaximalTimeoutSnoozeCounter=2\" \\
       --event-arg=\"type=clock\" \\
       --event-arg=\"alarm\" \\
       --event-arg=\"reminder\" \\
@@ -251,6 +252,7 @@ sub main(@){
       push @extraEventArgs, "createdDate=" . nowMillis();
       push @extraEventArgs, "daysOfWeek=$daysOfTheWeekLettersArg";
       push @extraEventArgs, "timeOfDayWithSeconds=" . ($h*60*60 + $m*60);
+      push @extraEventArgs, "MaximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
       push @extraEventArgs, "type=clock";
       push @extraEventArgs, "alarm";
       push @extraEventArgs, "reminder";
