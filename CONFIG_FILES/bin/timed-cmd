@@ -245,8 +245,8 @@ sub main(@){
       $application = $ALARM_APPLICATION;
       $title = $titleArg;
       $shellCmd = '';
-      $$schedArgs{$ATT_HOURS} = [$h];
-      $$schedArgs{$ATT_MINUTES} = [$m];
+      $$schedArgs{$ATT_HOURS} = [0+$h];
+      $$schedArgs{$ATT_MINUTES} = [0+$m];
       $$schedArgs{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($daysOfTheWeekLettersArg);
       push @extraEventArgs, "createdDate=" . nowMillis();
       push @extraEventArgs, "daysOfWeek=$daysOfTheWeekLettersArg";
@@ -301,8 +301,8 @@ sub main(@){
         for my $time(@$vals){
           if($time =~ /^(\d|\d\d):(\d\d)$/){
             my ($h, $m) = ($1, $2);
-            push @{$$schedArgs{$ATT_HOURS}}, $h;
-            push @{$$schedArgs{$ATT_MINUTES}}, $m;
+            push @{$$schedArgs{$ATT_HOURS}}, 0+$h;
+            push @{$$schedArgs{$ATT_MINUTES}}, 0+$m;
           }else{
             die "ERROR: malformed time $time\n";
           }
