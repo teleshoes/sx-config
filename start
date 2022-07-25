@@ -73,7 +73,7 @@
 ipmagic sx apn-config --set
 ipmagic sx mms-msg-size --set large
 
-
+ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnlineOff
 
 #ensure SD card inserted and mounted
 #ipmagic sx -s ls /media/sdcard/phone/
@@ -153,10 +153,6 @@ pubkeys
 
 
 #MANUAL SETTINGS FOR NOW:
-#settings => location => custom
-#settings => location => select custom settings => GPS     checked
-#settings => location => select custom settings => Offline checked
-#settings => location => select custom settings => Online  unchecked
 #settings => text input => keyboards => English (Arrows) => on
 #settings => text input => keyboards => English => off
 #okboard => enable okboard => enable
