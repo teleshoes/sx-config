@@ -1,0 +1,119 @@
+#!/usr/bin/python
+#location-settings
+#Copyright 2022 Elliot Wolk
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+from PyQt5.QtCore import *
+from PyQt5.QtQuick import *
+from PyQt5.QtWidgets import *
+
+import os
+import sys
+import tempfile
+
+QT_APP_TIMEOUT_MILLIS = 50
+
+CONFIG_ARGS = {
+  "on":                   "locationSettings.locationEnabled = true",
+  "off":                  "locationSettings.locationEnabled = false",
+
+  "high":                 "locationSettings.locationMode = LocationConfiguration.HighAccuracyMode",
+  "batterySaving":        "locationSettings.locationMode = LocationConfiguration.BatterySavingMode",
+  "deviceOnly":           "locationSettings.locationMode = LocationConfiguration.DeviceOnlyMode",
+  "custom":               "locationSettings.locationMode = LocationConfiguration.CustomMode",
+
+  "hereOn":               "locationSettings.hereState = 2",
+  "hereOff":              "locationSettings.hereState = 1",
+  "hereNotAccepted":      "locationSettings.hereState = 0",
+
+  "mlsOnlineOn":          "locationSettings.mlsOnlineState = 2",
+  "mlsOnlineOff":         "locationSettings.mlsOnlineState = 1",
+  "mlsOnlineNotAccepted": "locationSettings.mlsOnlineState = 0",
+
+  "mlsOfflineEnabled":    "locationSettings.mlsEnabled = true",
+  "mlsOfflineDisabled":   "locationSettings.mlsEnabled = false",
+
+  "gpsEnabled":           "locationSettings.gpsEnabled = true",
+  "gpsDisabled":          "locationSettings.gpsEnabled = false",
+}
+
+CONFIG_FMT = ''.join([
+  '\n      %-15s = %s' % (key, value) for (key, value) in sorted(CONFIG_ARGS.items())
+])
+
+usage = """Usage:
+  %(exec)s [CFG CFG CFG ..]
+    -build a QML file with each <CFG> line inside Component.onCompleted()
+    -start a QQuickView QT app for %(millis)dms with QML file
+
+  CFG%(cfg)s
+""" % {"exec": sys.argv[0], "millis": QT_APP_TIMEOUT_MILLIS, "cfg": CONFIG_FMT}
+
+def main():
+  args = sys.argv
+  args.pop(0)
+
+  cfgLines = ""
+  for arg in args:
+    if arg == "-h" or arg == "--help":
+      print(usage)
+      sys.exit(0)
+    elif arg in CONFIG_ARGS:
+      cfgLines += "      " + CONFIG_ARGS[arg] + ";\n";
+    else:
+      print(usage + "\n" + "ERROR: unknown arg " + arg)
+      sys.exit(1)
+
+  os.environ['QT_QPA_PLATFORM']='wayland'
+  os.environ['XDG_RUNTIME_DIR']='/run/user/100000'
+  os.environ['WAYLAND_DISPLAY']='../../display/wayland-0'
+
+  app = QApplication([])
+
+  qml = """
+      import QtQuick 2.6
+      import com.jolla.settings.system 1.0
+
+      Item {
+        LocationConfiguration { id: locationSettings }
+        Component.onCompleted: {
+          console.log("\n=====\n"
+            + "OLD\n"
+            + "locationSettings.locationEnabled = " + locationSettings.locationEnabled + "\n"
+            + "locationSettings.locationMode = "    + locationSettings.locationMode + "\n"
+            + "locationSettings.hereState = "       + locationSettings.hereState + "\n"
+            + "locationSettings.mlsOnlineState = "  + locationSettings.mlsOnlineState + "\n"
+            + "locationSettings.mlsEnabled = "      + locationSettings.mlsEnabled + "\n"
+          )
+          %(cfg)s
+          console.log("\n=====\n"
+            + "NEW\n"
+            + "locationSettings.locationEnabled = " + locationSettings.locationEnabled + "\n"
+            + "locationSettings.locationMode = "    + locationSettings.locationMode + "\n"
+            + "locationSettings.hereState = "       + locationSettings.hereState + "\n"
+            + "locationSettings.mlsOnlineState = "  + locationSettings.mlsOnlineState + "\n"
+            + "locationSettings.mlsEnabled = "      + locationSettings.mlsEnabled + "\n"
+          )
+        }
+      }
+  """ % {"cfg": cfgLines}
+
+  fd, qmlFile = tempfile.mkstemp(prefix="location-settings_", suffix=".qml")
+  fh = open(qmlFile, 'w')
+  fh.write(qml)
+  fh.close()
+
+  mainWindow = QQuickView()
+  mainWindow.setSource(QUrl(qmlFile))
+  QTimer.singleShot(QT_APP_TIMEOUT_MILLIS, lambda: [
+    os.remove(qmlFile),
+    QCoreApplication.instance().quit()
+  ])
+
+  app.exec_()
+
+if __name__ == "__main__":
+  sys.exit(main())
