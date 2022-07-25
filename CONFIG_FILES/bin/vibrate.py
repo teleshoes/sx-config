@@ -18,7 +18,7 @@ import tempfile
 DEFAULT_DURATION_MILLIS = 200
 
 usage = """Usage:
-  %(exec)s [DURATION_MILLIS]"
+  %(exec)s [DURATION_MILLIS]
 """ % {"exec": sys.argv[0]}
 
 def main():
