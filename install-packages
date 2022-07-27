@@ -189,7 +189,7 @@ my $groupCmdFmt = join "      ", map {
 my $usage = "Usage:
   $0
     print the commands in the order they should be run:
-        hosts keys repos refresh
+        hosts keys repos storeman-obs refresh
         removals
         @groups
         force-install
@@ -259,7 +259,7 @@ sub main(@){
 
   if(@commands == 0){
     print "#run these commands in order to initialize:\n";
-    print join(" ", "hosts", "keys", "repos", "refresh") . "\n";
+    print join(" ", "hosts", "keys", "repos", "storeman-obs", "refresh") . "\n";
     print join(" ", "removals") . "\n";
     print join(" ", @groups) . "\n";
     print join(" ", "force-install") . "\n";
