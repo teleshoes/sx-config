@@ -56,7 +56,8 @@ my $dconf = {
 
   "/desktop/jolla/reboot_action_enabled" => "true",
 
-  "/apps/jolla-camera/storagePath" => "'/home/nemo/android_storage/SDCARD'", # THIS SHIT DONT WORK
+  #camera storage location, sometimes reset to internal
+  "/apps/jolla-camera/storagePath" => "'/home/nemo/android_storage/SDCARD'",
 
   "/apps/sailfish-browser/settings/autostart_private_browsing" => "true",
   "/apps/sailfish-browser/settings/home_page" => "'file:///media/sdcard/phone'",
