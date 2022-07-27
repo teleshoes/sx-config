@@ -118,6 +118,8 @@ my @unused = qw(
   google-tts
   tmobile-digits
   vanced-microg
+  ivona-tts
+  ivona-tts-amy
 );
 
 ########################################################
@@ -154,6 +156,8 @@ my %androidLaunchers = (
   "fdroid"             => ["org.fdroid.fdroid",                         ".views.main.MainActivity",                                        undef],
   "google-maps"        => ["com.google.android.apps.maps",              "com.google.android.maps.MapsActivity",                            undef],
   "google-tts"         => ["com.google.android.tts",                    "android.app.AppDetailsActivity",                                  undef],
+  "ivona-tts"          => ["com.ivona.tts",                             ".WelcomeActivity",                                                undef],
+  "ivona-tts-amy"      => ["com.ivona.tts.voicebeta.eng.gbr.amy",       ".IvonaVoice",                                                     undef],
   "jitsi"              => ["org.jitsi.meet",                            ".MainActivity",                                                   undef],
   "kingdom"            => ["com.rawfury.kingdom2crowns",                "com.unity3d.player.UnityPlayerActivity",                          undef],
   "midea"              => ["com.midea.aircondition.obm",                ".activity.LoginActivity",                                         undef],
