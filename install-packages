@@ -42,7 +42,6 @@ my %packages = (
     pbcopy
     procps-ng
     qt5-qttools-qdbus
-    harbour-storeman
     wget
   )],
 
