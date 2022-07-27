@@ -48,6 +48,10 @@ my $USAGE = "Usage:
       sed -i s/okboard-plugin-patch/jolla-keyboard/ $MALIIT_CONF_FILE
       systemctl --user restart maliit-server
 
+  $EXEC restart | --restart
+    same as:
+      systemctl --user restart maliit-server
+
   $EXEC --logs ON|OFF
     similar to:
       val=`[[ \$2 = ON ]] && echo 1 || echo 0`
@@ -72,6 +76,7 @@ my $USAGE = "Usage:
 my $MODE_GET = "get";
 my $MODE_ON = "on";
 my $MODE_OFF = "off";
+my $MODE_RESTART = "restart";
 my $MODE_SET_CONFIG = "set-config";
 
 sub main(@){
@@ -90,6 +95,8 @@ sub main(@){
       $mode = $MODE_ON;
     }elsif($arg =~ /^(off|--off)$/){
       $mode = $MODE_OFF;
+    }elsif($arg =~ /^(restart|--restart)$/){
+      $mode = $MODE_RESTART;
     }elsif($arg =~ /^(--logs|--learning|--backtrack|--wpm)$/){
       $mode = $MODE_SET_CONFIG;
 
@@ -137,6 +144,8 @@ sub main(@){
   }elsif($mode eq $MODE_OFF){
     system "mkdir", "-p", $MALIIT_CONF_FILE_DIR;
     writeFile($MALIIT_CONF_FILE, formatMaliitConf($MALIIT_QML_FILE_JOLLA));
+    system "systemctl --user restart maliit-server";
+  }elsif($mode eq $MODE_RESTART){
     system "systemctl --user restart maliit-server";
   }elsif($mode eq $MODE_SET_CONFIG){
     setOkboardConfigValue($configKey, $configVal);
