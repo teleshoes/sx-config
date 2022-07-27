@@ -217,6 +217,13 @@ my $usage = "Usage:
       refresh-<OPENREPOS_USERNAME>
         use zypper to update package lists for a single repo
         CAUTION: before running zypper, kills packagekitd
+      storeman-obs
+        run:
+          ssu rr mentaljam-obs
+          rm -f /var/cache/ssu/features.ini
+          ssu ar harbour-storeman-obs 'https://repo.sailfishos.org/obs/home:/olf:/harbour-storeman/%(release)_%(arch)/'
+          ssu ur
+          pkcon repo-set-data harbour-storeman-obs refresh-now true
       removals
         remove packages: @removals
       $groupCmdFmt
@@ -237,7 +244,7 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-z|--zypper)$/){
       $useZypper = 1;
-    }elsif($arg =~ /^(removals|hosts|keys|repos|refresh|force-install)$/){
+    }elsif($arg =~ /^(removals|hosts|keys|repos|refresh|storeman-obs|force-install)$/){
       push @commands, $arg;
     }elsif($arg =~ /^(repo-\w+|refresh-\w+)$/){
       push @commands, $arg;
@@ -287,6 +294,13 @@ sub main(@){
     }elsif($command =~ /^refresh-(\w+)$/){
       tryrunIpmagicRoot "pkill", "packagekitd";
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
+    }elsif($command =~ /^storeman-obs$/){
+      runIpmagicRoot "ssu", "rr", "mentaljam-obs";
+      runIpmagicRoot "rm", "-f", "/var/cache/ssu/features.ini";
+      runIpmagicRoot "ssu", "ar", "harbour-storeman-obs",
+        "'https://repo.sailfishos.org/obs/home:/olf:/harbour-storeman/%(release)_%(arch)/'";
+      runIpmagicRoot "ssu", "ur";
+      runIpmagicRoot "pkcon", "repo-set-data", "harbour-storeman-obs", "refresh-now", "true";
     }elsif(defined $packages{$command}){
       my @packages = @{$packages{$command}};
       if(@packages > 0){
