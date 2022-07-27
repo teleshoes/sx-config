@@ -5,3 +5,6 @@ Name=OKboard
 Icon=okboard
 Exec=okboard-settings
 X-Desktop-File-Install-Version=0.26
+
+[X-Sailjail]
+Sandboxing=Disabled
