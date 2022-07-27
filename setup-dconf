@@ -42,8 +42,8 @@ my @selectedTopmenuItems = (
 my $dconf = {
   "/apps/text_input/autocaps/enabled" => "false",
 
-  "/sailfish/text_input/active_layout" => "'en.qml'",
-  "/sailfish/text_input/enabled_layouts" => "['en.qml']",
+  "/sailfish/text_input/active_layout" => "'en-arrow.qml'",
+  "/sailfish/text_input/enabled_layouts" => "['en-arrow.qml']",
   "/sailfish/text_input/previous_layout" => "'en.qml'",
   "/sailfish/text_input/enabled_hw_layouts" => "'us'",
 
