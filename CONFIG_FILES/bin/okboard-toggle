@@ -163,6 +163,8 @@ sub ensureUser(){
 
 sub setOkboardConfigValue($$){
   my ($configKey, $configVal) = @_;
+  die "ERROR: missing $OKBOARD_CONF_FILE\n" if not -f $OKBOARD_CONF_FILE;
+
   system "sed", "-i", "s/^$configKey = .*\$/$configKey = $configVal/", $OKBOARD_CONF_FILE;
 }
 
