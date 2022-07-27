@@ -41,11 +41,9 @@ my $USAGE = "Usage:
     -for mode=waydroid:
       -on remote, run: wd -i $WAYDROID_DEST_DIR_SD/<APK> ..
     -for mode=aliendalvik:
-      -on remote, run: apkd-install-preload $ALIENDALVIK_DEST_DIR_SD/<APK> ..
-      -on remote, run: apkd-install $ALIENDALVIK_DEST_DIR_SD/<APK> ..
+      -on remote, run: ad -i $ALIENDALVIK_DEST_DIR_SD/<APK> ..
     -for mode=aliendalvik4:
-      -on remote, run: apkd-install-preload $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
-      -on remote, run: apkd-install $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
+      -on remote, run: ad -i $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
 
   OPTS
     --waydroid | --wd
@@ -54,12 +52,12 @@ my $USAGE = "Usage:
         dest => $WAYDROID_DEST_DIR_SD
 
     --aliendalvik | --ad | --alien
-      use aliendalvik apk dirs and install with `apkd-install-preload`+`apkd-install`
+      use aliendalvik apk dirs and install with `ad`
         src  => $ALIENDALVIK_SRC_DIR
         dest => $ALIENDALVIK_DEST_DIR_SD
 
     --aliendalvik4
-      use aliendalvik4 apk dirs and install with `apkd-install-preload`+`apkd-install`
+      use aliendalvik4 apk dirs and install with `ad`
         src  => $ALIENDALVIK4_SRC_DIR
         dest => $ALIENDALVIK4_DEST_DIR_SD
 
@@ -137,12 +135,8 @@ sub main(@){
     print "\n\ninstalling apk files remotely with `wd -i`\n";
     run "ipmagic", $IPMAGIC_NAME, "wd", "-i", @destApkFiles;
   }elsif($mode eq $MODE_ALIENDALVIK or $mode eq $MODE_ALIENDALVIK4){
-    print "\n\ninstalling apk files remotely with apkd\n";
-    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-      "echo", "apkd-install-preload", @destApkFiles;
-    print "\n";
-    run "ipmagic", $IPMAGIC_NAME,
-      "apkd-install", @destApkFiles;
+    print "\n\ninstalling apk files remotely with ad\n";
+    run "ipmagic", $IPMAGIC_NAME, "ad", "-i", @destApkFiles;
 
     print "\n\nignore the installation UIs\n";
     print "just watch each app install on its own in order, and then close the UIs\n";
