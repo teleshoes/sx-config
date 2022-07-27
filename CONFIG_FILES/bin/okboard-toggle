@@ -165,7 +165,11 @@ sub setOkboardConfigValue($$){
   my ($configKey, $configVal) = @_;
   die "ERROR: missing $OKBOARD_CONF_FILE\n" if not -f $OKBOARD_CONF_FILE;
 
-  system "sed", "-i", "s/^$configKey = .*\$/$configKey = $configVal/", $OKBOARD_CONF_FILE;
+  my $contents = readFile($OKBOARD_CONF_FILE);
+  if($contents !~ s/^$configKey = .*$/$configKey = $configVal/m){
+    $contents .= "$configKey = $configVal\n";
+  }
+  writeFile($OKBOARD_CONF_FILE, $contents);
 }
 
 sub formatMaliitConf($){
