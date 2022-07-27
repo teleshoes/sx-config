@@ -31,6 +31,18 @@ my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
 
+  $EXEC --init-default
+    enable okboard, wait for config init, set config, restart maliit, print config
+    same as:
+      $EXEC --on
+      sleep 3
+      $EXEC --logs ON
+      $EXEC --learning ON
+      $EXEC --backtrack OFF
+      $EXEC --wpm OFF
+      $EXEC --restart
+      $EXEC --get
+
   $EXEC
   $EXEC get | --get
     similar to:
@@ -73,6 +85,7 @@ my $USAGE = "Usage:
       sed -i \"s/^show_wpm = .*\$/show_wpm = \$val/\" $OKBOARD_CONF_FILE
 ";
 
+my $MODE_INIT_DEFAULT = "init-default";
 my $MODE_GET = "get";
 my $MODE_ON = "on";
 my $MODE_OFF = "off";
@@ -89,6 +102,8 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(--init-default)$/){
+      $mode = $MODE_INIT_DEFAULT;
     }elsif($arg =~ /^(get|--get)$/){
       $mode = $MODE_GET;
     }elsif($arg =~ /^(on|--on)$/){
@@ -126,7 +141,16 @@ sub main(@){
     }
   }
 
-  if($mode eq $MODE_GET){
+  if($mode eq $MODE_INIT_DEFAULT){
+    system "$EXEC --on";
+    sleep 3;
+    system "$EXEC --logs ON";
+    system "$EXEC --learning ON";
+    system "$EXEC --backtrack OFF";
+    system "$EXEC --wpm OFF";
+    system "$EXEC --restart";
+    system "$EXEC --get";
+  }elsif($mode eq $MODE_GET){
     my $conf = readFile($MALIIT_CONF_FILE);
     if($conf =~ /$MALIIT_QML_FILE_OKBOARD/){
       print "ENABLED\n";
