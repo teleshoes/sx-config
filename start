@@ -153,8 +153,6 @@ pubkeys
 
 
 #MANUAL SETTINGS FOR NOW:
-#settings => text input => keyboards => English (Arrows) => on
-#settings => text input => keyboards => English => off
 #okboard => enable okboard => enable
 #okboard => enable backtracking => DISABLE
 #settings => apps => camera => storage => sdcard
