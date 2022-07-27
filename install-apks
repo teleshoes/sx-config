@@ -18,6 +18,12 @@ my $ALIENDALVIK4_SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik4",
 my $ALIENDALVIK4_DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
 my $ALIENDALVIK4_DEST_DIR_HOME = "/home/nemo/apks-aliendalvik4";
 
+my $MODE_WAYDROID = "waydroid";
+my $MODE_ALIENDALVIK = "aliendalvik";
+my $MODE_ALIENDALVIK4 = "aliendalvik4";
+
+my $DEFAULT_MODE = $MODE_ALIENDALVIK;
+
 my $EXEC = basename $0;
 
 my $USAGE = "Usage:
@@ -66,12 +72,8 @@ my $USAGE = "Usage:
 sub run(@);
 sub runQuiet(@);
 
-my $MODE_WAYDROID = "waydroid";
-my $MODE_ALIENDALVIK = "aliendalvik";
-my $MODE_ALIENDALVIK4 = "aliendalvik4";
-
 sub main(@){
-  my $mode = $MODE_ALIENDALVIK;
+  my $mode = $DEFAULT_MODE;
   my $prefix = undef;
   my $useHomeDir = 0;
   while(@_ > 0){
