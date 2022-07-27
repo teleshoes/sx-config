@@ -1,0 +1,184 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+sub ensureUser();
+sub formatMaliitConf($);
+sub readFile($);
+sub writeFile($$);
+
+my $USER = "nemo";
+
+my $OKBOARD_CONF_FILE_DIR = "/home/$USER/.config/okboard";
+my $OKBOARD_CONF_FILE = "$OKBOARD_CONF_FILE_DIR/okboard.cf";
+
+my $MALIIT_CONF_FILE_DIR = "/home/$USER/.config/maliit.org";
+my $MALIIT_CONF_FILE = "$MALIIT_CONF_FILE_DIR/server.conf";
+
+my $MALIIT_CONF_FILE_TEMPLATE = ""
+  . "[maliit]\n"
+  . "onscreen\\active=<MALIIT_QML_FILE>\n"
+  . "onscreen\\enabled=<MALIIT_QML_FILE>\n"
+;
+
+my $MALIIT_QML_FILE_OKBOARD = "okboard-plugin-patch.qml";
+my $MALIIT_QML_FILE_JOLLA = "jolla-keyboard.qml";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h | --help
+    show this message
+
+  $EXEC
+  $EXEC get | --get
+    similar to:
+      grep okboard-plugin-patch $MALIIT_CONF_FILE && echo ENABLED
+      grep jolla-keyboard $MALIIT_CONF_FILE && echo DISABLED
+      grep '^\\(log\\|learning_enable\\|backtrack\\|show_wpm\\) = ' $OKBOARD_CONF_FILE;
+
+  $EXEC on | --on
+    similar to:
+      sed -i s/jolla-keyboard/okboard-plugin-patch/ $MALIIT_CONF_FILE
+      systemctl --user restart maliit-server
+
+  $EXEC off | --off
+    similar to:
+      sed -i s/okboard-plugin-patch/jolla-keyboard/ $MALIIT_CONF_FILE
+      systemctl --user restart maliit-server
+
+  $EXEC --logs ON|OFF
+    similar to:
+      val=`[[ \$2 = ON ]] && echo 1 || echo 0`
+      sed -i \"s/^log = .*\$/log = \$val/\" $OKBOARD_CONF_FILE
+
+  $EXEC --learning ON|OFF
+    similar to:
+      val=`[[ \$2 = ON ]] && echo True || echo False`
+      sed -i \"s/^learning_enable = .*\$/learning_enable = \$val/\" $OKBOARD_CONF_FILE
+
+  $EXEC --backtrack ON|OFF
+    similar to:
+      val=`[[ \$2 = ON ]] && echo True || echo False`
+      sed -i \"s/^backtrack = .*\$/backtrack = \$val/\" $OKBOARD_CONF_FILE
+
+  $EXEC --wpm ON|OFF
+    similar to:
+      val=`[[ \$2 = ON ]] && echo True || echo 0`
+      sed -i \"s/^show_wpm = .*\$/show_wpm = \$val/\" $OKBOARD_CONF_FILE
+";
+
+my $MODE_GET = "get";
+my $MODE_ON = "on";
+my $MODE_OFF = "off";
+my $MODE_SET_CONFIG = "set-config";
+
+sub main(@){
+  ensureUser();
+  my $mode = $MODE_GET;
+  my $configKey = undef;
+  my $configVal = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(get|--get)$/){
+      $mode = $MODE_GET;
+    }elsif($arg =~ /^(on|--on)$/){
+      $mode = $MODE_ON;
+    }elsif($arg =~ /^(off|--off)$/){
+      $mode = $MODE_OFF;
+    }elsif($arg =~ /^(--logs|--learning|--backtrack|--wpm)$/){
+      $mode = $MODE_SET_CONFIG;
+
+      my $valArg = shift @_;
+      my $val;
+      $val = 1 if defined $valArg and $valArg =~ /^on$/i;
+      $val = 0 if defined $valArg and $valArg =~ /^off$/i;
+      die "ERROR: missing/invalid arg to $arg\n" if not defined $val;
+
+      if($arg =~ /^(--logs)$/){
+        $configKey = "log";
+        $configVal = $val ? '1' : '0';
+      }elsif($arg =~ /^(--learning)$/){
+        $configKey = "learning_enable";
+        $configVal = $val ? 'True' : 'False';
+      }elsif($arg =~ /^(--backtrack)$/){
+        $configKey = "backtrack";
+        $configVal = $val ? 'True' : 'False';
+      }elsif($arg =~ /^(--wpm)$/){
+        $configKey = "show_wpm";
+        $configVal = $val ? 'True' : '0'; #typo is in okb-keyboard
+      }else{
+        die "ERROR: unknown config key for $arg\n";
+      }
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($mode eq $MODE_GET){
+    my $conf = readFile($MALIIT_CONF_FILE);
+    if($conf =~ /$MALIIT_QML_FILE_OKBOARD/){
+      print "ENABLED\n";
+    }elsif($conf =~ /$MALIIT_QML_FILE_JOLLA/){
+      print "DISABLED\n";
+    }else{
+      die "ERROR: malformed maliit conf file - $MALIIT_CONF_FILE\n";
+    }
+
+    system 'grep', '^\(log\|learning_enable\|backtrack\|show_wpm\) = ', $OKBOARD_CONF_FILE;
+  }elsif($mode eq $MODE_ON){
+    system "mkdir", "-p", $MALIIT_CONF_FILE_DIR;
+    writeFile($MALIIT_CONF_FILE, formatMaliitConf($MALIIT_QML_FILE_OKBOARD));
+    system "systemctl --user restart maliit-server";
+  }elsif($mode eq $MODE_OFF){
+    system "mkdir", "-p", $MALIIT_CONF_FILE_DIR;
+    writeFile($MALIIT_CONF_FILE, formatMaliitConf($MALIIT_QML_FILE_JOLLA));
+    system "systemctl --user restart maliit-server";
+  }elsif($mode eq $MODE_SET_CONFIG){
+    setOkboardConfigValue($configKey, $configVal);
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub ensureUser(){
+  if(`whoami` ne "$USER\n"){
+    print "re-running as $USER\n";
+    exec "udo", $0, @ARGV;
+  }
+}
+
+sub setOkboardConfigValue($$){
+  my ($configKey, $configVal) = @_;
+  system "sed", "-i", "s/^$configKey = .*\$/$configKey = $configVal/", $OKBOARD_CONF_FILE;
+}
+
+sub formatMaliitConf($){
+  my ($qmlFile) = @_;
+  my $conf = $MALIIT_CONF_FILE_TEMPLATE;
+  if($conf !~ s/<MALIIT_QML_FILE>/$qmlFile/g){
+    die "ERROR: malformed conf file template $conf\n";
+  }
+  return $conf;
+}
+
+sub readFile($){
+  my ($file) = @_;
+  open FH, "< $file" or die "Could not read $file\n";
+  my $content = join '', <FH>;
+  close FH;
+  return $content;
+}
+
+sub writeFile($$){
+  my ($file, $contents) = @_;
+  open FH, "> $file" or die "Could not write $file\n";
+  print FH $contents;
+  close FH;
+}
+
+&main(@ARGV);
