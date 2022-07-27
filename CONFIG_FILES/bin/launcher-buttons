@@ -193,7 +193,7 @@ my %replacementRegexs = (
 my @extraIncludePatterns = qw(
   apkd-mime-handler.desktop
   csd.desktop
-  harbour-pure-maps-uri-handler
+  harbour-pure-maps-uri-handler.desktop
   jolla-calendar-import.desktop
   jolla-camera-lockscreen.desktop
   jolla-camera-viewfinder.desktop
