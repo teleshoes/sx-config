@@ -6,23 +6,21 @@ use File::Basename qw(basename);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $WAYDROID_SRC_DIR = "$ENV{HOME}/Code/sx/apks-waydroid",
-my $WAYDROID_DEST_DIR_SD = "/media/sdcard/phone/apks-waydroid";
-my $WAYDROID_DEST_DIR_HOME = "/home/nemo/apks-waydroid";
-
-my $ALIENDALVIK_SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik",
-my $ALIENDALVIK_DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik";
-my $ALIENDALVIK_DEST_DIR_HOME = "/home/nemo/apks-aliendalvik";
-
-my $ALIENDALVIK4_SRC_DIR = "$ENV{HOME}/Code/sx/apks-aliendalvik4",
-my $ALIENDALVIK4_DEST_DIR_SD = "/media/sdcard/phone/apks-aliendalvik4";
-my $ALIENDALVIK4_DEST_DIR_HOME = "/home/nemo/apks-aliendalvik4";
+my $SRC_DIR_PREFIX = "$ENV{HOME}/Code/sx/apks";
+my $DEST_DIR_SD_PREFIX = "/media/sdcard/phone/apks";
+my $DEST_DIR_HOME_PREFIX = "/home/nemo/apks";
 
 my $MODE_WAYDROID = "waydroid";
 my $MODE_ALIENDALVIK = "aliendalvik";
 my $MODE_ALIENDALVIK4 = "aliendalvik4";
 
 my $DEFAULT_MODE = $MODE_ALIENDALVIK;
+
+my %WD_AD_INSTALL_CMDS = (
+  $MODE_WAYDROID     => "wd",
+  $MODE_ALIENDALVIK  => "ad",
+  $MODE_ALIENDALVIK4 => "ad",
+);
 
 my $EXEC = basename $0;
 
@@ -31,40 +29,29 @@ my $USAGE = "Usage:
     show this message
 
   $EXEC [OPTS] [PREFIX]
+    -select <MODE> and <WD_AD_INSTALL_CMD> based on OPTS
+      -default is MODE=$DEFAULT_MODE and WD_AD_INSTALL_CMD=$WD_AD_INSTALL_CMDS{$DEFAULT_MODE}
     -run apk-name on all local apk files:
-      apk-name $WAYDROID_SRC_DIR/*.apk
+      apk-name $SRC_DIR_PREFIX-<MODE>/*.apk
     -copy all apks local to remote:
-      $WAYDROID_SRC_DIR => $USER\@`$IPMAGIC_NAME`:$WAYDROID_DEST_DIR_SD
+      $SRC_DIR_PREFIX-<MODE> => $USER\@`$IPMAGIC_NAME`:$DEST_DIR_SD_PREFIX-<MODE>
     -list <APK>s that match <PREFIX> (or all, if not given)
-      $WAYDROID_SRC_DIR/<PREFIX>*.apk
-    -select mode based on OPTS (default is $DEFAULT_MODE)
-    -for mode=waydroid:
-      -on remote, run: wd -i $WAYDROID_DEST_DIR_SD/<APK> ..
-    -for mode=aliendalvik:
-      -on remote, run: ad -i $ALIENDALVIK_DEST_DIR_SD/<APK> ..
-    -for mode=aliendalvik4:
-      -on remote, run: ad -i $ALIENDALVIK4_DEST_DIR_SD/<APK> ..
+      $SRC_DIR_PREFIX-<MODE>/<PREFIX>*.apk
+    -install apks
+      -on remote, run: <WD_AD_INSTALL_CMD> -i $DEST_DIR_SD_PREFIX-<MODE>/<APK> ..
 
   OPTS
     --waydroid | --wd
-      use waydroid apk dirs and install with `wd`
-        src  => $WAYDROID_SRC_DIR
-        dest => $WAYDROID_DEST_DIR_SD
+      MODE=waydroid and WD_AD_INSTALL_CMD=$WD_AD_INSTALL_CMDS{waydroid}
 
     --aliendalvik | --ad | --alien
-      use aliendalvik apk dirs and install with `ad`
-        src  => $ALIENDALVIK_SRC_DIR
-        dest => $ALIENDALVIK_DEST_DIR_SD
+      MODE=aliendalvik and WD_AD_INSTALL_CMD=$WD_AD_INSTALL_CMDS{aliendalvik}
 
     --aliendalvik4
-      use aliendalvik4 apk dirs and install with `ad`
-        src  => $ALIENDALVIK4_SRC_DIR
-        dest => $ALIENDALVIK4_DEST_DIR_SD
+      MODE=aliendalvik4 and WD_AD_INSTALL_CMD=$WD_AD_INSTALL_CMDS{aliendalvik4}
 
     --home
-      use $WAYDROID_DEST_DIR_HOME instead of $WAYDROID_DEST_DIR_SD
-        (or $ALIENDALVIK_DEST_DIR_HOME instead of $ALIENDALVIK_DEST_DIR_SD)
-        (or $ALIENDALVIK4_DEST_DIR_HOME instead of $ALIENDALVIK4_DEST_DIR_SD)
+      use $DEST_DIR_HOME_PREFIX-<MODE> instead of $DEST_DIR_SD_PREFIX-<MODE>
 ";
 
 sub run(@);
@@ -95,19 +82,9 @@ sub main(@){
     }
   }
 
-  my ($srcDir, $destDir);
-  if($mode eq $MODE_WAYDROID){
-    $srcDir = $WAYDROID_SRC_DIR;
-    $destDir = $useHomeDir ? $WAYDROID_DEST_DIR_HOME : $WAYDROID_DEST_DIR_SD;
-  }elsif($mode eq $MODE_ALIENDALVIK){
-    $srcDir = $ALIENDALVIK_SRC_DIR;
-    $destDir = $useHomeDir ? $ALIENDALVIK_DEST_DIR_HOME : $ALIENDALVIK_DEST_DIR_SD;
-  }elsif($mode eq $MODE_ALIENDALVIK4){
-    $srcDir = $ALIENDALVIK4_SRC_DIR;
-    $destDir = $useHomeDir ? $ALIENDALVIK4_DEST_DIR_HOME : $ALIENDALVIK4_DEST_DIR_SD;
-  }else{
-    die "ERROR: unknown mode $mode\n";
-  }
+  my $srcDir = "$SRC_DIR_PREFIX-$mode";
+  my $destDir = ($useHomeDir ? $DEST_DIR_HOME_PREFIX : $DEST_DIR_SD_PREFIX) . "-$mode";
+  my $wd_ad = $WD_AD_INSTALL_CMDS{$mode};
 
   $prefix = "" if not defined $prefix;
 
@@ -131,18 +108,9 @@ sub main(@){
   my @filteredApkFiles = grep {/^$prefix/} @baseApkFiles;
   my @destApkFiles = map {"$destDir/$_"} @filteredApkFiles;
 
-  if($mode eq $MODE_WAYDROID){
-    print "\n\ninstalling apk files remotely with `wd -i`\n";
-    run "ipmagic", $IPMAGIC_NAME, "wd", "-i", @destApkFiles;
-  }elsif($mode eq $MODE_ALIENDALVIK or $mode eq $MODE_ALIENDALVIK4){
-    print "\n\ninstalling apk files remotely with ad\n";
-    run "ipmagic", $IPMAGIC_NAME, "ad", "-i", @destApkFiles;
 
-    print "\n\nignore the installation UIs\n";
-    print "just watch each app install on its own in order, and then close the UIs\n";
-  }else{
-    die "ERROR: unknown mode $mode\n";
-  }
+  print "\n\ninstalling apk files remotely with `$wd_ad -i`\n";
+  run "ipmagic", $IPMAGIC_NAME, $wd_ad, "-i", @destApkFiles;
 }
 
 sub run(@){
