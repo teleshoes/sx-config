@@ -110,6 +110,8 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 
 ./setup-meecast
 
+ipmagic sx okboard-toggle --init-default
+
 #aliendalvik:
 #  TODO: move these files out of config-files and into setup-android or something
 #  for now, just do:
@@ -153,5 +155,3 @@ pubkeys
 
 
 #MANUAL SETTINGS FOR NOW:
-#okboard => enable okboard => enable
-#okboard => enable backtracking => DISABLE
