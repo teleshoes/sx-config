@@ -68,7 +68,7 @@ my %packages = (
     harbour-modrana
     harbour-pure-maps
     harbour-screentapshot2
-    harbour-storeman-installer
+    harbour-storeman
     harbour-unplayer
     harbour-whisperfish
     jolla-calculator
