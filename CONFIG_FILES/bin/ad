@@ -32,6 +32,11 @@ my $USAGE = "Usage:
       e.g.: /tmp/abc.apk  => /tmp/abc.apk
             coolreader-   => $APK_DIR/coolreader-*.apk
 
+  $EXEC -u|--uninstall|uninstall APK_FILE APK_FILE...
+    for each APK_FILE:
+      get the PACKAGE_NAME with `apk-info --package`
+      run: $EXEC pm uninstall PACKAGE_NAME
+
   $EXEC -l|l|--launch|launch|--launch-intent|launch-intent INTENT
   $EXEC --launch=INTENT
   $EXEC --launch-intent=INTENT
@@ -44,6 +49,7 @@ my $USAGE = "Usage:
 
 my $MODE_SHELL = "shell";
 my $MODE_INSTALL = "install";
+my $MODE_UNINSTALL = "uninstall";
 my $MODE_LAUNCH = "launch";
 
 sub main(@){
@@ -64,6 +70,11 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--install)=(.+)$/){
       $mode = $MODE_INSTALL;
       push @apkFileArgs, $2;
+    }elsif($isFirstArg and $arg =~ /^(-u|u|--uninstall|uninstall)$/){
+      $mode = $MODE_UNINSTALL;
+    }elsif($isFirstArg and $arg =~ /^(--uninstall)=(.+)$/){
+      $mode = $MODE_UNINSTALL;
+      push @apkFileArgs, $2;
     }elsif($isFirstArg and $arg =~ /^(-l|l|--launch|launch|--launch-intent|launch-intent)$/){
       $mode = $MODE_LAUNCH;
     }elsif($isFirstArg and $arg =~ /^(--launch|--launch-intent)=(.+)$/){
@@ -71,7 +82,7 @@ sub main(@){
       $intent = $2;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
-    }elsif($mode eq $MODE_INSTALL){
+    }elsif($mode =~ /^($MODE_INSTALL|$MODE_UNINSTALL)$/){
       if(-f $arg){
         push @apkFileArgs, $arg;
       }else{
@@ -95,6 +106,15 @@ sub main(@){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
     system "sudo", "apkd-install-preload", @apkFileArgs;
     system "sudo", "apkd-install", @apkFileArgs;
+  }elsif($mode eq $MODE_UNINSTALL){
+    die "$USAGE\nError: no APK_FILE to uninstall\n" if @apkFileArgs == 0;
+    for my $apkFile(@apkFileArgs){
+      my $pkgName = `apk-info --package $apkFile`;
+      chomp $pkgName;
+      my @cmd = ("pm", "uninstall", $pkgName);
+      print "@cmd\n";
+      lxcShell @cmd;
+    }
   }elsif($mode eq $MODE_LAUNCH){
     die "ERROR: missing intent\n" if not defined $intent;
     my ($pkgName, $activity);
