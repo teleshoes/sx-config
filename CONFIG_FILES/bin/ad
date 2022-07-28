@@ -4,8 +4,11 @@ use warnings;
 use File::Basename qw(basename);
 
 sub lxcShell(@);
+sub getApksForPrefix($);
 
 my $EXEC = basename $0;
+
+my $APK_DIR = "/media/sdcard/phone/apks-aliendalvik";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -23,6 +26,11 @@ my $USAGE = "Usage:
   $EXEC --install=APK_FILE
     run: apkd-install-preload APK_FILE APK_FILE...
          apkd-install APK_FILE APK_FILE...
+
+    APK_FILE
+      an .apk file, OR a prefix of .apk files in $APK_DIR
+      e.g.: /tmp/abc.apk  => /tmp/abc.apk
+            coolreader-   => $APK_DIR/coolreader-*.apk
 
   $EXEC -l|l|--launch|launch|--launch-intent|launch-intent INTENT
   $EXEC --launch=INTENT
@@ -63,8 +71,17 @@ sub main(@){
       $intent = $2;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
-    }elsif($mode eq $MODE_INSTALL and -f $arg){
-      push @apkFileArgs, $arg;
+    }elsif($mode eq $MODE_INSTALL){
+      if(-f $arg){
+        push @apkFileArgs, $arg;
+      }else{
+        my @apkPrefixFiles = getApksForPrefix($arg);
+        if(@apkPrefixFiles == 0){
+          die "$USAGE\nERROR: no APK files found for prefix $arg\n";
+        }
+        print "$arg => \n" . join '', map {"  $_\n"} @apkPrefixFiles;
+        @apkFileArgs = (@apkFileArgs, @apkPrefixFiles);
+      }
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
     }else{
@@ -103,6 +120,13 @@ sub lxcShell(@){
   my @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik");
   @cmd = (@cmd, "--", @shellCmd) if @shellCmd > 0;
   system @cmd;
+}
+
+sub getApksForPrefix($){
+  my ($prefix) = @_;
+  my @files = glob "$APK_DIR/$prefix*";
+  @files = grep {/\.apk$/i} grep {-f $_} @files;
+  return @files;
 }
 
 &main(@ARGV);
