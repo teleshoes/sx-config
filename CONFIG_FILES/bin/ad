@@ -43,21 +43,22 @@ sub main(@){
   my @cmdArgs;
   my @apkFileArgs;
   my $intent;
-  while(@_ > 0){
-    my $arg = shift @_;
-    if($arg =~ /^(-h|--help)$/){
+  for(my $i=0; $i<@_; $i++){
+    my $arg = $_[$i];
+    my $isFirstArg = $i == 0 ? 1 : 0;
+    if($isFirstArg and $arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(-x|x|--shell|shell)$/ and @cmdArgs == 0){
+    }elsif($isFirstArg and $arg =~ /^(-x|x|--shell|shell)$/ and @cmdArgs == 0){
       $mode = $MODE_SHELL;
-    }elsif($arg =~ /^(-i|i|--install|install)$/){
+    }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
       $mode = $MODE_INSTALL;
-    }elsif($arg =~ /^(--install)=(.+)$/){
+    }elsif($isFirstArg and $arg =~ /^(--install)=(.+)$/){
       $mode = $MODE_INSTALL;
       push @apkFileArgs, $2;
-    }elsif($arg =~ /^(-l|l|--launch|launch|--launch-intent|launch-intent)$/){
+    }elsif($isFirstArg and $arg =~ /^(-l|l|--launch|launch|--launch-intent|launch-intent)$/){
       $mode = $MODE_LAUNCH;
-    }elsif($arg =~ /^(--launch|--launch-intent)=(.+)$/){
+    }elsif($isFirstArg and $arg =~ /^(--launch|--launch-intent)=(.+)$/){
       $mode = $MODE_LAUNCH;
       $intent = $2;
     }elsif($mode eq $MODE_SHELL){
