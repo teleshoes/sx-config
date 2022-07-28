@@ -14,6 +14,11 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
+  $EXEC start|--start
+  $EXEC stop|--stop
+  $EXEC restart|--restart
+    run: sudo systemctl start|stop|restart aliendalvik
+
   $EXEC
   $EXEC -x|x|--shell|shell
     run: sudo lxc-attach --name=aliendalvik
@@ -60,9 +65,13 @@ sub main(@){
   for(my $i=0; $i<@_; $i++){
     my $arg = $_[$i];
     my $isFirstArg = $i == 0 ? 1 : 0;
+    my $isLastArg = $i == $#_ ? 1 : 0;
     if($isFirstArg and $arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($isFirstArg and $arg =~ /^(?:--)?(start|stop|restart)$/ and $isLastArg){
+      my $cmd = $1;
+      exec "sudo", "systemctl", $cmd, "aliendalvik";
     }elsif($isFirstArg and $arg =~ /^(-x|x|--shell|shell)$/){
       $mode = $MODE_SHELL;
     }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
