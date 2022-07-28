@@ -63,7 +63,7 @@ sub main(@){
     if($isFirstArg and $arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($isFirstArg and $arg =~ /^(-x|x|--shell|shell)$/ and @cmdArgs == 0){
+    }elsif($isFirstArg and $arg =~ /^(-x|x|--shell|shell)$/){
       $mode = $MODE_SHELL;
     }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
       $mode = $MODE_INSTALL;
