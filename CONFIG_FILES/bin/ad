@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub lxcShell(@);
+
 my $EXEC = basename $0;
 
 my $USAGE = "Usage:
@@ -70,9 +72,7 @@ sub main(@){
   }
 
   if($mode eq $MODE_SHELL){
-    my @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik");
-    @cmd = (@cmd, "--", @cmdArgs) if @cmdArgs > 0;
-    exec @cmd;
+    lxcShell(@cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
     system "sudo", "apkd-install-preload", @apkFileArgs;
@@ -95,6 +95,13 @@ sub main(@){
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub lxcShell(@){
+  my @shellCmd = @_;
+  my @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik");
+  @cmd = (@cmd, "--", @shellCmd) if @shellCmd > 0;
+  system @cmd;
 }
 
 &main(@ARGV);
