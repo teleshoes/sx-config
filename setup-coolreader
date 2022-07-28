@@ -57,6 +57,13 @@ my $HIGH_RES_PX = 1080;
 my $FONT_SIZE_LOW_RES = 52;
 my $FONT_SIZE_HIGH_RES = 84;
 
+my $MARGIN = {
+  top    => 20,
+  bottom => 20,
+  left   => 30,
+  right  => 30,
+};
+
 sub getConfig($){
   my ($fontSize) = @_;
   return {
@@ -137,10 +144,10 @@ sub getConfig($){
     "crengine.page.header.font.color.day"                      => "0x000000",
     "crengine.page.header.font.color"                          => "0xffffff",
     "crengine.page.header.font.size"                           => "32",
-    "crengine.page.margin.bottom"                              => "20",
-    "crengine.page.margin.left"                                => "30",
-    "crengine.page.margin.right"                               => "30",
-    "crengine.page.margin.top"                                 => "20",
+    "crengine.page.margin.bottom"                              => $$MARGIN{bottom},
+    "crengine.page.margin.left"                                => $$MARGIN{left},
+    "crengine.page.margin.right"                               => $$MARGIN{right},
+    "crengine.page.margin.top"                                 => $$MARGIN{top},
     "crengine.page.view.mode"                                  => "1",
     "crengine.progress.show.first.page"                        => "1",
     "crengine.style.floating.punctuation.enabled"              => "1",
