@@ -106,6 +106,7 @@ my @config = qw(
   youtube-vanced-mgr
 
   android-settings
+  screenshot
 );
 
 my @unused = qw(
