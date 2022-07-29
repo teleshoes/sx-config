@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=screenshot
+Comment=screenshot cmdline tool with 3-second delay
+Icon=icon-launcher-screenshot
+Exec=/usr/local/bin/screenshot 3
+Type=Application
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled
