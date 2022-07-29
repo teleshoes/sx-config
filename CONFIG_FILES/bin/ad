@@ -6,6 +6,7 @@ use File::Basename qw(basename);
 sub lxcShell($@);
 sub getApksForPrefix($);
 sub getRes();
+sub parseScreenDimArg($$);
 
 my $EXEC = basename $0;
 
@@ -48,6 +49,31 @@ my $USAGE = "Usage:
     -parse DisplayInfo.real
       e.g.: DisplayInfo{app 2394 x 1080, real 2520 x 1080, ... }
     -print WIDTHxHEIGHT
+
+  $EXEC tap|--tap XPOS YPOS
+  $EXEC --tap=XPOSxYPOS
+    run 'input tap' with args as if device is in portrait mode
+      (rotate args if device is in landscape)
+    -get screen <SCREEN_WIDTH> and <SCREEN_HEIGHT> as in $EXEC --get-res
+    -calculate screen-percent if <XPOS> is 'X_PCT%'
+      X_PX = <X_PCT> * MIN(<SCREEN_WIDTH>, <SCREEN_HEIGHT>)
+    -calculate screen-percent if <YPOS> is 'Y_PCT%'
+      Y_PX = <Y_PCT> * MAX(<SCREEN_WIDTH>, <SCREEN_HEIGHT>)
+    -convert portrait tap for current orientation:
+      -if landscape mode (SCREEN_WIDTH > SCREEN_HEIGHT):
+        ROTATED_X_PX = Y_PX
+        ROTATED_Y_PX = SCREEN_HEIGHT - X_PX
+      -otherwise:
+        ROTATED_X_PX = X_PX
+        ROTATED_Y_PX = Y_PX
+    -run: $EXEC --shell input tap ROTATED_X_PX ROTATED_Y_PX
+
+    XPOS
+      position along narrow edge, measured from top-left corner in portrait mode
+      can be integer number of px, or real number followed by '%'
+    YPOS
+      position along wide edge, measured from top-left corner in portrait mode
+      can be integer number of px, or real number followed by '%'
 
   $EXEC orient|--orient ORIENT_ARG
   $EXEC --orient=ORIENT_ARG
@@ -94,6 +120,7 @@ my $USAGE = "Usage:
 
 my $MODE_SHELL = "shell";
 my $MODE_RES = "res";
+my $MODE_TAP = "tap";
 my $MODE_ORIENT = "orient";
 my $MODE_INSTALL = "install";
 my $MODE_UNINSTALL = "uninstall";
@@ -105,6 +132,7 @@ sub main(@){
   my @apkFileArgs;
   my $intent;
   my $shellEnvWrapper = 1;
+  my ($tapXpos, $tapYpos);
   my $orientArg;
   for(my $i=0; $i<@_; $i++){
     my $arg = $_[$i];
@@ -124,6 +152,12 @@ sub main(@){
       $shellEnvWrapper = 1;
     }elsif($isFirstArg and $arg =~ /^(res|-res)$/){
       $mode = $MODE_RES;
+    }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-2){
+      $mode = $MODE_TAP;
+      ($tapXpos, $tapYpos) = ($_[++$i], $_[++$i]);
+    }elsif($isFirstArg and $arg =~ /^--tap=(.+)x(.+)$/){
+      $mode = $MODE_TAP;
+      ($tapXpos, $tapYpos) = ($1, $2);
     }elsif($isFirstArg and $arg =~ /^(orient|--orient)$/ and $i == $#_-1){
       $mode = $MODE_ORIENT;
       $orientArg = $_[++$i];
@@ -183,6 +217,26 @@ sub main(@){
   }elsif($mode eq $MODE_RES){
     my ($screenX, $screenY) = getRes();
     print "${screenX}x${screenY}\n";
+  }elsif($mode eq $MODE_TAP){
+    my ($screenX, $screenY) = getRes();
+    my $isLandscape;
+    my ($minDim, $maxDim);
+    if(not defined $screenX or not defined $screenY){
+      $isLandscape = 0;
+      ($minDim, $maxDim) = (undef, undef);
+    }else{
+      $isLandscape = $screenX > $screenY;
+      ($minDim, $maxDim) = $isLandscape ? ($screenY, $screenX) : ($screenX, $screenY);
+    }
+
+    my $xPx = parseScreenDimArg($tapXpos, $minDim);
+    my $yPx = parseScreenDimArg($tapYpos, $maxDim);
+
+    my $realX = $isLandscape ? $yPx : $xPx;
+    my $realY = $isLandscape ? $screenY - $xPx : $yPx;
+
+    print "tapping ${realX}x${realY}\n";
+    lxcShell 1, "input", "tap", $realX, $realY;
   }elsif($mode eq $MODE_ORIENT){
     my ($accelVal, $userVal);
     if($orientArg eq "auto"){
@@ -242,6 +296,16 @@ sub getRes(){
     return ($1, $2);
   }
   return (undef, undef);
+}
+
+sub parseScreenDimArg($$){
+  my ($arg, $screenDimSize) = @_;
+  if($arg =~ /^(\d+)$/){
+    return $1;
+  }elsif($arg =~ /^(\d+|\d*\.\d+)%$/){
+    die "ERROR: missing screen dimension\n" if not defined $screenDimSize;
+    return int($1/100.0*$screenDimSize + 0.5);
+  }
 }
 
 &main(@ARGV);
