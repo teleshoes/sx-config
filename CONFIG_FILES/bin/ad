@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 
 sub lxcShell($@);
 sub getApksForPrefix($);
+sub getRes();
 
 my $EXEC = basename $0;
 
@@ -41,6 +42,12 @@ my $USAGE = "Usage:
     run: sudo lxc-attach --name=aliendalvik -- sh -c '
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
+
+  $EXEC res|--res
+    -get window info as in: $EXEC --shell dumpsys window
+    -parse DisplayInfo.real
+      e.g.: DisplayInfo{app 2394 x 1080, real 2520 x 1080, ... }
+    -print WIDTHxHEIGHT
 
   $EXEC orient|--orient ORIENT_ARG
   $EXEC --orient=ORIENT_ARG
@@ -86,6 +93,7 @@ my $USAGE = "Usage:
 ";
 
 my $MODE_SHELL = "shell";
+my $MODE_RES = "res";
 my $MODE_ORIENT = "orient";
 my $MODE_INSTALL = "install";
 my $MODE_UNINSTALL = "uninstall";
@@ -114,6 +122,8 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--shell|shell)$/){
       $mode = $MODE_SHELL;
       $shellEnvWrapper = 1;
+    }elsif($isFirstArg and $arg =~ /^(res|-res)$/){
+      $mode = $MODE_RES;
     }elsif($isFirstArg and $arg =~ /^(orient|--orient)$/ and $i == $#_-1){
       $mode = $MODE_ORIENT;
       $orientArg = $_[++$i];
@@ -170,6 +180,9 @@ sub main(@){
       print "@cmd\n";
       lxcShell 1, @cmd;
     }
+  }elsif($mode eq $MODE_RES){
+    my ($screenX, $screenY) = getRes();
+    print "${screenX}x${screenY}\n";
   }elsif($mode eq $MODE_ORIENT){
     my ($accelVal, $userVal);
     if($orientArg eq "auto"){
@@ -221,6 +234,14 @@ sub getApksForPrefix($){
   my @files = glob "$APK_DIR/$prefix*";
   @files = grep {/\.apk$/i} grep {-f $_} @files;
   return @files;
+}
+
+sub getRes(){
+  my $out = `$EXEC --shell dumpsys window`;
+  if($out =~ /DisplayInfo.*real (\d+) x (\d+)/){
+    return ($1, $2);
+  }
+  return (undef, undef);
 }
 
 &main(@ARGV);
