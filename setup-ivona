@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub run(@);
+
+my $IPMAGIC_NAME = "sx";
+
+my $USAGE = "Usage
+  $0 -h|--help
+    show this message
+
+  $0
+    uninstall ivona + ivona-amy
+    install ivona + ivona-amy
+    grant perms with pm
+    launch ivona
+    grant perms with input tap
+    launch ivona-amy
+    accept eula with input tap
+";
+
+sub main(@){
+  run "ipmagic", $IPMAGIC_NAME, "
+    set -x
+    ad --uninstall ttsivona_ ttsivonaamy_
+    ad --install ttsivona_ ttsivonaamy_
+
+    ad cmd appops reset com.ivona.tts
+    ad pm grant com.ivona.tts android.permission.WRITE_EXTERNAL_STORAGE
+    ad pm grant com.ivona.tts android.permission.READ_EXTERNAL_STORAGE
+    ad pm grant com.ivona.tts android.permission.READ_PHONE_STATE
+    ad pm grant com.ivona.tts android.permission.GET_ACCOUNTS
+
+    ad cmd appops reset com.ivona.tts.voicebeta.eng.gbr.amy
+    ad pm grant com.ivona.tts.voicebeta.eng.gbr.amy android.permission.WRITE_EXTERNAL_STORAGE
+    ad pm grant com.ivona.tts.voicebeta.eng.gbr.amy android.permission.READ_EXTERNAL_STORAGE
+    ad pm grant com.ivona.tts.voicebeta.eng.gbr.amy android.permission.READ_PHONE_STATE
+
+    ad --orient portrait
+
+    ad --launch com.ivona.tts/.WelcomeActivity &
+    sleep 3
+    ad --tap 95% 90% #PERM CONTINUE
+
+    ad --launch com.ivona.tts.voicebeta.eng.gbr.amy/.IvonaVoice &
+    sleep 3
+    ad --tap 86% 56% #BUILT FOR OLDER APP OK
+    sleep 1
+    ad --tap 28% 75% #EULA OK
+    sleep 3
+    ad --tap 86% 56% #BUILT FOR OLDER APP OK
+
+    ad --orient auto
+
+    ad am force-stop com.ivona.tts
+  ";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
