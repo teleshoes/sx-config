@@ -20,7 +20,7 @@ my $USAGE = "Usage:
   DEST_PNG_FILE
     optional file path argument, passed over dbus
     must end in '.png'
-    default is: $DEFAULT_DIR/screenshot-`date +%Y-%m-%d_%H%M%S_%03N`.png
+    default is: $DEFAULT_DIR/screenshot_`date +%Y-%m-%d_%H%M%S_%03N`.png
 ";
 
 sub main(@){
@@ -56,7 +56,7 @@ sub main(@){
     }
     my $dtm = `date +%Y-%m-%d_%H%M%S_%03N`;
     chomp $dtm;
-    $file = "$DEFAULT_DIR/screenshot-$dtm.png";
+    $file = "$DEFAULT_DIR/screenshot_$dtm.png";
   }
 
   if($file !~ /^\//){
