@@ -106,7 +106,6 @@ my @config = qw(
   youtube-vanced-mgr
 
   android-settings
-  screentapshot2
 );
 
 my @unused = qw(
