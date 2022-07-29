@@ -42,6 +42,24 @@ my $USAGE = "Usage:
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
 
+  $EXEC orient|--orient ORIENT_ARG
+  $EXEC --orient=ORIENT_ARG
+    -if ORIENT_ARG = 'auto':
+      ACCEL_VAL=1
+      USER_VAL=0
+    -if ORIENT_ARG = 'landscape':
+      ACCEL_VAL=0
+      USER_VAL=1
+    -if ORIENT_ARG = 'portrait':
+      ACCEL_VAL=0
+      USER_VAL=0
+    -run:
+      $EXEC --shell content insert --uri content://settings/system \\
+        --bind name:s:accelerometer_rotation --bind value:i:<ACCEL_VAL>
+    -run:
+      $EXEC --shell content insert --uri content://settings/system \\
+        --bind name:s:user_rotation --bind value:i:<USER_VAL>
+
   $EXEC -i|-i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
     run: apkd-install-preload APK_FILE APK_FILE...
@@ -68,6 +86,7 @@ my $USAGE = "Usage:
 ";
 
 my $MODE_SHELL = "shell";
+my $MODE_ORIENT = "orient";
 my $MODE_INSTALL = "install";
 my $MODE_UNINSTALL = "uninstall";
 my $MODE_LAUNCH = "launch";
@@ -78,6 +97,7 @@ sub main(@){
   my @apkFileArgs;
   my $intent;
   my $shellEnvWrapper = 1;
+  my $orientArg;
   for(my $i=0; $i<@_; $i++){
     my $arg = $_[$i];
     my $isFirstArg = $i == 0 ? 1 : 0;
@@ -94,6 +114,12 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--shell|shell)$/){
       $mode = $MODE_SHELL;
       $shellEnvWrapper = 1;
+    }elsif($isFirstArg and $arg =~ /^(orient|--orient)$/ and $i == $#_-1){
+      $mode = $MODE_ORIENT;
+      $orientArg = $_[++$i];
+    }elsif($isFirstArg and $arg =~ /^--orient=(.+)$/){
+      $mode = $MODE_ORIENT;
+      $orientArg = $1;
     }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
       $mode = $MODE_INSTALL;
     }elsif($isFirstArg and $arg =~ /^(--install)=(.+)$/){
@@ -144,6 +170,20 @@ sub main(@){
       print "@cmd\n";
       lxcShell 1, @cmd;
     }
+  }elsif($mode eq $MODE_ORIENT){
+    my ($accelVal, $userVal);
+    if($orientArg eq "auto"){
+      ($accelVal, $userVal) = (1, 0);
+    }elsif($orientArg eq "portrait"){
+      ($accelVal, $userVal) = (0, 0);
+    }elsif($orientArg eq "landscape"){
+      ($accelVal, $userVal) = (0, 1);
+    }
+
+    lxcShell 1, ("content", "insert", "--uri", "content://settings/system",
+      "--bind", "name:s:accelerometer_rotation", "--bind", "value:i:$accelVal");
+    lxcShell 1, ("content", "insert", "--uri", "content://settings/system",
+      "--bind", "name:s:user_rotation", "--bind", "value:i:$userVal");
   }elsif($mode eq $MODE_LAUNCH){
     die "ERROR: missing intent\n" if not defined $intent;
     my ($pkgName, $activity);
