@@ -22,6 +22,12 @@ my %WD_AD_INSTALL_CMDS = (
   $MODE_ALIENDALVIK4 => "ad",
 );
 
+my %OBB_DEST_DIRS = (
+  $MODE_WAYDROID     => "/home/$USER/.local/share/waydroid/data/media/obb",
+  $MODE_ALIENDALVIK  => "/home/.android/data/media/obb",
+  $MODE_ALIENDALVIK4 => "/home/.android/data/media/obb",
+);
+
 my $EXEC = basename $0;
 
 my $USAGE = "Usage:
@@ -35,6 +41,13 @@ my $USAGE = "Usage:
       apk-name $SRC_DIR_PREFIX-<MODE>/*.apk
     -copy all apks local to remote:
       $SRC_DIR_PREFIX-<MODE> => $USER\@`$IPMAGIC_NAME`:$DEST_DIR_SD_PREFIX-<MODE>
+    -copy obb local to remote:
+      for <MODE>=waydroid:
+        $SRC_DIR_PREFIX-<MODE>/obb => root\@`$IPMAGIC_NAME:$OBB_DEST_DIRS{waydroid}
+      for <MODE>=aliendalvik
+        $SRC_DIR_PREFIX-<MODE>/obb => root\@`$IPMAGIC_NAME:$OBB_DEST_DIRS{aliendalvik}
+      for <MODE>=aliendalvik4:
+        $SRC_DIR_PREFIX-<MODE>/obb => root\@`$IPMAGIC_NAME:$OBB_DEST_DIRS{aliendalvik4}
     -list <APK>s that match <PREFIX> (or all, if not given)
       $SRC_DIR_PREFIX-<MODE>/<PREFIX>*.apk
     -install apks
@@ -84,6 +97,8 @@ sub main(@){
 
   my $srcDir = "$SRC_DIR_PREFIX-$mode";
   my $destDir = ($useHomeDir ? $DEST_DIR_HOME_PREFIX : $DEST_DIR_SD_PREFIX) . "-$mode";
+  my $obbSrcDir = "$SRC_DIR_PREFIX-$mode/obb";
+  my $obbDestDir = $OBB_DEST_DIRS{$mode};
   my $wd_ad = $WD_AD_INSTALL_CMDS{$mode};
 
   $prefix = "" if not defined $prefix;
@@ -104,10 +119,13 @@ sub main(@){
   print "\n\ncopying ALL apk files local => remote\n";
   run "rsync", "-avP", "--del", "$srcDir/", "$USER\@$host:$destDir/";
 
+  print "\n\ncopying obb files local => remote\n";
+  run "rsync", "-avP", "--del", "$obbSrcDir/", "root\@$host:$obbDestDir/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "chown", "-R", "media_rw.media_rw", $obbDestDir;
+
   my @baseApkFiles = map {/(^.*\/)?([^\/]+)/; $2} @apkFiles;
   my @filteredApkFiles = grep {/^$prefix/} @baseApkFiles;
   my @destApkFiles = map {"$destDir/$_"} @filteredApkFiles;
-
 
   print "\n\ninstalling apk files remotely with `$wd_ad -i`\n";
   run "ipmagic", $IPMAGIC_NAME, $wd_ad, "-i", @destApkFiles;
