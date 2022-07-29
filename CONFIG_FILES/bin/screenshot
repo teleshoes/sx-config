@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Cwd 'abs_path';
+
+my $USER = "nemo";
+my $DEFAULT_DIR = "/home/$USER/Pictures/Screenshots";
+
+my $USAGE = "Usage:
+  $0 -h | --help
+    show this message
+
+  $0 [DEST_PNG_FILE]
+    take a screenshot with dbus org.nemomobile.lipstick.saveScreenshot
+
+  DEST_PNG_FILE
+    optional file path argument, passed over dbus
+    must end in '.png'
+    default is: $DEFAULT_DIR/screenshot-`date +%Y-%m-%d_%03N`.png
+";
+
+sub main(@){
+  ensureRoot();
+  my $file = undef;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /\.png$/i){
+      $file = $arg;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if(not defined $file){
+    if(not -d $DEFAULT_DIR){
+      system "mkdir", "-p", $DEFAULT_DIR;
+      system "chown", "$USER.$USER", $DEFAULT_DIR;
+    }
+    if(not -d $DEFAULT_DIR){
+      die "ERROR: $DEFAULT_DIR is not a dir\n";
+    }
+    my $dtm = `date +%Y-%m-%d_%03N`;
+    chomp $dtm;
+    $file = "$DEFAULT_DIR/screenshot-$dtm.png";
+  }
+
+  if($file !~ /^\//){
+    $file = abs_path $file;
+  }
+
+  while(-e $file){
+    if($file =~ s/-(\d+)(\.png)$//i){;
+      $file .= "-" . ($1+1) . $2;
+    }else{
+      $file =~ s/(\.png)$/-1$1/;
+    }
+  }
+
+  my @buses = grep {-e $_} glob "/run/user/*/dbus/user_bus_socket";
+  my $bus = @buses > 0 ? $buses[0] : undef;
+  die "ERROR: could not find user DBUS socket\n" if not defined $bus;
+
+  $ENV{DBUS_SESSION_BUS_ADDRESS} = "unix:path=$bus";
+
+  print "saving screenshot to $file\n";
+  exec "dbus-send",
+    "--session",
+    "--print-reply",
+    "--dest=org.nemomobile.lipstick",
+    "/org/nemomobile/lipstick/screenshot",
+    "org.nemomobile.lipstick.saveScreenshot",
+    "string:$file",
+  ;
+}
+
+sub ensureRoot(){
+  if(`whoami` ne "root\n"){
+    exec "sudo", $0, @ARGV;
+  }
+}
+
+&main(@ARGV);
