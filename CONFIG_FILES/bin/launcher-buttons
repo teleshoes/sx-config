@@ -39,7 +39,7 @@ my @config = qw(
   jolla-gallery
   unplayer
   filetug
-  screentapshot2
+  screenshot
 
   facebook
   google-maps
@@ -106,7 +106,7 @@ my @config = qw(
   youtube-vanced-mgr
 
   android-settings
-  screenshot
+  screentapshot2
 );
 
 my @unused = qw(
