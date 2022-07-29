@@ -67,7 +67,6 @@ my %packages = (
     harbour-mlsmanager
     harbour-modrana
     harbour-pure-maps
-    harbour-screentapshot2
     harbour-storeman
     harbour-unplayer
     harbour-whisperfish
