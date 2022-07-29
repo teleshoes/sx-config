@@ -104,6 +104,8 @@ my @config = qw(
   youtube
   youtube-music
   youtube-vanced-mgr
+
+  android-settings
 );
 
 my @unused = qw(
@@ -144,6 +146,7 @@ my @unused = qw(
 # these get created as "/usr/shared/applications/<PREFIX>-<APP_NAME>.desktop"
 #   PREFIX is "android-ad" for USE_ALIENDALVIK and "android-wd" for USE_WAYDROID
 my %androidLaunchers = (
+  "android-settings"   => ["com.android.settings",                      ".Settings",                                                       undef],
   "aptoide"            => ["cm.aptoide.pt",                             ".view.MainActivity",                                              undef],
   "bromite"            => ["org.bromite.bromite",                       "com.google.android.apps.chrome.Main",                             undef],
   "chrome"             => ["com.android.chrome",                        "com.google.android.apps.chrome.Main",                             undef],
