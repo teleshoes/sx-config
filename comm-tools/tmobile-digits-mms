@@ -271,7 +271,7 @@ sub parseMMSFile($){
   for my $part(@parts){
     my $text = join "", @$part;
     next if $text eq "";
-    if($text =~ /^(.*)\n\n(.*)$/s){
+    if($text =~ /^(.*?)\n\n(.*)$/s){
       my ($partHdr, $partBody) = ($1, $2);
       if($partHdr =~ /base64/i){
         $partBody = decodeBase64($partBody);
