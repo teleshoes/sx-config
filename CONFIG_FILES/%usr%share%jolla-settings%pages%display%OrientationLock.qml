@@ -39,5 +39,38 @@ SettingsToggle {
         }
     }
 
+    menu: ContextMenu {
+        MenuItem {
+            text: qsTrId("settings_system-orientation_portrait")
+            onClicked: {
+              displaySettings.orientationLock = "portrait"
+            }
+        }
+        MenuItem {
+            text: qsTrId("settings_system-orientation_landscape")
+            onClicked: {
+              displaySettings.orientationLock = "landscape"
+            }
+        }
+        MenuItem {
+            text: "Inverted " + qsTrId("settings_system-orientation_portrait")
+            onClicked: {
+              displaySettings.orientationLock = "portrait-inverted"
+            }
+        }
+        MenuItem {
+            text: "Inverted " + qsTrId("settings_system-orientation_landscape")
+            onClicked: {
+              displaySettings.orientationLock = "landscape-inverted"
+            }
+        }
+        MenuItem {
+            text: "Dynamic"
+            onClicked: {
+              displaySettings.orientationLock = "dynamic"
+            }
+        }
+    }
+
     DisplaySettings { id: displaySettings }
 }
