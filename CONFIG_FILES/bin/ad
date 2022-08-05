@@ -116,6 +116,9 @@ my $USAGE = "Usage:
     -run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
     e.g.: $EXEC -l org.coolreader/.CoolReader
           => apkd-launcher org.coolreader.apk org.coolreader/org.coolreader.CoolReader
+
+  $EXEC settings|--settings
+    same as: $EXEC --intent=com.android.settings/.Settings
 ";
 
 my $MODE_SHELL = "shell";
@@ -179,6 +182,9 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--launch|--launch-intent)=(.+)$/){
       $mode = $MODE_LAUNCH;
       $intent = $2;
+    }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/){
+      $mode = $MODE_LAUNCH;
+      $intent = 'com.android.settings/.Settings';
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
     }elsif($mode =~ /^($MODE_INSTALL|$MODE_UNINSTALL)$/){
