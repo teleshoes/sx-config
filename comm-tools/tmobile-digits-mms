@@ -286,6 +286,8 @@ sub parseMMSFile($){
         my $attName = undef;
         if($partHdr =~ /Content-Location:(.+)/){
           $attName = $1;
+        }elsif($partHdr =~ /Content-Type:\S*;Name="([^"]+)"/){
+          $attName = $1;
         }
         my $att = {
           attName     => $attName,
