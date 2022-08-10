@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 use Time::HiRes qw(time);
+use JSON qw(decode_json encode_json);
+use Try::Tiny;
 
 my $HAR_EXTRACTOR = "$ENV{HOME}/.local/bin/har-extractor";
 my $SMS_DB_IMPORTER = "$ENV{HOME}/Code/sx/comm-tools/sms_db_importer.py";
@@ -12,6 +14,8 @@ my $MMS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/repo";
 my $MMS_PARTS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
 
 my $HAR_FILE_BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits-har-files";
+
+my $ADD_COMM_TO_REPO_CMD = "./add-comm-to-repo.pl";
 
 my $INSTRUCTIONS = ""
   . "  HAR_FILE messages get written to mms repo + parts-repo\n"
@@ -35,6 +39,11 @@ my $USAGE = "Usage:
   $0 [OPTS] HAR_FILE
     $INSTRUCTIONS
 
+  --sms
+    skip MMS parsing, and parse SMS instead
+    format and output to SMS_CSV_FILE, and add to repo with:
+    $ADD_COMM_TO_REPO_CMD --force --csv SMS_CSV_FILE
+
   --offset-hours=OFFSET_HOURS
     adjust msg info date and dateSent by positive or negative hours
     OFFSET_HOURS must be an integer
@@ -49,6 +58,8 @@ sub getLatestBackupHarFile();
 sub cleanNumber($);
 sub escapeStr($);
 sub parseMMSFile($);
+sub parseSMSFile($);
+sub formatSMS($);
 sub decodeBase64($);
 sub mtime($);
 sub run(@);
@@ -57,6 +68,7 @@ sub nowMillis();
 sub main(@){
   my $harFile;
   my $offsetMillis = 0;
+  my $smsMode = 0;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -70,6 +82,8 @@ sub main(@){
       $offsetMillis = $1*60*60*1000;
     }elsif($arg =~ /^--offset-millis=(-?\d+)$/){
       $offsetMillis = $1;
+    }elsif($arg =~ /^--sms$/){
+      $smsMode = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -95,6 +109,29 @@ sub main(@){
   my $outDir = "/tmp/tmobile-digits-har-$nowMillis/";
 
   run $HAR_EXTRACTOR, $harFile, "-o", $outDir;
+
+  if($smsMode){
+    my @smsFiles = sort grep {/^(.*\/)?search(\.\d+)?$/} `find $outDir -name 'search*' -type f`;
+    chomp $_ foreach @smsFiles;
+    my @sms;
+    for my $smsFile(@smsFiles){
+      @sms = (@sms, parseSMSFile($smsFile));
+    }
+    print "\n\n\n";
+    my $smsCsvFile = "/tmp/tmobile-digits-sms-$nowMillis.sms";
+    open FH, "> $smsCsvFile" or die "ERROR: could not write $smsCsvFile\n$!\n";
+    for my $sms(@sms){
+      my $fmt = formatSMS($sms);
+      print $fmt;
+      print FH $fmt;
+    }
+    close FH;
+    my $count = @sms;
+    print "\nwrote $count SMS to $smsCsvFile\n";
+    print "\n\n\n";
+    system $ADD_COMM_TO_REPO_CMD, "--force", "--sms", $smsCsvFile;
+    exit 0;
+  }
 
   my @mmsFiles = sort `find $outDir -iregex '.*/objects/.*' -type f`;
   chomp $_ foreach @mmsFiles;
@@ -321,6 +358,90 @@ sub parseMMSFile($){
   }
 
   return $mms;
+}
+
+sub parseSMSFile($){
+  my ($smsFile) = @_;
+  my $json = `cat '$smsFile'`;
+  my @objects;
+  try{
+    my $mainObj = decode_json($json);
+    @objects = @{$$mainObj{objectList}{object}};
+  }catch{
+    warn "\n\nWARNING: could not parse SMS JSON file $smsFile\n$_\n";
+    return undef;
+  };
+  my @smsMsgs;
+  for my $obj(@objects){
+    try{
+      my $attList = $$obj{attributes}{attribute};
+      my $smsAtts = {};
+      for my $att(@$attList){
+        my $name = $$att{name};
+        my $values = $$att{value};
+        my $value = @$values == 1 ? $$values[0] : undef;
+        die "ERROR: dupe att $name\n" if defined $$smsAtts{$name};
+        $$smsAtts{$name} = $value;
+      }
+      my $dateMillis = `date --date="$$smsAtts{date}" +%s%3N`;
+      chomp $dateMillis;
+      die "ERROR: could not parse date $$smsAtts{date}\n" if $dateMillis !~ /^\d+$/;
+
+      my $dateS = int($dateMillis / 1000.0 + 0.5);
+      my $dateFmt = `date --date=\@$dateS '+%Y-%m-%d %H:%M:%S'`;
+      chomp $dateFmt;
+      my $dir;
+      if($$smsAtts{Direction} =~ /^In$/i){
+        $dir = "INC";
+      }elsif($$smsAtts{Direction} =~ /^Out$/i){
+        $dir = "OUT";
+      }else{
+        die "ERROR: invalid Direction $$smsAtts{Direction}\n";
+      }
+      my $body = $$smsAtts{textcontent};
+      $body =~ s/\\/\\\\/g;
+      $body =~ s/\n/\\n/g;
+      $body =~ s/"/\\"/g;
+      $body = "\"$body\"";
+      my $smsMsg = {
+        date     => $dateMillis,
+        dateSent => $dateMillis,
+        dateFmt  => $dateFmt,
+        dir      => $dir,
+        from     => cleanNumber($$smsAtts{from}),
+        to       => cleanNumber($$smsAtts{to}),
+        body     => $body,
+      };
+      push @smsMsgs, $smsMsg;
+    }catch{
+      my $failedSMS = encode_json($obj);
+      warn "\n\nWARNING: could not parse SMS in $smsFile\n$failedSMS\n$_\n";
+      return undef;
+    };
+  }
+
+  return @smsMsgs;
+}
+
+sub formatSMS($){
+  my ($smsMsg) = @_;
+  my $fmt = "";
+  if($$smsMsg{dir} eq "INC"){
+    $fmt .= $$smsMsg{from};
+  }elsif($$smsMsg{dir} eq "OUT"){
+    $fmt .= $$smsMsg{to};
+  }else{
+    die "ERROR: invalid direction $$smsMsg{dir}\n";
+  }
+
+  $fmt .= ",$$smsMsg{date}";
+  $fmt .= ",$$smsMsg{dateSent}";
+  $fmt .= ",S";
+  $fmt .= ",$$smsMsg{dir}";
+  $fmt .= ",$$smsMsg{dateFmt}";
+  $fmt .= ",$$smsMsg{body}";
+  $fmt .= "\n";
+  return $fmt;
 }
 
 sub decodeBase64($){
