@@ -19,6 +19,9 @@ sub hashEq($$);
 sub arrEq($$);
 
 my $usage = "Usage:
+  $0 -h|--help
+    show this message
+
   $0 --sms FILE
     parse FILE and add to $SMS_REPO_DIR
 
@@ -27,8 +30,26 @@ my $usage = "Usage:
 ";
 
 sub main(@){
-  die $usage if @_ != 2 or $_[0] !~ /(sms|call)/;
-  my ($type, $file) = @_;
+  my $type;
+  my $file;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $usage;
+      exit 0;
+    }elsif($arg =~ /^(-|--)?(sms|call)$/){
+      die "ERROR: sms/call type specified more than once\n" if defined $type;
+      $type = $2;
+    }elsif(-f $arg){
+      die "ERROR: can only specify one FILE\n" if defined $file;
+      $file = $arg;
+    }else{
+      die "$usage\nERROR: unknown arg $arg\n";
+    }
+  }
+  die "$usage\nERROR: missing --sms/--call\n" if not defined $type;
+  die "$usage\nERROR: missing SMS/call file\n" if not defined $file;
+
   my $entries = parseFile $type, $file;
   for my $fileName(sort keys %$entries){
     my @newEntries = @{$$entries{$fileName}};
