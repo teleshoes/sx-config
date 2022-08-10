@@ -6,6 +6,7 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
+sub dieOrWarn($$);
 sub getSortKey($$);
 sub readRepoFile($$);
 sub writeRepoFile($$@);
@@ -22,16 +23,21 @@ my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0 --sms FILE
+  $0 [OPTS] --sms FILE
     parse FILE and add to $SMS_REPO_DIR
 
-  $0 --call FILE
+  $0 [OPTS] --call FILE
     parse FILE and add to $CALL_REPO_DIR
+
+  OPTS
+    --force
+      allow duplicates and old entries
 ";
 
 sub main(@){
   my $type;
   my $file;
+  my $isForce = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -40,6 +46,8 @@ sub main(@){
     }elsif($arg =~ /^(-|--)?(sms|call)$/){
       die "ERROR: sms/call type specified more than once\n" if defined $type;
       $type = $2;
+    }elsif($arg =~ /^(--force)$/){
+      $isForce = 1;
     }elsif(-f $arg){
       die "ERROR: can only specify one FILE\n" if defined $file;
       $file = $arg;
@@ -66,7 +74,7 @@ sub main(@){
         $latestRepoEntry = $entry;
       }
       my $line = $$entry{line};
-      die "duplicate entry in repo: $line" if defined $repoEntriesByLine{$line};
+      dieOrWarn $isForce, "duplicate entry in repo: $line" if defined $repoEntriesByLine{$line};
       $repoEntriesByLine{$line} = $entry;
 
       my $noMillisLine = stripMillisLine $type, $line;
@@ -78,7 +86,7 @@ sub main(@){
         if(hashEq $entry, $prevEntry){
           print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
         }else{
-          die "ERROR: duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
+          dieOrWarn $isForce, "duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
         }
       }else{
         $allEntriesBySortKey{$sortKey} = $entry;
@@ -97,7 +105,7 @@ sub main(@){
       }
       if(defined $latestRepoEntry and $$entry{date} <= $$latestRepoEntry{date}){
         my ($newLine, $oldLine) = ($$entry{line}, $$latestRepoEntry{line});
-        die "new entry older than last repo entry:\nnew: ${newLine}old: ${oldLine}";
+        dieOrWarn $isForce, "new entry older than last repo entry:\nnew: ${newLine}old: ${oldLine}";
       }
 
       my $sortKey = getSortKey $type, $entry;
@@ -106,7 +114,7 @@ sub main(@){
         if(hashEq $prevEntry, $entry){
           print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
         }else{
-          die "ERROR: duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
+          dieOrWarn $isForce, "ERROR: duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
         }
       }else{
         $allEntriesBySortKey{$sortKey} = $entry;
@@ -115,6 +123,15 @@ sub main(@){
 
     my @sortedEntries = map {$allEntriesBySortKey{$_}} sort keys %allEntriesBySortKey;
     writeRepoFile($type, $fileName, @sortedEntries);
+  }
+}
+
+sub dieOrWarn($$){
+  my ($ignoreErrors, $msg) = @_;
+  if(not $ignoreErrors){
+    die $msg;
+  }else{
+    warn $msg;
   }
 }
 
