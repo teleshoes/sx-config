@@ -6,8 +6,9 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
+my $DUPE_MODE_EXACT = "exact";
 my $DUPE_MODE_MILLIS = "millis";
-my $DUPE_MODE_REGEX = join "|", ($DUPE_MODE_MILLIS);
+my $DUPE_MODE_REGEX = join "|", ($DUPE_MODE_EXACT, $DUPE_MODE_MILLIS);
 
 sub readRepoFile($$);
 sub writeRepoFile($$@);
@@ -38,6 +39,11 @@ my $usage = "Usage:
       set criteria for which entries are considered duplicates for ignoring
 
       DUPE_MODE
+        $DUPE_MODE_EXACT
+          only ignore entries that are exactly identical to an entry in the repo
+            (date must match, including milliseconds)
+            (dateSent must match, if present, including milliseconds)
+
         $DUPE_MODE_MILLIS
           (this is the default)
           ignore entries that are identical to an entry in the repo, except for date/dateSent/dateFmt,
@@ -315,7 +321,9 @@ sub getEntryHash($$){
 
 sub isDateDupe($$$){
   my ($dupeMode, $date1, $date2) = @_;
-  if($dupeMode eq $DUPE_MODE_MILLIS){
+  if($dupeMode eq $DUPE_MODE_EXACT){
+    return $date1 == $date2;
+  }elsif($dupeMode eq $DUPE_MODE_MILLIS){
     return int($date1/1000.0) == int($date2/1000.0);
   }else{
     die "ERROR: unknown DUPE_MODE $dupeMode\n";
