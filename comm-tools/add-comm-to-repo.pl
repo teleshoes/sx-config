@@ -25,9 +25,11 @@ my $usage = "Usage:
 
   $0 [OPTS] --sms FILE
     parse FILE and add to $SMS_REPO_DIR
+    ignores duplicate entries, and entries that are the same except for milliseconds
 
   $0 [OPTS] --call FILE
     parse FILE and add to $CALL_REPO_DIR
+    ignores duplicate entries, and entries that are the same except for milliseconds
 
   OPTS
     --force
