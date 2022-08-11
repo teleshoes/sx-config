@@ -99,12 +99,7 @@ sub main(@){
       }
 
       my $sortKey = getSortKey $type, $entry;
-      if(defined $allEntriesBySortKey{$sortKey}){
-        my $prevEntry = $allEntriesBySortKey{$sortKey};
-        print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
-      }else{
-        $allEntriesBySortKey{$sortKey} = $entry;
-      }
+      $allEntriesBySortKey{$sortKey} = $entry;
     }
 
     my @sortedEntries = map {$allEntriesBySortKey{$_}} sort keys %allEntriesBySortKey;
