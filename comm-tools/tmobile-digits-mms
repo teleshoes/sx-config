@@ -117,6 +117,10 @@ sub main(@){
     for my $smsFile(@smsFiles){
       @sms = (@sms, parseSMSFile($smsFile));
     }
+
+    #ignore empty SMS
+    @sms = grep {$$_{body} ne '""'} @sms;
+
     print "\n\n\n";
     my $smsCsvFile = "/tmp/tmobile-digits-sms-$nowMillis.sms";
     open FH, "> $smsCsvFile" or die "ERROR: could not write $smsCsvFile\n$!\n";
@@ -401,6 +405,8 @@ sub parseSMSFile($){
         die "ERROR: invalid Direction $$smsAtts{Direction}\n";
       }
       my $body = $$smsAtts{textcontent};
+      $body = "" if not defined $body;
+
       $body =~ s/\\/\\\\/g;
       $body =~ s/\n/\\n/g;
       $body =~ s/"/\\"/g;
