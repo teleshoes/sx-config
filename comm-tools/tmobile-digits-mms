@@ -17,6 +17,8 @@ my $HAR_FILE_BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits-h
 
 my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
 
+my $PICNAME_CMD = "picname";
+
 my $INSTRUCTIONS = ""
   . "  HAR_FILE messages get written to mms repo + parts-repo\n"
   . "    $MMS_REPO\n"
@@ -32,7 +34,7 @@ my $USAGE = "Usage:
     show this message
 
   $0 [OPTS] -l | --latest
-    -run: cd $HAR_FILE_BACKUP_DIR && ./rename.sh
+    -run: $PICNAME_CMD -a $HAR_FILE_BACKUP_DIR/*.har
     -select LATEST_HAR_FILE, by mtime, from $HAR_FILE_BACKUP_DIR
     -same as: $0 <LATEST_HAR_FILE>
 
@@ -248,7 +250,7 @@ sub main(@){
 }
 
 sub getLatestBackupHarFile(){
-  run "cd $HAR_FILE_BACKUP_DIR && ./rename.sh";
+  run "$PICNAME_CMD -a $HAR_FILE_BACKUP_DIR/*.har";
   my @harFiles = grep {-f $_} glob "$HAR_FILE_BACKUP_DIR/*.har";
   if(@harFiles == 0){
     die "ERROR: no har files found in $HAR_FILE_BACKUP_DIR\n";
