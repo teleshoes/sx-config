@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use utf8;
 
 my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
@@ -221,8 +222,11 @@ sub writeRepoFile($$@){
       $maxDateMillis = $$entry{date};
     }
   }
-  open FH, "> $repoFile" or die "could not write $repoFile\n$!\n";
-  print FH $$_{line} foreach @entries;
+
+  open FH, ">:encoding(UTF-8)", $repoFile or die "could not write $repoFile\n$!\n";
+  for my $entry(@entries){
+    print FH $$entry{line};
+  }
   close FH;
 
   if(defined $maxDateMillis){
@@ -246,6 +250,7 @@ sub parseSmsFile($){
   open FH, "< $file" or die "could not read $file\n$!\n";
   my $entries = {};
   while(my $line = <FH>){
+    utf8::decode($line);
     my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
     if($line !~ /^([0-9+*#]*),(\d+),(\d+),(S|M),(OUT|INC),($dateFmtRe),"(.*)"$/){
       die "invalid sms line: $line";
@@ -280,6 +285,7 @@ sub parseCallFile($){
   open FH, "< $file" or die "could not read $file\n$!\n";
   my $entries = {};
   while(my $line = <FH>){
+    utf8::decode($line);
     my $dateFmtRe = '\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d';
     if($line !~ /^([0-9+*#]*),(\d+),(OUT|INC|MIS|REJ|BLK),($dateFmtRe),\s*(-?)(\d+)h\s*(\d+)m\s(\d+)s$/){
       die "invalid call line: $line";
