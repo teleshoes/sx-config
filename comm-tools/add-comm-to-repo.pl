@@ -85,11 +85,7 @@ sub main(@){
       my $sortKey = getSortKey $type, $entry;
       if(defined $allEntriesBySortKey{$sortKey}){
         my $prevEntry = $allEntriesBySortKey{$sortKey};
-        if(hashEq $entry, $prevEntry){
-          print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
-        }else{
-          dieOrWarn $isForce, "duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
-        }
+        print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
       }else{
         $allEntriesBySortKey{$sortKey} = $entry;
       }
@@ -113,11 +109,7 @@ sub main(@){
       my $sortKey = getSortKey $type, $entry;
       if(defined $allEntriesBySortKey{$sortKey}){
         my $prevEntry = $allEntriesBySortKey{$sortKey};
-        if(hashEq $prevEntry, $entry){
-          print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
-        }else{
-          dieOrWarn $isForce, "ERROR: duplicate entry:\n  $$prevEntry{line}  $$entry{line}";
-        }
+        print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
       }else{
         $allEntriesBySortKey{$sortKey} = $entry;
       }
