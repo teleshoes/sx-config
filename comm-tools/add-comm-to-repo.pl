@@ -58,10 +58,10 @@ sub main(@){
   die "$usage\nERROR: missing --sms/--call\n" if not defined $type;
   die "$usage\nERROR: missing SMS/call file\n" if not defined $file;
 
-  my $entries = parseFile $type, $file;
-  for my $fileName(sort keys %$entries){
-    my @newEntries = @{$$entries{$fileName}};
-    my @repoEntries = readRepoFile $type, $fileName;
+  my $entriesByFileName = parseFile $type, $file;
+  for my $repoFileName(sort keys %$entriesByFileName){
+    my @newEntries = @{$$entriesByFileName{$repoFileName}};
+    my @repoEntries = readRepoFile $type, $repoFileName;
 
     my %allEntriesBySortKey;
     my %noMillisAllEntriesBySortKey;
@@ -122,7 +122,7 @@ sub main(@){
     }
 
     my @sortedEntries = map {$allEntriesBySortKey{$_}} sort keys %allEntriesBySortKey;
-    writeRepoFile($type, $fileName, @sortedEntries);
+    writeRepoFile($type, $repoFileName, @sortedEntries);
   }
 }
 
