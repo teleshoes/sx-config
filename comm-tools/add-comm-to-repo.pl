@@ -6,9 +6,12 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
+my $DEFAULT_FUZZY_DUPE_MILLIS = 5 * 60 * 1000; #5 minutes
+
 my $DUPE_MODE_EXACT = "exact";
 my $DUPE_MODE_MILLIS = "millis";
-my $DUPE_MODE_REGEX = join "|", ($DUPE_MODE_EXACT, $DUPE_MODE_MILLIS);
+my $DUPE_MODE_FUZZY = "fuzzy";
+my $DUPE_MODE_REGEX = join "|", ($DUPE_MODE_EXACT, $DUPE_MODE_MILLIS, $DUPE_MODE_FUZZY);
 
 sub readRepoFile($$);
 sub writeRepoFile($$@);
@@ -49,6 +52,11 @@ my $usage = "Usage:
           ignore entries that are identical to an entry in the repo, except for date/dateSent/dateFmt,
             AND date matches if you truncate milliseconds (floor, not round-half-up)
             AND dateSent (if present) matches if you truncate milliseconds (floor, not round-half-up)
+
+        $DUPE_MODE_FUZZY
+          ignore entries that are identical to an entry in the repo, except for date/dateSent/dateFmt,
+            AND date is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
+            AND dateSent (if present) is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
 ";
 
 sub main(@){
@@ -325,6 +333,9 @@ sub isDateDupe($$$){
     return $date1 == $date2;
   }elsif($dupeMode eq $DUPE_MODE_MILLIS){
     return int($date1/1000.0) == int($date2/1000.0);
+  }elsif($dupeMode eq $DUPE_MODE_FUZZY){
+    my $absDiffMillis = $date1 > $date2 ? $date1 - $date2 : $date2 - $date1;
+    return $absDiffMillis < $DEFAULT_FUZZY_DUPE_MILLIS;
   }else{
     die "ERROR: unknown DUPE_MODE $dupeMode\n";
   }
