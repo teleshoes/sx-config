@@ -6,14 +6,14 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
-sub getSortKey($$);
 sub readRepoFile($$);
 sub writeRepoFile($$@);
 
-sub stripMillisLine($$);
 sub parseFile($$);
 sub parseSmsFile($);
 sub parseCallFile($);
+sub getEntryHash($$);
+sub isDateDupe($$);
 
 my $usage = "Usage:
   $0 -h|--help
@@ -61,35 +61,58 @@ sub main(@){
     my @newEntries = @{$$entriesByFileName{$repoFileName}};
     my @repoEntries = readRepoFile $type, $repoFileName;
 
-    my %allEntriesBySortKey;
-    my %noMillisAllEntriesBySortKey;
-
-    my %repoEntriesByLine;
-    my %repoEntriesByLineNoMillis;
     my $latestRepoEntry = undef;
+    my %seenRepoLines;
     for my $entry(@repoEntries){
       if(not defined $latestRepoEntry or $$latestRepoEntry{date} < $$entry{date}){
         $latestRepoEntry = $entry;
       }
-      my $line = $$entry{line};
-      die "ERROR: duplicate entry in repo: $line" if defined $repoEntriesByLine{$line};
-      $repoEntriesByLine{$line} = $entry;
-
-      my $noMillisLine = stripMillisLine $type, $line;
-      $repoEntriesByLineNoMillis{$noMillisLine} = $entry;
-
-      my $sortKey = getSortKey $type, $entry;
-      $allEntriesBySortKey{$sortKey} = $entry;
+      if(defined $seenRepoLines{$$entry{line}}){
+        die "ERROR: duplicate entry in repo: $$entry{line}";
+      }
+      $seenRepoLines{$$entry{line}} = 1;
     }
 
-    for my $entry(@newEntries){
-      my $line = $$entry{line};
-      if(defined $repoEntriesByLine{$line}){
-        #ignore exact duplicates from repo
-        next;
+    my %repoDateValsByHash;
+    my %repoDateSentValsByHash;
+    for my $repoEntry(@repoEntries){
+      my $line = $$repoEntry{line};
+      my $hash = getEntryHash($type, $repoEntry);
+      $repoDateValsByHash{$hash} = [] if not defined $repoDateValsByHash{$hash};
+      push @{$repoDateValsByHash{$hash}}, $$repoEntry{date};
+      if(defined $$repoEntry{dateSent}){
+        $repoDateSentValsByHash{$hash} = [] if not defined $repoDateSentValsByHash{$hash};
+        push @{$repoDateSentValsByHash{$hash}}, $$repoEntry{dateSent};
       }
-      if(defined $repoEntriesByLineNoMillis{$line}){
-        #ignore entries that are identical except for milliseconds from repo
+    }
+
+    my @entriesToAdd;
+    for my $entry(@newEntries){
+      my $hash = getEntryHash($type, $entry);
+
+      my $dateDupeFound = 0;
+      my @repoDateVals = @{$repoDateValsByHash{$hash}} if defined $repoDateValsByHash{$hash};
+      for my $repoDate(@repoDateVals){
+        if(isDateDupe($$entry{date}, $repoDate)){
+          $dateDupeFound = 1;
+        }
+      }
+
+      my $dupeEntry = 0;
+      if(defined $$entry{dateSent}){
+        my @repoDateSentVals = @{$repoDateSentValsByHash{$hash}} if defined $repoDateSentValsByHash{$hash};
+        my $dateSentDupeFound = 0;
+        for my $repoDateSent(@repoDateSentVals){
+          if(isDateDupe($$entry{dateSent}, $repoDateSent)){
+            $dateSentDupeFound = 1;
+          }
+        }
+        $dupeEntry = $dateDupeFound and $dateSentDupeFound ? 1 : 0;
+      }else{
+        $dupeEntry = $dateDupeFound ? 1 : 0;
+      }
+
+      if($dupeEntry){
         next;
       }
       if(not $allowOld){
@@ -98,37 +121,13 @@ sub main(@){
           die "ERROR: new entry older than last repo entry:\nnew: ${newLine}old: ${oldLine}";
         }
       }
-
-      my $sortKey = getSortKey $type, $entry;
-      $allEntriesBySortKey{$sortKey} = $entry;
+      push @entriesToAdd, $entry;
     }
 
-    my @sortedEntries = map {$allEntriesBySortKey{$_}} sort keys %allEntriesBySortKey;
-    writeRepoFile($type, $repoFileName, @sortedEntries);
-  }
-}
+    my @allEntries = (@repoEntries, @entriesToAdd);
+    @allEntries = sort {$$a{line} cmp $$b{line}} @allEntries;
 
-sub getSortKey($$){
-  my ($type, $entry) = @_;
-
-  if($type =~ /sms/){
-    return join "|", (
-      $$entry{num},
-      $$entry{date},
-      $$entry{dateSent},
-      $$entry{source},
-      $$entry{dir},
-      $$entry{body},
-    );
-  }elsif($type =~ /call/){
-    return join "|", (
-      $$entry{num},
-      $$entry{date},
-      $$entry{dir},
-      $$entry{duration},
-    );
-  }else{
-    die "invalid type: $type\n";
+    writeRepoFile($type, $repoFileName, @allEntries);
   }
 }
 
@@ -190,20 +189,6 @@ sub writeRepoFile($$@){
   }
 }
 
-sub stripMillisLine($$){
-  my ($type, $line) = @_;
-  if($type =~ /sms/){
-    if($line !~ s/^([0-9+*#]*),(\d+)\d\d\d,(\d+)\d\d\d,/${1},${2}000,${3}000,/){
-      die "could not remove millis from line: $line";
-    }
-  }
-  if($type =~ /call/){
-    if($line !~ s/^([0-9+*#]*),(\d+)\d\d\d,/${1},${2}000,/){
-      die "could not remove millis from line: $line";
-    }
-  }
-  return $line;
-}
 sub parseFile($$){
   my ($type, $file) = @_;
   if($type =~ /sms/){
@@ -280,6 +265,41 @@ sub parseCallFile($){
     };
   }
   return $entries;
+}
+
+sub getEntryHash($$){
+  my ($type, $entry) = @_;
+
+  if($type =~ /sms/){
+    return join "|", (
+      $$entry{num},
+      $$entry{source},
+      $$entry{dir},
+      $$entry{body},
+    );
+    #ignored:
+    #  $$entry{line},
+    #  $$entry{date},
+    #  $$entry{dateSent},
+    #  $$entry{dateFmt},
+  }elsif($type =~ /call/){
+    return join "|", (
+      $$entry{num},
+      $$entry{dir},
+      $$entry{duration},
+    );
+    #ignored:
+    #  $$entry{line},
+    #  $$entry{date},
+    #  $$entry{dateFmt},
+  }else{
+    die "invalid type: $type\n";
+  }
+}
+
+sub isDateDupe($$){
+  my ($date1, $date2) = @_;
+  return int($date1/1000.0) == int($date2/1000.0);
 }
 
 &main(@ARGV);
