@@ -20,7 +20,7 @@ sub parseFile($$);
 sub parseSmsFile($);
 sub parseCallFile($);
 sub getEntryHash($$);
-sub isDateDupe($$$);
+sub isDateDupe($$$$);
 
 my $usage = "Usage:
   $0 -h|--help
@@ -57,6 +57,9 @@ my $usage = "Usage:
           ignore entries that are identical to an entry in the repo, except for date/dateSent/dateFmt,
             AND date is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
             AND dateSent (if present) is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
+
+    --fuzzy-dupe-millis=FUZZY_DUPE_MILLIS
+      for DUPE_MODE=$DUPE_MODE_FUZZY, use FUZZY_DUPE_MILLIS instead of $DEFAULT_FUZZY_DUPE_MILLIS millis
 ";
 
 sub main(@){
@@ -64,6 +67,7 @@ sub main(@){
   my $file;
   my $allowOld = 0;
   my $dupeMode = $DUPE_MODE_MILLIS;
+  my $fuzzyDupeMillis = $DEFAULT_FUZZY_DUPE_MILLIS;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -76,6 +80,8 @@ sub main(@){
       $allowOld = 1;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_REGEX)$/){
       $dupeMode = $1;
+    }elsif($arg =~ /^--fuzzy-dupe-millis=(\d+)$/){
+      $fuzzyDupeMillis = $1;
     }elsif(-f $arg){
       die "ERROR: can only specify one FILE\n" if defined $file;
       $file = $arg;
@@ -123,7 +129,7 @@ sub main(@){
       my $dateDupeFound = 0;
       my @repoDateVals = @{$repoDateValsByHash{$hash}} if defined $repoDateValsByHash{$hash};
       for my $repoDate(@repoDateVals){
-        if(isDateDupe($dupeMode, $$entry{date}, $repoDate)){
+        if(isDateDupe($dupeMode, $fuzzyDupeMillis, $$entry{date}, $repoDate)){
           $dateDupeFound = 1;
         }
       }
@@ -133,7 +139,7 @@ sub main(@){
         my @repoDateSentVals = @{$repoDateSentValsByHash{$hash}} if defined $repoDateSentValsByHash{$hash};
         my $dateSentDupeFound = 0;
         for my $repoDateSent(@repoDateSentVals){
-          if(isDateDupe($dupeMode, $$entry{dateSent}, $repoDateSent)){
+          if(isDateDupe($dupeMode, $fuzzyDupeMillis, $$entry{dateSent}, $repoDateSent)){
             $dateSentDupeFound = 1;
           }
         }
@@ -327,15 +333,15 @@ sub getEntryHash($$){
   }
 }
 
-sub isDateDupe($$$){
-  my ($dupeMode, $date1, $date2) = @_;
+sub isDateDupe($$$$){
+  my ($dupeMode, $fuzzyDupeMillis, $date1, $date2) = @_;
   if($dupeMode eq $DUPE_MODE_EXACT){
     return $date1 == $date2;
   }elsif($dupeMode eq $DUPE_MODE_MILLIS){
     return int($date1/1000.0) == int($date2/1000.0);
   }elsif($dupeMode eq $DUPE_MODE_FUZZY){
     my $absDiffMillis = $date1 > $date2 ? $date1 - $date2 : $date2 - $date1;
-    return $absDiffMillis < $DEFAULT_FUZZY_DUPE_MILLIS;
+    return $absDiffMillis < $fuzzyDupeMillis;
   }else{
     die "ERROR: unknown DUPE_MODE $dupeMode\n";
   }
