@@ -15,7 +15,7 @@ my $MMS_PARTS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
 
 my $HAR_FILE_BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits-har-files";
 
-my $ADD_COMM_TO_REPO_CMD = "./add-comm-to-repo.pl";
+my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
 
 my $INSTRUCTIONS = ""
   . "  HAR_FILE messages get written to mms repo + parts-repo\n"
