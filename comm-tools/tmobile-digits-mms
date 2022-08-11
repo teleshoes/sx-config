@@ -122,7 +122,6 @@ sub main(@){
     open FH, "> $smsCsvFile" or die "ERROR: could not write $smsCsvFile\n$!\n";
     for my $sms(@sms){
       my $fmt = formatSMS($sms);
-      print $fmt;
       print FH $fmt;
     }
     close FH;
