@@ -42,7 +42,7 @@ my $USAGE = "Usage:
   --sms
     skip MMS parsing, and parse SMS instead
     format and output to SMS_CSV_FILE, and add to repo with:
-    $ADD_COMM_TO_REPO_CMD --force --csv SMS_CSV_FILE
+    $ADD_COMM_TO_REPO_CMD
 
   --offset-hours=OFFSET_HOURS
     adjust msg info date and dateSent by positive or negative hours
