@@ -407,10 +407,12 @@ sub parseSMSFile($){
       my $body = $$smsAtts{textcontent};
       $body = "" if not defined $body;
 
+      #format for CSV column
       $body =~ s/\\/\\\\/g;
       $body =~ s/\n/\\n/g;
       $body =~ s/"/\\"/g;
       $body = "\"$body\"";
+
       my $smsMsg = {
         date     => $dateMillis,
         dateSent => $dateMillis,
@@ -420,6 +422,7 @@ sub parseSMSFile($){
         to       => cleanNumber($$smsAtts{to}),
         body     => $body,
       };
+
       push @smsMsgs, $smsMsg;
     }catch{
       my $failedSMS = encode_json($obj);
