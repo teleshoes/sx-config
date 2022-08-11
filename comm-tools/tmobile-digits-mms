@@ -34,7 +34,7 @@ my $USAGE = "Usage:
     show this message
 
   $0 [OPTS] -l | --latest
-    -run: $PICNAME_CMD -a $HAR_FILE_BACKUP_DIR/*.har
+    -run: $PICNAME_CMD -a --quiet $HAR_FILE_BACKUP_DIR/*.har
     -select LATEST_HAR_FILE, by mtime, from $HAR_FILE_BACKUP_DIR
     -same as: $0 <LATEST_HAR_FILE>
 
@@ -250,7 +250,7 @@ sub main(@){
 }
 
 sub getLatestBackupHarFile(){
-  run "$PICNAME_CMD -a $HAR_FILE_BACKUP_DIR/*.har";
+  run "$PICNAME_CMD -a --quiet $HAR_FILE_BACKUP_DIR/*.har";
   my @harFiles = grep {-f $_} glob "$HAR_FILE_BACKUP_DIR/*.har";
   if(@harFiles == 0){
     die "ERROR: no har files found in $HAR_FILE_BACKUP_DIR\n";
