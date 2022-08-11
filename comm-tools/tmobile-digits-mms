@@ -135,7 +135,9 @@ sub main(@){
     system $ADD_COMM_TO_REPO_CMD,
       "--sms", $smsCsvFile,
       "--allow-old",
+      "--dupe=fuzzy",
       "--fuzzy-whitespace-dupes",
+      "--fuzzy-dupe-millis=" . 4 * 60 * 60 * 1000, #4 hours
     ;
     exit 0;
   }
