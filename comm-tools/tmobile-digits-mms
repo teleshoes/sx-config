@@ -131,7 +131,7 @@ sub main(@){
     print "\n\n\n";
     system $ADD_COMM_TO_REPO_CMD,
       "--sms", $smsCsvFile,
-      "--force",
+      "--allow-old",
     ;
     exit 0;
   }
