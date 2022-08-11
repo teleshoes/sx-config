@@ -80,12 +80,7 @@ sub main(@){
       $repoEntriesByLineNoMillis{$noMillisLine} = $entry;
 
       my $sortKey = getSortKey $type, $entry;
-      if(defined $allEntriesBySortKey{$sortKey}){
-        my $prevEntry = $allEntriesBySortKey{$sortKey};
-        print STDERR "WARNING: duplicate entry:\n  $$prevEntry{line}";
-      }else{
-        $allEntriesBySortKey{$sortKey} = $entry;
-      }
+      $allEntriesBySortKey{$sortKey} = $entry;
     }
 
     for my $entry(@newEntries){
