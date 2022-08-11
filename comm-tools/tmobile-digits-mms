@@ -407,6 +407,9 @@ sub parseSMSFile($){
       my $body = $$smsAtts{textcontent};
       $body = "" if not defined $body;
 
+      #remove trailing whitespace
+      $body =~ s/\s+$//g;
+
       #format for CSV column
       $body =~ s/\\/\\\\/g;
       $body =~ s/\n/\\n/g;
