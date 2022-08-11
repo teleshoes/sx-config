@@ -135,6 +135,7 @@ sub main(@){
     system $ADD_COMM_TO_REPO_CMD,
       "--sms", $smsCsvFile,
       "--allow-old",
+      "--fuzzy-whitespace-dupes",
     ;
     exit 0;
   }
