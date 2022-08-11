@@ -129,7 +129,10 @@ sub main(@){
     my $count = @sms;
     print "\nwrote $count SMS to $smsCsvFile\n";
     print "\n\n\n";
-    system $ADD_COMM_TO_REPO_CMD, "--force", "--sms", $smsCsvFile;
+    system $ADD_COMM_TO_REPO_CMD,
+      "--sms", $smsCsvFile,
+      "--force",
+    ;
     exit 0;
   }
 
