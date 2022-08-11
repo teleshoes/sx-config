@@ -19,7 +19,7 @@ sub writeRepoFile($$@);
 sub parseFile($$);
 sub parseSmsFile($);
 sub parseCallFile($);
-sub getEntryHash($$);
+sub getEntryHash($$$);
 sub isDateDupe($$$$);
 
 my $usage = "Usage:
@@ -58,6 +58,9 @@ my $usage = "Usage:
             AND date is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
             AND dateSent (if present) is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
 
+    --fuzzy-whitespace-dupes
+      remove leading and trailing whitespace from SMS body when considering duplicates
+
     --fuzzy-dupe-millis=FUZZY_DUPE_MILLIS
       for DUPE_MODE=$DUPE_MODE_FUZZY, use FUZZY_DUPE_MILLIS instead of $DEFAULT_FUZZY_DUPE_MILLIS millis
 ";
@@ -68,6 +71,7 @@ sub main(@){
   my $allowOld = 0;
   my $dupeMode = $DUPE_MODE_MILLIS;
   my $fuzzyDupeMillis = $DEFAULT_FUZZY_DUPE_MILLIS;
+  my $isFuzzyWhitespaceDupes = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -80,6 +84,8 @@ sub main(@){
       $allowOld = 1;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_REGEX)$/){
       $dupeMode = $1;
+    }elsif($arg =~ /^(--fuzzy-whitespace-dupes)$/){
+      $isFuzzyWhitespaceDupes = 1;
     }elsif($arg =~ /^--fuzzy-dupe-millis=(\d+)$/){
       $fuzzyDupeMillis = $1;
     }elsif(-f $arg){
@@ -113,7 +119,7 @@ sub main(@){
     my %repoDateSentValsByHash;
     for my $repoEntry(@repoEntries){
       my $line = $$repoEntry{line};
-      my $hash = getEntryHash($type, $repoEntry);
+      my $hash = getEntryHash($type, $isFuzzyWhitespaceDupes, $repoEntry);
       $repoDateValsByHash{$hash} = [] if not defined $repoDateValsByHash{$hash};
       push @{$repoDateValsByHash{$hash}}, $$repoEntry{date};
       if(defined $$repoEntry{dateSent}){
@@ -124,7 +130,7 @@ sub main(@){
 
     my @entriesToAdd;
     for my $entry(@newEntries){
-      my $hash = getEntryHash($type, $entry);
+      my $hash = getEntryHash($type, $isFuzzyWhitespaceDupes, $entry);
 
       my $dateDupeFound = 0;
       my @repoDateVals = @{$repoDateValsByHash{$hash}} if defined $repoDateValsByHash{$hash};
@@ -303,15 +309,18 @@ sub parseCallFile($){
   return $entries;
 }
 
-sub getEntryHash($$){
-  my ($type, $entry) = @_;
+sub getEntryHash($$$){
+  my ($type, $isFuzzyWhitespaceDupes, $entry) = @_;
 
   if($type =~ /sms/){
+    my $body = $$entry{body};
+    $body =~ s/^\s+// if $isFuzzyWhitespaceDupes;
+    $body =~ s/\s+$// if $isFuzzyWhitespaceDupes;
     return join "|", (
       $$entry{num},
       $$entry{source},
       $$entry{dir},
-      $$entry{body},
+      $body,
     );
     #ignored:
     #  $$entry{line},
