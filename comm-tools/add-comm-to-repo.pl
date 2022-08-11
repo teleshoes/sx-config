@@ -6,6 +6,9 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
+my $DUPE_MODE_MILLIS = "millis";
+my $DUPE_MODE_REGEX = join "|", ($DUPE_MODE_MILLIS);
+
 sub readRepoFile($$);
 sub writeRepoFile($$@);
 
@@ -13,7 +16,7 @@ sub parseFile($$);
 sub parseSmsFile($);
 sub parseCallFile($);
 sub getEntryHash($$);
-sub isDateDupe($$);
+sub isDateDupe($$$);
 
 my $usage = "Usage:
   $0 -h|--help
@@ -30,12 +33,23 @@ my $usage = "Usage:
   OPTS
     --allow-old
       do not fail if a new entry is older than the newest entry in the repo
+
+    --dupe=DUPE_MODE
+      set criteria for which entries are considered duplicates for ignoring
+
+      DUPE_MODE
+        $DUPE_MODE_MILLIS
+          (this is the default)
+          ignore entries that are identical to an entry in the repo, except for date/dateSent/dateFmt,
+            AND date matches if you truncate milliseconds (floor, not round-half-up)
+            AND dateSent (if present) matches if you truncate milliseconds (floor, not round-half-up)
 ";
 
 sub main(@){
   my $type;
   my $file;
   my $allowOld = 0;
+  my $dupeMode = $DUPE_MODE_MILLIS;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -46,6 +60,8 @@ sub main(@){
       $type = $2;
     }elsif($arg =~ /^(--allow-old)$/){
       $allowOld = 1;
+    }elsif($arg =~ /^--dupe=($DUPE_MODE_REGEX)$/){
+      $dupeMode = $1;
     }elsif(-f $arg){
       die "ERROR: can only specify one FILE\n" if defined $file;
       $file = $arg;
@@ -93,7 +109,7 @@ sub main(@){
       my $dateDupeFound = 0;
       my @repoDateVals = @{$repoDateValsByHash{$hash}} if defined $repoDateValsByHash{$hash};
       for my $repoDate(@repoDateVals){
-        if(isDateDupe($$entry{date}, $repoDate)){
+        if(isDateDupe($dupeMode, $$entry{date}, $repoDate)){
           $dateDupeFound = 1;
         }
       }
@@ -103,7 +119,7 @@ sub main(@){
         my @repoDateSentVals = @{$repoDateSentValsByHash{$hash}} if defined $repoDateSentValsByHash{$hash};
         my $dateSentDupeFound = 0;
         for my $repoDateSent(@repoDateSentVals){
-          if(isDateDupe($$entry{dateSent}, $repoDateSent)){
+          if(isDateDupe($dupeMode, $$entry{dateSent}, $repoDateSent)){
             $dateSentDupeFound = 1;
           }
         }
@@ -297,9 +313,13 @@ sub getEntryHash($$){
   }
 }
 
-sub isDateDupe($$){
-  my ($date1, $date2) = @_;
-  return int($date1/1000.0) == int($date2/1000.0);
+sub isDateDupe($$$){
+  my ($dupeMode, $date1, $date2) = @_;
+  if($dupeMode eq $DUPE_MODE_MILLIS){
+    return int($date1/1000.0) == int($date2/1000.0);
+  }else{
+    die "ERROR: unknown DUPE_MODE $dupeMode\n";
+  }
 }
 
 &main(@ARGV);
