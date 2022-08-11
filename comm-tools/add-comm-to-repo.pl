@@ -314,8 +314,8 @@ sub getEntryHash($$$){
 
   if($type =~ /sms/){
     my $body = $$entry{body};
-    $body =~ s/^\s+// if $isFuzzyWhitespaceDupes;
-    $body =~ s/\s+$// if $isFuzzyWhitespaceDupes;
+    $body =~ s/^(\s|\\n)+// if $isFuzzyWhitespaceDupes;
+    $body =~ s/(\s|\\n)+$// if $isFuzzyWhitespaceDupes;
     return join "|", (
       $$entry{num},
       $$entry{source},
