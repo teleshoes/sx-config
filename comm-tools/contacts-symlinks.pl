@@ -227,7 +227,14 @@ sub main(@){
   my $countContact = 0;
   my $countTotal = @srcFileEntries;
 
+  my $chunkSize = int($countTotal / 50 + 0.5);
+  $chunkSize = 1 if $chunkSize < 1;
+
+  my $i=0;
   for my $srcFileEntry(@srcFileEntries){
+    print "." if $i % $chunkSize == 0;
+    $i++;
+
     my $number = $$srcFileEntry{number};
     $number = formatNumberUSA($number);
     $number = "+++" if length $number == 0;
@@ -289,6 +296,7 @@ sub main(@){
     }
   }
 
+  print "\n";
   print "created $countTotal total symlinks ($countContact by-name)\n";
 }
 
