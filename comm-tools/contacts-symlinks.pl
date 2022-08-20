@@ -68,10 +68,10 @@ my $usage = "Usage:
   OPTS
     -r | -f | --rebuild | --slow | --force
       clear DEST_DIR, removing all symlinks first, before creating new
-      (this is the default)
 
     --no-rebuild | --quick
       do not delete existing symlinks, and skip symlink creation if target exists
+      (this is the default)
 
   VCF_FILE      path to the contacts VCF file
   SRC_DIR       path to the dir containing comm files
@@ -96,7 +96,7 @@ sub main(@){
   my $vcfFile;
   my $srcDir;
   my $destDir;
-  my $rebuild = 1;
+  my $rebuild = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
