@@ -33,8 +33,10 @@ my $okImgExts = join "|", @imgExts;
 my $validCmdTypes = join "|", sort values %cmdTypeArgs;
 
 my $usage = "Usage:
-  $0 CMD_TYPE VCF_FILE SRC_DIR DEST_DIR
+  $0 -h|--help
+    show this message
 
+  $0 CMD_TYPE VCF_FILE SRC_DIR DEST_DIR
     create symlinks with filenames containing the names of contacts,
       or symlinks with just the number if number is not found in the VCF
 
@@ -82,21 +84,48 @@ my $usage = "Usage:
 ";
 
 sub main(@){
-  die $usage if @_ != 4;
-  my ($cmdTypeArg, $vcfFile, $srcDir, $destDir) = @_;
-
   my $cmdType;
-  for my $type(@CMD_TYPES){
-    if($cmdTypeArg =~ /^(?:$cmdTypeArgs{$type})$/){
-      $cmdType = $type;
+  my $vcfFile;
+  my $srcDir;
+  my $destDir;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $usage;
+      exit 0;
+    }elsif(not defined $cmdType){
+      for my $type(@CMD_TYPES){
+        if($arg =~ /^(?:$cmdTypeArgs{$type})$/){
+          $cmdType = $type;
+        }
+      }
+      if(not defined $cmdType){
+        die "$usage\nERROR: invalid CMD_TYPE \"$cmdType\" (must be one of $validCmdTypes)\n";
+      }
+    }elsif(not defined $vcfFile){
+      $vcfFile = $arg;
+      if(not -f $vcfFile){
+        die "$usage\nERROR: VCF_FILE not a file \"$vcfFile\"\n";
+      }
+    }elsif(not defined $srcDir){
+      $srcDir = $arg;
+      if(not -d $srcDir){
+        die "$usage\nERROR: SRC_DIR not a directory \"$srcDir\"\n";
+      }
+    }elsif(not defined $destDir){
+      $destDir = $arg;
+      if(not -d $destDir){
+        die "$usage\nERROR: DEST_DIR not a directory \"$destDir\"\n";
+      }
+    }else{
+      die "$usage\nERROR: unknown arg $arg\n";
     }
   }
-  if(not defined $cmdType){
-    die "invalid cmd type (must be one of $validCmdTypes): $cmdType\n";
-  }
-  die "could not find VCF file: $vcfFile\n" if not -f $vcfFile;
-  die "not a directory: $srcDir\n" if not -d $srcDir;
-  die "not a directory: $destDir\n" if not -d $destDir;
+
+  die "$usage\nERROR: missing CMD_TYPE\n" if not defined $cmdType;
+  die "$usage\nERROR: missing VCF_FILE\n" if not defined $vcfFile;
+  die "$usage\nERROR: missing SRC_DIR\n" if not defined $srcDir;
+  die "$usage\nERROR: missing DEST_DIR\n" if not defined $destDir;
 
   if(glob "$destDir/*/*"){
     runQuiet "rm", "-f", glob "$destDir/*/*";
