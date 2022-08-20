@@ -36,7 +36,7 @@ my $usage = "Usage:
   $0 -h|--help
     show this message
 
-  $0 CMD_TYPE VCF_FILE SRC_DIR DEST_DIR
+  $0 [OPTS] CMD_TYPE VCF_FILE SRC_DIR DEST_DIR
     create symlinks with filenames containing the names of contacts,
       or symlinks with just the number if number is not found in the VCF
 
@@ -65,6 +65,14 @@ my $usage = "Usage:
       to:
         \"<DEST_DIR>/<CONTACT_FMT>/<TIMESTAMP_FMT>_<DIRECTION>_<MSG_ID>_<FILE_PREFIX>.<IMG_EXT>\"
 
+  OPTS
+    -r | -f | --rebuild | --slow | --force
+      clear DEST_DIR, removing all symlinks first, before creating new
+      (this is the default)
+
+    --no-rebuild | --quick
+      do not delete existing symlinks, and skip symlink creation if target exists
+
   VCF_FILE      path to the contacts VCF file
   SRC_DIR       path to the dir containing comm files
   DEST_DIR      path to place newly created contacts symlinks
@@ -88,11 +96,16 @@ sub main(@){
   my $vcfFile;
   my $srcDir;
   my $destDir;
+  my $rebuild = 1;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $usage;
       exit 0;
+    }elsif($arg =~ /^(-r|-f|--rebuild|--slow|--force)$/){
+      $rebuild = 1;
+    }elsif($arg =~ /^(--no-rebuild|--quick)$/){
+      $rebuild = 0;
     }elsif(not defined $cmdType){
       for my $type(@CMD_TYPES){
         if($arg =~ /^(?:$cmdTypeArgs{$type})$/){
@@ -127,14 +140,16 @@ sub main(@){
   die "$usage\nERROR: missing SRC_DIR\n" if not defined $srcDir;
   die "$usage\nERROR: missing DEST_DIR\n" if not defined $destDir;
 
-  if(glob "$destDir/*/*"){
-    runQuiet "rm", "-f", glob "$destDir/*/*";
-  }
-  if(glob "$destDir/*/"){
-    runQuiet "rmdir", glob "$destDir/*/";
-  }
-  if(glob "$destDir/*"){
-    runQuiet "rm", "-f", glob "$destDir/*";
+  if($rebuild){
+    if(glob "$destDir/*/*"){
+      runQuiet "rm", "-f", glob "$destDir/*/*";
+    }
+    if(glob "$destDir/*/"){
+      runQuiet "rmdir", glob "$destDir/*/";
+    }
+    if(glob "$destDir/*"){
+      runQuiet "rm", "-f", glob "$destDir/*";
+    }
   }
 
   my $contacts = getContactsFromVcf $vcfFile;
@@ -261,6 +276,10 @@ sub main(@){
         $$srcFileEntry{fileprefix},
         $$srcFileEntry{fileext},
         ;
+    }
+
+    if(not $rebuild){
+      next if -e $destFile;
     }
 
     relSymlink $$srcFileEntry{file}, $destFile;
