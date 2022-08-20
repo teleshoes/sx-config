@@ -70,19 +70,32 @@ my $USAGE = "Usage:
   $0 -h|--help
     show this message
 
-  $0
+  $0 [OPTS]
     backup commhistory DB, contacts/contacts-priv DB, and MMS parts repo
     process sms/calls/mms into repos
     create sms/call/mms/mms-pix by-contact symlinks locally
     copy by-contact symlinks to device
+
+  OPTS
+    --quick|--no-rebuild
+      skip clearing symlink dirs (pass --no-rebuild to $CMD_CONTACTS_SYMLINKS)
+      (this is the default)
+
+    --rebuild|--slow
+      clear+rebuild symlink dirs (pas --rebuild to $CMD_CONTACTS_SYMLINKS)
 ";
 
 sub main(@){
+  my $rebuildSymlinks = 0;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(--quick|--no-rebuild)$/){
+      $rebuildSymlinks = 0;
+    }elsif($arg =~ /^(--rebuild|--slow)$/){
+      $rebuildSymlinks = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -225,13 +238,15 @@ sub main(@){
   # by-contact symlinks
   #########################################################
   print "\n\n=====SMS/CALL BY-CONTACT SYMLINKS\n";
-  run "$CMD_CONTACTS_SYMLINKS", "--sms",
+  my $rebuildArg = $rebuildSymlinks ? "--rebuild" : "--no-rebuild";
+
+  run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--sms",
     "$CONTACTS_REPO/contacts.vcf", $SMS_REPO, $SMS_BY_CONTACT_DIR;
-  run "$CMD_CONTACTS_SYMLINKS", "--call",
+  run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--call",
     "$CONTACTS_REPO/contacts.vcf", $CALL_REPO, $CALL_BY_CONTACT_DIR;
-  run "$CMD_CONTACTS_SYMLINKS", "--mms",
+  run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--mms",
     "$CONTACTS_REPO/contacts.vcf", $MMS_MSG_REPO, $MMS_BY_CONTACT_DIR;
-  run "$CMD_CONTACTS_SYMLINKS", "--mmspix",
+  run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--mmspix",
     "$CONTACTS_REPO/contacts.vcf", $MMS_MSG_REPO, $MMSPIX_BY_CONTACT_DIR;
 
   run "ssh", "$user\@$host", "
