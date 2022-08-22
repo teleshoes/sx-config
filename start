@@ -62,6 +62,8 @@
 #early, to ensure SD card symlink is in place
 ./setup-autostart
 
+#X10 II only
+./setup-modem x10ii-tmobile-usa
 
 
 #POWER OFF PHONE, insert SIM+sdcard, and reboot
