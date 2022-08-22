@@ -129,7 +129,10 @@ ipmagic sx okboard-toggle --init-default
 
 ./sync-android-apps --restore
 
-./setup-waydroid
+#waydroid
+#  ./setup-waydroid
+#aliendalvik
+#  ./setup-aliendalvik
 
 ./setup-coolreader
 
