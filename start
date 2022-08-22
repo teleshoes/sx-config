@@ -136,8 +136,6 @@ ipmagic sx okboard-toggle --init-default
 
 ./setup-coolreader
 
-#run harbour-storeman-installer app on phone
-
 ./launcher-buttons
 
 #commands and alarms
