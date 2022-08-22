@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $IPMAGIC_NAME = "sx";
+
+my $CONFIGS = {
+  "x10ii-tmobile-usa" => {
+    "/vendor/oem/modem-config/S264.6/modem.conf" => "mcfg_sw/generic/euro/dtelekom/vlvw/de/mcfg_sw.mbn",
+    "/vendor/oem/modem-config/S264.8/modem.conf" => "mcfg_sw/generic/euro/dtelekom/vlvw/de/mcfg_sw.mbn",
+  },
+};
+my $OK_CONFIG_NAMES = join "|", sort keys %$CONFIGS;
+
+my $USAGE = "Usage:
+  $0 CONFIG_NAME
+    set up /vendor/oem/modem-config for devices
+
+  CONFIG_NAME
+    one of the following:
+      $OK_CONFIG_NAMES
+";
+
+sub main(@){
+  my $conf;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif(defined $$CONFIGS{lc $arg}){
+      $conf = $$CONFIGS{lc $arg};
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  die "$USAGE\nERROR: missing CONFIG_NAME\n" if not defined $conf;
+
+  my $cmd = "";
+  for my $confFile(sort keys %$conf){
+    my $contents = $$conf{$confFile};
+    my $dir = $confFile;
+    $dir =~ s/\/[^\/]*$//;
+    $cmd .= "echo mkdir -p $dir/;\n";
+    $cmd .= "mkdir -p $dir/;\n";
+    $cmd .= "echo \"echo -n '$contents' > $confFile\";\n";
+    $cmd .= "echo -n '$contents' > $confFile;\n";
+    $cmd .= "echo\n";
+  }
+
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root", $cmd;
+}
+
+&main(@ARGV);
