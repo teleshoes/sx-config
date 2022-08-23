@@ -149,7 +149,7 @@ sub main(@){
     my $count = @sms;
     print "\nwrote $count SMS to $smsCsvFile\n";
     print "\n\n\n";
-    system $ADD_COMM_TO_REPO_CMD,
+    run $ADD_COMM_TO_REPO_CMD,
       "--sms", $smsCsvFile,
       "--allow-old",
       "--dupe=fuzzy",
