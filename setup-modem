@@ -56,10 +56,16 @@ sub main(@){
     my $contents = $$conf{$confFile};
     my $dir = $confFile;
     $dir =~ s/\/[^\/]*$//;
+
     $cmd .= "echo mkdir -p $dir/;\n";
     $cmd .= "mkdir -p $dir/;\n";
+
+    $cmd .= "echo \"chown root.shell $dir\";\n";
+    $cmd .= "chown root.shell $dir;\n";
+
     $cmd .= "echo \"echo -n '$contents' > $confFile\";\n";
     $cmd .= "echo -n '$contents' > $confFile;\n";
+
     $cmd .= "echo\n";
   }
 
