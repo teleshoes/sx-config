@@ -99,6 +99,8 @@ sub main(@){
   die "$usage\nERROR: missing --sms/--call\n" if not defined $type;
   die "$usage\nERROR: missing SMS/call file\n" if not defined $file;
 
+  my $totalToAdd = 0;
+  my $totalDupes = 0;
   my $entriesByFileName = parseFile $type, $file;
   for my $repoFileName(sort keys %$entriesByFileName){
     my @newEntries = @{$$entriesByFileName{$repoFileName}};
@@ -129,6 +131,9 @@ sub main(@){
       }
     }
 
+    my $countToAdd = 0;
+    my $countDupes = 0;
+
     my @entriesToAdd;
     for my $entry(@newEntries){
       my $hash = getEntryHash($type, $isFuzzyWhitespaceDupes, $entry);
@@ -156,8 +161,12 @@ sub main(@){
       }
 
       if($dupeEntry){
+        $countDupes++;
         next;
+      }else{
+        $countToAdd++;
       }
+
       if(not $allowOld){
         if(defined $latestRepoEntry and $$entry{date} <= $$latestRepoEntry{date}){
           my ($newLine, $oldLine) = ($$entry{line}, $$latestRepoEntry{line});
@@ -167,11 +176,17 @@ sub main(@){
       push @entriesToAdd, $entry;
     }
 
+    $totalToAdd += $countToAdd;
+    $totalDupes += $countDupes;
+
     my @allEntries = (@repoEntries, @entriesToAdd);
     @allEntries = sort {$$a{line} cmp $$b{line}} @allEntries;
 
     writeRepoFile($type, $repoFileName, @allEntries);
   }
+
+  my $fileCount = keys %$entriesByFileName;
+  print "\nTOTAL: added $totalToAdd entries to $fileCount files, skipped $totalDupes dupes\n";
 }
 
 sub readRepoFile($$){
