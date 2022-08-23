@@ -64,6 +64,9 @@ my $usage = "Usage:
 
     --fuzzy-dupe-millis=FUZZY_DUPE_MILLIS
       for DUPE_MODE=$DUPE_MODE_FUZZY, use FUZZY_DUPE_MILLIS instead of $DEFAULT_FUZZY_DUPE_MILLIS millis
+
+    -v | --verbose
+      print a count of added/skipped entries for each repo file written
 ";
 
 sub main(@){
@@ -73,6 +76,7 @@ sub main(@){
   my $dupeMode = $DUPE_MODE_MILLIS;
   my $fuzzyDupeMillis = $DEFAULT_FUZZY_DUPE_MILLIS;
   my $isFuzzyWhitespaceDupes = 0;
+  my $isVerbose = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -89,6 +93,8 @@ sub main(@){
       $isFuzzyWhitespaceDupes = 1;
     }elsif($arg =~ /^--fuzzy-dupe-millis=(\d+)$/){
       $fuzzyDupeMillis = $1;
+    }elsif($arg =~ /^(-v|--verbose)$/){
+      $isVerbose = 1;
     }elsif(-f $arg){
       die "ERROR: can only specify one FILE\n" if defined $file;
       $file = $arg;
@@ -178,6 +184,10 @@ sub main(@){
 
     $totalToAdd += $countToAdd;
     $totalDupes += $countDupes;
+
+    if($isVerbose){
+      print "$repoFileName: adding $countToAdd entries, skipping $countDupes dupes\n";
+    }
 
     my @allEntries = (@repoEntries, @entriesToAdd);
     @allEntries = sort {$$a{line} cmp $$b{line}} @allEntries;
