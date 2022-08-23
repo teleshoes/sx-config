@@ -19,6 +19,9 @@ my $CONFIGS = {
 my $OK_CONFIG_NAMES = join "|", sort keys %$CONFIGS;
 
 my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
   $0 CONFIG_NAME
     set up /vendor/oem/modem-config for devices
 
