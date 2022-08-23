@@ -4,10 +4,15 @@ use warnings;
 
 my $IPMAGIC_NAME = "sx";
 
+my $MBN_TMO_GERMANY = "mcfg_sw/generic/euro/dtelekom/vlvw/de/mcfg_sw.mbn";
+
+my $MODEM_10_II     = "/vendor/oem/modem-config/S264.8/modem.conf";
+my $MODEM_10_II_ALT = "/vendor/oem/modem-config/S264.6/modem.conf";
+
 my $CONFIGS = {
   "x10ii-tmobile-usa" => {
-    "/vendor/oem/modem-config/S264.6/modem.conf" => "mcfg_sw/generic/euro/dtelekom/vlvw/de/mcfg_sw.mbn",
-    "/vendor/oem/modem-config/S264.8/modem.conf" => "mcfg_sw/generic/euro/dtelekom/vlvw/de/mcfg_sw.mbn",
+    $MODEM_10_II     => $MBN_TMO_GERMANY,
+    $MODEM_10_II_ALT => $MBN_TMO_GERMANY,
   },
 };
 my $OK_CONFIG_NAMES = join "|", sort keys %$CONFIGS;
