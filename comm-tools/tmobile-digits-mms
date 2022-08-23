@@ -155,6 +155,7 @@ sub main(@){
       "--dupe=fuzzy",
       "--fuzzy-whitespace-dupes",
       "--fuzzy-dupe-millis=" . 4 * 60 * 60 * 1000, #4 hours
+      "--verbose",
     ;
     exit 0;
   }
