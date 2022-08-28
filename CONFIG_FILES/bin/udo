@@ -15,6 +15,8 @@ sub main(@){
   $ENV{XDG_RUNTIME_DIR} = '/run/user/100000';
   $ENV{WAYLAND_DISPLAY} = '../../display/wayland-0';
 
+  $ENV{DBUS_SESSION_BUS_ADDRESS} = 'unix:path=/run/user/100000/dbus/user_bus_socket';
+
   $ENV{PATH} = "/home/$USER/bin:/home/$USER/.cabal/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/games:/usr/games";
   exec @ARGV;
 }
