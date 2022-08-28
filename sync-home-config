@@ -41,6 +41,7 @@ my @HOMEBIN_EXCLUDES = qw(
   alert-email
   bat
   chromium
+  touchClick
 );
 
 my @SPECIAL_USER_RSYNCS = (
