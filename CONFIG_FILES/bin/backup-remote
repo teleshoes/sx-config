@@ -21,6 +21,7 @@ my $remoteHost = "wolke-nuc";
 my $backupDir = "~/backup-sx";
 
 my $dcimDirs = {
+  int => "/home/$user/Pictures",
   sd  => "/media/sdcard/phone/Pictures",
 };
 my $mmsPartsDir = "/home/$user/.local/share/commhistory/data";
