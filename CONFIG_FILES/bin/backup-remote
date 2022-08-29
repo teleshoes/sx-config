@@ -20,7 +20,7 @@ my $remoteHost = "wolke-nuc";
 
 my $backupDir = "~/backup-sx";
 
-my $dcimDir = "/media/sdcard/phone/Pictures/Camera";
+my $dcimDir = "/media/sdcard/phone/Pictures";
 my $mmsPartsDir = "/home/$user/.local/share/commhistory/data";
 my %sqliteDbs = (
   commhistory => "/home/$user/.local/share/commhistory/commhistory.db",
@@ -80,7 +80,7 @@ sub main(@){
   ######
   notificationMsg $id, sprintf "BAK-DCIM: %s %s", getDCIMSummary(), nowHrMin();
   run rsyncCmd($config, "$dcimDir/", "$backupDir/DCIM"),
-    "--exclude=/*/";
+    "--exclude=backup_*";
   ######
 
   ######
@@ -153,16 +153,35 @@ sub getLocalPort($){
 }
 
 sub getDCIMSummary(){
+  my $findCmd = ""
+    . "find '$dcimDir'"
+    . "  -type f"
+    . "  -not -iregex .*/backup_.*"
+  ;
+
+  my $duTotalCmd = ""
+    . "tr '\\n' '\\0'"
+    . " | du -bc --files0-from=-"
+    . " | tail -1"
+  ;
+
+  my $wcLineCmd = ""
+    . "wc -l"
+  ;
+
+  my $dcimDu = `$findCmd | $duTotalCmd`;
+  my $dcimWc = `$findCmd | $wcLineCmd`;
+  chomp $dcimDu;
+  chomp $dcimWc;
+
   my $dcimSizeMiB;
-  my $dcimDu = `du -bc $dcimDir/*.* 2>/dev/null | tail -1`;
   if($dcimDu =~ /^(\d+)\s*total$/){
     $dcimSizeMiB = int($1/1024/1024 + 0.5);
   }else{
     $dcimSizeMiB = "???";
   }
 
-  my $dcimCount = `ls $dcimDir/*.* 2>/dev/null | wc -l`;
-  chomp $dcimCount;
+  my $dcimCount = $dcimWc;
   $dcimCount = "???" unless $dcimCount =~ /^\d+$/;
 
   return sprintf "%03dM %03df", $dcimSizeMiB, $dcimCount;
