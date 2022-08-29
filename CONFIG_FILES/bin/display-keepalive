@@ -8,6 +8,7 @@ my $EXEC = basename $0;
 my $DEFAULT_DIM_TIMEOUT_S = 600;
 my $KEEPALIVE_DIM_TIMEOUT_S = 3600;
 
+my $CONFIG_WINDOW_TITLE_REGEX_FILE = "$ENV{HOME}/.config/display-keepalive-window-title-regex";
 my $DIM_TIMEOUT_CACHE_FILE = "$ENV{HOME}/.cache/display-keepalive-timeout";
 my $LIPSTICK_WINDOW_TITLE_FILE = "/tmp/lipstick-window-title";
 
@@ -37,6 +38,11 @@ my $USAGE = "Usage:
     -if TIMEOUT is not set, use $DEFAULT_DIM_TIMEOUT_S
     -run: mcetool --set-dim-timeout=$KEEPALIVE_DIM_TIMEOUT_S
 
+  $EXEC -w | --window
+    -read KEEPALIVE_WINDOW_TITLE_REGEX from:
+      $CONFIG_WINDOW_TITLE_REGEX_FILE
+    -same as: $EXEC --window=KEEPALIVE_WINDOW_TITLE_REGEX
+
   $EXEC -w KEEPALIVE_WINDOW_TITLE_REGEX
   $EXEC --window KEEPALIVE_WINDOW_TITLE_REGEX
   $EXEC --window=KEEPALIVE_WINDOW_TITLE_REGEX
@@ -48,6 +54,7 @@ my $USAGE = "Usage:
 ";
 
 sub getWindowTitle();
+sub getConfigWindowTitleRegex();
 sub getDimTimeout();
 sub setDimTimeout($);
 sub readNormalDimTimeout();
@@ -89,8 +96,14 @@ sub main(@){
     setDimTimeout($timeout);
   }elsif($cmd eq $CMD_KEEPALIVE_BY_WINDOW){
     if(not defined $windowTitleRegex){
-      die "$USAGE\nERROR: missing KEEPALIVE_WINDOW_TITLE_REGEX\n";
+      $windowTitleRegex = getConfigWindowTitleRegex();
+      if(not defined $windowTitleRegex){
+        die "$USAGE\n"
+          . "ERROR: must specify KEEPALIVE_WINDOW_TITLE_REGEX on cmdline or in file:\n"
+          . "$CONFIG_WINDOW_TITLE_REGEX_FILE\n";
+      }
     }
+
     my $windowTitle = getWindowTitle();
     if($windowTitle =~ /$windowTitleRegex/i){
       print "keepalive=ON  window=$windowTitle\n";
@@ -113,6 +126,18 @@ sub getWindowTitle(){
     chomp $windowTitle;
   }
   return $windowTitle;
+}
+
+sub getConfigWindowTitleRegex(){
+  if(-f $CONFIG_WINDOW_TITLE_REGEX_FILE){
+    open FH, "< $CONFIG_WINDOW_TITLE_REGEX_FILE"
+      or die "ERROR: could not read $CONFIG_WINDOW_TITLE_REGEX_FILE\n$!\n";
+    my $regex = join '', <FH>;
+    close FH;
+    chomp $regex;
+    return $regex;
+  }
+  return undef;
 }
 
 sub getDimTimeout(){
