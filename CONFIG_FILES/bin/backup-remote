@@ -198,6 +198,7 @@ sub createNotification(){
 }
 sub notificationMsg($$){
   my ($id, $msg) = @_;
+  print "\n$msg\n";
   system "notificationtool", "-A", "backup", "-o", "update", "-i", $id, $msg;
 }
 sub removeNotification($){
