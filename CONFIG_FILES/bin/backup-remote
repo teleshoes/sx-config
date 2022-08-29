@@ -3,35 +3,35 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
-my @sshOpts = map {("-o", $_)} (
+my @SSH_OPTS = map {("-o", $_)} (
   "LogLevel=ERROR",
   "NoHostAuthenticationForLocalhost=yes",
   "UserKnownHostsFile=/dev/null",
   "StrictHostKeyChecking=no",
 );
 
-my $user = "nemo";
+my $USER = "nemo";
 
-my $maxTimeout = 30;
-my $secretsFile = "$ENV{HOME}/.secrets";
-my @configKeys = ("revtun.portfile");
-my $remoteUser = "wolke";
-my $remoteHost = "wolke-nuc";
+my $MAX_TIMEOUT = 30;
+my $SECRETS_FILE = "$ENV{HOME}/.secrets";
+my @CONFIG_KEYS = ("revtun.portfile");
+my $REMOTE_USER = "wolke";
+my $REMOTE_HOST = "wolke-nuc";
 
-my $backupDir = "~/backup-sx";
+my $BACKUP_DIR = "~/backup-sx";
 
 my $dcimDirs = {
-  int => "/home/$user/Pictures",
+  int => "/home/$USER/Pictures",
   sd  => "/media/sdcard/phone/Pictures",
 };
-my $mmsPartsDir = "/home/$user/.local/share/commhistory/data";
+my $mmsPartsDir = "/home/$USER/.local/share/commhistory/data";
 my %sqliteDbs = (
-  commhistory => "/home/$user/.local/share/commhistory/commhistory.db",
-  contacts => "/home/$user/.local/share/system/privileged/Contacts/qtcontacts-sqlite/contacts.db",
+  commhistory => "/home/$USER/.local/share/commhistory/commhistory.db",
+  contacts => "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite/contacts.db",
 );
 
-my $notificationIdsCache = "/home/$user/.cache/backup-remote-notificationIds";
-my $lastSuccessFile = "/home/$user/.cache/backup-last-success";
+my $notificationIdsCache = "/home/$USER/.cache/backup-remote-notificationIds";
+my $lastSuccessFile = "/home/$USER/.cache/backup-last-success";
 
 sub ensureConnection($);
 sub getLocalPort($);
@@ -70,14 +70,14 @@ sub main(@){
   run "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
   run "screen-cmd", "revtun", "-r", "--unsafe", "--local";
   ensureConnection($config);
-  run sshCmd($config, "mkdir", "-p", $backupDir);
+  run sshCmd($config, "mkdir", "-p", $BACKUP_DIR);
   ######
 
   ######
   notificationMsg $id, sprintf "BAK-CELLID: %s", nowHrMin();
   my $opencellidFile = sprintf "/tmp/opencellid-geo-%s", nowYMD_HMS_MILLIS();
   system "opencellid-geo >$opencellidFile 2>&1";
-  run rsyncCmd($config, $opencellidFile, "$backupDir/opencellid-geo/");
+  run rsyncCmd($config, $opencellidFile, "$BACKUP_DIR/opencellid-geo/");
   ######
 
   ######
@@ -85,7 +85,7 @@ sub main(@){
     my $dcimDir = $$dcimDirs{$dcimDirName};
     notificationMsg $id, sprintf "BAK-DCIM-$dcimDirName: %s %s",
       getDCIMSummary($dcimDir), nowHrMin();
-    run rsyncCmd($config, "$dcimDir/", "$backupDir/DCIM/$dcimDirName/"),
+    run rsyncCmd($config, "$dcimDir/", "$BACKUP_DIR/DCIM/$dcimDirName/"),
       "--exclude=backup_*";
   }
   ######
@@ -98,21 +98,21 @@ sub main(@){
   for my $dbName(sort keys %sqliteDbs){
     my $destGzipFile = "$sqliteDbsDestDir/$dbName.gz";
     run "sudo", "backup-sqlite-db", $sqliteDbs{$dbName}, $destGzipFile;
-    run "sudo", "chown", "$user.$user", $destGzipFile;
+    run "sudo", "chown", "$USER.$USER", $destGzipFile;
   }
-  run rsyncCmd($config, "$sqliteDbsDestDir/", $backupDir);
+  run rsyncCmd($config, "$sqliteDbsDestDir/", $BACKUP_DIR);
   ######
 
   ######
   notificationMsg $id, sprintf "BAK-MMS: %s", nowHrMin();
-  run rsyncCmd($config, "$mmsPartsDir/", "$backupDir/mms-parts-dir/");
+  run rsyncCmd($config, "$mmsPartsDir/", "$BACKUP_DIR/mms-parts-dir/");
   ######
 
   ######
   notificationMsg $id, sprintf "BAK-GPS: %s", nowHrMin();
   my $gpsconFile = sprintf "/tmp/gpscon-%s", nowYMD_HMS_MILLIS();
   system "gpscon runs=1 dumps=2 tout=60 >$gpsconFile 2>&1";
-  run rsyncCmd($config, $gpsconFile, "$backupDir/gpscon/");
+  run rsyncCmd($config, $gpsconFile, "$BACKUP_DIR/gpscon/");
   ######
 
   ######
@@ -132,8 +132,8 @@ sub ensureConnection($){
   my $host = "";
   my $start = time;
   $| = 1; #autoflush
-  print "trying to connect to $remoteHost\n";
-  while(time - $start < $maxTimeout){
+  print "trying to connect to $REMOTE_HOST\n";
+  while(time - $start < $MAX_TIMEOUT){
     print ".";
     my @hostnameCmd = sshCmd($config, "hostname");
     $host = tryReadProcQuiet "@hostnameCmd 2>/dev/null";
@@ -141,11 +141,11 @@ sub ensureConnection($){
     sleep 1;
   }
   print "\n";
-  if($host ne $remoteHost){
+  if($host ne $REMOTE_HOST){
     my @hostnameCmd = sshCmd($config, "hostname");
     $host = tryReadProc @hostnameCmd;
   }
-  fail "Failed to connect to $remoteHost\n" if $host ne $remoteHost;
+  fail "Failed to connect to $REMOTE_HOST\n" if $host ne $REMOTE_HOST;
   print "connected!\n";
 }
 
@@ -218,9 +218,9 @@ sub removeNotification($){
 sub sshCmd($@){
   my ($config, @cmd) = @_;
   my $port = getLocalPort $config;
-  return ("ssh", "$remoteUser\@localhost",
+  return ("ssh", "$REMOTE_USER\@localhost",
       "-p", $port,
-      @sshOpts,
+      @SSH_OPTS,
       @cmd);
 }
 
@@ -228,22 +228,22 @@ sub rsyncCmd($$$){
   my ($config, $src, $dest) = @_;
   my $port = getLocalPort $config;
   return ("rsync",
-    "-e", "ssh -p $port @sshOpts",
-    "-avP", $src, "$remoteUser\@localhost:$dest");
+    "-e", "ssh -p $port @SSH_OPTS",
+    "-avP", $src, "$REMOTE_USER\@localhost:$dest");
 }
 
 
 sub readSecrets(){
-  my @lines = `cat $secretsFile 2>/dev/null`;
+  my @lines = `cat $SECRETS_FILE 2>/dev/null`;
   my $cfg = {};
-  my $okConfigKeys = join "|", @configKeys;
+  my $okConfigKeys = join "|", @CONFIG_KEYS;
   for my $line(@lines){
     if($line =~ /^($okConfigKeys)\s*=\s*(.+)$/){
       $$cfg{$1} = $2;
     }
   }
-  for my $key(sort @configKeys){
-    fail "Missing config '$key' in $secretsFile\n" if not defined $$cfg{$key};
+  for my $key(sort @CONFIG_KEYS){
+    fail "Missing config '$key' in $SECRETS_FILE\n" if not defined $$cfg{$key};
   }
   return $cfg;
 }
