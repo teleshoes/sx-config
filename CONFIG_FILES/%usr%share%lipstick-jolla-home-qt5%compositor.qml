@@ -1178,6 +1178,7 @@ Compositor {
                                 && !root.deviceIsLocked
                                 && !cameraLayerItem.active
                                 && !topMenuLayerItem.active
+                                && !forceTouchInputDisabled.value
                                 && (homeLayer.active
                                     || appLayer.active
                                     || alarmLayerItem.inCall
@@ -1256,6 +1257,7 @@ Compositor {
                                  || appLayerItem.active
                                  || alarmLayerItem.inCall
                                  || lockScreenLayerItem.active)
+                              && !forceTouchInputDisabled.value
 
                     topRejectMargin: !Desktop.startupWizardRunning
                                 && (appLayerItem.active || alarmLayerItem.inCall)
