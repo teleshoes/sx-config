@@ -20,7 +20,9 @@ my $remoteHost = "wolke-nuc";
 
 my $backupDir = "~/backup-sx";
 
-my $dcimDir = "/media/sdcard/phone/Pictures";
+my $dcimDirs = {
+  sd  => "/media/sdcard/phone/Pictures",
+};
 my $mmsPartsDir = "/home/$user/.local/share/commhistory/data";
 my %sqliteDbs = (
   commhistory => "/home/$user/.local/share/commhistory/commhistory.db",
@@ -32,7 +34,7 @@ my $lastSuccessFile = "/home/$user/.cache/backup-last-success";
 
 sub ensureConnection($);
 sub getLocalPort($);
-sub getDCIMSummary();
+sub getDCIMSummary($);
 sub createNotification();
 sub notificationMsg($$);
 sub removeNotification($);
@@ -78,9 +80,13 @@ sub main(@){
   ######
 
   ######
-  notificationMsg $id, sprintf "BAK-DCIM: %s %s", getDCIMSummary(), nowHrMin();
-  run rsyncCmd($config, "$dcimDir/", "$backupDir/DCIM"),
-    "--exclude=backup_*";
+  for my $dcimDirName(sort keys %$dcimDirs){
+    my $dcimDir = $$dcimDirs{$dcimDirName};
+    notificationMsg $id, sprintf "BAK-DCIM-$dcimDirName: %s %s",
+      getDCIMSummary($dcimDir), nowHrMin();
+    run rsyncCmd($config, "$dcimDir/", "$backupDir/DCIM/$dcimDirName/"),
+      "--exclude=backup_*";
+  }
   ######
 
   ######
@@ -152,7 +158,9 @@ sub getLocalPort($){
   return $port;
 }
 
-sub getDCIMSummary(){
+sub getDCIMSummary($){
+  my ($dcimDir) = @_;
+
   my $findCmd = ""
     . "find '$dcimDir'"
     . "  -type f"
