@@ -1,0 +1,159 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+
+my $DEFAULT_DIM_TIMEOUT_S = 600;
+my $KEEPALIVE_DIM_TIMEOUT_S = 3600;
+
+my $DIM_TIMEOUT_CACHE_FILE = "$ENV{HOME}/.cache/display-keepalive-timeout";
+my $LIPSTICK_WINDOW_TITLE_FILE = "/tmp/lipstick-window-title";
+
+my $CMD_GET = "get";
+my $CMD_KEEPALIVE_ON = "keepalive-on";
+my $CMD_KEEPALIVE_OFF = "keepalive-off";
+my $CMD_KEEPALIVE_BY_WINDOW = "keepalive-by-window";
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+  $EXEC -g | --get
+    parse 'Dim timeout' from `mcetool` and print value in seconds
+
+  $EXEC on
+  $EXEC -k | --keepalive | --keepalive-on
+    -get TIMEOUT as in `--get`
+    -if TIMEOUT is < $KEEPALIVE_DIM_TIMEOUT_S
+      -write TIMEOUT to $DIM_TIMEOUT_CACHE_FILE
+    -run: mcetool --set-dim-timeout=$KEEPALIVE_DIM_TIMEOUT_S
+
+  $EXEC off
+  $EXEC -r | --reset | --keepalive-off
+    -read TIMEOUT from $DIM_TIMEOUT_CACHE_FILE
+    -if TIMEOUT is not set, use $DEFAULT_DIM_TIMEOUT_S
+    -run: mcetool --set-dim-timeout=$KEEPALIVE_DIM_TIMEOUT_S
+
+  $EXEC -w KEEPALIVE_WINDOW_TITLE_REGEX
+  $EXEC --window KEEPALIVE_WINDOW_TITLE_REGEX
+  $EXEC --window=KEEPALIVE_WINDOW_TITLE_REGEX
+    -get WINDOW_TITLE from $LIPSTICK_WINDOW_TITLE_FILE
+    -if WINDOW_TITLE matches KEEPALIVE_WINDOW_TITLE_REGEX (case-insensitive):
+      -same as: $EXEC --keepalive-on
+    -otherwise:
+      -same as: $EXEC --keepalive-off
+";
+
+sub getWindowTitle();
+sub getDimTimeout();
+sub setDimTimeout($);
+sub readNormalDimTimeout();
+sub writeNormalDimTimeout();
+sub run(@);
+
+sub main(@){
+  my $cmd = $CMD_GET;
+  my $windowTitleRegex = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|--get)$/){
+      $cmd = $CMD_GET;
+    }elsif($arg =~ /^(on|-k|--keepalive|--keepalive-on)$/){
+      $cmd = $CMD_KEEPALIVE_ON;
+    }elsif($arg =~ /^(off|-r|--reset|--keepalive-off)$/){
+      $cmd = $CMD_KEEPALIVE_OFF;
+    }elsif($arg =~ /^(-w|--window)$/){
+      $cmd = $CMD_KEEPALIVE_BY_WINDOW;
+    }elsif($arg =~ /^--window=(.+)$/){
+      $windowTitleRegex = $1;
+    }elsif($cmd eq $CMD_KEEPALIVE_BY_WINDOW and not defined $windowTitleRegex){
+      $windowTitleRegex = $arg;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($cmd eq $CMD_GET){
+    print getDimTimeout() . "\n";
+  }elsif($cmd eq $CMD_KEEPALIVE_ON){
+    writeNormalDimTimeout();
+    setDimTimeout($KEEPALIVE_DIM_TIMEOUT_S);
+  }elsif($cmd eq $CMD_KEEPALIVE_OFF){
+    my $timeout = readNormalDimTimeout();
+    setDimTimeout($timeout);
+  }elsif($cmd eq $CMD_KEEPALIVE_BY_WINDOW){
+    if(not defined $windowTitleRegex){
+      die "$USAGE\nERROR: missing KEEPALIVE_WINDOW_TITLE_REGEX\n";
+    }
+    my $windowTitle = getWindowTitle();
+    if($windowTitle =~ /$windowTitleRegex/i){
+      print "keepalive=ON  window=$windowTitle\n";
+      writeNormalDimTimeout();
+      setDimTimeout($KEEPALIVE_DIM_TIMEOUT_S);
+    }else{
+      print "keepalive=OFF  window=$windowTitle\n";
+      my $timeout = readNormalDimTimeout();
+      setDimTimeout($timeout);
+    }
+  }else{
+    die "ERROR: unknown command $cmd\n";
+  }
+}
+
+sub getWindowTitle(){
+  my $windowTitle = "";
+  if(-f $LIPSTICK_WINDOW_TITLE_FILE){
+    $windowTitle = `cat $LIPSTICK_WINDOW_TITLE_FILE`;
+    chomp $windowTitle;
+  }
+  return $windowTitle;
+}
+
+sub getDimTimeout(){
+  my $info = `mcetool`;
+  if($info =~ /^Dim timeout:\s*(\d+) \(seconds\)$/m){
+    return $1;
+  }else{
+    die "ERROR: could not read 'Dim timeout' from `mcetool`\n";
+  }
+}
+
+sub setDimTimeout($){
+  run "mcetool", "--set-dim-timeout=$_[0]";
+}
+
+sub readNormalDimTimeout(){
+  if(-f $DIM_TIMEOUT_CACHE_FILE){
+    open FH, "< $DIM_TIMEOUT_CACHE_FILE"
+      or die "ERROR: could not read $DIM_TIMEOUT_CACHE_FILE\n$!\n";
+    my $timeout = <FH>;
+    close FH;
+    chomp $timeout;
+    if($timeout =~ /^(\d+)$/){
+      return $1;
+    }
+  }
+  return $DEFAULT_DIM_TIMEOUT_S;
+}
+sub writeNormalDimTimeout(){
+  my $timeout = getDimTimeout();
+  if($timeout < $KEEPALIVE_DIM_TIMEOUT_S){
+    open FH, "> $DIM_TIMEOUT_CACHE_FILE"
+      or die "ERROR: could not write $DIM_TIMEOUT_CACHE_FILE\n$!\n";
+    print FH "$timeout\n";
+    close FH;
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
