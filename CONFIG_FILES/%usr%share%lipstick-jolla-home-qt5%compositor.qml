@@ -1713,12 +1713,11 @@ Compositor {
         property alias contentItem: shutdownLayerItem
         anchors.fill: parent
         enabled: children.length > 0 || forceTouchInputDisabled.value
-
-        ConfigurationValue {
-            id: forceTouchInputDisabled
-            key: "/lipstick/force_touch_input_disabled"
-            defaultValue: false
-        }
+    }
+    ConfigurationValue {
+        id: forceTouchInputDisabled
+        key: "/lipstick/force_touch_input_disabled"
+        defaultValue: false
     }
 
     ConfigurationGroup {
