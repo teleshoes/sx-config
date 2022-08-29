@@ -803,8 +803,8 @@ Compositor {
                             || alarmLayerItem.active
                             || topMenuLayerItem.active
                             || (homeLayerItem.active && root.deviceIsLocked)
-                leftEnabled: !Desktop.startupWizardRunning
-                rightEnabled: !Desktop.startupWizardRunning
+                leftEnabled: !Desktop.startupWizardRunning && !forceTouchInputDisabled.value
+                rightEnabled: !Desktop.startupWizardRunning && !forceTouchInputDisabled.value
                 extraGestureThreshold: QtQuick.Screen.pixelDensity * 30 // 30mm
                 extraGestureDuration: 500
 
