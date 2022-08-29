@@ -150,7 +150,14 @@ sub getDimTimeout(){
 }
 
 sub setDimTimeout($){
-  run "mcetool", "--set-dim-timeout=$_[0]";
+  my ($timeout) = @_;
+  my $prevTimeout = getDimTimeout();
+  if($timeout != $prevTimeout){
+    print "$prevTimeout => $timeout\n";
+    run "mcetool", "--set-dim-timeout=$_[0]";
+  }else{
+    print "unchanged ($timeout)\n";
+  }
 }
 
 sub readNormalDimTimeout(){
