@@ -10,6 +10,7 @@ my $CMDS = {
   "networkfix-daemon" => {sched=>"2h", timeout=>"1min", cmd=>"network-fix --no-force --wait=5000"},
   "gps-mls-update-daemon" => {sched=>"8h", timeout=>"5min", cmd=>"gps-mls-update"},
   "proc-watchdog" => {sched=>"5m", timeout=>"10min", cmd=>"proc-watchdog email-gui.py keys"},
+  "display-keepalive-window" => {sched=>"5m", timeout=>"1min", cmd=>"display-keepalive --window"},
 };
 
 my @alarms = (["wk", "09:00", "mtwTf"]);
