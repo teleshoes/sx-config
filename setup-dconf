@@ -37,6 +37,7 @@ my @selectedTopmenuItems = (
   $$topmenuToggles{resolv},
   $$topmenuActions{connect_to_internet},
   $$topmenuActions{make_a_note},
+  $$topmenuToggles{volte},
 );
 
 my $dconf = {
@@ -134,6 +135,7 @@ sub getTopmenuToggles(){
     wlan                   => 'system_settings/connectivity/wlan/enable_switch',
     global_proxy           => 'system_settings/connectivity/wlan/enable_global_proxy',
     resolv                 => 'system_settings/connectivity/wlan/resolv_toggle_switch',
+    volte                  => 'system_settings/connectivity/volte_toggle_switch',
     cellular_data          => 'system_settings/connectivity/mobile/context0',
     hotspot                => 'system_settings/connectivity/tethering/wlan_hotspot_switch',
     vpn                    => 'system_settings/connectivity/vpn/enable_switch',
