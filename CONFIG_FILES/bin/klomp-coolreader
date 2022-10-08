@@ -24,6 +24,7 @@ my $COOLREADER_LOGCAT_EVENT_REGEX_FMT = join '', map{
 my $USAGE = "Usage:
   $EXEC -g|--get
     -if `$EXEC --is-tts-running` = 'YES'
+     AND `$EXEC --get-cr-event` = 'TTS_CREATE':
        -print \"coolreader\"
     -otherwise:
        -print \"klomp\"
@@ -133,10 +134,17 @@ sub coolreaderToggle(){
 }
 
 sub isCoolreader(){
-  my $isTTSRunning = isTTSRunning;
   return 0 if not isTTSRunning();
 
-  return 1;
+  my $pid = getCoolreaderAndroidPID();
+  return 0 if not defined $pid;
+
+  my $event = getLastCoolreaderLogcatEvent($pid);
+  return 0 if not defined $event;
+
+  return 1 if $event eq "TTS_CREATE";
+
+  return 0;
 }
 
 sub isTTSRunning(){
