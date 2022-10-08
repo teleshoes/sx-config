@@ -17,12 +17,15 @@ my $USAGE = "Usage:
 
   $EXEC -p|--play-pause|--play|--pause
     -if `$EXEC --get` = \"coolreader\":
-      -if `profile` == general:
-        run: @COOLREADER_TOGGLE_CMD
-      -otherwise:
-        run: sudo pkill -9 -f $TTS_PROC_REGEX
+      -run: `$EXEC --coolreader-toggle`
     -otherwise:
       -run: @KLOMP_TOGGLE_CMD
+
+  $EXEC --coolreader-toggle
+    -if `profile` == general:
+      run: @COOLREADER_TOGGLE_CMD
+    -otherwise:
+      run: sudo pkill -9 -f $TTS_PROC_REGEX
 
   $EXEC --is-tts-running
     -if `pgrep -f '^$TTS_PROC_REGEX\\s*\$'` is successful:
@@ -33,6 +36,7 @@ my $USAGE = "Usage:
 
 my $CMD_GET = "get";
 my $CMD_PLAY_PAUSE = "play-pause";
+my $CMD_COOLREADER_TOGGLE = "coolreader-toggle";
 my $CMD_IS_TTS_RUNNING = "is-tts-running";
 
 sub isCoolreader();
@@ -50,6 +54,8 @@ sub main(@){
       $cmd = $CMD_GET;
     }elsif($arg =~ /^(-p|--play-pause|--play|--pause)$/){
       $cmd = $CMD_PLAY_PAUSE;
+    }elsif($arg =~ /^(--coolreader-toggle)$/){
+      $cmd = $CMD_COOLREADER_TOGGLE;
     }elsif($arg =~ /^(--is-tts-running)$/){
       $cmd = $CMD_IS_TTS_RUNNING;
     }else{
@@ -67,14 +73,12 @@ sub main(@){
     }
   }elsif($cmd eq $CMD_PLAY_PAUSE){
     if(isCoolreader()){
-      if(isProfileGeneral()){
-        system @COOLREADER_TOGGLE_CMD;
-      }else{
-        system "sudo", "pkill", "-9", "-f", $TTS_PROC_REGEX;
-      }
+      coolreaderToggle();
     }else{
       system @KLOMP_TOGGLE_CMD;
     }
+  }elsif($cmd eq $CMD_COOLREADER_TOGGLE){
+    coolreaderToggle();
   }elsif($cmd eq $CMD_IS_TTS_RUNNING){
     if(isTTSRunning()){
       print "yes\n";
@@ -83,6 +87,14 @@ sub main(@){
     }
   }else{
     die "ERROR: unknown command $cmd\n";
+  }
+}
+
+sub coolreaderToggle(){
+  if(isProfileGeneral()){
+    system @COOLREADER_TOGGLE_CMD;
+  }else{
+    system "sudo", "pkill", "-9", "-f", $TTS_PROC_REGEX;
   }
 }
 
