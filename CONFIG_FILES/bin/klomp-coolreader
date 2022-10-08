@@ -8,6 +8,19 @@ my $TTS_PROC_REGEX = "(com.google.android.tts|com.ivona.tts)";
 my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
 my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
+my $COOLREADER_LOGCAT_EVENT_REGEXS = {
+  APP_OPEN    => 'G\\|cr\\| CoolReader.onStart()',
+  TTS_CREATE  => 'G\\|ttssvc\\| onCreate',
+  TTS_DESTROY => 'G\\|ttssvc\\| onDestroy',
+};
+
+my $COOLREADER_ALL_LOGCAT_EVENTS_REGEX = join("|",
+  sort values %$COOLREADER_LOGCAT_EVENT_REGEXS);
+
+my $COOLREADER_LOGCAT_EVENT_REGEX_FMT = join '', map{
+  sprintf("      %-12s => %s\n", $_, $$COOLREADER_LOGCAT_EVENT_REGEXS{$_})
+} sort keys %$COOLREADER_LOGCAT_EVENT_REGEXS;
+
 my $USAGE = "Usage:
   $EXEC -g|--get
     -if `$EXEC --is-tts-running` = 'YES'
@@ -32,15 +45,27 @@ my $USAGE = "Usage:
       print \"yes\"
     -otherwise:
       print \"no\"
+
+  $EXEC --get-cr-event
+    -get coolreader pid:
+      COOLREADER_PID=`ad -x pgrep org.coolreader`
+    -read logcat for pid COOLREADER_PID:
+      `ad -x logcat cr3:D -d --pid=COOLREADER_PID -e '$COOLREADER_ALL_LOGCAT_EVENTS_REGEX'`
+    -print the EVENT of the most recent line that matches the EVENT_REGEX:
+      EVENT        => EVENT_REGEX
+      ===========================\n" . $COOLREADER_LOGCAT_EVENT_REGEX_FMT . "
 ";
 
 my $CMD_GET = "get";
 my $CMD_PLAY_PAUSE = "play-pause";
 my $CMD_COOLREADER_TOGGLE = "coolreader-toggle";
 my $CMD_IS_TTS_RUNNING = "is-tts-running";
+my $CMD_GET_CR_EVENT = "get-cr-event";
 
 sub isCoolreader();
 sub isTTSRunning();
+sub getCoolreaderAndroidPID();
+sub getLastCoolreaderLogcatEvent($);
 sub isProfileGeneral();
 
 sub main(@){
@@ -58,6 +83,8 @@ sub main(@){
       $cmd = $CMD_COOLREADER_TOGGLE;
     }elsif($arg =~ /^(--is-tts-running)$/){
       $cmd = $CMD_IS_TTS_RUNNING;
+    }elsif($arg =~ /^(--get-cr-event)$/){
+      $cmd = $CMD_GET_CR_EVENT;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -85,6 +112,13 @@ sub main(@){
     }else{
       print "no\n";
     }
+  }elsif($cmd eq $CMD_GET_CR_EVENT){
+    my $pid = getCoolreaderAndroidPID();
+    my $event;
+    if(defined $pid){
+      $event = getLastCoolreaderLogcatEvent($pid);
+    }
+    print "$event\n" if defined $event;
   }else{
     die "ERROR: unknown command $cmd\n";
   }
@@ -108,6 +142,29 @@ sub isCoolreader(){
 sub isTTSRunning(){
   system "pgrep -f '^$TTS_PROC_REGEX\\s*\$' >/dev/null 2>/dev/null";
   return $? == 0 ? 1 : 0;
+}
+
+sub getCoolreaderAndroidPID(){
+  my $pid = `ad -x pgrep "^org.coolreader\$"`;
+  if($pid =~ /^(\d+)$/){
+    return $1;
+  }else{
+    return undef;
+  }
+}
+
+sub getLastCoolreaderLogcatEvent($){
+  my ($pid) = @_;
+  my @lines = `ad -x logcat cr3:D -d --pid=$pid -e '$COOLREADER_ALL_LOGCAT_EVENTS_REGEX'`;
+  for my $line(reverse @lines){
+    for my $event(sort keys %$COOLREADER_LOGCAT_EVENT_REGEXS){
+      my $regex = $$COOLREADER_LOGCAT_EVENT_REGEXS{$event};
+      if($line =~ /$regex/){
+        return $event;
+      }
+    }
+  }
+  return undef;
 }
 
 sub isProfileGeneral(){
