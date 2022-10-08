@@ -10,25 +10,33 @@ my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
 my $USAGE = "Usage:
   $EXEC -g|--get
-    if `pgrep -f '^$TTS_PROC_REGEX\\s*\$'` is successful:
-      print \"coolreader\"
-    else:
-      print \"klomp\"
+    -if `$EXEC --is-tts-running` = 'YES'
+       -print \"coolreader\"
+    -otherwise:
+       -print \"klomp\"
 
   $EXEC -p|--play-pause|--play|--pause
-    if `$EXEC --get` prints \"coolreader\":
-      if `profile` == general:
+    -if `$EXEC --get` = \"coolreader\":
+      -if `profile` == general:
         run: @COOLREADER_TOGGLE_CMD
-      else:
+      -otherwise:
         run: sudo pkill -9 -f $TTS_PROC_REGEX
-    else:
-      run: @KLOMP_TOGGLE_CMD
+    -otherwise:
+      -run: @KLOMP_TOGGLE_CMD
+
+  $EXEC --is-tts-running
+    -if `pgrep -f '^$TTS_PROC_REGEX\\s*\$'` is successful:
+      print \"yes\"
+    -otherwise:
+      print \"no\"
 ";
 
 my $CMD_GET = "get";
 my $CMD_PLAY_PAUSE = "play-pause";
+my $CMD_IS_TTS_RUNNING = "is-tts-running";
 
 sub isCoolreader();
+sub isTTSRunning();
 sub isProfileGeneral();
 
 sub main(@){
@@ -42,6 +50,8 @@ sub main(@){
       $cmd = $CMD_GET;
     }elsif($arg =~ /^(-p|--play-pause|--play|--pause)$/){
       $cmd = $CMD_PLAY_PAUSE;
+    }elsif($arg =~ /^(--is-tts-running)$/){
+      $cmd = $CMD_IS_TTS_RUNNING;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -65,12 +75,25 @@ sub main(@){
     }else{
       system @KLOMP_TOGGLE_CMD;
     }
+  }elsif($cmd eq $CMD_IS_TTS_RUNNING){
+    if(isTTSRunning()){
+      print "yes\n";
+    }else{
+      print "no\n";
+    }
   }else{
     die "ERROR: unknown command $cmd\n";
   }
 }
 
 sub isCoolreader(){
+  my $isTTSRunning = isTTSRunning;
+  return 0 if not isTTSRunning();
+
+  return 1;
+}
+
+sub isTTSRunning(){
   system "pgrep -f '^$TTS_PROC_REGEX\\s*\$' >/dev/null 2>/dev/null";
   return $? == 0 ? 1 : 0;
 }
