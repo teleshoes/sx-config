@@ -9,7 +9,6 @@ my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
 my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
 my $COOLREADER_LOGCAT_EVENT_REGEXS = {
-  APP_OPEN    => 'G\\|cr\\| CoolReader.onStart()',
   TTS_CREATE  => 'G\\|ttssvc\\| onCreate',
   TTS_DESTROY => 'G\\|ttssvc\\| onDestroy',
 };
