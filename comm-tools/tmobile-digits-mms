@@ -166,98 +166,98 @@ sub main(@){
 }
 
 sub handleMMS($$$$){
-    my ($myNum, $offsetMillis, $srcFile, $mms) = @_;
-    my $msgDateMillis = $$mms{dtmMillis} + $offsetMillis;
+  my ($myNum, $offsetMillis, $srcFile, $mms) = @_;
+  my $msgDateMillis = $$mms{dtmMillis} + $offsetMillis;
 
-    my $dir;
-    my $otherNum;
-    if($$mms{from} eq $myNum){
-      $dir = "OUT";
-      $otherNum = $$mms{to};
-    }elsif($$mms{to} eq $myNum){
-      $dir = "INC";
-      $otherNum = $$mms{from};
-    }else{
-      #MMS sent to other person and 'forwarded' to me
-      $dir = "INC";
-      $otherNum = $$mms{from};
-    }
+  my $dir;
+  my $otherNum;
+  if($$mms{from} eq $myNum){
+    $dir = "OUT";
+    $otherNum = $$mms{to};
+  }elsif($$mms{to} eq $myNum){
+    $dir = "INC";
+    $otherNum = $$mms{from};
+  }else{
+    #MMS sent to other person and 'forwarded' to me
+    $dir = "INC";
+    $otherNum = $$mms{from};
+  }
 
-    if($otherNum !~ /^\d{10}$/){
-      print "\n\n\n\n\n\n";
-      print "WARNING: could not parse MMS phone number \"$otherNum\" for $srcFile\n";
-      next;
-    }
+  if($otherNum !~ /^\d{10}$/){
+    print "\n\n\n\n\n\n";
+    print "WARNING: could not parse MMS phone number \"$otherNum\" for $srcFile\n";
+    next;
+  }
 
-    my $nowMillis = nowMillis();
-    my $counter = "00000";
-    my $mmsPartsDir;
-    do{
-      $mmsPartsDir = "$MMS_PARTS_REPO/msg-${msgDateMillis}-$counter";
-      $counter++;
-    }while(-e $mmsPartsDir);
+  my $nowMillis = nowMillis();
+  my $counter = "00000";
+  my $mmsPartsDir;
+  do{
+    $mmsPartsDir = "$MMS_PARTS_REPO/msg-${msgDateMillis}-$counter";
+    $counter++;
+  }while(-e $mmsPartsDir);
 
-    run "mkdir", "-p", $mmsPartsDir;
+  run "mkdir", "-p", $mmsPartsDir;
 
-    my @attFileList;
-    for my $att(@{$$mms{atts}}){
-      my $attFile = "$mmsPartsDir/$$att{attName}";
-      push @attFileList, $attFile;
-      open FH, "> $attFile" or die "ERROR: could not write $attFile\n$!\n";
-      print FH $$att{attContents};
-      close FH;
-    }
-    if(defined $$mms{body}){
-      my $textAttFile = "$mmsPartsDir/$$mms{textAttName}";
-      push @attFileList, $textAttFile;
-      open FH, "> $textAttFile" or die "ERROR: could not write $textAttFile\n$!\n";
-      print FH $$mms{body};
-      close FH;
-    }
-    my $body = $$mms{body};
-    $body = "" if not defined $body;
-
-    my $subject = $$mms{subject};
-
-    my $subjectFmt = escapeStr($subject);
-    my $bodyFmt = escapeStr($body);
-
-    open CMD, "-|", $SMS_DB_IMPORTER, "mms-hash", $subject, $body, @attFileList;
-    my $checksum = join '', <CMD>;
-    close CMD;
-    chomp $checksum;
-
-    if($checksum !~ /^[0-9a-f]{32}$/){
-      die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER for MMS file\n$srcFile\n";
-    }
-
-    my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNum}_${dir}_${checksum}";
-    run "mkdir", "-p", $mmsRepoDir;
-
-    for my $attFile(@attFileList){
-      run "cp", "-a", $attFile, "$mmsRepoDir/";
-    }
-
-    my $info = ""
-      . "from=$$mms{from}\n"
-      . "to=$$mms{to}\n"
-      . "dir=$dir\n"
-      . "date=$msgDateMillis\n"
-      . "date_sent=$msgDateMillis\n"
-      . "subject=\"$subjectFmt\"\n"
-      . "body=\"$bodyFmt\"\n"
-      ;
-    for my $attFile(@attFileList){
-      my $att = $attFile;
-      $att =~ s/^.*\///;
-      $info .= "att=$att\n";
-    }
-    $info .= "checksum=$checksum\n";
-
-    my $infoFile = "$mmsRepoDir/info";
-    open FH, "> $infoFile" or die "ERROR: could not write $infoFile\n$!\n";
-    print FH $info;
+  my @attFileList;
+  for my $att(@{$$mms{atts}}){
+    my $attFile = "$mmsPartsDir/$$att{attName}";
+    push @attFileList, $attFile;
+    open FH, "> $attFile" or die "ERROR: could not write $attFile\n$!\n";
+    print FH $$att{attContents};
     close FH;
+  }
+  if(defined $$mms{body}){
+    my $textAttFile = "$mmsPartsDir/$$mms{textAttName}";
+    push @attFileList, $textAttFile;
+    open FH, "> $textAttFile" or die "ERROR: could not write $textAttFile\n$!\n";
+    print FH $$mms{body};
+    close FH;
+  }
+  my $body = $$mms{body};
+  $body = "" if not defined $body;
+
+  my $subject = $$mms{subject};
+
+  my $subjectFmt = escapeStr($subject);
+  my $bodyFmt = escapeStr($body);
+
+  open CMD, "-|", $SMS_DB_IMPORTER, "mms-hash", $subject, $body, @attFileList;
+  my $checksum = join '', <CMD>;
+  close CMD;
+  chomp $checksum;
+
+  if($checksum !~ /^[0-9a-f]{32}$/){
+    die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER for MMS file\n$srcFile\n";
+  }
+
+  my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNum}_${dir}_${checksum}";
+  run "mkdir", "-p", $mmsRepoDir;
+
+  for my $attFile(@attFileList){
+    run "cp", "-a", $attFile, "$mmsRepoDir/";
+  }
+
+  my $info = ""
+    . "from=$$mms{from}\n"
+    . "to=$$mms{to}\n"
+    . "dir=$dir\n"
+    . "date=$msgDateMillis\n"
+    . "date_sent=$msgDateMillis\n"
+    . "subject=\"$subjectFmt\"\n"
+    . "body=\"$bodyFmt\"\n"
+    ;
+  for my $attFile(@attFileList){
+    my $att = $attFile;
+    $att =~ s/^.*\///;
+    $info .= "att=$att\n";
+  }
+  $info .= "checksum=$checksum\n";
+
+  my $infoFile = "$mmsRepoDir/info";
+  open FH, "> $infoFile" or die "ERROR: could not write $infoFile\n$!\n";
+  print FH $info;
+  close FH;
 }
 
 sub extractHarFile($){
