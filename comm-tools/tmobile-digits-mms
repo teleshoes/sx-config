@@ -147,28 +147,28 @@ sub main(@){
 
 sub handleSMS(@){
   my @sms = @_;
-    #ignore empty SMS
-    @sms = grep {$$_{body} ne '""'} @sms;
+  #ignore empty SMS
+  @sms = grep {$$_{body} ne '""'} @sms;
 
-    print "\n\n\n";
-    my $smsCsvFile = "/tmp/tmobile-digits-sms-" . nowMillis() . ".sms";
-    open FH, "> $smsCsvFile" or die "ERROR: could not write $smsCsvFile\n$!\n";
-    for my $sms(@sms){
-      my $fmt = formatSMS($sms);
-      print FH $fmt;
-    }
-    close FH;
-    my $count = @sms;
-    print "\nwrote $count SMS to $smsCsvFile\n";
-    print "\n\n\n";
-    run $ADD_COMM_TO_REPO_CMD,
-      "--sms", $smsCsvFile,
-      "--allow-old",
-      "--dupe=fuzzy",
-      "--fuzzy-whitespace-dupes",
-      "--fuzzy-dupe-millis=" . 4 * 60 * 60 * 1000, #4 hours
-      "--verbose",
-    ;
+  print "\n\n\n";
+  my $smsCsvFile = "/tmp/tmobile-digits-sms-" . nowMillis() . ".sms";
+  open FH, "> $smsCsvFile" or die "ERROR: could not write $smsCsvFile\n$!\n";
+  for my $sms(@sms){
+    my $fmt = formatSMS($sms);
+    print FH $fmt;
+  }
+  close FH;
+  my $count = @sms;
+  print "\nwrote $count SMS to $smsCsvFile\n";
+  print "\n\n\n";
+  run $ADD_COMM_TO_REPO_CMD,
+    "--sms", $smsCsvFile,
+    "--allow-old",
+    "--dupe=fuzzy",
+    "--fuzzy-whitespace-dupes",
+    "--fuzzy-dupe-millis=" . 4 * 60 * 60 * 1000, #4 hours
+    "--verbose",
+  ;
 }
 
 sub handleMMS($$$$){
