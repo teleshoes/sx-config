@@ -69,6 +69,7 @@ my $USAGE = "Usage:
     OFFSET_MILLIS must be an integer
 ";
 
+sub handleSMS(@);
 sub handleMMS($$$$);
 sub extractHarFile($);
 sub getBackupHarFile($);
@@ -127,6 +128,25 @@ sub main(@){
       @sms = (@sms, parseSMSFile($smsFile));
     }
 
+    handleSMS(@sms);
+    exit 0;
+  }
+
+  my @mmsFiles = sort `find $outDir -iregex '.*/objects/.*' -type f`;
+  chomp $_ foreach @mmsFiles;
+  system "dos2unix $_ 2>/dev/null" foreach @mmsFiles;
+
+  for my $file(@mmsFiles){
+    my $mms = parseMMSFile($file);
+    handleMMS($myNum, $offsetMillis, $file, $mms);
+  }
+
+  print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
+  print $INSTRUCTIONS;
+}
+
+sub handleSMS(@){
+  my @sms = @_;
     #ignore empty SMS
     @sms = grep {$$_{body} ne '""'} @sms;
 
@@ -149,20 +169,6 @@ sub main(@){
       "--fuzzy-dupe-millis=" . 4 * 60 * 60 * 1000, #4 hours
       "--verbose",
     ;
-    exit 0;
-  }
-
-  my @mmsFiles = sort `find $outDir -iregex '.*/objects/.*' -type f`;
-  chomp $_ foreach @mmsFiles;
-  system "dos2unix $_ 2>/dev/null" foreach @mmsFiles;
-
-  for my $file(@mmsFiles){
-    my $mms = parseMMSFile($file);
-    handleMMS($myNum, $offsetMillis, $file, $mms);
-  }
-
-  print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
-  print $INSTRUCTIONS;
 }
 
 sub handleMMS($$$$){
