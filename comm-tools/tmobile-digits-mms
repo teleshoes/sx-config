@@ -69,6 +69,7 @@ my $USAGE = "Usage:
     OFFSET_MILLIS must be an integer
 ";
 
+sub extractHarFile($);
 sub getBackupHarFile($);
 sub cleanNumber($);
 sub escapeStr($);
@@ -115,17 +116,7 @@ sub main(@){
     die "ERROR: could not parse $MY_NUMBER_FILE\n";
   }
 
-  if(not -x $HAR_EXTRACTOR){
-    run "pip", "install", "har-extractor";
-  }
-  if(not -x $HAR_EXTRACTOR){
-    die "ERROR: could not find $HAR_EXTRACTOR\n";
-  }
-
-  my $nowMillis = nowMillis();
-  my $outDir = "/tmp/tmobile-digits-har-$nowMillis/";
-
-  run $HAR_EXTRACTOR, $harFile, "-o", $outDir;
+  my $outDir = extractHarFile($harFile);
 
   if($smsMode){
     my @smsFiles = sort grep {/^(.*\/)?search(\.\d+)?$/} `find $outDir -name 'search*' -type f`;
@@ -139,7 +130,7 @@ sub main(@){
     @sms = grep {$$_{body} ne '""'} @sms;
 
     print "\n\n\n";
-    my $smsCsvFile = "/tmp/tmobile-digits-sms-$nowMillis.sms";
+    my $smsCsvFile = "/tmp/tmobile-digits-sms-" . nowMillis() . ".sms";
     open FH, "> $smsCsvFile" or die "ERROR: could not write $smsCsvFile\n$!\n";
     for my $sms(@sms){
       my $fmt = formatSMS($sms);
@@ -263,6 +254,23 @@ sub main(@){
 
   print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
   print $INSTRUCTIONS;
+}
+
+sub extractHarFile($){
+  my ($harFile) = @_;
+  if(not -x $HAR_EXTRACTOR){
+    run "pip", "install", "har-extractor";
+  }
+  if(not -x $HAR_EXTRACTOR){
+    die "ERROR: could not find $HAR_EXTRACTOR\n";
+  }
+
+  my $nowMillis = nowMillis();
+  my $outDir = "/tmp/tmobile-digits-har-$nowMillis/";
+
+  run $HAR_EXTRACTOR, $harFile, "-o", $outDir;
+
+  return $outDir;
 }
 
 sub getBackupHarFile($){
