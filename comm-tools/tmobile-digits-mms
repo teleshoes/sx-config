@@ -42,7 +42,6 @@ my $USAGE = "Usage:
     same as: $0 [OPTS] 0
 
   $0 [OPTS] BACKUP_INDEX
-    -run: $PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har
     -select <INDEXED_BACKUP_FILE> for <BACKUP_INDEX> (0-indexed, newest-first, by mtime)
       -list <INDEXED_BACKUP_FILE>s from:
         $BACKUP_DIR_HAR
@@ -58,7 +57,16 @@ my $USAGE = "Usage:
     -same as: $0 <INDEXED_BACKUP_FILE>
 
   $0 [OPTS] BACKUP_FILE
+    -if BACKUP_FILE ends in '.har', implies --har
     $INSTRUCTIONS
+
+  --har
+    -use backup dir: $BACKUP_DIR_HAR
+    -before selecting BACKUP_FILE by index, run:
+      $PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har
+    -treat selected BACKUP_FILE as a .har file
+    -extract MMS json files from expanded har file
+    (this is the default)
 
   --sms
     skip MMS parsing, and parse SMS instead
@@ -106,6 +114,9 @@ sub main(@){
       $backupIndex = $1;
     }elsif(-f $arg and $arg =~ /\.har$/i){
       $backupFile = $arg;
+      $mode = $MODE_HAR;
+    }elsif($arg =~ /^(--har)$/){
+      $mode = $MODE_HAR;
     }elsif($arg =~ /^--offset-hours=(-?\d+)$/){
       $offsetMillis = $1*60*60*1000;
     }elsif($arg =~ /^--offset-millis=(-?\d+)$/){
@@ -125,6 +136,7 @@ sub main(@){
   }
 
   if(not defined $backupFile and defined $backupIndex){
+    run "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har";
     $backupFile = getBackupHarFile($backupIndex);
   }
   die "$USAGE\nERROR: missing BACKUP_FILE\n" if not defined $backupFile;
@@ -297,8 +309,6 @@ sub extractHarFile($){
 
 sub getBackupHarFile($){
   my ($index) = @_;
-
-  run "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har";
 
   my @harFiles = grep {-f $_} glob "$BACKUP_DIR_HAR/*.har";
   if(@harFiles == 0){
