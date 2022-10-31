@@ -161,7 +161,7 @@ sub main(@){
 
     for my $file(@mmsFiles){
       my $mms = parseMMSFile($file);
-      handleMMS($myNum, $offsetMillis, $file, $mms);
+      handleMMS($myNum, $offsetMillis, "mms file: $file", $mms);
     }
 
     print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
@@ -198,7 +198,7 @@ sub handleSMS(@){
 }
 
 sub handleMMS($$$$){
-  my ($myNum, $offsetMillis, $srcFile, $mms) = @_;
+  my ($myNum, $offsetMillis, $srcDescription, $mms) = @_;
   my $msgDateMillis = $$mms{dtmMillis} + $offsetMillis;
 
   my $dir;
@@ -217,7 +217,7 @@ sub handleMMS($$$$){
 
   if($otherNum !~ /^\d{10}$/){
     print "\n\n\n\n\n\n";
-    print "WARNING: could not parse MMS phone number \"$otherNum\" for $srcFile\n";
+    print "WARNING: could not parse MMS phone number \"$otherNum\" in:\n$srcDescription\n";
     next;
   }
 
@@ -260,7 +260,7 @@ sub handleMMS($$$$){
   chomp $checksum;
 
   if($checksum !~ /^[0-9a-f]{32}$/){
-    die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER for MMS file\n$srcFile\n";
+    die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER in:\n$srcDescription\n";
   }
 
   my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNum}_${dir}_${checksum}";
