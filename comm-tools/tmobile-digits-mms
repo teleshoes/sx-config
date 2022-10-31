@@ -19,6 +19,9 @@ my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
 
 my $PICNAME_CMD = "picname";
 
+my $MODE_HAR_MMS = "har-mms";
+my $MODE_HAR_SMS = "har-sms";
+
 my $INSTRUCTIONS = ""
   . "  HAR_FILE messages get written to mms repo + parts-repo\n"
   . "    $MMS_REPO\n"
@@ -86,7 +89,7 @@ sub nowMillis();
 sub main(@){
   my $harFile;
   my $offsetMillis = 0;
-  my $smsMode = 0;
+  my $mode = $MODE_HAR_MMS;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -103,7 +106,7 @@ sub main(@){
     }elsif($arg =~ /^--offset-millis=(-?\d+)$/){
       $offsetMillis = $1;
     }elsif($arg =~ /^--sms$/){
-      $smsMode = 1;
+      $mode = $MODE_HAR_SMS;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -118,9 +121,8 @@ sub main(@){
     die "ERROR: could not parse $MY_NUMBER_FILE\n";
   }
 
-  my $outDir = extractHarFile($harFile);
-
-  if($smsMode){
+  if($mode eq $MODE_HAR_SMS){
+    my $outDir = extractHarFile($harFile);
     my @smsFiles = sort grep {/^(.*\/)?search(\.\d+)?$/} `find $outDir -name 'search*' -type f`;
     chomp $_ foreach @smsFiles;
     my @sms;
@@ -129,20 +131,22 @@ sub main(@){
     }
 
     handleSMS(@sms);
-    exit 0;
+  }elsif($mode eq $MODE_HAR_MMS){
+    my $outDir = extractHarFile($harFile);
+    my @mmsFiles = sort `find $outDir -iregex '.*/objects/.*' -type f`;
+    chomp $_ foreach @mmsFiles;
+    system "dos2unix $_ 2>/dev/null" foreach @mmsFiles;
+
+    for my $file(@mmsFiles){
+      my $mms = parseMMSFile($file);
+      handleMMS($myNum, $offsetMillis, $file, $mms);
+    }
+
+    print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
+    print $INSTRUCTIONS;
+  }else{
+    die "ERROR: unknown mode $mode\n";
   }
-
-  my @mmsFiles = sort `find $outDir -iregex '.*/objects/.*' -type f`;
-  chomp $_ foreach @mmsFiles;
-  system "dos2unix $_ 2>/dev/null" foreach @mmsFiles;
-
-  for my $file(@mmsFiles){
-    my $mms = parseMMSFile($file);
-    handleMMS($myNum, $offsetMillis, $file, $mms);
-  }
-
-  print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
-  print $INSTRUCTIONS;
 }
 
 sub handleSMS(@){
