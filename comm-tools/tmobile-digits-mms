@@ -25,7 +25,7 @@ my $MSG_TYPE_MMS = "mms";
 my $MSG_TYPE_SMS = "sms";
 
 my $INSTRUCTIONS = ""
-  . "  HAR_FILE messages get written to mms repo + parts-repo\n"
+  . "  BACKUP_FILE messages get written to mms repo + parts-repo\n"
   . "    $MMS_REPO\n"
   . "    $MMS_PARTS_REPO\n"
   . "  some are VERY LIKELY DUPES\n"
@@ -43,20 +43,21 @@ my $USAGE = "Usage:
 
   $0 [OPTS] BACKUP_INDEX
     -run: $PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har
-    -select <INDEXED_HAR_FILE> for <BACKUP_INDEX> (0-indexed, newest-first, by mtime)
-      -list <INDEXED_HAR_FILE>s from $BACKUP_DIR_HAR
-      -order <INDEXED_HAR_FILE>s by mtime, newest-first
+    -select <INDEXED_BACKUP_FILE> for <BACKUP_INDEX> (0-indexed, newest-first, by mtime)
+      -list <INDEXED_BACKUP_FILE>s from:
+        $BACKUP_DIR_HAR
+      -order <INDEXED_BACKUP_FILE>s by mtime, newest-first
       -assign an <INDEX> to each, starting with 0
       -if <BACKUP_INDEX> is non-negative:
-        -select <INDEXED_HAR_FILE> with: <BACKUP_INDEX> = <INDEX>
+        -select <INDEXED_BACKUP_FILE> with: <BACKUP_INDEX> = <INDEX>
         -e.g.: 0 is the newest, 1 is the second-newest
       -if <BACKUP_INDEX> is negative:
-        -count the number of <INDEXED_HAR_FILE>s as <BACKUP_COUNT>
-        -select <INDEXED_HAR_FILE> with: <BACKUP_INDEX> = <INDEX> - <BACKUP_COUNT>
+        -count the number of <INDEXED_BACKUP_FILE>s as <BACKUP_COUNT>
+        -select <INDEXED_BACKUP_FILE> with: <BACKUP_INDEX> = <INDEX> - <BACKUP_COUNT>
         -e.g.: -1 is the oldest, -2 is the second-oldest
-    -same as: $0 <INDEXED_HAR_FILE>
+    -same as: $0 <INDEXED_BACKUP_FILE>
 
-  $0 [OPTS] HAR_FILE
+  $0 [OPTS] BACKUP_FILE
     $INSTRUCTIONS
 
   --sms
@@ -126,7 +127,7 @@ sub main(@){
   if(not defined $backupFile and defined $backupIndex){
     $backupFile = getBackupHarFile($backupIndex);
   }
-  die "$USAGE\nERROR: missing HAR_FILE\n" if not defined $backupFile;
+  die "$USAGE\nERROR: missing BACKUP_FILE\n" if not defined $backupFile;
 
   if($mode eq $MODE_HAR and $msgType eq $MSG_TYPE_SMS){
     my $outDir = extractHarFile($backupFile);
@@ -309,7 +310,7 @@ sub getBackupHarFile($){
 
   my $harFile = $harFiles[$index];
   if(not defined $harFile or not -f $harFile){
-    die "ERROR: INDEXED_HAR_FILE not found for BACKUP_INDEX=$index\n";
+    die "ERROR: INDEXED_BACKUP_FILE not found for BACKUP_INDEX=$index\n";
   }
   return $harFile;
 }
