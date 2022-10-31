@@ -13,7 +13,7 @@ my $MY_NUMBER_FILE = "$ENV{HOME}/Code/sx/backup/my_number";
 my $MMS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/repo";
 my $MMS_PARTS_REPO = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
 
-my $HAR_FILE_BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits-har-files";
+my $HAR_FILE_BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/har";
 
 my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
 
