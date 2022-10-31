@@ -86,7 +86,7 @@ my $USAGE = "Usage:
 sub handleSMS(@);
 sub handleMMS($$$$);
 sub extractHarFile($);
-sub getBackupHarFile($);
+sub getBackupFile($$$);
 sub cleanNumber($);
 sub escapeStr($);
 sub parseMMSFile($);
@@ -136,10 +136,12 @@ sub main(@){
   }
 
   if(not defined $backupFile and defined $backupIndex){
-    run "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har";
-    $backupFile = getBackupHarFile($backupIndex);
+    if($mode eq $MODE_HAR){
+      run "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har";
+      $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_HAR, "*.har");
+    }
   }
-  die "$USAGE\nERROR: missing BACKUP_FILE\n" if not defined $backupFile;
+  die "$USAGE\nERROR: no BACKUP_FILE given\n" if not defined $backupFile;
 
   if($mode eq $MODE_HAR and $msgType eq $MSG_TYPE_SMS){
     my $outDir = extractHarFile($backupFile);
@@ -307,22 +309,22 @@ sub extractHarFile($){
   return $outDir;
 }
 
-sub getBackupHarFile($){
-  my ($index) = @_;
+sub getBackupFile($$$){
+  my ($index, $backupDir, $globPattern) = @_;
 
-  my @harFiles = grep {-f $_} glob "$BACKUP_DIR_HAR/*.har";
-  if(@harFiles == 0){
-    die "ERROR: no har files found in $BACKUP_DIR_HAR\n";
+  my @backupFiles = grep {-f $_} glob "$backupDir/$globPattern";
+  if(@backupFiles == 0){
+    die "ERROR: no BACKUP_FILEs match $backupDir/$globPattern\n";
   }
-  my %mtimes = map {$_ => mtime $_} @harFiles;
+  my %mtimes = map {$_ => mtime $_} @backupFiles;
 
-  @harFiles = sort {$mtimes{$b} <=> $mtimes{$a}} @harFiles;
+  @backupFiles = sort {$mtimes{$b} <=> $mtimes{$a}} @backupFiles;
 
-  my $harFile = $harFiles[$index];
-  if(not defined $harFile or not -f $harFile){
-    die "ERROR: INDEXED_BACKUP_FILE not found for BACKUP_INDEX=$index\n";
+  my $backupFile = $backupFiles[$index];
+  if(not defined $backupFile or not -f $backupFile){
+    die "ERROR: BACKUP_INDEX=$index not found in $backupDir\n";
   }
-  return $harFile;
+  return $backupFile;
 }
 
 sub cleanNumber($){
