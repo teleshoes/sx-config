@@ -69,6 +69,7 @@ my $USAGE = "Usage:
     OFFSET_MILLIS must be an integer
 ";
 
+sub handleMMS($$$$);
 sub extractHarFile($);
 sub getBackupHarFile($);
 sub cleanNumber($);
@@ -157,7 +158,15 @@ sub main(@){
 
   for my $file(@mmsFiles){
     my $mms = parseMMSFile($file);
+    handleMMS($myNum, $offsetMillis, $file, $mms);
+  }
 
+  print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
+  print $INSTRUCTIONS;
+}
+
+sub handleMMS($$$$){
+    my ($myNum, $offsetMillis, $srcFile, $mms) = @_;
     my $msgDateMillis = $$mms{dtmMillis} + $offsetMillis;
 
     my $dir;
@@ -176,7 +185,7 @@ sub main(@){
 
     if($otherNum !~ /^\d{10}$/){
       print "\n\n\n\n\n\n";
-      print "WARNING: could not parse MMS phone number \"$otherNum\" for $file\n";
+      print "WARNING: could not parse MMS phone number \"$otherNum\" for $srcFile\n";
       next;
     }
 
@@ -219,7 +228,7 @@ sub main(@){
     chomp $checksum;
 
     if($checksum !~ /^[0-9a-f]{32}$/){
-      die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER for MMS file\n$file\n";
+      die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER for MMS file\n$srcFile\n";
     }
 
     my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNum}_${dir}_${checksum}";
@@ -249,10 +258,6 @@ sub main(@){
     open FH, "> $infoFile" or die "ERROR: could not write $infoFile\n$!\n";
     print FH $info;
     close FH;
-  }
-
-  print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
-  print $INSTRUCTIONS;
 }
 
 sub extractHarFile($){
