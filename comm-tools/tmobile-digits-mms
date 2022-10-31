@@ -501,6 +501,7 @@ sub decodeBase64($){
   open FH, "> $tmpFile" or die "ERROR: could not write $tmpFile\n$!\n";
   print FH $str;
   close FH;
+  system "dos2unix", "-q", $tmpFile;
 
   my $out = `base64 -d $tmpFile`;
   if($? != 0){
