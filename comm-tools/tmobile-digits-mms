@@ -157,9 +157,8 @@ sub main(@){
 
   for my $file(@mmsFiles){
     my $mms = parseMMSFile($file);
-    my $millis = $$mms{dtmEpoch} . "000";
 
-    my $msgDateMillis = $millis + $offsetMillis;
+    my $msgDateMillis = $$mms{dtmMillis} + $offsetMillis;
 
     my $dir;
     my $otherNum;
@@ -386,6 +385,7 @@ sub parseMMSFile($){
 
   $$mms{dtmFmt} = $dtmFmt;
   $$mms{dtmEpoch} = $epoch;
+  $$mms{dtmMillis} = "${epoch}000";
 
   if(defined $$mms{body} and not defined $$mms{textAttName}){
     $$mms{textAttName} = "text";
