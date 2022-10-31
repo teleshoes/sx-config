@@ -201,23 +201,27 @@ sub handleMMS($$$$){
   my ($myNum, $offsetMillis, $srcDescription, $mms) = @_;
   my $msgDateMillis = $$mms{dtmMillis} + $offsetMillis;
 
-  my $dir;
-  my $otherNum;
-  if($$mms{from} eq $myNum){
-    $dir = "OUT";
-    $otherNum = $$mms{to};
-  }elsif($$mms{to} eq $myNum){
-    $dir = "INC";
-    $otherNum = $$mms{from};
-  }else{
+  if(not defined $$mms{dir}){
+    $$mms{dir} = $$mms{from} eq $myNum ? "OUT" : "INC";
+  }
+  my $dir = $$mms{dir};
+
+  my @toNums = @{$$mms{toNums}};
+
+  if($dir eq "OUT" and $$mms{from} ne $myNum){
+    die "ERROR: outgoing MMS from another number in\n$srcDescription\n";
+  }elsif($dir eq "INC" and $toNums[0] ne $myNum){
     #MMS sent to other person and 'forwarded' to me
-    $dir = "INC";
-    $otherNum = $$mms{from};
   }
 
-  if($otherNum !~ /^\d{10}$/){
+  my @otherNums = $dir eq "OUT" ? @toNums : ($$mms{from});
+  @otherNums = grep {$_ ne $myNum} @otherNums;
+  @otherNums = grep {$_ =~ /^\d{10}$/} @otherNums;
+  my $otherNumFmt = join "-", @otherNums;
+
+  if(@otherNums == 0){
     print "\n\n\n\n\n\n";
-    print "WARNING: could not parse MMS phone number \"$otherNum\" in:\n$srcDescription\n";
+    print "WARNING: could not parse MMS phone number in:\n$srcDescription\n";
     next;
   }
 
@@ -263,7 +267,7 @@ sub handleMMS($$$$){
     die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER in:\n$srcDescription\n";
   }
 
-  my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNum}_${dir}_${checksum}";
+  my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNumFmt}_${dir}_${checksum}";
   run "mkdir", "-p", $mmsRepoDir;
 
   for my $attFile(@attFileList){
@@ -272,7 +276,7 @@ sub handleMMS($$$$){
 
   my $info = ""
     . "from=$$mms{from}\n"
-    . "to=$$mms{to}\n"
+    . join("", map {"to=$_\n"} @toNums)
     . "dir=$dir\n"
     . "date=$msgDateMillis\n"
     . "date_sent=$msgDateMillis\n"
@@ -354,7 +358,7 @@ sub parseMMSFile($){
 
   my $mms = {
     from        => undef,
-    to          => undef,
+    toNums      => [],
     dtm         => undef,
     body        => undef,
     subject     => "NoSubject",
@@ -372,7 +376,7 @@ sub parseMMSFile($){
       if($line =~ /^From:\s*(.+)$/){
         $$mms{from} = cleanNumber($1);
       }elsif($line =~ /^To:\s*(.+)$/){
-        $$mms{to} = cleanNumber($1);
+        push @{$$mms{toNums}}, cleanNumber($1);
       }elsif($line =~ /^DateTime:\s*(.+)$/){
         $$mms{dtm} = $1;
       }
