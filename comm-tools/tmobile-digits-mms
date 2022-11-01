@@ -91,6 +91,7 @@ sub cleanNumber($);
 sub escapeStr($);
 sub parseMMSFile($);
 sub parseSMSFile($);
+sub formatSMSBodyForCSV($);
 sub formatSMS($);
 sub decodeBase64($);
 sub mtime($);
@@ -477,16 +478,8 @@ sub parseSMSFile($){
         die "ERROR: invalid Direction $$smsAtts{Direction}\n";
       }
       my $body = $$smsAtts{textcontent};
-      $body = "" if not defined $body;
 
-      #remove trailing whitespace
-      $body =~ s/\s+$//g;
-
-      #format for CSV column
-      $body =~ s/\\/\\\\/g;
-      $body =~ s/\n/\\n/g;
-      $body =~ s/"/\\"/g;
-      $body = "\"$body\"";
+      $body = formatSMSBodyForCSV($body);
 
       my $smsMsg = {
         date     => $dateMillis,
@@ -507,6 +500,26 @@ sub parseSMSFile($){
   }
 
   return @smsMsgs;
+}
+
+sub formatSMSBodyForCSV($){
+  my ($body) = @_;
+
+  #null-check
+  $body = "" if not defined $body;
+
+  #remove trailing whitespace
+  $body =~ s/\s+$//g;
+
+  #escape for double-quoted CSV col
+  $body =~ s/\\/\\\\/g;
+  $body =~ s/\n/\\n/g;
+  $body =~ s/"/\\"/g;
+
+  #wrap in ""
+  $body = "\"$body\"";
+
+  return $body;
 }
 
 sub formatSMS($){
