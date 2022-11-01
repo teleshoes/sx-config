@@ -243,7 +243,7 @@ sub handleMMS($$$$){
     print FH $$att{attContents};
     close FH;
   }
-  if(defined $$mms{body}){
+  if(defined $$mms{body} and length $$mms{body} > 0){
     my $textAttFile = "$mmsPartsDir/$$mms{textAttName}";
     push @attFileList, $textAttFile;
     open FH, "> $textAttFile" or die "ERROR: could not write $textAttFile\n$!\n";
