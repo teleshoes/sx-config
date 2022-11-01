@@ -451,6 +451,12 @@ sub parseIndexedDB($){
       die "ERROR: unknown content/entry type for $msgID\n";
     }
 
+    if($$msg{type} eq "sms" and @{$$msg{toNums}} > 1){
+      #treat any sms-looking messages with multiple recipients as mms
+      #  outbound text-only MMS sent from digits has contentType='text/plain'
+      $$msg{type} = "mms";
+    }
+
     $$msg{dir} = $$val{direction};
     if($$val{direction} =~ /^(in)$/){
       $$msg{dir} = "INC";
