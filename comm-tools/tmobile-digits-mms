@@ -89,6 +89,7 @@ sub extractHarFile($);
 sub getBackupFile($$$);
 sub cleanNumber($);
 sub escapeStr($);
+sub parseIndexedDB($);
 sub parseMMSFile($);
 sub parseSMSFile($);
 sub formatSMSBodyForCSV($);
@@ -352,6 +353,123 @@ sub escapeStr($){
   return $str;
 }
 
+sub parseIndexedDB($){
+  my ($dbFile) = @_;
+  my $json = `cat $dbFile`;
+  my @values = eval {
+    my $obj = decode_json($json);
+    my $db = ${$obj}[0];
+    my $channel_entries = ${$$db{stores}}[0];
+    if($$channel_entries{name} ne "channel_entries"){
+      die "first store is not channel_entries";
+    }
+    my @entries = @{$$channel_entries{data}};
+    my @entryVals = map {$$_{value}} @entries;
+    return @entryVals;
+  };
+  die "ERROR: failed to parse $dbFile\n$@" if @values == 0;
+
+  my @messages;
+  for my $val(@values){
+    my $msg = {
+      type        => undef,  #'sms' or 'mms' or 'call'
+      from        => undef,
+      toNums      => [],
+      dir         => undef,
+      dtm         => undef,
+      body        => undef,
+      subject     => "NoSubject",
+      textAttName => "text",
+      atts        => [],
+      msgID       => undef,
+      callDur     => undef,
+    };
+
+    $$msg{from} = cleanNumber($$val{sender});
+    for my $to(@{$$val{toArr}}){
+      push @{$$msg{toNums}}, cleanNumber($to);
+    }
+
+    my $msgID = $$val{entry}{imdnMessageID};
+    $$msg{msgID} = $msgID;
+
+    my $entryType = $$val{entry}{entryType};
+    my $contentType = $$val{entry}{contentType};
+    if($entryType =~ /^(message)$/ and $contentType =~ /^text\/plain$/){
+      $$msg{type} = "sms";
+    }elsif($entryType =~ /^(message|file)$/ and $contentType =~ /^Message\/CPIM$/){
+      $$msg{type} = "mms";
+    }elsif($entryType =~ /^(callLog)/){
+      $$msg{type} = "call";
+    }else{
+      die "ERROR: unknown content/entry type for $msgID\n";
+    }
+
+    $$msg{dir} = $$val{direction};
+    if($$val{direction} =~ /^(in)$/){
+      $$msg{dir} = "INC";
+    }elsif($$val{direction} =~ /^(out)$/){
+      $$msg{dir} = "OUT";
+    }else{
+      die "ERROR: invalid direction $$val{direction} for $msgID\n";
+    }
+
+    my $millis = $$val{date};
+    my $epoch = int($millis / 1000 + 0.5);
+    my $dtmFmt = `date --date='\@$epoch' '+%Y%m%d_%H%M%S'`;
+    chomp $dtmFmt;
+
+    $$msg{dtmMillis} = $millis;
+    $$msg{dtmFmt} = $dtmFmt;
+    $$msg{dtmEpoch} = $epoch;
+
+    $$msg{body} = $$val{entry}{textcontent};
+
+    $$msg{callDur} = $$val{entry}{callDuration};
+
+    my @files;
+    if(defined $$val{data}){
+      push @files, $$val{data};
+    }
+    if(defined $$val{multiPartData}){
+      @files = (@files, @{$$val{multiPartData}});
+    }
+    if(defined $$val{entry}){
+      my $entry = $$val{entry};
+      if(defined $$entry{data}){
+        push @files, $$entry{data};
+      }
+      if(defined $$entry{multiPartData}){
+        @files = (@files, @{$$entry{multiPartData}});
+      }
+    }
+
+    my $seenFiles = {};
+    for my $file(@files){
+      my $fileName = $$file{filename};
+      my $fileContents = $$file{base64File};
+      next if not defined $fileName or not defined $fileContents;
+      if(defined $$seenFiles{$fileName}){
+        if($fileContents eq $$seenFiles{$fileName}){
+          next;
+        }else{
+          die "ERROR: different files with the same name in one message\n";
+        }
+      }
+      $$seenFiles{$fileName} = $fileContents;
+
+      my $att = {
+        attName     => $fileName,
+        attContents => decodeBase64($fileContents),
+      };
+      push @{$$msg{atts}}, $att;
+    }
+
+    push @messages, $msg;
+  }
+
+  return @messages;
+}
 
 sub parseMMSFile($){
   my ($mmsFile) = @_;
