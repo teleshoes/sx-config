@@ -13,6 +13,7 @@ my $MY_NUMBER_FILE       = "$ENV{HOME}/Code/sx/backup/my_number";
 my $MMS_REPO             = "$ENV{HOME}/Code/sx/backup/backup-mms/repo";
 my $MMS_PARTS_REPO       = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
 
+my $BACKUP_DIR_INDEXEDDB = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/indexeddb";
 my $BACKUP_DIR_HAR       = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/har";
 
 my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
@@ -20,6 +21,7 @@ my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
 my $PICNAME_CMD = "picname";
 
 my $MODE_HAR = "har";
+my $MODE_INDEXEDDB = "indexedDB";
 
 my $MSG_TYPE_MMS = "mms";
 my $MSG_TYPE_SMS = "sms";
@@ -45,6 +47,8 @@ my $USAGE = "Usage:
     -select <INDEXED_BACKUP_FILE> for <BACKUP_INDEX> (0-indexed, newest-first, by mtime)
       -list <INDEXED_BACKUP_FILE>s from:
         $BACKUP_DIR_HAR
+      -if --indexeddb list <INDEXED_BACKUP_FILE>s from:
+        $BACKUP_DIR_INDEXEDDB
       -order <INDEXED_BACKUP_FILE>s by mtime, newest-first
       -assign an <INDEX> to each, starting with 0
       -if <BACKUP_INDEX> is non-negative:
@@ -58,6 +62,7 @@ my $USAGE = "Usage:
 
   $0 [OPTS] BACKUP_FILE
     -if BACKUP_FILE ends in '.har', implies --har
+    -if BACKUP_FILE contains 'indexeddb', implies --indexeddb
     $INSTRUCTIONS
 
   --har
@@ -67,6 +72,11 @@ my $USAGE = "Usage:
     -treat selected BACKUP_FILE as a .har file
     -extract MMS json files from expanded har file
     (this is the default)
+
+  --indexeddb
+    -use backup dir: $BACKUP_DIR_INDEXEDDB
+    -treat selected BACKUP_FILE as a IndexedDBEdit JSON file
+    -extract MMS messages directly from the IndexedDB
 
   --sms
     skip MMS parsing, and parse SMS instead
@@ -117,8 +127,13 @@ sub main(@){
     }elsif(-f $arg and $arg =~ /\.har$/i){
       $backupFile = $arg;
       $mode = $MODE_HAR;
+    }elsif(-f $arg and $arg =~ /indexeddb.*\.json/){
+      $backupFile = $arg;
+      $mode = $MODE_INDEXEDDB;
     }elsif($arg =~ /^(--har)$/){
       $mode = $MODE_HAR;
+    }elsif($arg =~ /^(--indexeddb)$/){
+      $mode = $MODE_INDEXEDDB;
     }elsif($arg =~ /^--offset-hours=(-?\d+)$/){
       $offsetMillis = $1*60*60*1000;
     }elsif($arg =~ /^--offset-millis=(-?\d+)$/){
@@ -141,11 +156,42 @@ sub main(@){
     if($mode eq $MODE_HAR){
       run "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har";
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_HAR, "*.har");
+    }elsif($mode eq $MODE_INDEXEDDB){
+      $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_INDEXEDDB, "indexeddb*.json");
     }
   }
   die "$USAGE\nERROR: no BACKUP_FILE given\n" if not defined $backupFile;
 
-  if($mode eq $MODE_HAR and $msgType eq $MSG_TYPE_SMS){
+  if($mode eq $MODE_INDEXEDDB and $msgType eq $MSG_TYPE_MMS){
+    my @messages = parseIndexedDB($backupFile);
+    my @mms = grep {$$_{type} eq "mms"} @messages;
+    for my $mms(@mms){
+      handleMMS($myNum, $offsetMillis, "msgID=$$mms{msgID} in $backupFile", $mms);
+    }
+
+    print "\n\nWROTE " . (0+@mms) . " MMS MESSAGES\n";
+    print $INSTRUCTIONS;
+  }elsif($mode eq $MODE_INDEXEDDB and $msgType eq $MSG_TYPE_SMS){
+    my @messages = parseIndexedDB($backupFile);
+    my @sms;
+    for my $msg(@messages){
+      next if $$msg{type} ne "sms";
+      my $dateFmt = `date --date=\@$$msg{dtmEpoch} '+%Y-%m-%d %H:%M:%S'`;
+      chomp $dateFmt;
+      my $body = formatSMSBodyForCSV($$msg{body});
+
+      push @sms, {
+        date     => $$msg{dtmMillis},
+        dateSent => $$msg{dtmMillis},
+        dateFmt  => $dateFmt,
+        dir      => $$msg{dir},
+        from     => $$msg{from},
+        to       => ${$$msg{toNums}}[0],
+        body     => $body,
+      };
+    }
+    handleSMS(@sms);
+  }elsif($mode eq $MODE_HAR and $msgType eq $MSG_TYPE_SMS){
     my $outDir = extractHarFile($backupFile);
     my @smsFiles = sort grep {/^(.*\/)?search(\.\d+)?$/} `find $outDir -name 'search*' -type f`;
     chomp $_ foreach @smsFiles;
