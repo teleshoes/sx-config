@@ -362,7 +362,7 @@ sub parseMMSFile($){
     dtm         => undef,
     body        => undef,
     subject     => "NoSubject",
-    textAttName => undef,
+    textAttName => "text",
     atts        => [],
   };
 
@@ -426,9 +426,6 @@ sub parseMMSFile($){
   $$mms{dtmEpoch} = $epoch;
   $$mms{dtmMillis} = "${epoch}000";
 
-  if(defined $$mms{body} and not defined $$mms{textAttName}){
-    $$mms{textAttName} = "text";
-  }
   for my $att(@{$$mms{atts}}){
     if(not defined $$att{attName}){
       die "ERROR: missing file name for att part in mms file\n$mmsFile\n";
