@@ -18,6 +18,8 @@ my $BACKUP_DIR_HAR       = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/
 
 my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
 
+my $DOWNLOADS_DIR        = "$ENV{HOME}/Downloads";
+
 my $PICNAME_CMD = "picname";
 
 my $MODE_HAR = "har";
@@ -75,6 +77,8 @@ my $USAGE = "Usage:
 
   --indexeddb
     -use backup dir: $BACKUP_DIR_INDEXEDDB
+    -before selecting BACKUP_FILE by index, run:
+      mv --no-clobber $DOWNLOADS_DIR/indexeddb*.json $BACKUP_DIR_INDEXEDDB
     -treat selected BACKUP_FILE as a IndexedDBEdit JSON file
     -extract MMS messages directly from the IndexedDB
 
@@ -157,6 +161,10 @@ sub main(@){
       run "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har";
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_HAR, "*.har");
     }elsif($mode eq $MODE_INDEXEDDB){
+      my @downloadFiles = grep {-f $_} glob "$DOWNLOADS_DIR/indexeddb*.json";
+      if(@downloadFiles > 0){
+        run "mv --no-clobber @downloadFiles $BACKUP_DIR_INDEXEDDB/";
+      }
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_INDEXEDDB, "indexeddb*.json");
     }
   }
