@@ -98,7 +98,7 @@ my $USAGE = "Usage:
     OFFSET_MILLIS must be an integer
 ";
 
-sub handleSMS(@);
+sub handleSMS($@);
 sub handleMMS($$$$);
 sub extractHarFile($);
 sub getBackupFile($$$);
@@ -188,21 +188,18 @@ sub main(@){
     my @sms;
     for my $msg(@messages){
       next if $$msg{type} ne "sms";
-      my $dateFmt = `date --date=\@$$msg{dtmEpoch} '+%Y-%m-%d %H:%M:%S'`;
-      chomp $dateFmt;
       my $body = formatSMSBodyForCSV($$msg{body});
 
       push @sms, {
         date     => $$msg{dtmMillis},
         dateSent => $$msg{dtmMillis},
-        dateFmt  => $dateFmt,
         dir      => $$msg{dir},
         from     => $$msg{from},
         to       => ${$$msg{toNums}}[0],
         body     => $body,
       };
     }
-    handleSMS(@sms);
+    handleSMS($opts, @sms);
   }elsif($mode eq $MODE_HAR and $msgType eq $MSG_TYPE_SMS){
     my $outDir = extractHarFile($backupFile);
     my @smsFiles = sort grep {/^(.*\/)?search(\.\d+)?$/} `find $outDir -name 'search*' -type f`;
@@ -212,7 +209,7 @@ sub main(@){
       @sms = (@sms, parseSMSFile($smsFile));
     }
 
-    handleSMS(@sms);
+    handleSMS($opts, @sms);
   }elsif($mode eq $MODE_HAR and $msgType eq $MSG_TYPE_MMS){
     my $outDir = extractHarFile($backupFile);
     my @mmsFiles = sort `find $outDir -iregex '.*/objects/.*' -type f`;
@@ -231,10 +228,22 @@ sub main(@){
   }
 }
 
-sub handleSMS(@){
-  my @sms = @_;
+sub handleSMS($@){
+  my ($opts, @sms) = @_;
   #ignore empty SMS
   @sms = grep {$$_{body} ne '""'} @sms;
+
+  for my $smsMsg(@sms){
+    my $dateMillis = $$smsMsg{date} + $$opts{offsetMillis};
+    my $dateSentMillis = $$smsMsg{dateSent} + $$opts{offsetMillis};
+    my $dateS = int($dateMillis / 1000.0 + 0.5);
+    my $dateFmt = `date --date=\@$dateS '+%Y-%m-%d %H:%M:%S'`;
+    chomp $dateFmt;
+
+    $$smsMsg{date} = $dateMillis;
+    $$smsMsg{dateSent} = $dateSentMillis;
+    $$smsMsg{dateFmt} = $dateFmt;
+  }
 
   print "\n\n\n";
   my $smsCsvFile = "/tmp/tmobile-digits-sms-" . nowMillis() . ".sms";
@@ -650,9 +659,6 @@ sub parseSMSFile($){
       chomp $dateMillis;
       die "ERROR: could not parse date $$smsAtts{date}\n" if $dateMillis !~ /^\d+$/;
 
-      my $dateS = int($dateMillis / 1000.0 + 0.5);
-      my $dateFmt = `date --date=\@$dateS '+%Y-%m-%d %H:%M:%S'`;
-      chomp $dateFmt;
       my $dir;
       if($$smsAtts{Direction} =~ /^In$/i){
         $dir = "INC";
@@ -668,7 +674,6 @@ sub parseSMSFile($){
       my $smsMsg = {
         date     => $dateMillis,
         dateSent => $dateMillis,
-        dateFmt  => $dateFmt,
         dir      => $dir,
         from     => cleanNumber($$smsAtts{from}),
         to       => cleanNumber($$smsAtts{to}),
