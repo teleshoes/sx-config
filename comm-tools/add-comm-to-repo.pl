@@ -36,6 +36,9 @@ my $usage = "Usage:
     ignores duplicate entries, and entries that are the same except for milliseconds
 
   OPTS
+    -n | -s | --dry-run | --simulate
+      do not modify the repo
+
     --allow-old
       do not fail if a new entry is older than the newest entry in the repo
 
@@ -72,6 +75,7 @@ my $usage = "Usage:
 sub main(@){
   my $type;
   my $file;
+  my $dryRun = 0;
   my $allowOld = 0;
   my $dupeMode = $DUPE_MODE_MILLIS;
   my $fuzzyDupeMillis = $DEFAULT_FUZZY_DUPE_MILLIS;
@@ -85,6 +89,8 @@ sub main(@){
     }elsif($arg =~ /^(-|--)?(sms|call)$/){
       die "ERROR: sms/call type specified more than once\n" if defined $type;
       $type = $2;
+    }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
+      $dryRun = 1;
     }elsif($arg =~ /^(--allow-old)$/){
       $allowOld = 1;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_REGEX)$/){
@@ -186,17 +192,22 @@ sub main(@){
     $totalDupes += $countDupes;
 
     if($isVerbose){
-      print "$repoFileName: adding $countToAdd entries, skipping $countDupes dupes\n";
+      my $addingVerb = $dryRun ? "dryrun-not-adding" : "adding";
+      print "$repoFileName: $addingVerb $countToAdd entries, skipping $countDupes dupes\n";
     }
 
     my @allEntries = (@repoEntries, @entriesToAdd);
     @allEntries = sort {$$a{line} cmp $$b{line}} @allEntries;
 
-    writeRepoFile($type, $repoFileName, @allEntries);
+    if(not $dryRun){
+      writeRepoFile($type, $repoFileName, @allEntries);
+    }
   }
 
   my $fileCount = keys %$entriesByFileName;
-  print "\nTOTAL: added $totalToAdd entries to $fileCount files, skipped $totalDupes dupes\n";
+
+  my $addedVerb = $dryRun ? "dryrun-did-not-add" : "added";
+  print "\nTOTAL: $addedVerb $totalToAdd entries to $fileCount files, skipped $totalDupes dupes\n";
 }
 
 sub readRepoFile($$){
