@@ -25,6 +25,7 @@ my $PICNAME_CMD = "picname";
 
 my $MODE_HAR = "har";
 my $MODE_INDEXEDDB = "indexedDB";
+my $MODE_REORGANIZE = "reorganize";
 
 my $MSG_TYPE_MMS = "mms";
 my $MSG_TYPE_SMS = "sms";
@@ -47,6 +48,11 @@ my $REORGANIZE_CMD_INDEXEDDB =
 my $USAGE = "Usage:
   $0 -h|--help
     show this message
+
+  $0 [OPTS] -b | --reorganze-backups
+    -run: $REORGANIZE_CMD_HAR
+    -run: $REORGANIZE_CMD_INDEXEDDB
+    -print the latest BACKUP_FILE for har and indexeddb
 
   $0 [OPTS] -l | --latest
     same as: $0 [OPTS] 0
@@ -141,6 +147,8 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-b|--reorganze-backups)$/){
+      $mode = $MODE_REORGANIZE;
     }elsif($arg =~ /^(-l|--latest)$/i){
       $backupIndex = 0;
     }elsif($arg =~ /^(\d+|-\d+)$/){
@@ -171,8 +179,10 @@ sub main(@){
   my $myNum = `cat $MY_NUMBER_FILE`;
   chomp $myNum;
   $myNum = cleanNumber($myNum);
-  if($myNum !~ /^\d{10}$/){
-    die "ERROR: could not parse $MY_NUMBER_FILE\n";
+  if($mode eq $MODE_INDEXEDDB or $mode eq $MODE_HAR){
+    if($myNum !~ /^\d{10}$/){
+      die "ERROR: could not parse $MY_NUMBER_FILE\n";
+    }
   }
 
   if(not defined $backupFile and defined $backupIndex){
@@ -187,9 +197,19 @@ sub main(@){
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_INDEXEDDB, "indexeddb*.json");
     }
   }
-  die "$USAGE\nERROR: no BACKUP_FILE given\n" if not defined $backupFile;
+  if($mode eq $MODE_INDEXEDDB or $mode eq $MODE_HAR){
+    die "$USAGE\nERROR: no BACKUP_FILE given\n" if not defined $backupFile;
+  }
 
-  if($mode eq $MODE_INDEXEDDB and $msgType eq $MSG_TYPE_MMS){
+  if($mode eq $MODE_REORGANIZE){
+    run $REORGANIZE_CMD_HAR;
+    run $REORGANIZE_CMD_INDEXEDDB;
+    my @har       = map {s/.*\///; $_} grep {-f $_} glob "$BACKUP_DIR_HAR/*.har";
+    my @indexedDB = map {s/.*\///; $_} grep {-f $_} glob "$BACKUP_DIR_INDEXEDDB/indexeddb*.json";
+    print "\n\n";
+    print "latest har:       $har[-1]\n";
+    print "latest indexeddb: $indexedDB[-1]\n";
+  }elsif($mode eq $MODE_INDEXEDDB and $msgType eq $MSG_TYPE_MMS){
     my @messages = parseIndexedDB($backupFile);
     my @mms = grep {$$_{type} eq "mms"} @messages;
     for my $mms(@mms){
