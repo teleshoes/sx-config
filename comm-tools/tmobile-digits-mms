@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Encode qw(encode decode);
 use Time::HiRes qw(time);
 use JSON qw(decode_json encode_json);
 use Try::Tiny;
@@ -109,6 +110,7 @@ sub parseSMSFile($);
 sub formatSMSBodyForCSV($);
 sub formatSMS($);
 sub decodeBase64($);
+sub replaceMIMEUnicodeChars($);
 sub mtime($);
 sub run(@);
 sub nowMillis();
@@ -313,6 +315,8 @@ sub handleMMS($$$$){
 
   my $subjectFmt = escapeStr($subject);
   my $bodyFmt = escapeStr($body);
+
+  $bodyFmt = replaceMIMEUnicodeChars($bodyFmt);
 
   open CMD, "-|", $SMS_DB_IMPORTER, "mms-hash", $subject, $body, @attFileList;
   my $checksum = join '', <CMD>;
@@ -736,6 +740,18 @@ sub decodeBase64($){
   }
 
   return $out;
+}
+
+sub replaceMIMEUnicodeChars($){
+  my ($str) = @_;
+  my $byte = '[0-9a-f][0-9a-f]';
+  while($str =~ /(=$byte=$byte=$byte=$byte)/i){
+    my $mimeCode = $1;
+    my $char = decode("MIME-Header", "=?UTF-8?Q?$mimeCode?=");
+    utf8::encode($char);
+    $str =~ s/$mimeCode/$char/;
+  }
+  return $str;
 }
 
 sub mtime($){
