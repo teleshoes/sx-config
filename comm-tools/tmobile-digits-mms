@@ -39,6 +39,11 @@ my $INSTRUCTIONS = ""
   . "  to test consistency, run: $RESTORE_COMM --dry-run\n"
 ;
 
+my $REORGANIZE_CMD_HAR =
+  "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har 2>/dev/null";
+my $REORGANIZE_CMD_INDEXEDDB =
+  "mv --no-clobber $DOWNLOADS_DIR/indexeddb*.json $BACKUP_DIR_INDEXEDDB 2>/dev/null";
+
 my $USAGE = "Usage:
   $0 -h|--help
     show this message
@@ -71,7 +76,7 @@ my $USAGE = "Usage:
   --har
     -use backup dir: $BACKUP_DIR_HAR
     -before selecting BACKUP_FILE by index, run:
-      $PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har
+      $REORGANIZE_CMD_HAR
     -treat selected BACKUP_FILE as a .har file
     -extract MMS json files from expanded har file
     (this is the default)
@@ -79,7 +84,7 @@ my $USAGE = "Usage:
   -i | --indexeddb | --indexed-db
     -use backup dir: $BACKUP_DIR_INDEXEDDB
     -before selecting BACKUP_FILE by index, run:
-      mv --no-clobber $DOWNLOADS_DIR/indexeddb*.json $BACKUP_DIR_INDEXEDDB
+      $REORGANIZE_CMD_INDEXEDDB
     -treat selected BACKUP_FILE as a IndexedDBEdit JSON file
     -extract MMS messages directly from the IndexedDB
 
@@ -99,10 +104,10 @@ my $USAGE = "Usage:
 
    -n | -s | --dry-run | --simulate
      do not write to MMS repo, MMS parts repo, or SMS repo
-     NOTE: backup dirs are still re-organized with:
-       $PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har
+     NOTE: backup dirs are still reorganized with:
+       $REORGANIZE_CMD_HAR
        or
-       mv --no-clobber $DOWNLOADS_DIR/indexeddb*.json $BACKUP_DIR_INDEXEDDB
+       $REORGANIZE_CMD_INDEXEDDB
 ";
 
 sub handleSMS($@);
@@ -172,12 +177,12 @@ sub main(@){
 
   if(not defined $backupFile and defined $backupIndex){
     if($mode eq $MODE_HAR){
-      run "$PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har";
+      run $REORGANIZE_CMD_HAR;
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_HAR, "*.har");
     }elsif($mode eq $MODE_INDEXEDDB){
       my @downloadFiles = grep {-f $_} glob "$DOWNLOADS_DIR/indexeddb*.json";
       if(@downloadFiles > 0){
-        run "mv --no-clobber @downloadFiles $BACKUP_DIR_INDEXEDDB/";
+        run $REORGANIZE_CMD_INDEXEDDB;
       }
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_INDEXEDDB, "indexeddb*.json");
     }
