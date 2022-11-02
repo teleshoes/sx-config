@@ -96,6 +96,13 @@ my $USAGE = "Usage:
   --offset-millis=OFFSET_MILLIS
     adjust msg info date and dateSent by positive or negative milliseconds
     OFFSET_MILLIS must be an integer
+
+   -n | -s | --dry-run | --simulate
+     do not write to MMS repo, MMS parts repo, or SMS repo
+     NOTE: backup dirs are still re-organized with:
+       $PICNAME_CMD -a --quiet $BACKUP_DIR_HAR/*.har
+       or
+       mv --no-clobber $DOWNLOADS_DIR/indexeddb*.json $BACKUP_DIR_INDEXEDDB
 ";
 
 sub handleSMS($@);
@@ -122,6 +129,7 @@ sub main(@){
   my $msgType = $MSG_TYPE_MMS;
   my $opts = {
     offsetMillis => 0,
+    dryRun       => 0,
   };
   while(@_ > 0){
     my $arg = shift;
@@ -148,6 +156,8 @@ sub main(@){
       $$opts{offsetMillis} = $1;
     }elsif($arg =~ /^--sms$/){
       $msgType = $MSG_TYPE_SMS;
+    }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
+      $$opts{dryRun} = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -181,7 +191,8 @@ sub main(@){
       handleMMS($opts, $myNum, "msgID=$$mms{msgID} in $backupFile", $mms);
     }
 
-    print "\n\nWROTE " . (0+@mms) . " MMS MESSAGES\n";
+    my $wrote = $$opts{dryRun} ? "DRY-RUN-DID-NOT-WRITE" : "WROTE";
+    print "\n\n$wrote " . (0+@mms) . " MMS MESSAGES\n";
     print $INSTRUCTIONS;
   }elsif($mode eq $MODE_INDEXEDDB and $msgType eq $MSG_TYPE_SMS){
     my @messages = parseIndexedDB($backupFile);
@@ -221,7 +232,8 @@ sub main(@){
       handleMMS($opts, $myNum, "mms file: $file", $mms);
     }
 
-    print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
+    my $wrote = $$opts{dryRun} ? "DRY-RUN-DID-NOT-WRITE" : "WROTE";
+    print "\n\n$wrote " . (0+@mmsFiles) . " MMS MESSAGES\n";
     print $INSTRUCTIONS;
   }else{
     die "ERROR: unknown mode/msgType $mode/$msgType\n";
@@ -258,6 +270,7 @@ sub handleSMS($@){
   print "\n\n\n";
   run $ADD_COMM_TO_REPO_CMD,
     "--sms", $smsCsvFile,
+    ($$opts{dryRun} ? ("--dry-run") : ()),
     "--allow-old",
     "--dupe=fuzzy",
     "--fuzzy-whitespace-dupes",
@@ -302,22 +315,26 @@ sub handleMMS($$$$){
     $counter++;
   }while(-e $mmsPartsDir);
 
-  run "mkdir", "-p", $mmsPartsDir;
+  run "mkdir", "-p", $mmsPartsDir unless $$opts{dryRun};
 
   my @attFileList;
   for my $att(@{$$mms{atts}}){
     my $attFile = "$mmsPartsDir/$$att{attName}";
     push @attFileList, $attFile;
-    open FH, "> $attFile" or die "ERROR: could not write $attFile\n$!\n";
-    print FH $$att{attContents};
-    close FH;
+    if(not $$opts{dryRun}){
+      open FH, "> $attFile" or die "ERROR: could not write $attFile\n$!\n";
+      print FH $$att{attContents};
+      close FH;
+    }
   }
   if(defined $$mms{body} and length $$mms{body} > 0){
     my $textAttFile = "$mmsPartsDir/$$mms{textAttName}";
     push @attFileList, $textAttFile;
-    open FH, "> $textAttFile" or die "ERROR: could not write $textAttFile\n$!\n";
-    print FH $$mms{body};
-    close FH;
+    if(not $$opts{dryRun}){
+      open FH, "> $textAttFile" or die "ERROR: could not write $textAttFile\n$!\n";
+      print FH $$mms{body};
+      close FH;
+    }
   }
   my $body = $$mms{body};
   $body = "" if not defined $body;
@@ -329,20 +346,25 @@ sub handleMMS($$$$){
 
   $bodyFmt = replaceMIMEUnicodeChars($bodyFmt);
 
-  open CMD, "-|", $SMS_DB_IMPORTER, "mms-hash", $subject, $body, @attFileList;
-  my $checksum = join '', <CMD>;
-  close CMD;
-  chomp $checksum;
+  my $checksum;
+  if($$opts{dryRun}){
+    $checksum = '0'x32;
+  }else{
+    open CMD, "-|", $SMS_DB_IMPORTER, "mms-hash", $subject, $body, @attFileList;
+    $checksum = join '', <CMD>;
+    close CMD;
+    chomp $checksum;
+  }
 
   if($checksum !~ /^[0-9a-f]{32}$/){
     die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER in:\n$srcDescription\n";
   }
 
   my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNumFmt}_${dir}_${checksum}";
-  run "mkdir", "-p", $mmsRepoDir;
+  run "mkdir", "-p", $mmsRepoDir unless $$opts{dryRun};
 
   for my $attFile(@attFileList){
-    run "cp", "-a", $attFile, "$mmsRepoDir/";
+    run "cp", "-a", $attFile, "$mmsRepoDir/" unless $$opts{dryRun};
   }
 
   my $info = ""
@@ -362,9 +384,11 @@ sub handleMMS($$$$){
   $info .= "checksum=$checksum\n";
 
   my $infoFile = "$mmsRepoDir/info";
-  open FH, "> $infoFile" or die "ERROR: could not write $infoFile\n$!\n";
-  print FH $info;
-  close FH;
+  if(not $$opts{dryRun}){
+    open FH, "> $infoFile" or die "ERROR: could not write $infoFile\n$!\n";
+    print FH $info;
+    close FH;
+  }
 }
 
 sub extractHarFile($){
