@@ -118,9 +118,11 @@ sub nowMillis();
 sub main(@){
   my $backupIndex;
   my $backupFile;
-  my $offsetMillis = 0;
   my $mode = $MODE_HAR;
   my $msgType = $MSG_TYPE_MMS;
+  my $opts = {
+    offsetMillis => 0,
+  };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -141,9 +143,9 @@ sub main(@){
     }elsif($arg =~ /^(-i|--indexeddb|--indexed-db)$/){
       $mode = $MODE_INDEXEDDB;
     }elsif($arg =~ /^--offset-hours=(-?\d+)$/){
-      $offsetMillis = $1*60*60*1000;
+      $$opts{offsetMillis} = $1*60*60*1000;
     }elsif($arg =~ /^--offset-millis=(-?\d+)$/){
-      $offsetMillis = $1;
+      $$opts{offsetMillis} = $1;
     }elsif($arg =~ /^--sms$/){
       $msgType = $MSG_TYPE_SMS;
     }else{
@@ -176,7 +178,7 @@ sub main(@){
     my @messages = parseIndexedDB($backupFile);
     my @mms = grep {$$_{type} eq "mms"} @messages;
     for my $mms(@mms){
-      handleMMS($myNum, $offsetMillis, "msgID=$$mms{msgID} in $backupFile", $mms);
+      handleMMS($opts, $myNum, "msgID=$$mms{msgID} in $backupFile", $mms);
     }
 
     print "\n\nWROTE " . (0+@mms) . " MMS MESSAGES\n";
@@ -219,7 +221,7 @@ sub main(@){
 
     for my $file(@mmsFiles){
       my $mms = parseMMSFile($file);
-      handleMMS($myNum, $offsetMillis, "mms file: $file", $mms);
+      handleMMS($opts, $myNum, "mms file: $file", $mms);
     }
 
     print "\n\nWROTE " . (0+@mmsFiles) . " MMS MESSAGES\n";
@@ -256,8 +258,8 @@ sub handleSMS(@){
 }
 
 sub handleMMS($$$$){
-  my ($myNum, $offsetMillis, $srcDescription, $mms) = @_;
-  my $msgDateMillis = $$mms{dtmMillis} + $offsetMillis;
+  my ($opts, $myNum, $srcDescription, $mms) = @_;
+  my $msgDateMillis = $$mms{dtmMillis} + $$opts{offsetMillis};
 
   if(not defined $$mms{dir}){
     $$mms{dir} = $$mms{from} eq $myNum ? "OUT" : "INC";
