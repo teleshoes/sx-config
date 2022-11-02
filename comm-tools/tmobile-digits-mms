@@ -75,7 +75,7 @@ my $USAGE = "Usage:
     -extract MMS json files from expanded har file
     (this is the default)
 
-  --indexeddb
+  -i | --indexeddb | --indexed-db
     -use backup dir: $BACKUP_DIR_INDEXEDDB
     -before selecting BACKUP_FILE by index, run:
       mv --no-clobber $DOWNLOADS_DIR/indexeddb*.json $BACKUP_DIR_INDEXEDDB
@@ -136,7 +136,7 @@ sub main(@){
       $mode = $MODE_INDEXEDDB;
     }elsif($arg =~ /^(--har)$/){
       $mode = $MODE_HAR;
-    }elsif($arg =~ /^(--indexeddb)$/){
+    }elsif($arg =~ /^(-i|--indexeddb|--indexed-db)$/){
       $mode = $MODE_INDEXEDDB;
     }elsif($arg =~ /^--offset-hours=(-?\d+)$/){
       $offsetMillis = $1*60*60*1000;
