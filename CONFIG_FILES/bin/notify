@@ -112,20 +112,20 @@ sub main(@){
       $mode = $MODE_CLEAR;
     }elsif($arg =~ /^(-a|-A|--app|--application)$/ and @_ > 0){
       $appName = shift;
-    }elsif($arg =~ /^(--app|--application)=(.+)$/){
+    }elsif($arg =~ /^(--app|--application)=(.*)$/){
       $appName = $2;
     }elsif($arg =~ /^(-e|--edit)$/){
       $edit = 1;
     }elsif($arg =~ /^(--body)$/ and @_ > 0){
       $mode = $MODE_ADD;
       $body = shift;
-    }elsif($arg =~ /^(--body)=(.+)$/){
+    }elsif($arg =~ /^(--body)=(.*)$/){
       $mode = $MODE_ADD;
       $body = $2;
     }elsif($arg =~ /^(--summary)$/ and @_ > 0){
       $mode = $MODE_ADD;
       $summary = shift;
-    }elsif($arg =~ /^(--summary)=(.+)$/){
+    }elsif($arg =~ /^(--summary)=(.*)$/){
       $mode = $MODE_ADD;
       $summary = $2;
     }elsif($arg =~ /^(-t|-T|--timeout)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
