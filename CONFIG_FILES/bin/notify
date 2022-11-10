@@ -3,12 +3,25 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub cacheID($$);
+sub getAllCachedIDs($);
+sub getLatestCachedID($);
+sub queryDBAllIDs($);
+sub queryDBLatestID($);
+sub createNotification($);
+sub updateNotification($$$$$);
+
 my $EXEC = basename $0;
 
 my $USER = "nemo";
 my $DB = "/home/$USER/.local/share/system/privileged/Notifications/notifications.db";
+my $ID_CACHE_DIR = "/home/$USER/.cache/notify-ids";
+
+my $DEFAULT_TIMEOUT_MILLIS = 1500;
+my $DEFAULT_APP_NAME = $EXEC;
 
 my $MODE_LIST = "list";
+my $MODE_ADD = "add";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -18,10 +31,65 @@ my $USAGE = "Usage:
   $EXEC -g|-l|--get|--list
     print notifications from $DB
     one per line, formatted \"<APPNAME>: <SUMMARY> - <BODY>\"
+
+  $EXEC [OPTS] MSG_WORD [MSG_WORD MSG_WORD]
+    same as: `$EXEC OPTS --add --body=\"MSG_WORD MSG_WORD MSG_WORD\"`
+    MSG_WORD cannot start with '-' (use --body if necessary)
+
+  $EXEC [OPTS] --add
+    -add notification using `notificationtool` with:
+      BODY=\"BODY_MSG\" #use --body to set
+      SUMMARY=\"SUMMARY_MSG\" #empty by default, use --summary to set)
+      --timeout=\"$DEFAULT_TIMEOUT_MILLIS\" (use -n for persistent)
+      APP_NAME=\"$DEFAULT_APP_NAME\"
+    -append the notification ID to:
+      $ID_CACHE_DIR/APP_NAME
+
+
+  OPTS
+    -a APP_NAME | -A APP_NAME
+    --app=APP_NAME | --app APP_NAME
+    --application=APP_NAME | --application APP_NAME
+      use APP_NAME=\"APP_NAME\"
+
+    -e | --edit
+      overwrite latest existing message OR create new message if none
+        -obtain NOTIFICATION_ID
+          -get the latest NOTIFICATION_ID from:
+            $ID_CACHE_DIR/APP_NAME
+          -if none exist, query the latest NOTIFICATION_ID with APP_NAME from:
+            $DB
+        -if NOTIFICATION_ID is found:
+          -use '-o update -i NOTIFICATION_ID' instead of '-o add'
+        -otherwise:
+          -has no effect, create message with '-o add' as usual
+
+    --body BODY_MSG | --body=BODY_MSG
+      use BODY=\"BODY_MSG\"
+      implies --add
+
+    --summary SUMMARY_MSG | --summary=SUMMARY_MSG
+      use SUMMARY=\"SUMMARY_MESSAGE\"
+      implies --add
+
+    -t TIMEOUT_MILLIS | -T TIMEOUT_MILLIS
+    --timeout=TIMEOUT_MILLIS | --timeout TIMEOUT_MILLIS
+      if TIMEOUT_MILLIS > 0:
+        use --timeout=TIMEOUT_MILLIS
+      if TIMEOUT_MILLIS <= 0:
+        do not pass any timeout arg
+
+    -n | --no-timeout
+      never timeout, same as: --timeout=0
 ";
 
 sub main(@){
   my $mode = $MODE_LIST;
+  my $body = "";
+  my $summary = "";
+  my $appName = $DEFAULT_APP_NAME;
+  my $timeoutMillis = $DEFAULT_TIMEOUT_MILLIS;
+  my $edit = 0;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -29,6 +97,36 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-g|-l|--get|--list)$/){
       $mode = $MODE_LIST;
+    }elsif($arg =~ /^(--add)$/){
+      $mode = $MODE_ADD;
+    }elsif($arg =~ /^(-a|-A|--app|--application)$/ and @_ > 0){
+      $appName = shift;
+    }elsif($arg =~ /^(--app|--application)=(.+)$/){
+      $appName = $2;
+    }elsif($arg =~ /^(-e|--edit)$/){
+      $edit = 1;
+    }elsif($arg =~ /^(--body)$/ and @_ > 0){
+      $mode = $MODE_ADD;
+      $body = shift;
+    }elsif($arg =~ /^(--body)=(.+)$/){
+      $mode = $MODE_ADD;
+      $body = $2;
+    }elsif($arg =~ /^(--summary)$/ and @_ > 0){
+      $mode = $MODE_ADD;
+      $summary = shift;
+    }elsif($arg =~ /^(--summary)=(.+)$/){
+      $mode = $MODE_ADD;
+      $summary = $2;
+    }elsif($arg =~ /^(-t|-T|--timeout)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
+      $timeoutMillis = shift;
+    }elsif($arg =~ /^(--timeout)=(\d+)$/){
+      $timeoutMillis = $1;
+    }elsif($arg =~ /^(-n|--no-timeout)$/){
+      $timeoutMillis = 0;
+    }elsif($arg !~ /^-/){
+      $mode = $MODE_ADD;
+      $body .= " " if length $body > 0;
+      $body .= $arg;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -43,8 +141,101 @@ sub main(@){
       . " from notifications"
       ;
     system "sudo", "sqlite3", "$DB", $sql;
+  }elsif($mode eq $MODE_ADD){
+    my $id;
+    if($edit){
+      $id = getLatestCachedID($appName) if not defined $id;
+      if(not defined $id){
+        $id = queryDBLatestID($appName) if not defined $id;
+        cacheID($appName, $id);
+      }
+    }
+
+    if(not defined $id){
+      $id = createNotification($appName);
+      cacheID($appName, $id);
+    }
+    my $newID = updateNotification($id, $appName, $summary, $body, $timeoutMillis);
+    if($id ne $newID){
+      cacheID($appName, $newID);
+    }
   }else{
     die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub cacheID($$){
+  my ($appName, $id) = @_;
+  my $cacheFile = "$ID_CACHE_DIR/$appName";
+  system "mkdir", "-p", $ID_CACHE_DIR;
+  open FH, ">>", $cacheFile or die "ERROR: could not write $cacheFile\n$!\n";
+  print FH "$id\n";
+  close FH;
+}
+
+sub getAllCachedIDs($){
+  my ($appName) = @_;
+  my $cacheFile = "$ID_CACHE_DIR/$appName";
+  if(not -f $cacheFile){
+    return ();
+  }
+  my @lines = `cat '$cacheFile'`;
+  chomp foreach @lines;
+  return grep {/^\d+$/} @lines;
+}
+sub getLatestCachedID($){
+  my ($appName) = @_;
+  my @ids = getAllCachedIDs($appName);
+  if(@ids == 0){
+    return undef;
+  }else{
+    return $ids[-1];
+  }
+}
+
+sub queryDBAllIDs($){
+  my ($appName) = @_;
+  my $sql = "select id from notifications where app_name = '$appName'";
+  my @lines = `sudo sqlite3 '$DB' "$sql"`;
+  chomp foreach @lines;
+  return grep {/^\d+$/} @lines;
+}
+sub queryDBLatestID($){
+  my ($appName) = @_;
+  my @ids = queryDBAllIDs($appName);
+  if(@ids == 0){
+    return undef;
+  }else{
+    return $ids[-1];
+  }
+}
+
+sub createNotification($){
+  my ($appName) = @_;
+  $appName =~ s/'/'\\''/g;
+  my $out = `notificationtool -A '$appName' -o add`;
+  if($out =~ /^Created notification with id (\d+)$/){
+    return $1;
+  }else{
+    die "ERROR: could not get notification ID\n";
+  }
+}
+
+sub updateNotification($$$$$){
+  my ($id, $appName, $summary, $body, $timeoutMillis) = @_;
+  my $cmd = "notificationtool"
+    . " -A '$appName'"
+    . " -o update"
+    . " -i $id"
+    . ($timeoutMillis > 0 ? " --timeout=$timeoutMillis" : "")
+    . " $summary"
+    . " $body"
+  ;
+  my $out = `$cmd`;
+  if($out =~ /^Created notification with id (\d+)$/){
+    return $1;
+  }else{
+    die "ERROR: could not get notification ID\n";
   }
 }
 
