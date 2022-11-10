@@ -170,6 +170,7 @@ sub main(@){
     if($id ne $newID){
       cacheID($appName, $newID);
     }
+    print "id=$newID\n";
   }elsif($mode eq $MODE_CLEAR){
     my @ids = (getAllCachedIDs($appName), queryDBAllIDs($appName));
     for my $id(@ids){
