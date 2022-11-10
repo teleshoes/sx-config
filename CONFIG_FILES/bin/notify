@@ -1,23 +1,26 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
 
 my $USER = "nemo";
 my $DB = "/home/$USER/.local/share/system/privileged/Notifications/notifications.db";
 
-my $usage = "Usage:
-  $0 -h|--help
+my $USAGE = "Usage:
+  $EXEC -h|--help
     show this message
 
-  $0
-  $0 -g|-l|--get|--list
+  $EXEC
+  $EXEC -g|-l|--get|--list
     print notifications from $DB
     one per line, formatted \"<APPNAME>: <SUMMARY> - <BODY>\"
 ";
 
 sub main(@){
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print $usage;
+    print $USAGE;
     exit 0;
   }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-g|-l|--get|--list)$/)){
     my $sql = ""
@@ -29,7 +32,7 @@ sub main(@){
       ;
     system "sudo", "sqlite3", "$DB", $sql;
   }else{
-    die $usage;
+    die $USAGE;
   }
 }
 
