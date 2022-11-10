@@ -10,6 +10,7 @@ sub queryDBAllIDs($);
 sub queryDBLatestID($);
 sub createNotification($);
 sub updateNotification($$$$$);
+sub removeNotification($);
 
 my $EXEC = basename $0;
 
@@ -22,6 +23,7 @@ my $DEFAULT_APP_NAME = $EXEC;
 
 my $MODE_LIST = "list";
 my $MODE_ADD = "add";
+my $MODE_CLEAR = "clear";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -45,6 +47,13 @@ my $USAGE = "Usage:
     -append the notification ID to:
       $ID_CACHE_DIR/APP_NAME
 
+  $0 [OPTS] --clear|--delete
+    -remove all NOTIFICATION_IDs in:
+      $ID_CACHE_DIR/APP_NAME
+    -remove all notifications with APP_NAME in:
+      $DB
+    -remove cache file:
+      $ID_CACHE_DIR/APP_NAME
 
   OPTS
     -a APP_NAME | -A APP_NAME
@@ -99,6 +108,8 @@ sub main(@){
       $mode = $MODE_LIST;
     }elsif($arg =~ /^(--add)$/){
       $mode = $MODE_ADD;
+    }elsif($arg =~ /^(--clear|--delete)$/){
+      $mode = $MODE_CLEAR;
     }elsif($arg =~ /^(-a|-A|--app|--application)$/ and @_ > 0){
       $appName = shift;
     }elsif($arg =~ /^(--app|--application)=(.+)$/){
@@ -159,6 +170,13 @@ sub main(@){
     if($id ne $newID){
       cacheID($appName, $newID);
     }
+  }elsif($mode eq $MODE_CLEAR){
+    my @ids = (getAllCachedIDs($appName), queryDBAllIDs($appName));
+    for my $id(@ids){
+      print "deleting id=$id\n";
+      removeNotification($id);
+    }
+    system "rm", "-f", "$ID_CACHE_DIR/$appName";
   }else{
     die "ERROR: unknown mode $mode\n";
   }
@@ -237,6 +255,11 @@ sub updateNotification($$$$$){
   }else{
     die "ERROR: could not get notification ID\n";
   }
+}
+
+sub removeNotification($){
+  my ($id) = @_;
+  system "notificationtool", "-o", "remove", "-i", $id;
 }
 
 &main(@ARGV);
