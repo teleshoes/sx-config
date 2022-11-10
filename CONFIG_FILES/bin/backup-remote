@@ -30,15 +30,12 @@ my %sqliteDbs = (
   contacts => "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite/contacts.db",
 );
 
-my $notificationIdsCache = "/home/$USER/.cache/backup-remote-notificationIds";
 my $lastSuccessFile = "/home/$USER/.cache/backup-last-success";
 
 sub ensureConnection($);
 sub getLocalPort($);
 sub getDCIMSummary($);
-sub createNotification();
 sub notificationMsg($$);
-sub removeNotification($);
 sub sshCmd($@);
 sub rsyncCmd($$$);
 sub readSecrets();
@@ -50,8 +47,6 @@ sub tryReadProcQuiet(@);
 sub nowHrMin();
 sub nowYMD_HMS_MILLIS();
 sub fail($);
-sub appendNotificationIdCache($);
-sub clearAllNotifications();
 
 sub main(@){
   run "date";
@@ -61,11 +56,10 @@ sub main(@){
 
   system "execPing";
 
-  my $id = createNotification();
-  appendNotificationIdCache($id);
+  notificationMsg 1, "";
 
   ######
-  notificationMsg $id, sprintf "BAK-CNXN: %s", nowHrMin();
+  notificationMsg 0, sprintf "BAK-CNXN: %s", nowHrMin();
   my $config = readSecrets();
   run "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
   run "screen-cmd", "revtun", "-r", "--unsafe", "--local";
@@ -74,7 +68,7 @@ sub main(@){
   ######
 
   ######
-  notificationMsg $id, sprintf "BAK-CELLID: %s", nowHrMin();
+  notificationMsg 0, sprintf "BAK-CELLID: %s", nowHrMin();
   my $opencellidFile = sprintf "/tmp/opencellid-geo-%s", nowYMD_HMS_MILLIS();
   system "opencellid-geo >$opencellidFile 2>&1";
   run rsyncCmd($config, $opencellidFile, "$BACKUP_DIR/opencellid-geo/");
@@ -83,7 +77,7 @@ sub main(@){
   ######
   for my $dcimDirName(sort keys %$dcimDirs){
     my $dcimDir = $$dcimDirs{$dcimDirName};
-    notificationMsg $id, sprintf "BAK-DCIM-$dcimDirName: %s %s",
+    notificationMsg 0, sprintf "BAK-DCIM-$dcimDirName: %s %s",
       getDCIMSummary($dcimDir), nowHrMin();
     run rsyncCmd($config, "$dcimDir/", "$BACKUP_DIR/DCIM/$dcimDirName/"),
       "--exclude=backup_*";
@@ -91,7 +85,7 @@ sub main(@){
   ######
 
   ######
-  notificationMsg $id, sprintf "BAK-DBS: %s", nowHrMin();
+  notificationMsg 0, sprintf "BAK-DBS: %s", nowHrMin();
   my $sqliteDbsDestDir = "/tmp/backup-sqlite-dbs";
   run "rm", "-rf", $sqliteDbsDestDir;
   run "mkdir", "-p", $sqliteDbsDestDir;
@@ -104,19 +98,19 @@ sub main(@){
   ######
 
   ######
-  notificationMsg $id, sprintf "BAK-MMS: %s", nowHrMin();
+  notificationMsg 0, sprintf "BAK-MMS: %s", nowHrMin();
   run rsyncCmd($config, "$mmsPartsDir/", "$BACKUP_DIR/mms-parts-dir/");
   ######
 
   ######
-  notificationMsg $id, sprintf "BAK-GPS: %s", nowHrMin();
+  notificationMsg 0, sprintf "BAK-GPS: %s", nowHrMin();
   my $gpsconFile = sprintf "/tmp/gpscon-%s", nowYMD_HMS_MILLIS();
   system "gpscon runs=1 dumps=2 tout=60 >$gpsconFile 2>&1";
   run rsyncCmd($config, $gpsconFile, "$BACKUP_DIR/gpscon/");
   ######
 
   ######
-  notificationMsg $id, sprintf "%28s", "b\@" . nowHrMin();
+  notificationMsg 0, sprintf "%28s", "b\@" . nowHrMin();
   run "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
   system "echo " . nowHrMin() . " > $lastSuccessFile";
   ######
@@ -196,23 +190,16 @@ sub getDCIMSummary($){
   return sprintf "%03dM %03df", $dcimSizeMiB, $dcimCount;
 }
 
-sub createNotification(){
-  my $out = `notificationtool -A backup -o add`;
-  if($out =~ /^Created notification with id (\d+)$/){
-    return $1;
-  }else{
-    print STDERR "could not get notification ID\n";
-    return 28758; #chosen by fair dice roll, guaranteed random
-  }
-}
 sub notificationMsg($$){
-  my ($id, $msg) = @_;
+  my ($forceNewMsg, $msg) = @_;
+  my @cmd = ("notify");
+  @cmd = (@cmd, "--app=backup");
+  @cmd = (@cmd, "--no-timeout");
+  @cmd = (@cmd, "--edit") unless $forceNewMsg;
+  @cmd = (@cmd, "--body=$msg");
+
+  system @cmd;
   print "\n$msg\n";
-  system "notificationtool", "-A", "backup", "-o", "update", "-i", $id, $msg;
-}
-sub removeNotification($){
-  my ($id) = @_;
-  system "notificationtool", "-o", "remove", "-i", $id;
 }
 
 sub sshCmd($@){
@@ -297,28 +284,13 @@ sub fail($){
 
   my $lastSuccess = `cat $lastSuccessFile 2>/dev/null`;
   my $now = nowHrMin;
-  my $id = createNotification();
-  notificationMsg $id, sprintf "BACKUP FAILED %s (%s)", $now, $lastSuccess;
-
-  appendNotificationIdCache($id);
+  notificationMsg 1, sprintf "BACKUP FAILED %s (%s)", $now, $lastSuccess;
 
   die "$msg\n";
 }
 
-sub appendNotificationIdCache($){
-  my ($id) = @_;
-  open FH, ">> $notificationIdsCache"
-    or print STDERR "ERROR: could not write to $notificationIdsCache\n$!\n";
-  print FH "$id\n";
-  close FH;
-}
-
 sub clearAllNotifications(){
-  my @ids = `cat $notificationIdsCache 2>/dev/null`;
-  system "rm", $notificationIdsCache;
-  for my $id(@ids){
-    removeNotification($id);
-  }
+  system "notify", "--clear", "--app=backup";
 }
 
 &main(@ARGV);
