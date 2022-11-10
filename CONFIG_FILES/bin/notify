@@ -90,6 +90,9 @@ my $USAGE = "Usage:
 
     -n | --no-timeout
       never timeout, same as: --timeout=0
+
+    -v | --verbose
+      print notification IDs and other info
 ";
 
 sub main(@){
@@ -99,6 +102,7 @@ sub main(@){
   my $appName = $DEFAULT_APP_NAME;
   my $timeoutMillis = $DEFAULT_TIMEOUT_MILLIS;
   my $edit = 0;
+  my $verbose = 1;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -134,6 +138,8 @@ sub main(@){
       $timeoutMillis = $1;
     }elsif($arg =~ /^(-n|--no-timeout)$/){
       $timeoutMillis = 0;
+    }elsif($arg =~ /^(-v|--verbose)$/){
+      $verbose = 1;
     }elsif($arg !~ /^-/){
       $mode = $MODE_ADD;
       $body .= " " if length $body > 0;
@@ -155,22 +161,31 @@ sub main(@){
   }elsif($mode eq $MODE_ADD){
     my $id;
     if($edit){
-      $id = getLatestCachedID($appName) if not defined $id;
-      if(not defined $id){
-        $id = queryDBLatestID($appName) if not defined $id;
-        cacheID($appName, $id);
+      $id = getLatestCachedID($appName);
+      if(defined $id){
+        print "using cached id: $id\n" if $verbose;
+      }else{
+        $id = queryDBLatestID($appName);
+        if(defined $id){
+          print "using id from database: $id\n" if $verbose;
+          cacheID($appName, $id);
+          print "cached ID: $id\n" if $verbose;
+        }
       }
     }
 
     if(not defined $id){
       $id = createNotification($appName);
+      print "created new ID: $id\n" if $verbose;
+      print "cached ID: $id\n" if $verbose;
       cacheID($appName, $id);
     }
     my $newID = updateNotification($id, $appName, $summary, $body, $timeoutMillis);
+    print "updated msg ID: $newID\n" if $verbose;
     if($id ne $newID){
       cacheID($appName, $newID);
+      print "cached ID: $newID\n" if $verbose;
     }
-    print "id=$newID\n";
   }elsif($mode eq $MODE_CLEAR){
     my @ids = (getAllCachedIDs($appName), queryDBAllIDs($appName));
     for my $id(@ids){
