@@ -8,6 +8,8 @@ my $EXEC = basename $0;
 my $USER = "nemo";
 my $DB = "/home/$USER/.local/share/system/privileged/Notifications/notifications.db";
 
+my $MODE_LIST = "list";
+
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
@@ -19,10 +21,20 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print $USAGE;
-    exit 0;
-  }elsif(@_ == 0 or (@_ == 1 and $_[0] =~ /^(-g|-l|--get|--list)$/)){
+  my $mode = $MODE_LIST;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|-l|--get|--list)$/){
+      $mode = $MODE_LIST;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($mode eq $MODE_LIST){
     my $sql = ""
       . "select"
       . " app_name"
@@ -32,7 +44,7 @@ sub main(@){
       ;
     system "sudo", "sqlite3", "$DB", $sql;
   }else{
-    die $USAGE;
+    die "ERROR: unknown mode $mode\n";
   }
 }
 
