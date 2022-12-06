@@ -102,7 +102,7 @@ sub main(@){
   my $appName = $DEFAULT_APP_NAME;
   my $timeoutMillis = $DEFAULT_TIMEOUT_MILLIS;
   my $edit = 0;
-  my $verbose = 1;
+  my $verbose = 0;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
