@@ -258,6 +258,7 @@ sub main(@){
       push @extraEventArgs, "reminder";
       push @extraEventArgs, "boot";
       push @extraEventArgs, "keepAlive";
+      push @extraEventArgs, "alignedSnooze";
     }elsif($arg =~ /^--title=(.+)$/){
       $title = $1;
     }elsif($arg =~ /^--cmd=(.*)$/){
