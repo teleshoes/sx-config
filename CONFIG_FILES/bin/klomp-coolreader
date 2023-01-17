@@ -22,7 +22,7 @@ my $COOLREADER_LOGCAT_EVENT_REGEX_FMT = join '', map{
 
 my $USAGE = "Usage:
   $EXEC -g|--get
-    -if `$EXEC --is-tts-running` = 'YES'
+    -if `$EXEC --is-tts-running` = 'yes'
      AND `$EXEC --get-cr-event` = 'TTS_CREATE':
        -print \"coolreader\"
     -otherwise:
