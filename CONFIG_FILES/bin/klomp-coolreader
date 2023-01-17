@@ -126,10 +126,7 @@ sub coolreaderToggle(){
 }
 
 sub isCoolreaderMode(){
-  return 0 if not isCoolreaderRunning();
-  return 0 if not isTTSRunning();
-  return 0 if not isTTSCreatedState();
-  return 1;
+  return isCoolreaderRunning() && isTTSRunning() && isTTSCreatedState();
 }
 
 sub isCoolreaderRunning(){
