@@ -107,11 +107,7 @@ sub main(@){
   }elsif($cmd eq $CMD_COOLREADER_TOGGLE){
     coolreaderToggle();
   }elsif($cmd eq $CMD_IS_TTS_RUNNING){
-    if(isTTSRunning()){
-      print "yes\n";
-    }else{
-      print "no\n";
-    }
+    print isTTSRunning() ? "yes\n" : "no\n";
   }elsif($cmd eq $CMD_GET_CR_EVENT){
     my $pid = getCoolreaderAndroidPID();
     my $event;
