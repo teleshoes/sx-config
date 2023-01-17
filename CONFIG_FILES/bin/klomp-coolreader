@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 my $EXEC = basename $0;
+my $CR_PROC_REGEX = "(org.coolreader)";
 my $TTS_PROC_REGEX = "(com.google.android.tts|com.ivona.tts)";
 my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
 my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
@@ -22,7 +23,8 @@ my $COOLREADER_LOGCAT_EVENT_REGEX_FMT = join '', map{
 
 my $USAGE = "Usage:
   $EXEC -g|--get
-    -if `$EXEC --is-tts-running` = 'yes'
+    -if `$EXEC --is-cr-running` = 'yes'
+     AND `$EXEC --is-tts-running` = 'yes'
      AND `$EXEC --get-cr-event` = 'TTS_CREATE':
        -print \"coolreader\"
     -otherwise:
@@ -39,6 +41,12 @@ my $USAGE = "Usage:
       run: @COOLREADER_TOGGLE_CMD
     -otherwise:
       run: sudo pkill -9 -f $TTS_PROC_REGEX
+
+  $EXEC --is-cr-running
+    -if `pgrep -f '^$CR_PROC_REGEX\\s*\$'` is successful:
+      print \"yes\"
+    -otherwise:
+      print \"no\"
 
   $EXEC --is-tts-running
     -if `pgrep -f '^$TTS_PROC_REGEX\\s*\$'` is successful:
@@ -59,10 +67,12 @@ my $USAGE = "Usage:
 my $CMD_GET = "get";
 my $CMD_PLAY_PAUSE = "play-pause";
 my $CMD_COOLREADER_TOGGLE = "coolreader-toggle";
+my $CMD_IS_CR_RUNNING = "is-cr-running";
 my $CMD_IS_TTS_RUNNING = "is-tts-running";
 my $CMD_GET_CR_EVENT = "get-cr-event";
 
 sub isCoolreaderMode();
+sub isCoolreaderRunning();
 sub isTTSRunning();
 sub getCoolreaderAndroidPID();
 sub getLastCoolreaderLogcatEvent($);
@@ -81,6 +91,8 @@ sub main(@){
       $cmd = $CMD_PLAY_PAUSE;
     }elsif($arg =~ /^(--coolreader-toggle)$/){
       $cmd = $CMD_COOLREADER_TOGGLE;
+    }elsif($arg =~ /^(--is-cr-running)$/){
+      $cmd = $CMD_IS_CR_RUNNING;
     }elsif($arg =~ /^(--is-tts-running)$/){
       $cmd = $CMD_IS_TTS_RUNNING;
     }elsif($arg =~ /^(--get-cr-event)$/){
@@ -106,6 +118,8 @@ sub main(@){
     }
   }elsif($cmd eq $CMD_COOLREADER_TOGGLE){
     coolreaderToggle();
+  }elsif($cmd eq $CMD_IS_CR_RUNNING){
+    print isCoolreaderRunning() ? "yes\n" : "no\n";
   }elsif($cmd eq $CMD_IS_TTS_RUNNING){
     print isTTSRunning() ? "yes\n" : "no\n";
   }elsif($cmd eq $CMD_GET_CR_EVENT){
@@ -129,6 +143,7 @@ sub coolreaderToggle(){
 }
 
 sub isCoolreaderMode(){
+  return 0 if not isCoolreaderRunning();
   return 0 if not isTTSRunning();
 
   my $pid = getCoolreaderAndroidPID();
@@ -140,6 +155,11 @@ sub isCoolreaderMode(){
   return 1 if $event eq "TTS_CREATE";
 
   return 0;
+}
+
+sub isCoolreaderRunning(){
+  system "pgrep -f '^$CR_PROC_REGEX\\s*\$' >/dev/null 2>/dev/null";
+  return $? == 0 ? 1 : 0;
 }
 
 sub isTTSRunning(){
