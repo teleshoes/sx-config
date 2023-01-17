@@ -62,7 +62,7 @@ my $CMD_COOLREADER_TOGGLE = "coolreader-toggle";
 my $CMD_IS_TTS_RUNNING = "is-tts-running";
 my $CMD_GET_CR_EVENT = "get-cr-event";
 
-sub isCoolreader();
+sub isCoolreaderMode();
 sub isTTSRunning();
 sub getCoolreaderAndroidPID();
 sub getLastCoolreaderLogcatEvent($);
@@ -93,13 +93,13 @@ sub main(@){
   die "$USAGE\nERROR: missing command\n" if not defined $cmd;
 
   if($cmd eq $CMD_GET){
-    if(isCoolreader()){
+    if(isCoolreaderMode()){
       print "coolreader\n";
     }else{
       print "klomp\n";
     }
   }elsif($cmd eq $CMD_PLAY_PAUSE){
-    if(isCoolreader()){
+    if(isCoolreaderMode()){
       coolreaderToggle();
     }else{
       system @KLOMP_TOGGLE_CMD;
@@ -132,7 +132,7 @@ sub coolreaderToggle(){
   }
 }
 
-sub isCoolreader(){
+sub isCoolreaderMode(){
   return 0 if not isTTSRunning();
 
   my $pid = getCoolreaderAndroidPID();
