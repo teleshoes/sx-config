@@ -15,6 +15,7 @@ my $REMOTE_DB_PATH = "/home/$USER/.local/share/com.jolla/notes/QML/OfflineStorag
 
 my $BACKUP_NOTES_DB_DIR = "$ENV{HOME}/Code/sx/backup/backup-notes-db/";
 my $BACKUP_NOTES_CSV_FILE = "$ENV{HOME}/Code/sx/backup/backup-notes.csv";
+my $BACKUP_NOTES_CSV_REMOTE_FILE = "/media/sdcard/phone/backup-notes.csv";
 
 my $USAGE = "Usage:
   $0 -h | --help
@@ -64,6 +65,12 @@ sub main(@){
   }
 
   writeNotesBackup($notes);
+
+  print "copying the CSV backup to remote\n";
+  system "rsync", "-avP",
+    $BACKUP_NOTES_CSV_FILE,
+    "$USER\@$host:$BACKUP_NOTES_CSV_REMOTE_FILE",
+  ;
 }
 
 sub readNotesDB($){
