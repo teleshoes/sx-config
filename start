@@ -24,7 +24,8 @@
 # settings -> developer tools -> set password for ssh and root acccess -> d -> save
 # settings -> developer tools -> show reboot option on top menu #for convenience only, setup-dconf
 
-# ipmagic sx -t IPADDRESS # until icmp rules written in config files and reboot
+# #necessary for some older versions of SFOS:
+# #ipmagic sx -t IPADDRESS # until icmp rules written in config files and reboot
 
 ###################
 # ipmagic sx -s
