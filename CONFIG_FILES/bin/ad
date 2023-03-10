@@ -216,8 +216,9 @@ sub main(@){
     lxcShell($shellEnvWrapper, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
-    system "sudo", "apkd-install-preload", @apkFileArgs;
-    system "sudo", "apkd-install", @apkFileArgs;
+    my $envArgs = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
+    system "sudo", "sh", "-c", "$envArgs apkd-install-preload @apkFileArgs";
+    system "sudo", "sh", "-c", "$envArgs apkd-install @apkFileArgs";
   }elsif($mode eq $MODE_UNINSTALL){
     die "$USAGE\nError: no APK_FILE to uninstall\n" if @apkFileArgs == 0;
     for my $apkFile(@apkFileArgs){
