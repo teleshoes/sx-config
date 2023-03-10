@@ -41,6 +41,8 @@
 
 ./setup-dns #dnsmasq is probably the culprit, so disable it forever
 
+./install-packages removals #for GNU bash immediately
+
 ./install-chum
 
 ./install-packages
