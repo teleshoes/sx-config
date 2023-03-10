@@ -474,21 +474,35 @@ sub escapeStr($){
 sub parseIndexedDB($){
   my ($dbFile) = @_;
   my $json = `cat $dbFile`;
-  my @values = eval {
+  my @jsonChannelEntriesData = eval {
     my $obj = decode_json($json);
     my $db = ${$obj}[0];
     my $channel_entries = ${$$db{stores}}[0];
     if($$channel_entries{name} ne "channel_entries"){
       die "first store is not channel_entries";
     }
-    my @entries = @{$$channel_entries{data}};
-    my @entryVals = map {$$_{value}} @entries;
-    return @entryVals;
+    return @{$$channel_entries{data}};
   };
-  die "ERROR: failed to parse $dbFile\n$@" if @values == 0;
+  die "ERROR: failed to parse $dbFile\n$@" if @jsonChannelEntriesData == 0;
+
+  my %keyVals;
+  my @keyOrder;
+  for my $dataPair(@jsonChannelEntriesData){
+    my $key = $$dataPair{key};
+    my $val = $$dataPair{value};
+    if(not defined $key or not defined $val){
+      die "ERROR: malformed channel entry data pair in $dbFile\n"
+    }
+    if(defined $keyVals{$key}){
+      die "ERROR: duplicate key $key in $dbFile\n";
+    }
+    $keyVals{$key} = $val;
+    push @keyOrder, $key;
+  }
 
   my @messages;
-  for my $val(@values){
+  for my $key(@keyOrder){
+    my $val = $keyVals{$key};
     my $msg = {
       type        => undef,  #'sms' or 'mms' or 'call'
       from        => undef,
