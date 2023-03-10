@@ -4,6 +4,7 @@ use warnings;
 
 sub readProxyCache();
 sub updateProxyCache();
+sub deleteProxyCache();
 sub resetProxyCache();
 sub parseContexts();
 sub getContextNames();
@@ -33,7 +34,7 @@ my $CFG = {
     Username             => "",
     Password             => "",
     MessageProxy         => "<PROXY>",
-    MessageCenter        => "http://<PROXY>/mms/wapenc",
+    MessageCenter        => "http://<PROXY_OR_MMS_HOST>/mms/wapenc",
   },
 };
 
@@ -63,7 +64,13 @@ my $USAGE = "Usage:
     print APN+MMS settings
 
   $0 -s|--set
-    set APN+MMS settings (use <PROXY> in $MMS_PROXY_CACHE_FILE)
+    set APN+MMS settings
+      -use <PROXY> in $MMS_PROXY_CACHE_FILE
+      -if $MMS_PROXY_CACHE_FILE does not exist or is invalid:
+        remove MessageProxy and use $MMS_HOST
+
+  $0 -d|--delete-proxy
+    remove proxy, and use $MMS_HOST
 
   $0 -u|--update-proxy
     ping $MMS_HOST and put address in $MMS_PROXY_CACHE_FILE
@@ -76,6 +83,7 @@ my $USAGE = "Usage:
 
 my $MODE_GET = "get";
 my $MODE_SET = "set";
+my $MODE_DELETE_PROXY = "delete-proxy";
 my $MODE_UPDATE_PROXY = "update-proxy";
 my $MODE_RESET_PROXY = "reset-proxy";
 
@@ -90,6 +98,8 @@ sub main(@){
       $mode = $MODE_GET;
     }elsif($arg =~ /^(-s|--set)$/){
       $mode = $MODE_SET;
+    }elsif($arg =~ /^(-d|--delete-proxy)$/){
+      $mode = $MODE_DELETE_PROXY;
     }elsif($arg =~ /^(-u|--update-proxy)$/){
       $mode = $MODE_UPDATE_PROXY;
     }elsif($arg =~ /^(-r|--reset-proxy)$/){
@@ -114,7 +124,8 @@ sub main(@){
     my $replacementsByType = {
       "internet" => {},
       "mms" => {
-        "<PROXY>" => $proxy,
+        "<PROXY>" => defined $proxy ? $proxy : "",
+        "<PROXY_OR_MMS_HOST>" => (defined $proxy ? $proxy : $MMS_HOST),
       },
     };
 
@@ -153,6 +164,8 @@ sub main(@){
     }else{
       print "\n\ncontexts updated:\n$diff\n";
     }
+  }elsif($mode eq $MODE_DELETE_PROXY){
+    deleteProxyCache();
   }elsif($mode eq $MODE_UPDATE_PROXY){
     updateProxyCache();
   }elsif($mode eq $MODE_RESET_PROXY){
@@ -168,8 +181,11 @@ sub readProxyCache(){
   if($proxy =~ /^(\d+\.\d+\.\d+\.\d+)$/){
     return $1;
   }else{
-    return $MMS_DEFAULT_PROXY;
+    return undef;
   }
+}
+sub deleteProxyCache(){
+  system "sudo", "rm", "-f", $MMS_PROXY_CACHE_FILE;
 }
 sub updateProxyCache(){
   my $proxy = getIP($MMS_HOST);
