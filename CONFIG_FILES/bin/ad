@@ -7,6 +7,7 @@ sub lxcShell($@);
 sub getApksForPrefix($);
 sub getRes();
 sub parseScreenDimArg($$);
+sub isExecOnPath($);
 
 my $EXEC = basename $0;
 
@@ -21,6 +22,8 @@ my $SHELL_ENV_VARS_SH_FMT = join " ", map{"$_=$SHELL_ENV_VARS{$_}"}
 my $SHELL_ENV_VARS_USAGE_FMT = join " \\\n            ", map{"$_=$SHELL_ENV_VARS{$_}"}
   sort keys %SHELL_ENV_VARS;
 
+my $DEFAULT_ATTACH_CMD = "appsupport-attach";
+
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
@@ -33,14 +36,14 @@ my $USAGE = "Usage:
   $EXEC
   $EXEC -x|x
   $EXEC --shell|shell
-    run: sudo lxc-attach --name=aliendalvik
+    run: sudo LXC_ATTACH_CMD --name=aliendalvik
 
   $EXEC -x|x CMD_ARG CMD_ARG
-    run: sudo lxc-attach --name=aliendalvik -- CMD_ARG CMD_ARG CMD_ARG..
+    run: sudo LXC_ATTACH_CMD --name=aliendalvik -- CMD_ARG CMD_ARG CMD_ARG..
 
   $EXEC CMD_ARG CMD_ARG...
   $EXEC --shell|shell CMD_ARG CMD_ARG...
-    run: sudo lxc-attach --name=aliendalvik -- sh -c '
+    run: sudo LXC_ATTACH_CMD --name=aliendalvik -- sh -c '
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
 
@@ -119,6 +122,10 @@ my $USAGE = "Usage:
 
   $EXEC settings|--settings
     same as: $EXEC --intent=com.android.settings/.Settings
+
+  LXC_ATTACH_CMD
+    appsupport-attach if it exists
+    lxc-attach otherwise
 ";
 
 my $MODE_SHELL = "shell";
@@ -279,12 +286,20 @@ sub main(@){
 
 sub lxcShell($@){
   my ($shellEnvWrapper, @shellCmd) = @_;
-  my @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik");
+  my $useAppSupportAttach = isExecOnPath("appsupport-attach");
+
+  my @cmd;
+  if($useAppSupportAttach){
+    @cmd = ("sudo", "appsupport-attach");
+  }else{
+    @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik", "--");
+  }
+
   if(@shellCmd > 0 and $shellEnvWrapper){
-    @cmd = (@cmd, "--", "sh", "-c", "$SHELL_ENV_VARS_SH_FMT @shellCmd");
+    @cmd = (@cmd, "sh", "-c", "$SHELL_ENV_VARS_SH_FMT @shellCmd");
     print "@cmd\n";
   }else{
-    @cmd = (@cmd, "--", @shellCmd);
+    @cmd = (@cmd, @shellCmd);
   }
   system @cmd;
 }
@@ -311,6 +326,16 @@ sub parseScreenDimArg($$){
   }elsif($arg =~ /^(\d+|\d*\.\d+)%$/){
     die "ERROR: missing screen dimension\n" if not defined $screenDimSize;
     return int($1/100.0*$screenDimSize + 0.5);
+  }
+}
+
+sub isExecOnPath($){
+  my ($exec) = @_;
+  my $out = `which $exec 2>/dev/null`;
+  if($out =~ /^\/.*$exec$/){
+    return 1;
+  }else{
+    return 0;
   }
 }
 
