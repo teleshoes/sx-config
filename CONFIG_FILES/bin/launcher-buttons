@@ -106,6 +106,7 @@ my @config = qw(
   youtube-vanced-mgr
 
   android-settings
+  tmobile-digits
 );
 
 my @unused = qw(
@@ -118,7 +119,6 @@ my @unused = qw(
   sailfish-captiveportal
   vpnc-import
   google-tts
-  tmobile-digits
   vanced-microg
   ivona-tts
   ivona-tts-amy
