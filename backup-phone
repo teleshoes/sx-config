@@ -24,6 +24,7 @@ sub main(@){
   backup "backup-notes";
   backup "backup-klomp-lists";
   backup "cleanup-backups";
+  backup "backup-tmobile-digits";
   backup "backup-comm";
 }
 
