@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Encode qw(encode decode);
+use File::Basename qw(basename);
 use Time::HiRes qw(time);
 use JSON qw(decode_json encode_json);
 use Try::Tiny;
@@ -529,7 +530,7 @@ sub parseIndexedDB($){
     my $contentType = $$val{entry}{contentType};
     if($entryType =~ /^(message)$/ and $contentType =~ /^text\/plain$/){
       $$msg{type} = "sms";
-    }elsif($entryType =~ /^(message|file)$/ and $contentType =~ /^Message\/CPIM$/){
+    }elsif($entryType =~ /^(message|file)$/ and $contentType =~ /(Message\/CPIM|multipart)/){
       $$msg{type} = "mms";
     }elsif($entryType =~ /^(callLog)/){
       $$msg{type} = "call";
@@ -565,7 +566,22 @@ sub parseIndexedDB($){
 
     $$msg{callDur} = $$val{entry}{callDuration};
 
+    my $manualFileAttDir = "$BACKUP_DIR_INDEXEDDB/manual-file-attachment-blobs/$key";
+    my @manualFileAtts = grep {-f $_} glob "$manualFileAttDir/*";
+
     my @files;
+    if(@manualFileAtts > 0){
+      for my $file(@manualFileAtts){
+        my $filename = basename $file;
+        my $base64File = `base64 -w 0 "$file"`;
+        chomp $base64File;
+        push @files, {
+          filename => $filename,
+          base64File => $base64File,
+        };
+      }
+    }
+
     if(defined $$val{data}){
       push @files, $$val{data};
     }
