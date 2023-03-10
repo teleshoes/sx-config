@@ -13,6 +13,8 @@ my @HOME_RSYNC_FILES = qw(
   .profile
   .secrets
   .vimrc
+  wifi.conf
+  wifi-auto.conf
 
   .config/tasmota.conf
   .config/wemo-devices.conf
