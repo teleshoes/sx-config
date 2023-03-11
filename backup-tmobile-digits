@@ -43,7 +43,7 @@ sub main(@){
   my $nowMillis = nowMillis();
   my $dtm = `date +%Y-%m-%d_%H%M%S`;
   chomp $dtm;
-  my $db = "$BACKUP_DIGITS_DB_DIR/messages_repository_${dtm}_${nowMillis}.sqlite";
+  my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_messages_repository.sqlite";
   system "rsync", "-avP", "root\@$host:$REMOTE_DIGITS_DB_FILE", $db;
 
   my $attsDir = "$BACKUP_DIGITS_ATT_FILES_BASE_DIR/${dtm}_${nowMillis}";
