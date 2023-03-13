@@ -60,11 +60,11 @@ sub main(@){
     my $fileIdName = getFileIdName($relFile, md5($file));
     my $dest = "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/$fileIdName";
 
-    system "rsync -avP \"$file\" $dest";
+    system "rsync", "-avP", $file, $dest;
 
     system "rm", $file;
     system "ln", "-s", $dest, $file;
-    system "touch -h -r $dest $file";
+    system "touch", "-h", "-r", $dest, $file;
   }
 
   system "cd $BACKUP_DIGITS_ATT_FILES_REPO_DIR && git add -A && git commit -m 'automatic commit'";
