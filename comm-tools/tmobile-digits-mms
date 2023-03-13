@@ -17,6 +17,7 @@ my $MMS_PARTS_REPO       = "$ENV{HOME}/Code/sx/backup/backup-mms/parts-repo";
 
 my $BACKUP_DIR_INDEXEDDB = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/indexeddb";
 my $BACKUP_DIR_HAR       = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/har";
+my $BACKUP_DIR_ANDROID   = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/android";
 
 my $ADD_COMM_TO_REPO_CMD = "$ENV{HOME}/Code/sx/comm-tools/add-comm-to-repo.pl";
 
@@ -26,6 +27,7 @@ my $PICNAME_CMD = "picname";
 
 my $MODE_HAR = "har";
 my $MODE_INDEXEDDB = "indexedDB";
+my $MODE_ANDROID = "android";
 my $MODE_REORGANIZE = "reorganize";
 
 my $MSG_TYPE_MMS = "mms";
@@ -53,6 +55,7 @@ my $USAGE = "Usage:
   $0 [OPTS] -b | --reorganze-backups
     -run: $REORGANIZE_CMD_HAR
     -run: $REORGANIZE_CMD_INDEXEDDB
+    -(no reorganize is needed for android backups)
     -print the latest BACKUP_FILE for har and indexeddb
 
   $0 [OPTS] -l | --latest
@@ -94,6 +97,13 @@ my $USAGE = "Usage:
       $REORGANIZE_CMD_INDEXEDDB
     -treat selected BACKUP_FILE as a IndexedDBEdit JSON file
     -extract MMS messages directly from the IndexedDB
+
+  -a | --android
+    -use backup dir: $BACKUP_DIR_ANDROID/db
+    -use files in: $BACKUP_DIR_ANDROID/att-files
+    -(no reorganize is needed for android backups)
+    -treat selected BACKUP_FILE as a DIGITS android app messages_repository.sqlite DB
+    -extract MMS messages from DB, using att files in $BACKUP_DIR_ANDROID/att-files
 
   --sms
     skip MMS parsing, and parse SMS instead
@@ -164,6 +174,8 @@ sub main(@){
       $mode = $MODE_HAR;
     }elsif($arg =~ /^(-i|--indexeddb|--indexed-db)$/){
       $mode = $MODE_INDEXEDDB;
+    }elsif($arg =~ /^(-a|--android)$/){
+      $mode = $MODE_ANDROID;
     }elsif($arg =~ /^--offset-hours=(-?\d+)$/){
       $$opts{offsetMillis} = $1*60*60*1000;
     }elsif($arg =~ /^--offset-millis=(-?\d+)$/){
@@ -180,11 +192,12 @@ sub main(@){
   my $myNum = `cat $MY_NUMBER_FILE`;
   chomp $myNum;
   $myNum = cleanNumber($myNum);
-  if($mode eq $MODE_INDEXEDDB or $mode eq $MODE_HAR){
+  if($mode =~ /^($MODE_HAR|$MODE_INDEXEDDB|$MODE_ANDROID)$/){
     if($myNum !~ /^\d{10}$/){
       die "ERROR: could not parse $MY_NUMBER_FILE\n";
     }
   }
+  my $androidAttFilesDir;
 
   if(not defined $backupFile and defined $backupIndex){
     if($mode eq $MODE_HAR){
@@ -196,10 +209,23 @@ sub main(@){
         run $REORGANIZE_CMD_INDEXEDDB;
       }
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_INDEXEDDB, "indexeddb*.json");
+    }elsif($mode eq $MODE_ANDROID){
+      $backupFile = getBackupFile($backupIndex, "$BACKUP_DIR_ANDROID/db", "*messages_repository.sqlite");
     }
   }
-  if($mode eq $MODE_INDEXEDDB or $mode eq $MODE_HAR){
+  if($mode =~ /^($MODE_HAR|$MODE_INDEXEDDB|$MODE_ANDROID)$/){
     die "$USAGE\nERROR: no BACKUP_FILE given\n" if not defined $backupFile;
+  }
+
+  if($mode eq $MODE_ANDROID){
+    if($backupFile =~ /(?:^|\/)(\d\d\d\d-\d\d-\d\d_\d\d\d\d\d\d_\d+)_messages_repository\.sqlite$/){
+      my $backupName = $1;
+      my @dirs = grep {-d $_} glob "$BACKUP_DIR_ANDROID/att-files/*$backupName*";
+      $androidAttFilesDir = @dirs > 0 ? $dirs[0] : undef;
+    }
+    if(not defined $androidAttFilesDir){
+      die "ERROR: no android att-files dir found for $backupFile\n";
+    }
   }
 
   if($mode eq $MODE_REORGANIZE){
@@ -261,6 +287,33 @@ sub main(@){
     my $wrote = $$opts{dryRun} ? "DRY-RUN-DID-NOT-WRITE" : "WROTE";
     print "\n\n$wrote " . (0+@mmsFiles) . " MMS MESSAGES\n";
     print $INSTRUCTIONS;
+  }elsif($mode eq $MODE_ANDROID and $msgType eq $MSG_TYPE_MMS){
+    my @messages = parseAndroid($backupFile, $androidAttFilesDir, $myNum);
+    my @mms = grep {$$_{type} eq "mms"} @messages;
+    for my $mms(@mms){
+      handleMMS($opts, $myNum, "msgID=$$mms{msgID} in $backupFile", $mms);
+    }
+
+    my $wrote = $$opts{dryRun} ? "DRY-RUN-DID-NOT-WRITE" : "WROTE";
+    print "\n\n$wrote " . (0+@mms) . " MMS MESSAGES\n";
+    print $INSTRUCTIONS;
+  }elsif($mode eq $MODE_ANDROID and $msgType eq $MSG_TYPE_SMS){
+    my @messages = parseAndroid($backupFile, $androidAttFilesDir, $myNum);
+    my @sms;
+    for my $msg(@messages){
+      next if $$msg{type} ne "sms";
+      my $body = formatSMSBodyForCSV($$msg{body});
+
+      push @sms, {
+        date     => $$msg{dtmMillis},
+        dateSent => $$msg{dtmMillis},
+        dir      => $$msg{dir},
+        from     => $$msg{from},
+        to       => ${$$msg{toNums}}[0],
+        body     => $body,
+      };
+    }
+    handleSMS($opts, @sms);
   }else{
     die "ERROR: unknown mode/msgType $mode/$msgType\n";
   }
@@ -617,6 +670,120 @@ sub parseIndexedDB($){
         attContents => decodeBase64($fileContents),
       };
       push @{$$msg{atts}}, $att;
+    }
+
+    push @messages, $msg;
+  }
+
+  return @messages;
+}
+
+sub parseAndroid($$$){
+  my ($dbFile, $attFilesDir, $myNum) = @_;
+  my @messages;
+  my $json = `sqlite3 \"$dbFile\" -json \"select * from common\"`;
+  my @messageObjList = @{decode_json $json};
+  for my $msgObj(@messageObjList){
+    my $msg = {
+      type        => undef,  #'sms' or 'mms' or 'call'
+      from        => undef,
+      toNums      => [],
+      dir         => undef,
+      dtm         => undef,
+      body        => undef,
+      subject     => undef,
+      textAttName => "text",
+      atts        => [],
+      msgID       => undef,
+      callDur     => undef,
+    };
+
+    $$msg{body} = $$msgObj{message_body};
+    $$msg{subject} = $$msgObj{message_subject};
+    $$msg{subject} = "NoSubject" if $$msg{subject} eq "";
+    $$msg{msgID} = $$msgObj{_id};
+
+    my $epoch = $$msgObj{message_time};
+    my $dtmFmt = `date --date='\@$epoch' '+%Y%m%d_%H%M%S'`;
+    chomp $dtmFmt;
+
+    $$msg{dtmMillis} = "${epoch}000";
+    $$msg{dtmFmt} = $dtmFmt;
+    $$msg{dtmEpoch} = $epoch;
+
+    my @nums;
+    @nums = (@nums, split(/[ ,\$]/, $$msgObj{correspondent_phone_number}));
+    @nums = (@nums, split(/[ ,\$]/, $$msgObj{conversation_id}));
+    my $h4 = '[0-9a-f]{4}';
+    @nums = grep {$_ !~ /^$h4.*$h4.*$h4$/} @nums;
+    @nums = map {cleanNumber $_} @nums;
+    @nums = grep {$_ !~ /$myNum/} @nums;
+
+    my @uniqNums;
+    my %okNums;
+    for my $num(@nums){
+      push @uniqNums, $num if not defined $okNums{$num};
+      $okNums{$num} = 1;
+    }
+    @nums = @uniqNums;
+    if(@nums == 0){
+      die "ERROR: could not find a number for msg $$msgObj{_id}\n";
+    }
+
+    if($$msgObj{message_type} == 1){
+      $$msg{dir} = "OUT";
+    }elsif($$msgObj{message_type} == 2){
+      $$msg{dir} = "INC";
+    }else{
+      die "ERROR: unknown message_type=$$msgObj{message_type}\n";
+    }
+
+    if($$msg{dir} eq "OUT"){
+      $$msg{from} = $myNum;
+      $$msg{toNums} = [@nums];
+    }
+    if($$msg{dir} eq "INC"){
+      my $fromGuess = $$msgObj{correspondent_number};
+      if(defined $fromGuess and $fromGuess =~ /^$h4.*$h4.*$h4$/){
+        $fromGuess = undef;
+      }else{
+        $fromGuess = cleanNumber $fromGuess;
+      }
+
+      my $from;
+      if($fromGuess =~ /\d{10}/){
+        my @fromGuesses = grep {$_ =~ /$fromGuess/} @nums;
+        $from = @fromGuesses > 0 ? $fromGuesses[0] : undef;
+      }
+      $from = $nums[0] if not defined $from;
+
+      my @to = grep {$_ !~ /^$from$/} @nums;
+      @to = ($myNum, @to);
+
+      $$msg{from} = $from;
+      $$msg{toNums} = [@to];
+    }
+
+    my @otherNums = grep {$_ !~ /$myNum/} ($$msg{from}, @{$$msg{toNums}});
+
+    my $attFile = $$msgObj{file_uri};
+    my $attName = $$msgObj{file_name};
+    if(length $attFile > 0){
+      $attFile =~ s/^.*\/com\.tmobile\.digits\/files\/DIGITS\/.Media\//$attFilesDir\//;
+      if(not -f $attFile){
+        die "ERROR: could not find file $attFile\n";
+      }
+      my $attContents = `cat \"$attFile\"`;
+      push @{$$msg{atts}}, {
+        attName     => $attName,
+        attContents => $attContents,
+      };
+    }
+
+    if(@{$$msg{atts}} > 0 or @otherNums > 1){
+      $$msg{type} = "mms";
+    }else{
+      $$msg{type} = "sms";
     }
 
     push @messages, $msg;
