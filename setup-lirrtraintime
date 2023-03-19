@@ -90,6 +90,13 @@ sub main(@){
       system "touch", $file, "--date=\@$oldMtimes{$file}";
     }
   }
+
+  for my $file(sort keys %oldMd5sums){
+    if(not defined $newMd5sums{$file}){
+      system "rm", $file;
+      print "DELETED: $file\n";
+    }
+  }
 }
 
 sub mtime($){
