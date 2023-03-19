@@ -58,13 +58,13 @@ my @config = qw(
   jollacompass
   compass-calib
 
-  lirr_cpg_pen
-  lirr_cpg_rvc
-  lirr_fdl_pen
-  lirr_pen_cpg
+  lirr_isp_pen
+  lirr_pen_isp
+  lirr_bab_pen
+  lirr_pen_bab
 
-  lirr_pen_fdl
-  lirr_rvc_cpg
+  lirr_isp_gc
+  lirr_gc_isp
   lirrgui
   sailfish-audiorecorder
 
