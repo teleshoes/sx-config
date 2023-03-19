@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my @ROUTES_FROM_TO = (
+  ["cpg" => "pen"],
+  ["cpg" => "rvc"],
+  ["fdl" => "pen"],
+  ["pen" => "cpg"],
+
+  ["pen" => "fdl"],
+  ["rvc" => "cpg"],
+);
+
+my $EXEC_GENERATE_ICON = "$ENV{HOME}/Code/lirrtraintime/icons/generate.pl";
+
+my $CONFIG_FILES = "$ENV{HOME}/Code/sx/CONFIG_FILES";
+my $DESKTOP_FILE_TEMPLATE = "$CONFIG_FILES/%usr%share%applications%lirr_#FROM#_#TO#.desktop";
+my $ICON_FILE_TEMPLATE = "$CONFIG_FILES/%usr%share%icons%hicolor%86x86%apps%lirr_#FROM#_#TO#.png";
+
+my $DESKTOP_CONTENTS_TEMPLATE = ""
+  . "[Desktop Entry]\n"
+  . "Name=#FROM#=>#TO#\n"
+  . "Comment=LIRR train time\n"
+  . "Icon=lirr_#FROM#_#TO#\n"
+  . "Exec=/opt/lirrtraintime/bin/lirr_train_time -b #FROM# #TO#\n"
+  . "Type=Application\n"
+  . "X-Nemo-Single-Instance=no\n"
+  . "Custom-Launcher=yes\n"
+  . "\n"
+  . "[X-Sailjail]\n"
+  . "Sandboxing=Disabled\n"
+;
+
+sub mtime($);
+sub md5sum($);
+
+sub main(@){
+  die "USAGE: $0\n" if @_ > 0;
+
+  my $desktopFileGlob = $DESKTOP_FILE_TEMPLATE;
+  $desktopFileGlob =~ s/#FROM#|#TO#/*/g;
+  my @allDesktopFiles = grep {-f $_} glob $desktopFileGlob;
+
+  my $iconFileGlob = $ICON_FILE_TEMPLATE;
+  $iconFileGlob =~ s/#FROM#|#TO#/*/g;
+  my @allIconFiles = grep {-f $_} glob $iconFileGlob;
+
+  my %oldMtimes;
+  my %oldMd5sums;
+  for my $file(sort (@allDesktopFiles, @allIconFiles)){
+    $oldMtimes{$file} = mtime $file;
+    $oldMd5sums{$file} = md5sum $file;
+  }
+
+  my %newMd5sums;
+  for my $route(@ROUTES_FROM_TO){
+    my ($from, $to) = @$route;
+    $from = lc $from;
+    $to = lc $to;
+    my $desktopFile = $DESKTOP_FILE_TEMPLATE;
+    $desktopFile =~ s/#FROM#/$from/g;
+    $desktopFile =~ s/#TO#/$to/g;
+
+    my $iconFile = $ICON_FILE_TEMPLATE;
+    $iconFile =~ s/#FROM#/$from/g;
+    $iconFile =~ s/#TO#/$to/g;
+
+    my $desktopContents = $DESKTOP_CONTENTS_TEMPLATE;
+    $desktopContents =~ s/#FROM#/$from/g;
+    $desktopContents =~ s/#TO#/$to/g;
+
+    open FH, "> $desktopFile" or die "ERROR: could not write $desktopFile\n$!\n";
+    print FH $desktopContents;
+    close FH;
+
+    system $EXEC_GENERATE_ICON, uc $from, uc $to, $iconFile;
+
+    $newMd5sums{$desktopFile} = md5sum $desktopFile;
+    $newMd5sums{$iconFile} = md5sum $iconFile;
+  }
+
+  for my $file(sort keys %newMd5sums){
+    if(not defined $oldMd5sums{$file}){
+      print "created:   $file\n";
+    }elsif($oldMd5sums{$file} ne $newMd5sums{$file}){
+      print "updated:   $file\n";
+    }else{
+      print "unchanged: $file\n";
+      system "touch", $file, "--date=\@$oldMtimes{$file}";
+    }
+  }
+}
+
+sub mtime($){
+  my ($file) = @_;
+  my @stat = stat $file;
+  return $stat[9];
+}
+
+sub md5sum($){
+  my ($file) = @_;
+  my $md5 = `md5sum $file`;
+  if($md5 =~ /^([0-9a-f]{32})\s+$file$/){
+    return $1;
+  }else{
+    die "ERROR: could not obtain md5sum for $file\n";
+  }
+}
+
+&main(@ARGV);
