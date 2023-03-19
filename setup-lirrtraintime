@@ -3,13 +3,13 @@ use strict;
 use warnings;
 
 my @ROUTES_FROM_TO = (
-  ["cpg" => "pen"],
-  ["cpg" => "rvc"],
-  ["fdl" => "pen"],
-  ["pen" => "cpg"],
+  ["isp" => "pen"],
+  ["pen" => "isp"],
+  ["bab" => "pen"],
+  ["pen" => "bab"],
 
-  ["pen" => "fdl"],
-  ["rvc" => "cpg"],
+  ["isp" => "gc" ],
+  ["gc"  => "isp"],
 );
 
 my $EXEC_GENERATE_ICON = "$ENV{HOME}/Code/lirrtraintime/icons/generate.pl";
