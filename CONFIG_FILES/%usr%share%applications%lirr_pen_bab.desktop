@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=cpg=>pen
+Name=pen=>bab
 Comment=LIRR train time
-Icon=lirr_cpg_pen
-Exec=/opt/lirrtraintime/bin/lirr_train_time -b cpg pen
+Icon=lirr_pen_bab
+Exec=/opt/lirrtraintime/bin/lirr_train_time -b pen bab
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes

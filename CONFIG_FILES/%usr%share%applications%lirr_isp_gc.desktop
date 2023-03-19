@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=fdl=>pen
+Name=isp=>gc
 Comment=LIRR train time
-Icon=lirr_fdl_pen
-Exec=/opt/lirrtraintime/bin/lirr_train_time -b fdl pen
+Icon=lirr_isp_gc
+Exec=/opt/lirrtraintime/bin/lirr_train_time -b isp gc
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes

@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=cpg=>rvc
+Name=isp=>pen
 Comment=LIRR train time
-Icon=lirr_cpg_rvc
-Exec=/opt/lirrtraintime/bin/lirr_train_time -b cpg rvc
+Icon=lirr_isp_pen
+Exec=/opt/lirrtraintime/bin/lirr_train_time -b isp pen
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes

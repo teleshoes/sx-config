@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=pen=>fdl
+Name=bab=>pen
 Comment=LIRR train time
-Icon=lirr_pen_fdl
-Exec=/opt/lirrtraintime/bin/lirr_train_time -b pen fdl
+Icon=lirr_bab_pen
+Exec=/opt/lirrtraintime/bin/lirr_train_time -b bab pen
 Type=Application
 X-Nemo-Single-Instance=no
 Custom-Launcher=yes
