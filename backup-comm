@@ -120,7 +120,7 @@ sub main(@){
   # copy raw data (dbs, mms files) phone => computer
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
-  run "ssh", "root\@$host", "
+  runRetryTimeout "ssh", "root\@$host", "
     echo preparing sqlite DBs && \
     \
     cd $COMMHISTORY_DB_REMOTE_DIR && \
@@ -147,13 +147,13 @@ sub main(@){
     echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
-  run "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
-  run "scp", "$user\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
-  run "scp", "$user\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
-  run "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+  runRetryTimeout "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
+  runRetryTimeout "scp", "$user\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
+  runRetryTimeout "scp", "$user\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
+  runRetryTimeout "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
-  run "ssh", "nemo\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
-  run "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
+  runRetryTimeout "ssh", "nemo\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
+  runRetryTimeout "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
   # prepare git repo summary
