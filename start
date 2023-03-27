@@ -107,6 +107,8 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 
 ./install-rpms
 
+./install-pip
+
 ./install-aapt
 
 ./install-yt-dlp
