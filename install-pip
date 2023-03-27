@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+use Time::HiRes qw(time);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my @PIP_MODULES = qw(
+);
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC
+    install pip modules: @PIP_MODULES
+";
+
+sub install($$$$);
+sub nowMillis();
+
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  for my $module(@PIP_MODULES){
+    system "ipmagic", $IPMAGIC_NAME, "-u", "root", "pip", "install", $module;
+  }
+}
+
+&main(@ARGV);
