@@ -8,6 +8,7 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 my @PIP_MODULES = qw(
+  pyeconet
 );
 
 my $EXEC = basename $0;
