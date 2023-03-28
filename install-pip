@@ -32,6 +32,9 @@ sub main(@){
     }
   }
 
+  if(@PIP_MODULES == 0){
+    print "no pip modules to install\n";
+  }
   for my $module(@PIP_MODULES){
     system "ipmagic", $IPMAGIC_NAME, "-u", "root", "pip", "install", $module;
   }
