@@ -97,7 +97,6 @@ my @config = qw(
 
   textfree
   tkts
-  mtaetix
   traintime
 
   vlc
@@ -164,7 +163,6 @@ my %androidLaunchers = (
   "jitsi"              => ["org.jitsi.meet",                            ".MainActivity",                                                   undef],
   "kingdom"            => ["com.rawfury.kingdom2crowns",                "com.unity3d.player.UnityPlayerActivity",                          undef],
   "midea"              => ["com.midea.aircondition.obm",                ".activity.LoginActivity",                                         undef],
-  "mtaetix"            => ["com.mta.mobileapp",                         ".MainActivity",                                                   undef],
   "mystrom"            => ["com.cogniance.asoka.srs.android",           ".MainActivity",                                                   undef],
   "nesoid"             => ["com.androidemu.nes",                        ".MainActivity",                                                   undef],
   "snes9x"             => ["com.explusalpha.Snes9xPlus",                "com.imagine.BaseActivity",                                        undef],
@@ -172,7 +170,7 @@ my %androidLaunchers = (
   "tkts"               => ["com.TDF.AndroidTdf",                        ".applicationwide.TktsSplashScreenActivity",                       undef],
   "tmobile-digits"     => ["com.tmobile.digits",                        "com.tmobile.digits.ui.activity.SplashActivity",                   undef],
   "tor"                => ["org.torproject.torbrowser",                 ".App",                                                            undef],
-  "traintime"          => ["org.lirr.portal",                           ".MainActivity",                                                   undef],
+  "traintime"          => ["com.mta.mobileapp",                         ".MainActivity",                                                   undef],
   "vanced-microg"      => ["com.mgoogle.android.gms",                   "android.app.AppDetailsActivity",                                  undef],
   "vlc"                => ["org.videolan.vlc",                          ".StartActivity",                                                  undef],
   "youtube"            => ["com.vanced.android.youtube",                "com.google.android.youtube.app.honeycomb.Shell\$HomeActivity",    undef],
