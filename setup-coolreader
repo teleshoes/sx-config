@@ -89,7 +89,7 @@ sub getConfig($){
 
     "app.settings.show.icons"                                  => "1",
 
-    "app.view.autoscroll.speed"                                => "1500",
+    "app.view.autoscroll.speed"                                => "600",
 
     "app.tapzone.action.tap.1"                                 => $TAPZONES_SHORT[1-1],
     "app.tapzone.action.tap.2"                                 => $TAPZONES_SHORT[2-1],
