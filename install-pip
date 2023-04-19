@@ -9,6 +9,7 @@ my $USER = "nemo";
 
 my @PIP_MODULES = qw(
   midea-beautiful-air
+  mpris-fakeplayer
 );
 
 my $EXEC = basename $0;
