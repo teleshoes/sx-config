@@ -8,6 +8,9 @@ SettingsToggle {
     readonly property bool portraitLock: displaySettings.orientationLock == "portrait" || displaySettings.orientationLock == "portrait-inverted"
     readonly property bool landscapeLock: displaySettings.orientationLock == "landscape" || displaySettings.orientationLock == "landscape-inverted"
 
+    property var lastToggledMillis: 0
+    property string lastToggledOrigLock: ""
+
     name: portraitLock
           ? //% "Portrait"
             qsTrId("settings_system-orientation_portrait")
@@ -27,10 +30,22 @@ SettingsToggle {
     checked: displaySettings.orientationLock !== "dynamic"
 
     onToggled: {
+        var nowMillis = Date.now();
+        var dblClick = nowMillis - lastToggledMillis < 500 ? true : false;
         var orient = __silica_applicationwindow_instance.orientation;
 
         var targetLock;
-        if (checked) {
+        if (dblClick) {
+            if (lastToggledOrigLock == "portrait") {
+                targetLock = "landscape";
+            } else if (lastToggledOrigLock == "landscape") {
+                targetLock = "portrait"
+            } else if (orient === Orientation.Portrait) {
+                targetLock = "landscape"
+            } else {
+                targetLock = "portrait";
+            }
+        } else if (checked) {
             targetLock = "dynamic"
         } else if (orient === Orientation.Portrait) {
             targetLock = "portrait"
@@ -42,6 +57,8 @@ SettingsToggle {
             targetLock = "landscape-inverted"
         }
 
+        lastToggledMillis = nowMillis;
+        lastToggledOrigLock = displaySettings.orientationLock;
         displaySettings.orientationLock = targetLock;
     }
 
