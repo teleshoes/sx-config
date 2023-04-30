@@ -25,18 +25,24 @@ SettingsToggle {
                     : "image://theme/icon-m-orientation-lock"
 
     checked: displaySettings.orientationLock !== "dynamic"
+
     onToggled: {
+        var orient = __silica_applicationwindow_instance.orientation;
+
+        var targetLock;
         if (checked) {
-            displaySettings.orientationLock = "dynamic"
-        } else if (__silica_applicationwindow_instance.orientation === Orientation.Portrait) {
-            displaySettings.orientationLock = "portrait"
-        } else if (__silica_applicationwindow_instance.orientation === Orientation.PortraitInverted) {
-            displaySettings.orientationLock = "portrait-inverted"
-        } else if (__silica_applicationwindow_instance.orientation === Orientation.Landscape) {
-            displaySettings.orientationLock = "landscape"
-        } else if (__silica_applicationwindow_instance.orientation === Orientation.LandscapeInverted) {
-            displaySettings.orientationLock = "landscape-inverted"
+            targetLock = "dynamic"
+        } else if (orient === Orientation.Portrait) {
+            targetLock = "portrait"
+        } else if (orient === Orientation.PortraitInverted) {
+            targetLock = "portrait-inverted"
+        } else if (orient === Orientation.Landscape) {
+            targetLock = "landscape"
+        } else if (orient === Orientation.LandscapeInverted) {
+            targetLock = "landscape-inverted"
         }
+
+        displaySettings.orientationLock = targetLock;
     }
 
     menu: ContextMenu {
