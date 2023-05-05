@@ -770,14 +770,17 @@ sub parseAndroid($$$){
     my $attName = $$msgObj{file_name};
     if(length $attFile > 0){
       $attFile =~ s/^.*\/com\.tmobile\.digits\/files\/DIGITS\/.Media\//$attFilesDir\//;
-      if(not -f $attFile){
-        die "ERROR: could not find file $attFile\n";
+      if(-f $attFile){
+        my $attContents = `cat \"$attFile\"`;
+        push @{$$msg{atts}}, {
+          attName     => $attName,
+          attContents => $attContents,
+        };
+      }else{
+        my $json = encode_json($msgObj);
+        print STDERR "WARNING: att file URL unparseable in json\n$json\n";
+        print STDERR "WARNING: could not find file $attFile\n";
       }
-      my $attContents = `cat \"$attFile\"`;
-      push @{$$msg{atts}}, {
-        attName     => $attName,
-        attContents => $attContents,
-      };
     }
 
     if(@{$$msg{atts}} > 0 or @otherNums > 1){
