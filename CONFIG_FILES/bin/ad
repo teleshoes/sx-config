@@ -22,7 +22,8 @@ my $SHELL_ENV_VARS_SH_FMT = join " ", map{"$_=$SHELL_ENV_VARS{$_}"}
 my $SHELL_ENV_VARS_USAGE_FMT = join " \\\n            ", map{"$_=$SHELL_ENV_VARS{$_}"}
   sort keys %SHELL_ENV_VARS;
 
-my $DEFAULT_ATTACH_CMD = "appsupport-attach";
+my $CONTAINER_NAME = "aliendalvik";
+my $LXC_PATH = "/tmp/appsupport";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -36,14 +37,14 @@ my $USAGE = "Usage:
   $EXEC
   $EXEC -x|x
   $EXEC --shell|shell
-    run: sudo LXC_ATTACH_CMD --name=aliendalvik
+    run: sudo LXC_ATTACH_CMD
 
   $EXEC -x|x CMD_ARG CMD_ARG
-    run: sudo LXC_ATTACH_CMD --name=aliendalvik -- CMD_ARG CMD_ARG CMD_ARG..
+    run: sudo LXC_ATTACH_CMD -- CMD_ARG CMD_ARG CMD_ARG..
 
   $EXEC CMD_ARG CMD_ARG...
   $EXEC --shell|shell CMD_ARG CMD_ARG...
-    run: sudo LXC_ATTACH_CMD --name=aliendalvik -- sh -c '
+    run: sudo LXC_ATTACH_CMD -- sh -c '
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
 
@@ -124,8 +125,7 @@ my $USAGE = "Usage:
     same as: $EXEC --intent=com.android.settings/.Settings
 
   LXC_ATTACH_CMD
-    appsupport-attach if it exists
-    lxc-attach otherwise
+    lxc-attach -q --name=$CONTAINER_NAME --lxcpath=$LXC_PATH
 ";
 
 my $MODE_SHELL = "shell";
@@ -287,21 +287,18 @@ sub main(@){
 
 sub lxcShell($@){
   my ($shellEnvWrapper, @shellCmd) = @_;
-  my $useAppSupportAttach = isExecOnPath("appsupport-attach");
 
-  my @cmd;
-  if($useAppSupportAttach){
-    @cmd = ("sudo", "appsupport-attach");
-  }else{
-    @cmd = ("sudo", "lxc-attach", "-q", "--name=aliendalvik", "--");
+  my @cmd = ("sudo", "lxc-attach", "-q", "--name=$CONTAINER_NAME", "--lxcpath=$LXC_PATH", "--");
+
+  if(@shellCmd > 0){
+    if($shellEnvWrapper){
+      @cmd = (@cmd, "sh", "-c", "$SHELL_ENV_VARS_SH_FMT @shellCmd");
+      print "@cmd\n";
+    }else{
+      @cmd = (@cmd, @shellCmd);
+    }
   }
 
-  if(@shellCmd > 0 and $shellEnvWrapper){
-    @cmd = (@cmd, "sh", "-c", "$SHELL_ENV_VARS_SH_FMT @shellCmd");
-    print "@cmd\n";
-  }else{
-    @cmd = (@cmd, @shellCmd);
-  }
   system @cmd;
 }
 
