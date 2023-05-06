@@ -58,6 +58,9 @@ my $PACKAGE_RESTRICTIONS = {
     . "    </pkg>\n"
 };
 
+my $GRANT_PERMS = {
+};
+
 sub applySettings();
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
@@ -71,6 +74,20 @@ sub run(@);
 sub runQuiet(@);
 
 sub main(@){
+  print "\n\n\napplying perms\n";
+  for my $pkg(sort keys %$GRANT_PERMS){
+    my $permCmd = "echo start $pkg";
+    for my $perm(@{$$GRANT_PERMS{$pkg}}){
+      $permCmd .= " && pm grant $pkg $perm";
+    }
+    $permCmd .= " && echo %SUCCESS% || echo %FAILURE%";
+    my $result = `ipmagic $IPMAGIC_NAME "ad --quiet x sh -c '$permCmd' 2>&1"`;
+    print $result;
+    if($result !~ /^start $pkg.*%SUCCESS%$/s){
+      die "ERROR: could not set perms for $pkg\n";
+    }
+  }
+
   print "\n\n\napplying settings\n";
   applySettings();
 
