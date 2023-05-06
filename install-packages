@@ -43,6 +43,7 @@ my %packages = (
     procps-ng
     qt5-qttools-qdbus
     wget
+    xz
   )],
 
   "2-build" => [qw(
