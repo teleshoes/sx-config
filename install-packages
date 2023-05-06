@@ -78,7 +78,6 @@ my %packages = (
     jolla-calendar
     lipstick2vnc
     python2-dbus
-    python2-pyqt5
     rpmrebuild
     sailfish-office
     waydroid
@@ -109,6 +108,7 @@ my %packages = (
 
 my @zypperForceInstallPackages = qw(
   perl-CPANPLUS
+  python2-pyqt5
 );
 
 my @groups = sort keys %packages;
