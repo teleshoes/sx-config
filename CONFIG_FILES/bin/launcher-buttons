@@ -106,6 +106,7 @@ my @config = qw(
 
   android-settings
   tmobile-digits
+  opencamera
 );
 
 my @unused = qw(
@@ -165,6 +166,7 @@ my %androidLaunchers = (
   "midea"              => ["com.midea.aircondition.obm",                ".activity.LoginActivity",                                         undef],
   "mystrom"            => ["com.cogniance.asoka.srs.android",           ".MainActivity",                                                   undef],
   "nesoid"             => ["com.androidemu.nes",                        ".MainActivity",                                                   undef],
+  "opencamera"         => ["net.sourceforge.opencamera",                ".MainActivity",                                                   undef],
   "snes9x"             => ["com.explusalpha.Snes9xPlus",                "com.imagine.BaseActivity",                                        undef],
   "textfree"           => ["com.pinger.textfree",                       ".call.activities.TFSplash",                                       undef],
   "tkts"               => ["com.TDF.AndroidTdf",                        ".applicationwide.TktsSplashScreenActivity",                       undef],
