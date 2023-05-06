@@ -293,10 +293,10 @@ sub lxcShell($@){
   if(@shellCmd > 0){
     if($shellEnvWrapper){
       @cmd = (@cmd, "--", "sh", "-c", "$SHELL_ENV_VARS_SH_FMT @shellCmd");
-      print "@cmd\n";
     }else{
       @cmd = (@cmd, "--", @shellCmd);
     }
+    print "@cmd\n";
   }
 
   system @cmd;
