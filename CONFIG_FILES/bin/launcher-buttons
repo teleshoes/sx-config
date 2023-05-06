@@ -107,6 +107,7 @@ my @config = qw(
   android-settings
   tmobile-digits
   qtbtn-lap
+  rheem
 );
 
 my @unused = qw(
@@ -168,6 +169,7 @@ my %androidLaunchers = (
   "mystrom"            => ["com.cogniance.asoka.srs.android",           ".MainActivity",                                                   undef],
   "nesoid"             => ["com.androidemu.nes",                        ".MainActivity",                                                   undef],
   "opencamera"         => ["net.sourceforge.opencamera",                ".MainActivity",                                                   undef],
+  "rheem"              => ["com.rheem.econetconsumerandroid",           "com.rheem.econet.view.splash.SplashActivity",                     undef],
   "snes9x"             => ["com.explusalpha.Snes9xPlus",                "com.imagine.BaseActivity",                                        undef],
   "textfree"           => ["com.pinger.textfree",                       ".call.activities.TFSplash",                                       undef],
   "tkts"               => ["com.TDF.AndroidTdf",                        ".applicationwide.TktsSplashScreenActivity",                       undef],
