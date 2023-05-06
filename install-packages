@@ -42,7 +42,6 @@ my %packages = (
     pbcopy
     procps-ng
     qt5-qttools-qdbus
-    wget
     xz
   )],
 
@@ -68,7 +67,6 @@ my %packages = (
     harbour-mimer
     harbour-mlsmanager
     harbour-modrana
-    harbour-pure-maps
     harbour-storeman
     harbour-unplayer
     harbour-whisperfish
@@ -78,10 +76,7 @@ my %packages = (
     jolla-calendar
     lipstick2vnc
     python2-dbus
-    rpmrebuild
     sailfish-office
-    waydroid
-    waydroid-runner
     youtube-dl
   )],
 
@@ -103,6 +98,16 @@ my %packages = (
     harbour-meecast
     harbour-meecast-daemon
     harbour-meecast-event
+  )],
+
+  "8-chum-use-zypper" => [qw(
+    wget
+    rpmrebuild
+
+    harbour-pure-maps
+
+    waydroid
+    waydroid-runner
   )],
 );
 
