@@ -43,6 +43,9 @@ my @selectedTopmenuItems = (
 my $dconf = {
   "/apps/text_input/autocaps/enabled" => "false",
 
+  #Disable Android App Support system package verification
+  "/alien/persist.package.replacement.enabled" => "true",
+
   "/sailfish/text_input/active_layout" => "'en-arrow.qml'",
   "/sailfish/text_input/enabled_layouts" => "['en-arrow.qml']",
   "/sailfish/text_input/previous_layout" => "'en.qml'",
