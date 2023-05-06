@@ -141,7 +141,9 @@ sub main(@){
   my @cmdArgs;
   my @apkFileArgs;
   my $intent;
-  my $shellEnvWrapper = 1;
+  my $opts = {
+    shellEnvWrapper => 1,
+  };
   my ($tapXpos, $tapYpos);
   my $orientArg;
   for(my $i=0; $i<@_; $i++){
@@ -156,10 +158,10 @@ sub main(@){
       exec "sudo", "systemctl", $cmd, "aliendalvik";
     }elsif($isFirstArg and $arg =~ /^(-x|x)$/){
       $mode = $MODE_SHELL;
-      $shellEnvWrapper = 0;
+      $$opts{shellEnvWrapper} = 0;
     }elsif($isFirstArg and $arg =~ /^(--shell|shell)$/){
       $mode = $MODE_SHELL;
-      $shellEnvWrapper = 1;
+      $$opts{shellEnvWrapper} = 1;
     }elsif($isFirstArg and $arg =~ /^(res|-res)$/){
       $mode = $MODE_RES;
     }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-2){
@@ -213,7 +215,7 @@ sub main(@){
   }
 
   if($mode eq $MODE_SHELL){
-    lxcShell($shellEnvWrapper, @cmdArgs);
+    lxcShell($opts, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
     my $envArgs = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
@@ -286,12 +288,12 @@ sub main(@){
 }
 
 sub lxcShell($@){
-  my ($shellEnvWrapper, @shellCmd) = @_;
+  my ($opts, @shellCmd) = @_;
 
   my @cmd = ("sudo", "lxc-attach", "-q", "--name=$CONTAINER_NAME", "--lxcpath=$LXC_PATH");
 
   if(@shellCmd > 0){
-    if($shellEnvWrapper){
+    if($$opts{shellEnvWrapper}){
       @cmd = (@cmd, "--", "sh", "-c", "$SHELL_ENV_VARS_SH_FMT @shellCmd");
     }else{
       @cmd = (@cmd, "--", @shellCmd);
