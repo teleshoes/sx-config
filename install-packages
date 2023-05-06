@@ -60,7 +60,6 @@ my %packages = (
     cutes-js
     gpscon
     gstreamer1.0-tools
-    harbour-advanced-camera
     harbour-filetug
     harbour-gpsinfo
     harbour-jollacompass
@@ -104,6 +103,7 @@ my %packages = (
     wget
     rpmrebuild
 
+    harbour-advanced-camera
     harbour-pure-maps
 
     waydroid
