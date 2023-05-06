@@ -39,7 +39,6 @@ my %packages = (
     lipstick-qt5-tools
     mce-tools
     libkeepalive-glib-tools
-    pbcopy
     procps-ng
     qt5-qttools-qdbus
     xz
