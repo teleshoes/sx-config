@@ -16,6 +16,8 @@ my @excludes = qw(
   .local/share/commhistory/
   .local/share/waydroid/
 
+  android_storage/DCIM/OpenCamera
+
   Pictures/
   Videos/
   Backgrounds/
