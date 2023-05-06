@@ -39,11 +39,11 @@ my $USAGE = "Usage:
   $EXEC --shell|shell
     run: sudo LXC_ATTACH_CMD
 
-  $EXEC -x|x CMD_ARG CMD_ARG
+  $EXEC [OPTS] -x|x CMD_ARG CMD_ARG
     run: sudo LXC_ATTACH_CMD -- CMD_ARG CMD_ARG CMD_ARG..
 
-  $EXEC CMD_ARG CMD_ARG...
-  $EXEC --shell|shell CMD_ARG CMD_ARG...
+  $EXEC [OPTS] CMD_ARG CMD_ARG...
+  $EXEC [OPTS] --shell|shell CMD_ARG CMD_ARG...
     run: sudo LXC_ATTACH_CMD -- sh -c '
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
@@ -124,6 +124,8 @@ my $USAGE = "Usage:
   $EXEC settings|--settings
     same as: $EXEC --intent=com.android.settings/.Settings
 
+  OPTS
+
   LXC_ATTACH_CMD
     lxc-attach -q --name=$CONTAINER_NAME --lxcpath=$LXC_PATH
 ";
@@ -136,6 +138,9 @@ my $MODE_INSTALL = "install";
 my $MODE_UNINSTALL = "uninstall";
 my $MODE_LAUNCH = "launch";
 
+my $OK_OPTS = join "|", qw(
+);
+
 sub main(@){
   my $mode = $MODE_SHELL;
   my @cmdArgs;
@@ -146,6 +151,11 @@ sub main(@){
   };
   my ($tapXpos, $tapYpos);
   my $orientArg;
+
+  while(@_ > 0 and $_[0] =~ /^($OK_OPTS)$/){
+    my $opt = shift @_;
+  }
+
   for(my $i=0; $i<@_; $i++){
     my $arg = $_[$i];
     my $isFirstArg = $i == 0 ? 1 : 0;
