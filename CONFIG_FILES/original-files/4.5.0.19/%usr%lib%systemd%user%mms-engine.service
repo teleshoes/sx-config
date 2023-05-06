@@ -1,0 +1,5 @@
+[Unit]
+Description=MMS engine service
+
+[Service]
+ExecStart=/usr/bin/invoker --type=generic /usr/sbin/mms-engine -o syslog
