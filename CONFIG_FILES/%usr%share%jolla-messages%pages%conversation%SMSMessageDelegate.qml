@@ -98,21 +98,17 @@ ListItem {
             //HACK-HH-MM-SS
         } else if (daysDiff > 0) {
             dateString = Format.formatDate(modelData.startTime, Formatter.WeekdayNameStandalone)
-            timeString = Format.formatDate(date, Formatter.TimeValue)
 
             //HACK-HH-MM-SS
             //timeString = Format.formatDate(date, Formatter.TimeValue)
             timeString = Qt.formatDateTime(date, 'hh:mm:ss')
             //HACK-HH-MM-SS
         } else if (shorten) {
-
             //HACK-HH-MM-SS
             //timeString = Format.formatDate(date, Formatter.DurationElapsedShort)
             timeString = Qt.formatDateTime(date, 'hh:mm:ss')
             //HACK-HH-MM-SS
         } else {
-            timeString = Format.formatDate(date, Formatter.DurationElapsed)
-
             //HACK-HH-MM-SS
             //timeString = Format.formatDate(date, Formatter.DurationElapsed)
             timeString = Qt.formatDateTime(date, 'hh:mm:ss')
