@@ -59,6 +59,37 @@ my $PACKAGE_RESTRICTIONS = {
 };
 
 my $GRANT_PERMS = {
+  #microg services
+  "com.google.android.gms" => [qw(
+    android.permission.FAKE_PACKAGE_SIGNATURE
+    android.permission.ACCESS_BACKGROUND_LOCATION
+    android.permission.ACCESS_COARSE_LOCATION
+    android.permission.ACCESS_FINE_LOCATION
+    android.permission.READ_PHONE_STATE
+    android.permission.GET_ACCOUNTS
+    android.permission.WRITE_EXTERNAL_STORAGE
+    android.permission.READ_EXTERNAL_STORAGE
+    android.permission.RECEIVE_SMS
+    android.permission.SYSTEM_ALERT_WINDOW
+  )],
+
+  #fakestore
+  "com.android.vending" => [qw(
+    android.permission.FAKE_PACKAGE_SIGNATURE
+  )],
+
+  #signature spoof checker
+  "lanchon.sigspoof.checker" => [qw(
+    android.permission.FAKE_PACKAGE_SIGNATURE
+  )],
+
+  #Mozilla UnifiedNlp Backend
+  "org.microg.nlp.backend.ichnaea" => [qw(
+    android.permission.ACCESS_COARSE_LOCATION
+    android.permission.ACCESS_FINE_LOCATION
+    android.permission.ACCESS_BACKGROUND_LOCATION
+    android.permission.READ_PHONE_STATE
+  )],
 };
 
 sub applySettings();
