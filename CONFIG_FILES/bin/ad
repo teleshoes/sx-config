@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
+sub serviceCmd($);
 sub lxcWrapCmd($@);
 sub lxcShell($@);
 sub lxcReadProc($@);
@@ -154,6 +155,7 @@ my $USAGE = "Usage:
     lxc-attach -q --name=$CONTAINER_NAME --lxcpath=$LXC_PATH
 ";
 
+my $MODE_SERVICE = "service";
 my $MODE_SHELL = "shell";
 my $MODE_RES = "res";
 my $MODE_TAP = "tap";
@@ -169,6 +171,7 @@ my $OK_OPTS = join "|", qw(
 
 sub main(@){
   my $mode = $MODE_SHELL;
+  my $serviceCmd;
   my @cmdArgs;
   my @apkFileArgs;
   my $intent;
@@ -199,8 +202,8 @@ sub main(@){
       print $USAGE;
       exit 0;
     }elsif($isFirstArg and $arg =~ /^(?:--)?(start|stop|restart)$/ and $isLastArg){
-      my $cmd = $1;
-      exec "sudo", "systemctl", $cmd, "aliendalvik";
+      $mode = $MODE_SERVICE;
+      $serviceCmd = $1;
     }elsif($isFirstArg and $arg =~ /^(-x|x)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 0;
@@ -266,7 +269,9 @@ sub main(@){
     }
   }
 
-  if($mode eq $MODE_SHELL){
+  if($mode eq $MODE_SERVICE){
+    serviceCmd $serviceCmd;
+  }elsif($mode eq $MODE_SHELL){
     lxcShell($opts, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
@@ -352,6 +357,11 @@ sub main(@){
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub serviceCmd($){
+  my ($serviceCmd) = @_;
+  system "sudo", "systemctl", $serviceCmd, "aliendalvik";
 }
 
 sub lxcWrapCmd($@){
