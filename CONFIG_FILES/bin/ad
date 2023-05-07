@@ -7,7 +7,6 @@ sub lxcShell($@);
 sub getApksForPrefix($);
 sub getRes();
 sub parseScreenDimArg($$);
-sub isExecOnPath($);
 
 my $EXEC = basename $0;
 
@@ -350,16 +349,6 @@ sub parseScreenDimArg($$){
   }elsif($arg =~ /^(\d+|\d*\.\d+)%$/){
     die "ERROR: missing screen dimension\n" if not defined $screenDimSize;
     return int($1/100.0*$screenDimSize + 0.5);
-  }
-}
-
-sub isExecOnPath($){
-  my ($exec) = @_;
-  my $out = `which $exec 2>/dev/null`;
-  if($out =~ /^\/.*$exec$/){
-    return 1;
-  }else{
-    return 0;
   }
 }
 
