@@ -127,6 +127,8 @@ my $USAGE = "Usage:
   OPTS
     -q | --quiet
       do not print shell commands before running them
+    -v | --verbose
+      print shell commands before running them (this is the default)
 
   LXC_ATTACH_CMD
     lxc-attach -q --name=$CONTAINER_NAME --lxcpath=$LXC_PATH
@@ -141,7 +143,7 @@ my $MODE_UNINSTALL = "uninstall";
 my $MODE_LAUNCH = "launch";
 
 my $OK_OPTS = join "|", qw(
-  -q --quiet
+  -q --quiet -v --verbose
 );
 
 sub main(@){
@@ -160,6 +162,8 @@ sub main(@){
     my $opt = shift @_;
     if($opt =~ /^(-q|--quiet)$/){
       $$opts{verbose} = 0;
+    }elsif($opt =~ /^(-v|--verbose)$/){
+      $$opts{verbose} = 1;
     }else{
       die "$USAGE\nERROR: unknown opt $opt\n";
     }
