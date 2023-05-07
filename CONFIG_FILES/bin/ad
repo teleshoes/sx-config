@@ -5,6 +5,8 @@ use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
 sub serviceCmd($);
+sub waitForAliendalvik($);
+sub isAliendalvikRunning();
 sub lxcWrapCmd($@);
 sub lxcShell($@);
 sub lxcReadProc($@);
@@ -340,19 +342,12 @@ sub main(@){
     my @cmd = ("apkd-launcher", $apk, "$pkgName/$activity");
     exec @cmd;
   }elsif($mode eq $MODE_WAIT){
-    my $start = nowMillis();
-    my $waitTimeoutMillis = defined $waitTimeoutSeconds ?
-      $waitTimeoutSeconds*1000 : $DEFAULT_WAIT_TIMEOUT_SECONDS*1000;
-    while(1){
-      if($waitTimeoutMillis < nowMillis()-$start){
-        print STDERR "ERROR: aliendalvik did not start in ${waitTimeoutSeconds}s\n";
-        exit 1;
-      }
-      my $out = lxcReadProc $opts, "echo", "ok";
-      if($out =~ /^ok$/){
-        exit 0;
-      }
-      sleep 1;
+    $waitTimeoutSeconds = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $waitTimeoutSeconds;
+    if(waitForAliendalvik($waitTimeoutSeconds)){
+      exit 0;
+    }else{
+      print STDERR "ERROR: aliendalvik did not start in ${waitTimeoutSeconds}s\n";
+      exit 1;
     }
   }else{
     die "ERROR: unknown mode $mode\n";
@@ -362,6 +357,31 @@ sub main(@){
 sub serviceCmd($){
   my ($serviceCmd) = @_;
   system "sudo", "systemctl", $serviceCmd, "aliendalvik";
+}
+
+sub waitForAliendalvik($){
+  my ($waitTimeoutSeconds) = @_;
+  my $waitTimeoutMillis = $waitTimeoutSeconds * 1000;
+  my $start = nowMillis();
+  while(1){
+    if($waitTimeoutMillis < nowMillis()-$start){
+      return 0;
+    }
+    if(isAliendalvikRunning){
+      return 1;
+    }
+    sleep 1;
+  }
+}
+
+sub isAliendalvikRunning(){
+  my $opts = {};
+  my $out = lxcReadProc $opts, "echo", "ok";
+  if($out =~ /^ok$/){
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
 sub lxcWrapCmd($@){
