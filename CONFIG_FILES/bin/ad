@@ -2,11 +2,15 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
+use Time::HiRes qw(time);
 
+sub lxcWrapCmd($@);
 sub lxcShell($@);
+sub lxcReadProc($@);
 sub getApksForPrefix($);
 sub getRes();
 sub parseScreenDimArg($$);
+sub nowMillis();
 
 my $EXEC = basename $0;
 
@@ -23,6 +27,8 @@ my $SHELL_ENV_VARS_USAGE_FMT = join " \\\n            ", map{"$_=$SHELL_ENV_VARS
 
 my $CONTAINER_NAME = "aliendalvik";
 my $LXC_PATH = "/tmp/appsupport";
+
+my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -124,6 +130,20 @@ my $USAGE = "Usage:
   $EXEC settings|--settings
     same as: $EXEC --intent=com.android.settings/.Settings
 
+  $EXEC -w|w|--wait
+    same as: $EXEC --wait=$DEFAULT_WAIT_TIMEOUT_SECONDS
+
+  $EXEC -w|w|--wait TIMEOUT_SECONDS
+  $EXEC --wait=TIMEOUT_SECONDS
+    wait until aliendalvik is running
+    e.g.: $EXEC --wait 30 && echo OK || echo FAIL
+      -every 1s, check if aliendalvik is running
+        -if TIMEOUT_SECONDS has transpired:
+          print error message and exit with exit code 1
+        -run: `LXC_ATTACH_CMD echo ok 2>/dev/null`
+          -if response is ok, exit with exit code 0
+          -otherwise, sleep for 1s and retry
+
   OPTS
     -q | --quiet
       do not print shell commands before running them (this is the default)
@@ -141,6 +161,7 @@ my $MODE_ORIENT = "orient";
 my $MODE_INSTALL = "install";
 my $MODE_UNINSTALL = "uninstall";
 my $MODE_LAUNCH = "launch";
+my $MODE_WAIT = "wait";
 
 my $OK_OPTS = join "|", qw(
   -q --quiet -v --verbose
@@ -157,6 +178,7 @@ sub main(@){
   };
   my ($tapXpos, $tapYpos);
   my $orientArg;
+  my $waitTimeoutSeconds;
 
   while(@_ > 0 and $_[0] =~ /^($OK_OPTS)$/){
     my $opt = shift @_;
@@ -217,6 +239,11 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
+    }elsif($isFirstArg and $arg =~ /^(-w|w|--wait)$/){
+      $mode = $MODE_WAIT;
+    }elsif($isFirstArg and $arg =~ /^(--wait)=(\d+)$/){
+      $mode = $MODE_WAIT;
+      $waitTimeoutSeconds = $1;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
     }elsif($mode =~ /^($MODE_INSTALL|$MODE_UNINSTALL)$/){
@@ -232,6 +259,8 @@ sub main(@){
       }
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
+    }elsif($mode eq $MODE_WAIT and not defined $waitTimeoutSeconds and $arg =~ /^\d+$/){
+      $waitTimeoutSeconds = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
@@ -305,14 +334,28 @@ sub main(@){
     my $apk = "$pkgName.apk";
     my @cmd = ("apkd-launcher", $apk, "$pkgName/$activity");
     exec @cmd;
+  }elsif($mode eq $MODE_WAIT){
+    my $start = nowMillis();
+    my $waitTimeoutMillis = defined $waitTimeoutSeconds ?
+      $waitTimeoutSeconds*1000 : $DEFAULT_WAIT_TIMEOUT_SECONDS*1000;
+    while(1){
+      if($waitTimeoutMillis < nowMillis()-$start){
+        print STDERR "ERROR: aliendalvik did not start in ${waitTimeoutSeconds}s\n";
+        exit 1;
+      }
+      my $out = lxcReadProc $opts, "echo", "ok";
+      if($out =~ /^ok$/){
+        exit 0;
+      }
+      sleep 1;
+    }
   }else{
     die "ERROR: unknown mode $mode\n";
   }
 }
 
-sub lxcShell($@){
+sub lxcWrapCmd($@){
   my ($opts, @shellCmd) = @_;
-
   my @cmd = ("sudo", "lxc-attach", "-q", "--name=$CONTAINER_NAME", "--lxcpath=$LXC_PATH");
 
   if(@shellCmd > 0){
@@ -321,10 +364,27 @@ sub lxcShell($@){
     }else{
       @cmd = (@cmd, "--", @shellCmd);
     }
-    print "@cmd\n" if $$opts{verbose};
   }
 
+  return @cmd;
+}
+
+sub lxcShell($@){
+  my ($opts, @shellCmd) = @_;
+  my @cmd = lxcWrapCmd($opts, @shellCmd);
+  if(@shellCmd > 0){
+    print "@cmd\n" if $$opts{verbose};
+  }
   system @cmd;
+}
+
+sub lxcReadProc($@){
+  my ($opts, @shellCmd) = @_;
+  my @cmd = lxcWrapCmd($opts, @shellCmd);
+  open my $fh, "-|", @cmd or die "ERROR: could not run cmd @cmd\n$!\n";
+  my $output = join '', <$fh>;
+  close $fh;
+  return $output;
 }
 
 sub getApksForPrefix($){
@@ -350,6 +410,10 @@ sub parseScreenDimArg($$){
     die "ERROR: missing screen dimension\n" if not defined $screenDimSize;
     return int($1/100.0*$screenDimSize + 0.5);
   }
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
 }
 
 &main(@ARGV);
