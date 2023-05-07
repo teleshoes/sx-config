@@ -126,9 +126,9 @@ my $USAGE = "Usage:
 
   OPTS
     -q | --quiet
-      do not print shell commands before running them
+      do not print shell commands before running them (this is the default)
     -v | --verbose
-      print shell commands before running them (this is the default)
+      print shell commands before running them
 
   LXC_ATTACH_CMD
     lxc-attach -q --name=$CONTAINER_NAME --lxcpath=$LXC_PATH
@@ -152,7 +152,7 @@ sub main(@){
   my @apkFileArgs;
   my $intent;
   my $opts = {
-    verbose         => 1,
+    verbose         => 0,
     shellEnvWrapper => 1,
   };
   my ($tapXpos, $tapYpos);
