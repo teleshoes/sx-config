@@ -42,6 +42,17 @@ my $USAGE = "Usage:
   $EXEC restart|--restart
     run: sudo systemctl start|stop|restart aliendalvik
 
+  $EXEC init|--init [INIT_CMD INIT_CMD...]
+    -ensure aliendalvik is running
+      -if not, restart it
+      -wait up to 60s for it to start, and then restart up to two more times
+    -run each INIT_CMD, in order, waiting for each to finish
+    similar to:
+           ( $EXEC --check-running || $EXEC restart ) \\
+        && ( $EXEC --wait 60       || $EXEC restart ) \\
+        && ( $EXEC --wait 60       || $EXEC restart ) \\
+        && ( INIT_CMD ; INIT_CMD ; INIT_CMD )
+
   $EXEC
   $EXEC -x|x
   $EXEC --shell|shell
@@ -165,6 +176,7 @@ my $USAGE = "Usage:
 ";
 
 my $MODE_SERVICE = "service";
+my $MODE_INIT = "init";
 my $MODE_SHELL = "shell";
 my $MODE_RES = "res";
 my $MODE_TAP = "tap";
@@ -182,6 +194,7 @@ my $OK_OPTS = join "|", qw(
 sub main(@){
   my $mode = $MODE_SHELL;
   my $serviceCmd;
+  my @initCmds;
   my @cmdArgs;
   my @apkFileArgs;
   my $intent;
@@ -214,6 +227,8 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(?:--)?(start|stop|restart)$/ and $isLastArg){
       $mode = $MODE_SERVICE;
       $serviceCmd = $1;
+    }elsif($isFirstArg and $arg =~ /^(?:--)?(init)$/){
+      $mode = $MODE_INIT;
     }elsif($isFirstArg and $arg =~ /^(-x|x)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 0;
@@ -259,6 +274,8 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--wait)=(\d+)$/){
       $mode = $MODE_WAIT;
       $waitTimeoutSeconds = $1;
+    }elsif($mode eq $MODE_INIT){
+      push @initCmds, $arg;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
     }elsif($mode =~ /^($MODE_INSTALL|$MODE_UNINSTALL)$/){
@@ -283,6 +300,13 @@ sub main(@){
 
   if($mode eq $MODE_SERVICE){
     serviceCmd $serviceCmd;
+  }elsif($mode eq $MODE_INIT){
+    serviceCmd "restart" if not isAliendalvikRunning();
+    serviceCmd "restart" if not waitForAliendalvik($DEFAULT_WAIT_TIMEOUT_SECONDS);
+    serviceCmd "restart" if not waitForAliendalvik($DEFAULT_WAIT_TIMEOUT_SECONDS);
+    for my $cmd(@initCmds){
+      system $cmd;
+    }
   }elsif($mode eq $MODE_SHELL){
     lxcShell($opts, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
