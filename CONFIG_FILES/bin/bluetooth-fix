@@ -1,0 +1,2 @@
+sudo rfkill unblock bluetooth
+sudo systemctl restart bluetooth bluebinder &
