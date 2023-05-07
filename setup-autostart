@@ -41,24 +41,25 @@ WantedBy=user-session.target
 ";
 
 sub writeRemoteFile($$$$);
+sub run(@);
 
 sub main(@){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
   writeRemoteFile $host, "root", $STARTUP_SCRIPT_FILE, $STARTUP_SCRIPT_CONTENTS;
-  system "ssh", "root\@$host", "
+  run "ssh", "root\@$host", "
     chmod a+x $STARTUP_SCRIPT_FILE
     chown root.root $STARTUP_SCRIPT_FILE
   ";
 
   writeRemoteFile $host, "root", $SYSTEMD_SERVICE_FILE, $SYSTEMD_SERVICE_CONTENTS;
-  system "ssh", "root\@$host", "
+  run "ssh", "root\@$host", "
     chown nemo.nemo $SYSTEMD_SERVICE_FILE
   ";
 
   for my $symlink(@SYSTEMD_SYMLINKS){
-    system "ssh", "nemo\@$host", "
+    run "ssh", "nemo\@$host", "
       mkdir -p `dirname $symlink`
       rm -f $symlink
       ln -s $SYSTEMD_SERVICE_FILE $symlink
@@ -72,7 +73,12 @@ sub writeRemoteFile($$$$){
   open FH, "> $tmpFile" or die "Could not write to $tmpFile\n";
   print FH $contents;
   close FH;
-  system "rsync", "-avP", $tmpFile, "$userName\@$host:$destFile";
+  run "rsync", "-avP", $tmpFile, "$userName\@$host:$destFile";
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 &main(@ARGV);
