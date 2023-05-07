@@ -1,40 +1,38 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Time::HiRes qw(time);
+use File::Basename qw(basename);
 
 my $ANDROID_SDCARD_DIR = "/home/nemo/android_storage/SDCARD";
 my $MNT_DIR = "/media/sdcard";
 
-my $LXC_TIMEOUT_MILLIS = 10000;
+my $EXEC = basename $0;
 
-sub ensureLXC();
-sub testLXC();
 sub nowMillis();
 sub run(@);
 
-my $usage = "Usage:
-  $0
-    waits for aliendalvik to be fully up and then mounts sdcard in ~/android_storage
-
-    -ensure root (rerun as sudo $0)
-    -umount $ANDROID_SDCARD_DIR
-    -check if lxc-attach exists
-      -if it does, use it to ensure aliendalvik is running and /system/bin/echo works
-      -check every second, sleeping until it echo on android prints 'ok'
-      -stop checking after ${LXC_TIMEOUT_MILLIS}ms (but still mount)
-    -mount --bind $MNT_DIR/<LABEL> $ANDROID_SDCARD_DIR
-
-  $0 -h | --help
+my $USAGE = "Usage:
+  $EXEC -h | --help
     show this message
+
+  $EXEC
+    mount sdcard in ~/android_storage
+    should be run AFTER aliendalvik is running
+      -ensure root (rerun as sudo $0)
+      -umount $ANDROID_SDCARD_DIR
+      -mount --bind $MNT_DIR/<LABEL> $ANDROID_SDCARD_DIR
 ";
 
 sub main(@){
-  if(@_ == 1 and $_[0] =~ /^(-h | --help)$/){
-    print $usage;
-    exit 0;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
   }
-  die $usage if @_ != 0;
 
   if(`whoami` !~ /^root$/){
     print "rerunning as root..\n";
@@ -48,46 +46,8 @@ sub main(@){
   die "no sdcard dir found in $MNT_DIR/\n" if @sdcardDirs == 0;
   my $sdcard = $sdcardDirs[0];
 
-  my $lxcAttachExec = `which lxc-attach 2>/dev/null`;
-  if($lxcAttachExec =~ /lxc-attach/){
-    ensureLXC();
-  }else{
-    print "skipping aliendalvik ensure\n";
-  }
-
   run "mkdir -p $ANDROID_SDCARD_DIR";
   run "mount --bind $sdcard $ANDROID_SDCARD_DIR";
-}
-
-sub ensureLXC(){
-  my $start = nowMillis();
-  print "checking aliendalvik with lxc-attach\n";
-  while(1){
-    if(testLXC()){
-      print "lxc aliendalvik is up and running\n";
-      last;
-    }
-    if(nowMillis() - $start > $LXC_TIMEOUT_MILLIS){
-      print "WARNING: TIMED OUT, MOUNTING ANYWAY...\n";
-      last;
-    }
-    run "date";
-    run "aliendalvik not running, sleeping...\n";
-    sleep 1;
-  }
-}
-
-sub testLXC(){
-  my $out = `sudo lxc-attach -n aliendalvik -- /system/bin/echo ok 2>/dev/null`;
-  if($out =~ /^ok$/){
-    return 1;
-  }else{
-    return 0;
-  }
-}
-
-sub nowMillis(){
-  return int(time * 1000.0 + 0.5);
 }
 
 sub run(@){
