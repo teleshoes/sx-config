@@ -92,6 +92,41 @@ my $GRANT_PERMS = {
   )],
 };
 
+my @NOMEDIA = qw(
+  /home/nemo/Backgrounds/.nomedia
+  /home/nemo/Code/.nomedia
+
+  /home/nemo/android_storage/Alarms/.nomedia
+  /home/nemo/android_storage/Android/data/.nomedia
+  /home/nemo/android_storage/Android/.nomedia
+  /home/nemo/android_storage/Android/obb/.nomedia
+  /home/nemo/android_storage/Audiobooks/.nomedia
+  /home/nemo/android_storage/Books/.nomedia
+  /home/nemo/android_storage/.cr3/.nomedia
+  /home/nemo/android_storage/DCIM/.nomedia
+  /home/nemo/android_storage/Documents/.nomedia
+  /home/nemo/android_storage/Download/.nomedia
+  /home/nemo/android_storage/Movies/.nomedia
+  /home/nemo/android_storage/Music/.nomedia
+  /home/nemo/android_storage/Notifications/.nomedia
+  /home/nemo/android_storage/Pictures/.nomedia
+  /home/nemo/android_storage/Podcasts/.nomedia
+  /home/nemo/android_storage/Ringtones/.nomedia
+
+  /media/sdcard/phone/Android/data/.nomedia
+  /media/sdcard/phone/Android/obb/.nomedia
+  /media/sdcard/phone/Backgrounds/.nomedia
+  /media/sdcard/phone/comm-repos/.nomedia
+  /media/sdcard/phone/DCIM-pixmirror-bydate/.nomedia
+  /media/sdcard/phone/DCIM-pixmirror/.nomedia
+  /media/sdcard/phone/email/.nomedia
+  /media/sdcard/phone/Music/.nomedia
+  /media/sdcard/phone/sheet_music/.nomedia
+  /media/sdcard/phone/tmp/.nomedia
+  /media/sdcard/phone/xbestddr/.nomedia
+  /media/sdcard/phone/xgnuplotddr/.nomedia
+);
+
 sub applySettings();
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
@@ -118,6 +153,16 @@ sub main(@){
   if($result !~ /^start.*%SUCCESS%$/s){
     die "ERROR: could not set perms\n";
   }
+
+  print "\n\n\ncreating .nomedia files\n";
+  my $nomediaCmd = "echo ok";
+  for my $nomedia(@NOMEDIA){
+    $nomediaCmd .= "; touch $nomedia";
+    $nomediaCmd .= "; chown --reference $REMOTE_DATA_DIR/com.android.providers.media.module $nomedia";
+    $nomediaCmd .= "; chmod 0670 $nomedia";
+    $nomediaCmd .= "; setfacl -m group:nemo:rwx -m group::--- $nomedia";
+  }
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root", "sh", "-c", $nomediaCmd;
 
   print "\n\n\napplying settings\n";
   applySettings();
