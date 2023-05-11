@@ -106,7 +106,7 @@ my $USAGE = "Usage:
     (both are run twice because sometimes 'inverted' is ignored)
 
     ORIENT_ARG
-      auto | a | none                   =  ACCEL_VAL=1   USER_VAL=0
+      auto | none | a | n               =  ACCEL_VAL=1   USER_VAL=0
       portrait | p | 0                  =  ACCEL_VAL=0   USER_VAL=0
       landscape | l | 1                 =  ACCEL_VAL=0   USER_VAL=1
       portrait-inverted | pi | 2        =  ACCEL_VAL=0   USER_VAL=2
@@ -345,7 +345,7 @@ sub main(@){
     lxcShell $opts, "input", "tap", $realX, $realY;
   }elsif($mode eq $MODE_ORIENT){
     my ($accelVal, $userVal);
-    if($orientArg =~ /^(auto|a|none)$/){
+    if($orientArg =~ /^(auto|none|a|n)$/){
       ($accelVal, $userVal) = (1, 0);
     }elsif($orientArg =~ /^(portrait|p|0)$/){
       ($accelVal, $userVal) = (0, 0);
