@@ -110,11 +110,8 @@ my $USAGE = "Usage:
       ACCEL_VAL=0
       USER_VAL=0
     -run:
-      $EXEC --shell content insert --uri content://settings/system \\
-        --bind name:s:accelerometer_rotation --bind value:i:<ACCEL_VAL>
-    -run:
-      $EXEC --shell content insert --uri content://settings/system \\
-        --bind name:s:user_rotation --bind value:i:<USER_VAL>
+      $EXEC settings put system accelerometer_rotation ACCEL_VAL
+      $EXEC settings put system user_rotation USER_VAL
 
   $EXEC -i|i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
@@ -357,10 +354,8 @@ sub main(@){
       ($accelVal, $userVal) = (0, 1);
     }
 
-    lxcShell $opts, ("content", "insert", "--uri", "content://settings/system",
-      "--bind", "name:s:accelerometer_rotation", "--bind", "value:i:$accelVal");
-    lxcShell $opts, ("content", "insert", "--uri", "content://settings/system",
-      "--bind", "name:s:user_rotation", "--bind", "value:i:$userVal");
+    lxcShell $opts, ("settings", "put", "system", "accelerometer_rotation", "$accelVal");
+    lxcShell $opts, ("settings", "put", "system", "user_rotation", "$userVal");
   }elsif($mode eq $MODE_LAUNCH){
     die "ERROR: missing intent\n" if not defined $intent;
     my ($pkgName, $activity);
