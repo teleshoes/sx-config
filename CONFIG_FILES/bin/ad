@@ -143,6 +143,7 @@ my $USAGE = "Usage:
 
   $EXEC settings|--settings
     same as: $EXEC --intent=com.android.settings/.Settings
+    NOTE: args to settings treated as '$EXEC shell settings ARG ARG..'
 
   $EXEC -w|w|--wait
     same as: $EXEC --wait=$DEFAULT_WAIT_TIMEOUT_SECONDS
@@ -264,7 +265,7 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--launch|--launch-intent)=(.+)$/){
       $mode = $MODE_LAUNCH;
       $intent = $2;
-    }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/){
+    }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/ and @_ == 0){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
     }elsif($isFirstArg and $arg =~ /^(-w|w|--wait)$/){
