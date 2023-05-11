@@ -321,7 +321,7 @@ sub main(@){
       chomp $pkgName;
       my @cmd = ("pm", "uninstall", $pkgName);
       print "@cmd\n";
-      lxcShell 1, @cmd;
+      lxcShell $opts, @cmd;
     }
   }elsif($mode eq $MODE_RES){
     my ($screenX, $screenY) = getRes();
@@ -345,7 +345,7 @@ sub main(@){
     my $realY = $isLandscape ? $screenY - $xPx : $yPx;
 
     print "tapping ${realX}x${realY}\n";
-    lxcShell 1, "input", "tap", $realX, $realY;
+    lxcShell $opts, "input", "tap", $realX, $realY;
   }elsif($mode eq $MODE_ORIENT){
     my ($accelVal, $userVal);
     if($orientArg eq "auto"){
@@ -356,9 +356,9 @@ sub main(@){
       ($accelVal, $userVal) = (0, 1);
     }
 
-    lxcShell 1, ("content", "insert", "--uri", "content://settings/system",
+    lxcShell $opts, ("content", "insert", "--uri", "content://settings/system",
       "--bind", "name:s:accelerometer_rotation", "--bind", "value:i:$accelVal");
-    lxcShell 1, ("content", "insert", "--uri", "content://settings/system",
+    lxcShell $opts, ("content", "insert", "--uri", "content://settings/system",
       "--bind", "name:s:user_rotation", "--bind", "value:i:$userVal");
   }elsif($mode eq $MODE_LAUNCH){
     die "ERROR: missing intent\n" if not defined $intent;
