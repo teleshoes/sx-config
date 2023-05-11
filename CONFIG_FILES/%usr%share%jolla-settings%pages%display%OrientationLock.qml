@@ -41,7 +41,7 @@ SettingsToggle {
             } else if (lastToggledOrigLock == "landscape") {
                 targetLock = "portrait"
             } else if (orient === Orientation.Portrait) {
-                targetLock = "landscape"
+                targetLock = "landscape";
             } else {
                 targetLock = "portrait";
             }
