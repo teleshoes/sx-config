@@ -3,6 +3,7 @@ import Sailfish.Silica 1.0
 import com.jolla.settings 1.0
 import org.nemomobile.systemsettings 1.0
 import Nemo.Configuration 1.0
+import Mer.Cutes 1.1
 
 SettingsToggle {
     // Lock mode from user point of view
@@ -63,6 +64,7 @@ SettingsToggle {
         displaySettings.orientationLock = targetLock;
 
         updateForceOrientation()
+        updateAndroidOrientation()
     }
 
 
@@ -73,7 +75,10 @@ SettingsToggle {
     }
 
     function updateForceOrientation(){
-      forceOrientation.value = checked;
+        forceOrientation.value = checked;
+    }
+    function updateAndroidOrientation(){
+        readProc(["sudo", "ad", "orient", displaySettings.orientationLock])
     }
 
     menu: ContextMenu {
@@ -82,6 +87,7 @@ SettingsToggle {
             onClicked: {
               displaySettings.orientationLock = "portrait"
               updateForceOrientation()
+              updateAndroidOrientation()
             }
         }
         MenuItem {
@@ -89,6 +95,7 @@ SettingsToggle {
             onClicked: {
               displaySettings.orientationLock = "landscape"
               updateForceOrientation()
+              updateAndroidOrientation()
             }
         }
         MenuItem {
@@ -96,6 +103,7 @@ SettingsToggle {
             onClicked: {
               displaySettings.orientationLock = "portrait-inverted"
               updateForceOrientation()
+              updateAndroidOrientation()
             }
         }
         MenuItem {
@@ -103,6 +111,7 @@ SettingsToggle {
             onClicked: {
               displaySettings.orientationLock = "landscape-inverted"
               updateForceOrientation()
+              updateAndroidOrientation()
             }
         }
         MenuItem {
@@ -110,9 +119,20 @@ SettingsToggle {
             onClicked: {
               displaySettings.orientationLock = "dynamic"
               updateForceOrientation()
+              updateAndroidOrientation()
             }
         }
     }
 
     DisplaySettings { id: displaySettings }
+
+    function readProc(cmdArr) {
+      var cmdExec = cmdArr[0];
+      var cmdArgs = cmdArr.slice(1);
+
+      var proc = cutes.require('subprocess').process();
+      var res = proc.popen_sync(cmdExec, cmdArgs);
+      res.wait(-1);
+      return res.stdout().toString();
+    }
 }
