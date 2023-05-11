@@ -108,6 +108,8 @@ my $USAGE = "Usage:
       auto | a | none               =  ACCEL_VAL=1   USER_VAL=0
       portrait | p | 0              =  ACCEL_VAL=0   USER_VAL=0
       landscape | l | 1             =  ACCEL_VAL=0   USER_VAL=1
+      portrait-inverted | pi | 2    =  ACCEL_VAL=0   USER_VAL=2
+      landscape-inverted | li | 3   =  ACCEL_VAL=0   USER_VAL=3
 
   $EXEC -i|i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
@@ -348,6 +350,10 @@ sub main(@){
       ($accelVal, $userVal) = (0, 0);
     }elsif($orientArg =~ /^(landscape|l|1)$/){
       ($accelVal, $userVal) = (0, 1);
+    }elsif($orientArg =~ /^(portrait-inverted|pi|2)$/){
+      ($accelVal, $userVal) = (0, 2);
+    }elsif($orientArg =~ /^(landscape-inverted|li|3)$/){
+      ($accelVal, $userVal) = (0, 3);
     }
 
     lxcShell $opts, ("settings", "put", "system", "accelerometer_rotation", "$accelVal");
