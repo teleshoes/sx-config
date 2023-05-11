@@ -75,6 +75,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import Sailfish.Silica.private 1.0 as Private
+import Nemo.Configuration 1.0
 
 Private.SilicaMouseArea {
     id: page
@@ -122,11 +123,20 @@ Private.SilicaMouseArea {
     readonly property int _navigationPending: __stack_container ? __stack_container.navigationPending : PageNavigation.NoNavigation
     readonly property int _direction: __stack_container ? __stack_container.direction : PageNavigation.NoDirection
 
+    ConfigurationValue {
+        id: forceOrientation
+        key: "/desktop/sailfish/silica/force_orientation"
+        defaultValue: false
+    }
+
     property int _allowedOrientations: {
         var allowed = allowedOrientations & __silica_applicationwindow_instance.allowedOrientations
         if (!allowed) {
             // No common supported orientations, let the page decide
             allowed = allowedOrientations
+        }
+        if (forceOrientation.value) {
+          allowed = 15
         }
         return allowed
     }
