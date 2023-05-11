@@ -100,18 +100,14 @@ my $USAGE = "Usage:
 
   $EXEC orient|--orient ORIENT_ARG
   $EXEC --orient=ORIENT_ARG
-    -if ORIENT_ARG = 'auto':
-      ACCEL_VAL=1
-      USER_VAL=0
-    -if ORIENT_ARG = 'landscape':
-      ACCEL_VAL=0
-      USER_VAL=1
-    -if ORIENT_ARG = 'portrait':
-      ACCEL_VAL=0
-      USER_VAL=0
-    -run:
+    run:
       $EXEC settings put system accelerometer_rotation ACCEL_VAL
       $EXEC settings put system user_rotation USER_VAL
+
+    ORIENT_ARG
+      auto | a | none               =  ACCEL_VAL=1   USER_VAL=0
+      portrait | p | 0              =  ACCEL_VAL=0   USER_VAL=0
+      landscape | l | 1             =  ACCEL_VAL=0   USER_VAL=1
 
   $EXEC -i|i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
@@ -346,11 +342,11 @@ sub main(@){
     lxcShell $opts, "input", "tap", $realX, $realY;
   }elsif($mode eq $MODE_ORIENT){
     my ($accelVal, $userVal);
-    if($orientArg eq "auto"){
+    if($orientArg =~ /^(auto|a|none)$/){
       ($accelVal, $userVal) = (1, 0);
-    }elsif($orientArg eq "portrait"){
+    }elsif($orientArg =~ /^(portrait|p|0)$/){
       ($accelVal, $userVal) = (0, 0);
-    }elsif($orientArg eq "landscape"){
+    }elsif($orientArg =~ /^(landscape|l|1)$/){
       ($accelVal, $userVal) = (0, 1);
     }
 
