@@ -2,6 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import com.jolla.settings 1.0
 import org.nemomobile.systemsettings 1.0
+import Nemo.Configuration 1.0
 
 SettingsToggle {
     // Lock mode from user point of view
@@ -60,6 +61,19 @@ SettingsToggle {
         lastToggledMillis = nowMillis;
         lastToggledOrigLock = displaySettings.orientationLock;
         displaySettings.orientationLock = targetLock;
+
+        updateForceOrientation()
+    }
+
+
+    ConfigurationValue {
+        id: forceOrientation
+        key: "/desktop/sailfish/silica/force_orientation"
+        defaultValue: false
+    }
+
+    function updateForceOrientation(){
+      forceOrientation.value = checked;
     }
 
     menu: ContextMenu {
@@ -67,30 +81,35 @@ SettingsToggle {
             text: qsTrId("settings_system-orientation_portrait")
             onClicked: {
               displaySettings.orientationLock = "portrait"
+              updateForceOrientation()
             }
         }
         MenuItem {
             text: qsTrId("settings_system-orientation_landscape")
             onClicked: {
               displaySettings.orientationLock = "landscape"
+              updateForceOrientation()
             }
         }
         MenuItem {
             text: "Inverted " + qsTrId("settings_system-orientation_portrait")
             onClicked: {
               displaySettings.orientationLock = "portrait-inverted"
+              updateForceOrientation()
             }
         }
         MenuItem {
             text: "Inverted " + qsTrId("settings_system-orientation_landscape")
             onClicked: {
               displaySettings.orientationLock = "landscape-inverted"
+              updateForceOrientation()
             }
         }
         MenuItem {
             text: "Dynamic"
             onClicked: {
               displaySettings.orientationLock = "dynamic"
+              updateForceOrientation()
             }
         }
     }
