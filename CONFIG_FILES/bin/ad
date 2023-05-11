@@ -106,11 +106,11 @@ my $USAGE = "Usage:
     (both are run twice because sometimes 'inverted' is ignored)
 
     ORIENT_ARG
-      auto | a | none               =  ACCEL_VAL=1   USER_VAL=0
-      portrait | p | 0              =  ACCEL_VAL=0   USER_VAL=0
-      landscape | l | 1             =  ACCEL_VAL=0   USER_VAL=1
-      portrait-inverted | pi | 2    =  ACCEL_VAL=0   USER_VAL=2
-      landscape-inverted | li | 3   =  ACCEL_VAL=0   USER_VAL=3
+      auto | a | none                   =  ACCEL_VAL=1   USER_VAL=0
+      portrait | p | 0                  =  ACCEL_VAL=0   USER_VAL=0
+      landscape | l | 1                 =  ACCEL_VAL=0   USER_VAL=1
+      portrait-inverted | pi | 2        =  ACCEL_VAL=0   USER_VAL=2
+      landscape-inverted | li | 3       =  ACCEL_VAL=0   USER_VAL=3
 
   $EXEC -i|i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
