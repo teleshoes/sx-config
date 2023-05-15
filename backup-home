@@ -20,6 +20,7 @@ my @excludes = qw(
 
   Pictures/Camera
   Pictures/AdvancedCam
+  Pictures/Screenshots
   Videos/Camera
   Videos/AdvancedCam
 
