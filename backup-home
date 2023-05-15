@@ -18,8 +18,11 @@ my @excludes = qw(
 
   android_storage/DCIM/OpenCamera
 
-  Pictures/
-  Videos/
+  Pictures/Camera
+  Pictures/AdvancedCam
+  Videos/Camera
+  Videos/AdvancedCam
+
   Backgrounds/
 
   Code/
