@@ -171,9 +171,6 @@ pubkeys
 #     -ensure self-check
 #       -signature spoofing is enabled in setup-dconf (must restart aliendalvik after)
 #       -all perms should handled by setup-aliendalvik, except battery-opt
-#     -MAYBE: check 'battery-optimizations ignored' (probably not required)
-#     -MAYBE: enable Mozilla UnifiedNlp backend
-#     -MAYBE: enable Nominatim Address lookup module
-#     -MAYBE: log into Google Account (find out if device-reg/cloud-messaging requires this)
+#     -log into Google Account
 #     -enable device-registration (digits definitely runs checkin)
 #     -enable cloud-messaging (digits definitely uses GCM)
