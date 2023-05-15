@@ -78,11 +78,6 @@ my $GRANT_PERMS = {
     android.permission.FAKE_PACKAGE_SIGNATURE
   )],
 
-  #signature spoof checker
-  "lanchon.sigspoof.checker" => [qw(
-    android.permission.FAKE_PACKAGE_SIGNATURE
-  )],
-
   #Mozilla UnifiedNlp Backend
   "org.microg.nlp.backend.ichnaea" => [qw(
     android.permission.ACCESS_COARSE_LOCATION
