@@ -13,7 +13,7 @@ import Sailfish.Silica.private 1.0
 import Nemo.Notifications 1.0 as SystemNotifications
 import org.nemomobile.lipstick 0.1
 import com.jolla.lipstick 0.1
-import Nemo.Configuration 1.0
+import org.nemomobile.configuration 1.0
 import org.nemomobile.devicelock 1.0
 import org.nemomobile.systemsettings 1.0
 import "../backgrounds"
@@ -177,7 +177,6 @@ SilicaFlickable {
                 width: topMenu.width
                 height: topMenu.itemSize
                 visible: Lipstick.compositor.powerKeyPressed
-                         || Lipstick.compositor.experimentalFeatures.topmenu_shutdown_reboot_visible
                 PowerButton {
                     id: shutdownButton
 

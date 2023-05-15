@@ -131,9 +131,7 @@ Silica.SilicaItem {
 
             MInputMethodQuick.sendKey(Qt.Key_Backspace, 0, "\b", Maliit.KeyClick)
         } else if (pressedKey.key === Qt.Key_Paste) {
-            if (keyboard.pasteEnabled) {
-                MInputMethodQuick.sendCommit(Silica.Clipboard.text)
-            }
+            MInputMethodQuick.sendCommit(Silica.Clipboard.text)
         } else  {
             resetShift = false
         }

@@ -20,16 +20,6 @@
         "type": "custom",
         "translation_id": "settings_system-ringtone_volume",
         "params": {
-            "source": "/usr/share/jolla-settings/pages/sounds/RingtoneVolumeSettingsSlider.qml",
-            "type": "list",
-            "settings_path": "system_settings/look_and_feel/sounds"
-        }
-    },
-    {
-        "path": "system_settings/look_and_feel/sounds/volume",
-        "type": "custom",
-        "translation_id": "settings_system-volume",
-        "params": {
             "source": "/usr/share/jolla-settings/pages/sounds/VolumeSettingsSlider.qml",
             "type": "list",
             "settings_path": "system_settings/look_and_feel/sounds"

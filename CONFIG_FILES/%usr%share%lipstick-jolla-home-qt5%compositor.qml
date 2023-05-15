@@ -17,6 +17,7 @@ import Nemo.FileManager 1.0
 import Nemo.Configuration 1.0
 import Sailfish.Silica 1.0
 import Sailfish.Silica 1.0 as SS
+import Sailfish.Ambience 1.0
 import Sailfish.Silica.private 1.0
 import Sailfish.Lipstick 1.0
 import com.jolla.lipstick 0.1
@@ -91,10 +92,7 @@ Compositor {
     property alias notificationOverviewLayer: notificationOverviewLayerItem
     property alias shutdownLayer: shutdownLayerItem
 
-    property alias floatingScreenshotButtonActive: screenshotButton.active
-
     property alias volumeGestureFilterItem: globalVolumeGestureItem
-    readonly property alias experimentalFeatures: experimentalFeatures
     // Needs more prototyping, disable by default. See JB#40618
     readonly property bool quickAppToggleGestureExceeded: experimentalFeatures.quickAppToggleGesture && peekLayer.quickAppToggleGestureExceeded
 
@@ -159,7 +157,7 @@ Compositor {
 
     readonly property real topmostWindowHeight: topmostWindowAngle % 180 == 0 ? height : width
 
-    property int homeOrientation: QtQuick.Screen.primaryOrientation
+    property int homeOrientation: Qt.PortraitOrientation
 
     screenOrientation: {
         if (orientationLock == "portrait") return Qt.PortraitOrientation
@@ -249,8 +247,6 @@ Compositor {
     property string _peekDirection
     property bool _displayOn
 
-    readonly property bool multitaskingHome: experimentalFeatures.multitasking_home
-
     // Emitted before transitioning to a home layer.  The lockscreen connects to this and either
     // clears its locked status allowing home to gain focus, or shows the pin query if the device
     // is locked.
@@ -326,9 +322,6 @@ Compositor {
 
         path: "/desktop/sailfish/experimental"
         property bool quickAppToggleGesture
-        property bool multitasking_home: true
-        property bool topmenu_shutdown_reboot_visible
-        property int lockscreen_notification_count: 4
     }
 
     MultiPointTouchDrag {
@@ -638,9 +631,9 @@ Compositor {
                     visible: root.homeVisible
 
                     dimmer {
-                        offset: root.multitaskingHome ? Math.abs(homeLayerItem.events.offset) : 0
+                        offset: Math.abs(homeLayerItem.events.offset)
                         distance: homeLayerItem._transposed ? homeLayerItem.height : homeLayerItem.width
-                        relativeDim: !root.multitaskingHome || homeLayerItem.events.visible
+                        relativeDim: homeLayerItem.events.visible
                     }
 
                     onTransitionComplete: ambienceChangeTimeout.running = false
@@ -754,8 +747,10 @@ Compositor {
                         * (indicatorHomeForeground.transposed ? -launcherLayer.x : launcherLayer.y)
 
                 opacity: {
-                    if (launcherLayer.peekFilter.bottomActive || launcherLayerItem.closeFromEdge) {
-                        return launcherLayer.contentOpacity * peekLayer.contentOpacity
+                    if (launcherLayer.peekFilter.bottomActive) {
+                        return launcherLayer.contentOpacity
+                    } else if (launcherLayerItem.closeFromEdge) {
+                        return peekLayer.contentOpacity
                     } else {
                         return exposed ? 1.0 : 0.0
                     }
@@ -1288,13 +1283,7 @@ Compositor {
                     displayOffRectangle.suppressDisplayOffBehavior = false
                 }
 
-                onExposedChanged: {
-                    if (exposed) {
-                        topmenuEdgeHandle.earlyFadeout = false
-                        launcherLayerItem.resetPinning()
-                    }
-                }
-
+                onExposedChanged: if (exposed) topmenuEdgeHandle.earlyFadeout = false
                 onClosed: {
                     displayOffRectangle.keepVisible = false
                     topmenuEdgeHandle.earlyFadeout = false
@@ -1338,6 +1327,43 @@ Compositor {
                 }
                 return pushDown
             }
+        }
+    }
+
+    MouseTracker {
+        id: mouseTracker
+
+        anchors.fill: parent
+        enabled: displayCursor.value && available && !lipstickSettings.lowPowerMode
+        rotation: QtQuick.Screen.angleBetween(Lipstick.compositor.topmostWindowOrientation, QtQuick.Screen.primaryOrientation)
+
+        onAvailableChanged: if (available) mouseVisibilityTimer.restart()
+        onMouseXChanged: if (available) mouseVisibilityTimer.restart()
+        onMouseYChanged: if (available) mouseVisibilityTimer.restart()
+
+        Timer {
+            id: mouseVisibilityTimer
+
+            // Hide after 10 minutes of idle
+            interval: 10 * 60 * 1000
+        }
+
+        ConfigurationValue {
+            id: displayCursor
+            key: "/desktop/sailfish/compositor/display_cursor"
+            defaultValue: false
+        }
+
+        Image {
+            // JB#56057: Support custom pointer graphics with different hotspot co-ordinates
+            // Now the hotspot co-ordinates below need to be updated if graphic-pointer-default icon is changed
+            property real hotspotX: 13/48 * width
+            property real hotspotY: 4/48 * height
+            x: mouseTracker.mouseX - hotspotX
+            y: mouseTracker.mouseY - hotspotY
+            opacity: mouseTracker.enabled && mouseVisibilityTimer.running ? 1.0 : 0.0
+            Behavior on opacity { FadeAnimator {}}
+            source: "image://theme/graphic-pointer-default"
         }
     }
 
@@ -1417,13 +1443,8 @@ Compositor {
         var parent = null
 
         if (isHomeWindow) {
-            if (root.multitaskingHome) {
-                parent = homeLayerItem.switcher
-                properties.parent = homeLayerItem.switcher.contentItem
-            } else {
-                parent = launcherLayer
-                properties.parent = launcherLayerItem.contentItem
-            }
+            parent = homeLayerItem.switcher
+            properties.parent = homeLayerItem.switcher.contentItem
         } else if (isEventsWindow) {
             parent = homeLayerItem.events
             properties.parent = homeLayerItem.events.contentItem
@@ -1431,13 +1452,8 @@ Compositor {
             parent = lockScreenLayer
             properties.parent = lockScreenLayerItem.contentItem
         } else if (isLauncherWindow) {
-            if (root.multitaskingHome) {
-                parent = launcherLayer
-                properties.parent = launcherLayerItem.contentItem
-            } else {
-                parent = homeLayerItem.switcher
-                properties.parent = homeLayerItem.switcher.contentItem
-            }
+            parent = launcherLayer
+            properties.parent = launcherLayerItem.contentItem
         } else if (isShutdownWindow) {
             parent = shutdownLayer
             properties.parent = shutdownLayer.contentItem
@@ -1502,23 +1518,14 @@ Compositor {
         }
 
         if (isHomeWindow) {
-            if (root.multitaskingHome) {
-                homeLayerItem.switcher.window = w
-            } else {
-                launcherLayer.window = w
-            }
-
+            homeLayerItem.switcher.window = w
             launcherLayer.allowed = true
             desktop = Desktop.instance
         } else if (isLockScreenWindow) {
             lockScreenLayer.window = w
             setCurrentWindow(lockScreenLayer.window)
         } else if (isLauncherWindow) {
-            if (root.multitaskingHome) {
-                launcherLayer.window = w
-            } else {
-                homeLayerItem.switcher.window = w
-            }
+            launcherLayer.window = w
         } else if (isTopMenuWindow) {
             topMenuLayerItem.window = w
         } else if (isEventsWindow) {
@@ -1702,43 +1709,6 @@ Compositor {
                                                    : (appLayer.window ? appLayer.window.window : null)
     }
 
-    MouseTracker {
-        id: mouseTracker
-
-        anchors.fill: parent
-        enabled: displayCursor.value && available && !lipstickSettings.lowPowerMode
-        rotation: QtQuick.Screen.angleBetween(Lipstick.compositor.topmostWindowOrientation, QtQuick.Screen.primaryOrientation)
-
-        onAvailableChanged: if (available) mouseVisibilityTimer.restart()
-        onMouseXChanged: if (available) mouseVisibilityTimer.restart()
-        onMouseYChanged: if (available) mouseVisibilityTimer.restart()
-
-        Timer {
-            id: mouseVisibilityTimer
-
-            // Hide after 10 minutes of idle
-            interval: 10 * 60 * 1000
-        }
-
-        ConfigurationValue {
-            id: displayCursor
-            key: "/desktop/sailfish/compositor/display_cursor"
-            defaultValue: false
-        }
-
-        Image {
-            // JB#56057: Support custom pointer graphics with different hotspot co-ordinates
-            // Now the hotspot co-ordinates below need to be updated if graphic-pointer-default icon is changed
-            property real hotspotX: 13/48 * width
-            property real hotspotY: 4/48 * height
-            x: mouseTracker.mouseX - hotspotX
-            y: mouseTracker.mouseY - hotspotY
-            opacity: mouseTracker.enabled && mouseVisibilityTimer.running ? 1.0 : 0.0
-            Behavior on opacity { FadeAnimator {}}
-            source: "image://theme/graphic-pointer-default"
-        }
-    }
-
     TouchBlocker {
         id: shutdownLayerItem
 
@@ -1812,92 +1782,6 @@ Compositor {
         visible: opacity > 0.05
         Behavior on opacity {
             FadeAnimation { id: dimmingAnimation  }
-        }
-    }
-
-    MouseArea {
-        id: screenshotButton
-        x: defaultX
-        y: defaultY
-        visible: active && !snapping
-        enabled: visible
-        width: Theme.itemSizeExtraLarge
-        height: Theme.itemSizeExtraLarge
-
-        drag.target: screenshotButton
-        drag.axis: Drag.XAndYAxis
-        drag.minimumX: 0 - width * dragOverscan
-        drag.maximumX: SS.Screen.width - width * (1 - dragOverscan)
-        drag.minimumY: 0 - height * dragOverscan
-        drag.maximumY: SS.Screen.height - height * (1 - dragOverscan)
-
-        property bool active
-        property bool snapping
-        readonly property real defaultX: (SS.Screen.width - width) * 0.50
-        readonly property real defaultY: (SS.Screen.height - height) * 0.75
-        readonly property real dragOverscan: 0.4
-        readonly property real hideOverscan: 0.3
-        property var screenshotObject
-
-        onActiveChanged: resetPosition()
-        onSnappingChanged: screenshotExposureTimer.running = snapping
-        onClicked: beginExposure()
-        onPressedChanged: { if (!pressed) spotHidden() }
-
-        function resetPosition() {
-            x = defaultX
-            y = defaultY
-        }
-        function spotHidden() {
-            if ((x + width * hideOverscan < 0)
-                || (x + width * (1 - hideOverscan) > SS.Screen.width)
-                || (y + height * hideOverscan < 0)
-                || (y + height * (1 - hideOverscan) > SS.Screen.height)) {
-                active = false
-            }
-        }
-        function beginExposure() {
-            snapping = true
-            if (!screenshotObject) {
-                var component = Qt.createComponent(Qt.resolvedUrl("volumecontrol/Screenshot.qml"))
-                if (component.status == Component.Ready) {
-                    screenshotObject = component.createObject(screenshotButton)
-                } else {
-                    console.warn("Screenshot object instantiation failed:", component.errorString())
-                }
-            }
-            if (screenshotObject) {
-                screenshotObject.capture()
-            }
-        }
-        function endExposure() {
-            snapping = false
-        }
-
-        Rectangle {
-            radius: width / 2
-            width: shutterIcon.width
-            height: width
-            anchors.centerIn: parent
-            color: Theme.secondaryHighlightColor
-            visible: shutterIcon.opacity < 1.0
-        }
-        Image {
-            id: shutterIcon
-            anchors.centerIn: parent
-            source: "image://theme/icon-camera-shutter"
-
-            opacity: {
-                if (screenshotButton.pressed) {
-                    return Theme.opacityHigh
-                }
-                return 1.0
-            }
-        }
-        Timer {
-            id: screenshotExposureTimer
-            interval: 1000
-            onTriggered: parent.endExposure()
         }
     }
 

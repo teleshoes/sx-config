@@ -125,12 +125,7 @@ SystemWindow {
         anchors.fill: popupArea
         enabled: false
 
-        onPressedOutside: {
-            if (popupArea.expanded) {
-                notificationFeedbackPlayer.removeNotification(notification.id)
-                notificationWindow.notificationExpired()
-            }
-        }
+        onPressedOutside: if (popupArea.expanded) notificationWindow.notificationExpired()
     }
 
     Binding {
@@ -173,7 +168,6 @@ SystemWindow {
 
         onSwipedAway: {
             notificationWindow.state = ""
-            notificationFeedbackPlayer.removeNotification(notification.id)
             notificationWindow.notificationExpired()
         }
 
@@ -424,10 +418,7 @@ SystemWindow {
         height: Lipstick.compositor.homeLayer.statusBar.height
         y: -height
 
-        onClicked: {
-            notificationFeedbackPlayer.removeNotification(notification.id)
-            notificationWindow.notificationExpired()
-        }
+        onClicked: notificationWindow.notificationExpired()
 
         Rectangle {
             anchors.fill: parent
@@ -478,6 +469,23 @@ SystemWindow {
             maximumLineCount: 1
             opacity: bannerArea.contentOpacity
         }
+    }
+
+    Loader {
+        id: ambiencePreviewLoader
+    }
+
+    Component {
+        id: ambiencePreviewComponent
+        AmbiencePreview {
+            onFinished: notificationWindow.notificationComplete()
+        }
+    }
+
+    Binding {
+        target: notificationFeedbackPlayer
+        property: "minimumPriority"
+        value: lipstickSettings.lockscreenVisible ? 100 : 0
     }
 
     Timer {
@@ -566,10 +574,21 @@ SystemWindow {
         }
 
         if (showNotification) {
-            var actions = notification.remoteActions
-            // Show preview banner or pop-up
-            var hasMultipleLines = (notification.previewSummary.length > 0 && notification.previewBody.length > 0)
-            state = actions.length > 0 || hasMultipleLines ? "showPopup" : "showBanner"
+            if (notification.category === "x-jolla.ambience.preview") {
+                ambiencePreviewLoader.sourceComponent = ambiencePreviewComponent
+                var preview = ambiencePreviewLoader.item
+                if (preview) {
+                    preview.displayName = notification.previewSummary
+                    preview.coverImage = notification.previewBody
+                    preview.show()
+                    state = "showAmbience"
+                }
+            } else {
+                var actions = notification.remoteActions
+                // Show preview banner or pop-up
+                var hasMultipleLines = (notification.previewSummary.length > 0 && notification.previewBody.length > 0)
+                state = actions.length > 0 || hasMultipleLines ? "showPopup" : "showBanner"
+            }
         }
     }
 
@@ -677,6 +696,14 @@ SystemWindow {
                 // Keep the text at whatever scroll position it is currently in
                 x: bannerArea.x
                 contentOpacity: 1
+            }
+        },
+        State {
+            name: "showAmbience"
+            PropertyChanges {
+                target: notificationWindow
+                opacity: 1
+                visible: true
             }
         }
     ]

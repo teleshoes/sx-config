@@ -33,7 +33,7 @@ import Sailfish.Silica 1.0
 import Sailfish.Silica.Background 1.0
 import com.meego.maliitquick 1.0
 import com.jolla.keyboard 1.0
-import Nemo.Configuration 1.0
+import org.nemomobile.configuration 1.0
 import "touchpointarray.js" as ActivePoints
 
 PagedView {
@@ -68,13 +68,6 @@ PagedView {
     property bool inSymView2
     // allow chinese input handler to override enter key state
     property bool chineseOverrideForEnter
-    property bool pasteEnabled: !_pasteDisabled && Clipboard.hasText
-    property bool _pasteDisabled
-    Binding on _pasteDisabled {
-        // avoid change when keyboard is hiding
-        when: MInputMethodQuick.active
-        value: !!MInputMethodQuick.extensions.pasteDisabled
-    }
 
     property bool silenceFeedback
     property bool layoutChangeAllowed
@@ -254,22 +247,15 @@ PagedView {
         anchors.fill: parent
         z: -1
 
-        onPressed: {
-            startX = mouse.x
-            startY = mouse.y
-            keyboard.handlePressed(createPointArray(mouse.x, mouse.y))
-        }
+        onPressed: keyboard.handlePressed(createPointArray(mouse.x, mouse.y))
         onPositionChanged: keyboard.handleUpdated(createPointArray(mouse.x, mouse.y))
         onReleased: keyboard.handleReleased(createPointArray(mouse.x, mouse.y))
         onCanceled: keyboard.cancelAllTouchPoints()
 
-        property real startX
-        property real startY
-
         function createPointArray(pointX, pointY) {
             var pointArray = new Array
             pointArray.push({"pointId": 1, "x": pointX, "y": pointY,
-                             "startX": startX, "startY": startY })
+                             "startX": pointX, "startY": pointY })
             return pointArray
         }
     }
@@ -315,10 +301,6 @@ PagedView {
         for (var i = 0; i < touchPoints.length; i++) {
             var point = ActivePoints.addPoint(touchPoints[i])
             updatePressedKey(point)
-        }
-
-        if (ActivePoints.array.length > 1) {
-            keyboard.interactive = false // disable keyboard drag until all the touchpoints are released
         }
     }
 

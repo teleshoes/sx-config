@@ -7,7 +7,7 @@
 
 import QtQuick 2.0
 import org.nemomobile.lipstick 0.1
-import Nemo.Ngf 1.0
+import org.nemomobile.ngf 1.0
 import com.jolla.lipstick 0.1
 import Sailfish.Silica 1.0
 import Sailfish.Silica.private 1.0
@@ -33,8 +33,9 @@ SilicaFlickable {
 
     property int secondLastAppIndex
 
-    onVisibleChanged: {
-        if (!visible) {
+    readonly property bool switcherVisible: Lipstick.compositor && Lipstick.compositor.switcherLayer.visible
+    onSwitcherVisibleChanged: {
+        if (!switcherVisible) {
             housekeeping = false
             // The view is completely hidden. The delay is a grace period, so
             // that if you quickly exit and reenter the view has not moved.
@@ -403,19 +404,11 @@ SilicaFlickable {
 
         onWidthChanged: switcherGrid.updateColumns()
 
-        ViewPlaceholder {
-            //% "No apps running"
-            text: qsTrId("lipstick-jolla-home-me-no_apps_running")
-            y: parent.height/3 - height/2
-            opacity: !Lipstick.compositor.multitaskingHome && switcherRoot.count === 0 ? 1.0 : 0.0
-            Behavior on opacity { FadeAnimator {}}
-        }
-
         SwitcherGrid {
             id: switcherGrid
 
             columns: largeColumns
-            statusBarHeight: Lipstick.compositor.multitaskingHome ? switcherRoot.statusBarHeight : 0
+            statusBarHeight: switcherRoot.statusBarHeight
 
             readonly property bool allowSmallCovers: !largeScreen
             readonly property int largeItemCount: largeColumns * largeRows
@@ -425,7 +418,7 @@ SilicaFlickable {
             function updateColumns() {
                 // use a timer since switcherModel and pendingWindows models aren't in sync.
                 if (!switcherRoot.housekeeping) {
-                    if (switcherRoot.visible) {
+                    if (switcherRoot.switcherVisible) {
                         columnUpdateTimer.restart()
                     } else {
                         doUpdateColumns()
@@ -439,7 +432,7 @@ SilicaFlickable {
                     cols = switcherGrid.smallColumns
                 if (cols !== switcherGrid.columns) {
                     scrollAnimation.stop()
-                    if (desktop.orientationTransitionRunning || !switcherRoot.visible) {
+                    if (desktop.orientationTransitionRunning || !switcherRoot.switcherVisible) {
                         switcherGrid.columns = cols
                         switcherGrid.coverSize = switcherGrid.columns == switcherGrid.largeColumns ? Theme.coverSizeLarge : Theme.coverSizeSmall
                     } else {
@@ -538,7 +531,7 @@ SilicaFlickable {
 
                     showingWid: switcherRoot.showingWid
                     columns: switcherGrid.columns
-                    animateMovement: switcherRoot.visible
+                    animateMovement: switcherRoot.switcherVisible
                                 && !columnChangeAnimation.running
                                 && !desktop.orientationTransitionRunning
 
@@ -547,24 +540,19 @@ SilicaFlickable {
                     onClicked: {
                         if (switcherRoot.housekeeping) {
                             switcherRoot.housekeeping = false
-                        } else {
-                            if (!Lipstick.compositor.multitaskingHome) {
-                                Lipstick.compositor.launcherLayer.hide()
-                            }
-                            if (running) {
-                                switcherRoot.minimizeLaunchingWindows()
-                                minimized = false
-                                Lipstick.compositor.windowToFront(windowId)
-                            } else if (launcherItem) {
-                                var wasLaunching = launching
-                                switcherRoot.minimizeLaunchingWindows()
-                                // App is not running. Launch it now.
-                                launching = true
-                                minimized = false
-                                switcherRoot.launchingItem = switcherDelegate
-                                if (!wasLaunching) {
-                                    launcherItem.launchApplication()
-                                }
+                        } else if (running) {
+                            switcherRoot.minimizeLaunchingWindows()
+                            minimized = false
+                            Lipstick.compositor.windowToFront(windowId)
+                        } else if (launcherItem) {
+                            var wasLaunching = launching
+                            switcherRoot.minimizeLaunchingWindows()
+                            // App is not running. Launch it now.
+                            launching = true
+                            minimized = false
+                            switcherRoot.launchingItem = switcherDelegate
+                            if (!wasLaunching) {
+                                launcherItem.launchApplication()
                             }
                         }
                     }
@@ -632,7 +620,7 @@ SilicaFlickable {
 
             Component.onCompleted: {
                 // avoid hard dependency to ngf module
-                ngfEffect = Qt.createQmlObject("import Nemo.Ngf 1.0; NonGraphicalFeedback { event: 'push_gesture' }",
+                ngfEffect = Qt.createQmlObject("import org.nemomobile.ngf 1.0; NonGraphicalFeedback { event: 'push_gesture' }",
                                                 switcherGrid, 'NonGraphicalFeedback')
             }
         }
@@ -665,7 +653,7 @@ SilicaFlickable {
             var wasHousekeeping = switcherRoot.housekeeping
             if (switcherRoot.housekeeping && !switcherRoot.housekeepingMenuActive)
                 switcherRoot.housekeeping = false
-            else if (!wasHousekeeping && Lipstick.compositor.multitaskingHome)
+            else if (!wasHousekeeping)
                 Lipstick.compositor.launcherLayer.showHint()
         }
 

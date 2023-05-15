@@ -105,12 +105,12 @@ ListItem {
             //HACK-HH-MM-SS
         } else if (shorten) {
             //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.TimeElapsedShort)
+            //timeString = Format.formatDate(date, Formatter.DurationElapsedShort)
             timeString = Qt.formatDateTime(date, 'hh:mm:ss')
             //HACK-HH-MM-SS
         } else {
             //HACK-HH-MM-SS
-            //timeString = Format.formatDate(date, Formatter.TimeElapsed)
+            //timeString = Format.formatDate(date, Formatter.DurationElapsed)
             timeString = Qt.formatDateTime(date, 'hh:mm:ss')
             //HACK-HH-MM-SS
         }
@@ -166,7 +166,7 @@ ListItem {
             bottomMargin: (groupFirst ? Theme.paddingSmall : 0)
         }
 
-        radius: Math.min(Theme.paddingLarge, height / 2)
+        radius: Theme.paddingLarge
         roundedCorners: {
             // Note: MessagesView has a BottomToTop layout direction, so groupFirst is the bottom-most
             var result = Corners.None
