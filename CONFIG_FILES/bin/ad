@@ -31,6 +31,7 @@ my $SHELL_ENV_VARS_USAGE_FMT = join " \\\n            ", map{"$_=$SHELL_ENV_VARS
 my $CONTAINER_NAME = "aliendalvik";
 my @LXC_PATHS = qw(
   /tmp/appsupport
+  /var/lib/lxc
 );
 
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
