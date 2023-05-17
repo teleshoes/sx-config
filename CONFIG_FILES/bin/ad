@@ -261,7 +261,7 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--launch|--launch-intent)=(.+)$/){
       $mode = $MODE_LAUNCH;
       $intent = $2;
-    }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/ and @_ == 0){
+    }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/ and $isLastArg){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
     }elsif($isFirstArg and $arg =~ /^(-w|w|--wait)$/){
