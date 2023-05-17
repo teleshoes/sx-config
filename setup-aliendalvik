@@ -60,6 +60,7 @@ my $PACKAGE_RESTRICTIONS = {
 };
 
 my $NOTIFICATIONS_ENABLED = {
+  "com.google.android.apps.maps" => 0,
 };
 
 my $GRANT_PERMS = {
