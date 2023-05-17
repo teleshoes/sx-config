@@ -5,6 +5,7 @@ use Time::HiRes qw(time);
 
 my $IPMAGIC_NAME = "sx";
 my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-restrictions.xml";
+my $NOTIFICATION_POLICY_XML_FILE = "/home/.android/data/system/notification_policy.xml";
 
 my $ALIENDALVIK_START_SCRIPT = "/usr/sbin/start-aliendalvik.sh";
 my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
@@ -56,6 +57,9 @@ my $PACKAGE_RESTRICTIONS = {
     . "            <item name=\"us.zoom.videomeetings.SendFileActivity\" />\n"
     . "        </disabled-components>\n"
     . "    </pkg>\n"
+};
+
+my $NOTIFICATIONS_ENABLED = {
 };
 
 my $GRANT_PERMS = {
@@ -125,6 +129,7 @@ my @NOMEDIA = qw(
 sub applySettings();
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
+sub editNotificationPolicy($);
 sub editStartScript($);
 sub setupJitsi();
 sub isJitsiInitialized();
@@ -167,6 +172,13 @@ sub main(@){
     "package-restrictions",
     $PACKAGE_RESTRICTIONS_XML_FILE,
     \&editPackageRestrictions,
+  );
+
+  print "\n\n\nediting notification policy\n";
+  editRemoteFile(
+    "notification-policy",
+    $NOTIFICATION_POLICY_XML_FILE,
+    \&editNotificationPolicy,
   );
 
   print "\n\n\nediting start script\n";
@@ -341,6 +353,41 @@ sub editPackageRestrictions($){
   $pkgXml = join("", @pkgs);
 
   $contents = $prefix . $pkgXml . $suffix;
+
+  if($isChanged){
+    open FH, "> $file" or die "could not write $file\n$!\n";
+    print FH $contents;
+    close FH;
+  }
+
+  return $isChanged;
+}
+
+sub editNotificationPolicy($){
+  my ($file) = @_;
+  open FH, "< $file" or die "could not read $file\n$!\n";
+  my $contents = join '', <FH>;
+  close FH;
+
+  my $isChanged = 0;
+
+  for my $pkg(sort keys %$NOTIFICATIONS_ENABLED){
+    my $isEnabled = $$NOTIFICATIONS_ENABLED{$pkg};
+    if($contents =~ /<package name="$pkg"([^>]*)>/){
+      my $origAtts = $1;
+      my $newAtts = $origAtts;
+      $newAtts =~ s/ importance="[^"]*"//g;
+      if(not $isEnabled){
+        $newAtts = " importance=\"0\"$newAtts";
+      }
+      if($origAtts ne $newAtts){
+        $contents =~ s/(<package name="$pkg")[^>]*>/$1$newAtts>/;
+        $isChanged = 1;
+      }
+    }else{
+      die "ERROR: could not set notifications enabled/disabled for $pkg\n";
+    }
+  }
 
   if($isChanged){
     open FH, "> $file" or die "could not write $file\n$!\n";
