@@ -446,9 +446,7 @@ sub lxcWrapCmd($@){
 sub lxcShell($@){
   my ($opts, @shellCmd) = @_;
   my @cmd = lxcWrapCmd($opts, @shellCmd);
-  if(@shellCmd > 0){
-    print "@cmd\n" if $$opts{verbose};
-  }
+  print "@cmd\n" if $$opts{verbose};
   system @cmd;
 }
 
