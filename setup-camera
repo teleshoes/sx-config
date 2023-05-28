@@ -29,6 +29,7 @@ sub main(@){
     mkdir -p /home/$USER/Videos/Camera/.recording
     mkdir -p /home/$USER/Pictures/AdvancedCam
     mkdir -p /home/$USER/Videos/AdvancedCam
+    mkdir -p /home/$USER/Pictures/Screenshots
 
     mkdir -p /media/sdcard/phone/Pictures/Camera
     mkdir -p /media/sdcard/phone/Videos/Camera
