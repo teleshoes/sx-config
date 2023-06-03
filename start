@@ -174,3 +174,8 @@ pubkeys
 #     -log into Google Account
 #     -enable device-registration (digits definitely runs checkin)
 #     -enable cloud-messaging (digits definitely uses GCM)
+# -bluetooth
+#   -for car:
+#     -run: bt off && bt mode bredr && bt on
+#     -pair car in ui, allow connections, name=CAR, type=Toy
+#     -run: bt off && bt mode dual && bt on
