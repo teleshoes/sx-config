@@ -1,26 +1,29 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
 
 sub getPowered();
 
+my $EXEC = basename $0;
+
 my $USAGE = "Usage:
-  $0 -h|--help
+  $EXEC -h|--help
     show this message
 
-  $0 get | --get | g | -g
+  $EXEC get | --get | g | -g
     print bluetooth status
 
-  $0
-  $0 on | --on | enable | --enable | enabled | --enabled
+  $EXEC
+  $EXEC on | --on | enable | --enable | enabled | --enabled
     restart bluetooth and bluetooth-rfkill-event
     enable bluetooth
 
-  $0 off | --off | disable | --disable | disabled | --disabled
+  $EXEC off | --off | disable | --disable | disabled | --disabled
     restart bluetooth and bluetooth-rfkill-event
     disable bluetooth
 
-  $0 toggle | --toggle | t | -t
+  $EXEC toggle | --toggle | t | -t
     restart bluetooth and bluetooth-rfkill-event
     toggle bluetooth
 ";
