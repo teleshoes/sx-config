@@ -30,8 +30,6 @@ my $USAGE = "Usage:
   $EXEC --coolreader-toggle
     -if `profile` == general:
       run: @COOLREADER_TOGGLE_CMD
-    -otherwise:
-      run: sudo pkill -9 -f $TTS_PROC_REGEX
 
   $EXEC --is-cr-running
     -if `pgrep -f '^$CR_PROC_REGEX\\s*\$'` is successful:
@@ -120,8 +118,6 @@ sub main(@){
 sub coolreaderToggle(){
   if(isProfileGeneral()){
     system @COOLREADER_TOGGLE_CMD;
-  }else{
-    system "sudo", "pkill", "-9", "-f", $TTS_PROC_REGEX;
   }
 }
 
