@@ -119,9 +119,9 @@ sub isCoolreaderRunning(){
 sub isCoolreaderTTSMode(){
   my @lines = `sudo cat $CR_STATE_LOG_FILE 2>/dev/null`;
   for my $line(reverse @lines){
-    if($line =~ /TTS_CREATE/){
+    if($line =~ /TTS_ON/){
       return 1;
-    }elsif($line =~ /TTS_DESTROY/){
+    }elsif($line =~ /TTS_OFF/){
       return 0;
     }
   }
