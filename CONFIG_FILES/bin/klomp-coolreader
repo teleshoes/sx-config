@@ -5,7 +5,6 @@ use File::Basename qw(basename);
 
 my $EXEC = basename $0;
 my $CR_PROC_REGEX = "(org.coolreader)";
-my $TTS_PROC_REGEX = "(com.google.android.tts|com.ivona.tts)";
 my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
 my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
@@ -15,7 +14,6 @@ my $CR_STATE_LOG_FILE = "$CR_DATA_DIR/files/cr-state-log.txt";
 my $USAGE = "Usage:
   $EXEC -g|--get
     -if `$EXEC --is-cr-running` = 'yes'
-     AND `$EXEC --is-tts-running` = 'yes'
      AND `$EXEC --is-tts-created-state` = 'yes':
        -print \"coolreader\"
     -otherwise:
@@ -37,12 +35,6 @@ my $USAGE = "Usage:
     -otherwise:
       print \"no\"
 
-  $EXEC --is-tts-running
-    -if `pgrep -f '^$TTS_PROC_REGEX\\s*\$'` is successful:
-      print \"yes\"
-    -otherwise:
-      print \"no\"
-
   $EXEC --is-tts-created-state
     -read (as root): $CR_STATE_LOG_FILE
     -if 'TTS_CREATE' appears later than 'TTS_DESTROY':
@@ -55,12 +47,10 @@ my $CMD_GET = "get";
 my $CMD_PLAY_PAUSE = "play-pause";
 my $CMD_COOLREADER_TOGGLE = "coolreader-toggle";
 my $CMD_IS_CR_RUNNING = "is-cr-running";
-my $CMD_IS_TTS_RUNNING = "is-tts-running";
 my $CMD_IS_TTS_CREATED_STATE = "is-tts-created-state";
 
 sub isCoolreaderMode();
 sub isCoolreaderRunning();
-sub isTTSRunning();
 sub isTTSCreatedState();
 sub isProfileGeneral();
 
@@ -79,8 +69,6 @@ sub main(@){
       $cmd = $CMD_COOLREADER_TOGGLE;
     }elsif($arg =~ /^(--is-cr-running)$/){
       $cmd = $CMD_IS_CR_RUNNING;
-    }elsif($arg =~ /^(--is-tts-running)$/){
-      $cmd = $CMD_IS_TTS_RUNNING;
     }elsif($arg =~ /^(--is-tts-created-state)$/){
       $cmd = $CMD_IS_TTS_CREATED_STATE;
     }else{
@@ -106,8 +94,6 @@ sub main(@){
     coolreaderToggle();
   }elsif($cmd eq $CMD_IS_CR_RUNNING){
     print isCoolreaderRunning() ? "yes\n" : "no\n";
-  }elsif($cmd eq $CMD_IS_TTS_RUNNING){
-    print isTTSRunning() ? "yes\n" : "no\n";
   }elsif($cmd eq $CMD_IS_TTS_CREATED_STATE){
     print isTTSCreatedState() ? "yes\n" : "no\n";
   }else{
@@ -122,16 +108,11 @@ sub coolreaderToggle(){
 }
 
 sub isCoolreaderMode(){
-  return isCoolreaderRunning() && isTTSRunning() && isTTSCreatedState();
+  return isCoolreaderRunning() && isTTSCreatedState();
 }
 
 sub isCoolreaderRunning(){
   system "pgrep -f '^$CR_PROC_REGEX\\s*\$' >/dev/null 2>/dev/null";
-  return $? == 0 ? 1 : 0;
-}
-
-sub isTTSRunning(){
-  system "pgrep -f '^$TTS_PROC_REGEX\\s*\$' >/dev/null 2>/dev/null";
   return $? == 0 ? 1 : 0;
 }
 
