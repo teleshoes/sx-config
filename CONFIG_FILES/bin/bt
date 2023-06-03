@@ -4,9 +4,15 @@ use warnings;
 use File::Basename qw(basename);
 
 sub getPowered();
+sub readFile($);
+sub writeFile($$);
 sub getRoot(@);
 
 my $EXEC = basename $0;
+
+my $BT_CONF_FILE = "/etc/bluetooth/main.conf";
+my @CONTROLLER_MODES = qw(dual bredr le);
+my $OK_CONTROLLER_MODES = join "|", @CONTROLLER_MODES;
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -27,15 +33,24 @@ my $USAGE = "Usage:
   $EXEC toggle | --toggle | t | -t
     restart bluetooth and bluetooth-rfkill-event
     toggle bluetooth
+
+  $EXEC --set-mode=CONTROLLER_MODE | --set-controller-mode=CONTROLLER_MODE
+  $EXEC --set-mode CONTROLLER_MODE | --set-controller-mode CONTROLLER_MODE
+  $EXEC mode CONTROLLER_MODE
+    edit $BT_CONF_FILE, setting ControllerMode = CONTROLLER_MODE
+    CONTROLLER_MODE
+      one of: @CONTROLLER_MODES
 ";
 
 my $CMD_GET = "get";
 my $CMD_ON = "on";
 my $CMD_OFF = "off";
 my $CMD_TOGGLE = "toggle";
+my $CMD_MODE = "mode";
 
 sub main(@){
   my $cmd = $CMD_GET;
+  my $targetControllerMode = undef;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -49,6 +64,13 @@ sub main(@){
       $cmd = $CMD_OFF;
     }elsif($arg =~ /^(toggle|--toggle|t|-t)$/){
       $cmd = $CMD_TOGGLE;
+    }elsif($arg =~ /^(--set-mode|--set-controller-mode)=($OK_CONTROLLER_MODES)$/){
+      $cmd = $CMD_MODE;
+      $targetControllerMode = $2;
+    }elsif($arg =~ /^(--set-mode|--set-controller-mode|mode)$/){
+      $cmd = $CMD_MODE;
+    }elsif($arg =~ /^($OK_CONTROLLER_MODES)$/ and $cmd eq $CMD_MODE){
+      $targetControllerMode = $1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -72,6 +94,18 @@ sub main(@){
     fix();
     setPowered($p);
     setPowered($p ? 0 : 1);
+  }elsif($cmd eq $CMD_MODE){
+    if(not defined $targetControllerMode){
+      die "$USAGE\nERROR: missing CONTROLLER_MODE\n";
+    }
+    my $old = `grep ControllerMode $BT_CONF_FILE`;
+    my $conf = readFile $BT_CONF_FILE;
+    if($conf !~ s/^\s*#?\s*ControllerMode\s*=.+$/ControllerMode = $targetControllerMode/m){
+      die "ERROR: could not find ControllerMode in $BT_CONF_FILE\n";
+    }
+    writeFile $BT_CONF_FILE, $conf;
+    my $new = `grep ControllerMode $BT_CONF_FILE`;
+    print "$old=>\n$new";
   }else{
     die "ERROR: unknown command $cmd\n";
   }
@@ -126,6 +160,21 @@ sub getPowered(){
   }
 
   die "ERROR: could not find bluetooth tech in connmanctl\n";
+}
+
+sub readFile($){
+  my ($file) = @_;
+  open FH, "< $file" or die "Could not read $file\n";
+  my $content = join '', <FH>;
+  close FH;
+  return $content;
+}
+
+sub writeFile($$){
+  my ($file, $contents) = @_;
+  open FH, "> $file" or die "Could not write $file\n";
+  print FH $contents;
+  close FH;
 }
 
 sub getRoot(@){
