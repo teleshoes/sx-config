@@ -14,7 +14,7 @@ my $CR_STATE_LOG_FILE = "$CR_DATA_DIR/files/cr-state-log.txt";
 my $USAGE = "Usage:
   $EXEC -g|--get
     -if `$EXEC --is-cr-running` = 'yes'
-     AND `$EXEC --is-tts-created-state` = 'yes':
+     AND `$EXEC --is-cr-tts-mode` = 'yes':
        -print \"coolreader\"
     -otherwise:
        -print \"klomp\"
@@ -35,7 +35,7 @@ my $USAGE = "Usage:
     -otherwise:
       print \"no\"
 
-  $EXEC --is-tts-created-state
+  $EXEC --is-cr-tts-mode
     -read (as root): $CR_STATE_LOG_FILE
     -if 'TTS_CREATE' appears later than 'TTS_DESTROY':
       print \"yes\"
@@ -47,11 +47,11 @@ my $CMD_GET = "get";
 my $CMD_PLAY_PAUSE = "play-pause";
 my $CMD_COOLREADER_TOGGLE = "coolreader-toggle";
 my $CMD_IS_CR_RUNNING = "is-cr-running";
-my $CMD_IS_TTS_CREATED_STATE = "is-tts-created-state";
+my $CMD_IS_CR_TTS_MODE = "is-cr-tts-mode";
 
 sub isCoolreaderMode();
 sub isCoolreaderRunning();
-sub isTTSCreatedState();
+sub isCoolreaderTTSMode();
 sub isProfileGeneral();
 
 sub main(@){
@@ -69,8 +69,8 @@ sub main(@){
       $cmd = $CMD_COOLREADER_TOGGLE;
     }elsif($arg =~ /^(--is-cr-running)$/){
       $cmd = $CMD_IS_CR_RUNNING;
-    }elsif($arg =~ /^(--is-tts-created-state)$/){
-      $cmd = $CMD_IS_TTS_CREATED_STATE;
+    }elsif($arg =~ /^(--is-cr-tts-mode)$/){
+      $cmd = $CMD_IS_CR_TTS_MODE;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -94,8 +94,8 @@ sub main(@){
     coolreaderToggle();
   }elsif($cmd eq $CMD_IS_CR_RUNNING){
     print isCoolreaderRunning() ? "yes\n" : "no\n";
-  }elsif($cmd eq $CMD_IS_TTS_CREATED_STATE){
-    print isTTSCreatedState() ? "yes\n" : "no\n";
+  }elsif($cmd eq $CMD_IS_CR_TTS_MODE){
+    print isCoolreaderTTSMode() ? "yes\n" : "no\n";
   }else{
     die "ERROR: unknown command $cmd\n";
   }
@@ -108,7 +108,7 @@ sub coolreaderToggle(){
 }
 
 sub isCoolreaderMode(){
-  return isCoolreaderRunning() && isTTSCreatedState();
+  return isCoolreaderRunning() && isCoolreaderTTSMode();
 }
 
 sub isCoolreaderRunning(){
@@ -116,7 +116,7 @@ sub isCoolreaderRunning(){
   return $? == 0 ? 1 : 0;
 }
 
-sub isTTSCreatedState(){
+sub isCoolreaderTTSMode(){
   my @lines = `sudo cat $CR_STATE_LOG_FILE 2>/dev/null`;
   for my $line(reverse @lines){
     if($line =~ /TTS_CREATE/){
