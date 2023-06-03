@@ -48,6 +48,8 @@ sub main(@){
       $cmd = $CMD_OFF;
     }elsif($arg =~ /^(toggle|--toggle|t|-t)$/){
       $cmd = $CMD_TOGGLE;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
 
