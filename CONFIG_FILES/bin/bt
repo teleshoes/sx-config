@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 sub getPowered();
+sub getRoot(@);
 
 my $EXEC = basename $0;
 
@@ -53,6 +54,8 @@ sub main(@){
     }
   }
 
+  getRoot(@ARGV);
+
   if($cmd eq $CMD_GET){
     my $p = getPowered();
     print "powered: " . ($p ? "yes" : "no") . "\n";
@@ -75,23 +78,23 @@ sub main(@){
 }
 
 sub fix(){
-  system "sudo systemctl stop bluetooth-rfkill-event";
-  system "sudo systemctl stop bluetooth";
-  system "sudo systemctl start bluetooth";
-  system "sudo systemctl start bluetooth-rfkill-event";
+  system "systemctl stop bluetooth-rfkill-event";
+  system "systemctl stop bluetooth";
+  system "systemctl start bluetooth";
+  system "systemctl start bluetooth-rfkill-event";
 }
 
 sub setPowered($){
   my ($powered) = @_;
   if($powered){
-    system "sudo connmanctl enable bluetooth";
+    system "connmanctl enable bluetooth";
   }else{
-    system "sudo connmanctl disable bluetooth";
+    system "connmanctl disable bluetooth";
   }
 }
 
 sub getPowered(){
-  my @lines = `sudo connmanctl technologies`;
+  my @lines = `connmanctl technologies`;
   my $tech = {};
   my $curTechName = undef;
   for my $line(@lines){
@@ -123,6 +126,12 @@ sub getPowered(){
   }
 
   die "ERROR: could not find bluetooth tech in connmanctl\n";
+}
+
+sub getRoot(@){
+  if(`whoami` ne "root\n"){
+    exec "sudo", $0, @_;
+  }
 }
 
 &main(@ARGV);
