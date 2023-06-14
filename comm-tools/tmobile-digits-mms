@@ -588,7 +588,8 @@ sub parseIndexedDB($){
     }elsif($entryType =~ /^(callLog)/){
       $$msg{type} = "call";
     }else{
-      die "ERROR: unknown content/entry type for $msgID\n";
+      print STDERR "WARNING: unknown content/entry type for $msgID\n";
+      next;
     }
 
     if($$msg{type} eq "sms" and @{$$msg{toNums}} > 1){
