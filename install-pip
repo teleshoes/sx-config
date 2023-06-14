@@ -10,6 +10,7 @@ my $USER = "nemo";
 my @PIP_MODULES = qw(
   midea-beautiful-air
   mpris-fakeplayer
+  gehomesdk
 );
 
 my $EXEC = basename $0;
