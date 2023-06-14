@@ -598,9 +598,9 @@ sub parseIndexedDB($){
     }
 
     $$msg{dir} = $$val{direction};
-    if($$val{direction} =~ /^(in)$/){
+    if($$val{direction} =~ /^(in)$/i){
       $$msg{dir} = "INC";
-    }elsif($$val{direction} =~ /^(out)$/){
+    }elsif($$val{direction} =~ /^(out)$/i){
       $$msg{dir} = "OUT";
     }else{
       die "ERROR: invalid direction $$val{direction} for $msgID\n";
