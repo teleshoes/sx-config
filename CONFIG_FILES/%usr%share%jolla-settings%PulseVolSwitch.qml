@@ -8,6 +8,8 @@ import Mer.Cutes 1.1
 SettingsToggle {
     property var pulseVol: 0
 
+    property var defaultTarget: 150
+
     name: "pv" + pulseVol
     icon.source: "image://theme/icon-m-sounds"
     showOnOffLabel: false
@@ -18,7 +20,9 @@ SettingsToggle {
     onToggled: {
       var targetVol = 100;
       if(pulseVol == 100){
-        targetVol = 150;
+        targetVol = defaultTarget;
+      }else{
+        targetVol = 100;
       }
 
       setPulseVol(targetVol);
