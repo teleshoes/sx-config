@@ -26,7 +26,6 @@ SettingsToggle {
       }
 
       setPulseVol(targetVol);
-      retrievePulseVol();
     }
 
     Component.onCompleted: retrievePulseVol();
@@ -46,6 +45,7 @@ SettingsToggle {
 
     function setPulseVol(targetVol) {
       readProc(["sh", "-c", "/usr/local/bin/pulse-vol " + targetVol]);
+      retrievePulseVol();
     }
 
     function readProc(cmdArr) {
