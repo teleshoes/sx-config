@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Cwd qw(abs_path);
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
@@ -35,6 +36,13 @@ my @LXC_PATHS = qw(
 );
 
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
+
+my @MEDIA_EXTS = qw(
+  jpg jpeg png gif mpo webm
+  mp3 flac ogg m4a wma wav
+  avi m2ts mts mov mkv mpeg mpg mp4
+);
+my $OK_MEDIA_EXTS = join "|", @MEDIA_EXTS;
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -115,6 +123,18 @@ my $USAGE = "Usage:
       portrait-inverted | pi | 2        =  ACCEL_VAL=0   USER_VAL=2
       landscape-inverted | li | 3       =  ACCEL_VAL=0   USER_VAL=3
 
+  $EXEC --view MEDIA_FILE [MEDIA_FILE MEDIA_FILE ..]
+    -get TYPE with: file -b --mime-type MEDIA_FILE
+    -calculate ANDROID_MEDIA_FILE:
+      -take absolute path of MEDIA_FILE
+      -replace prefix: '/home/nemo/android_storage' with '/sdcard'
+      -replace prefix: '/media/sdcard/phone' with '/sdcard/SDCARD'
+    -run: $EXEC am start android.intent.action.VIEW -d file://ANDROID_MEDIA_FILE
+  $EXEC MEDIA_FILE_WITH_EXT [MEDIA_FILE MEDIA_FILE ..]
+    same as: $EXEC --view MEDIA_FILE_WITH_EXT MEDIA_FILE MEDIA_FILE
+    MEDIA_FILE_WITH_EXT must end with extension:
+      @MEDIA_EXTS
+
   $EXEC -i|i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
     run: apkd-install-preload APK_FILE APK_FILE...
@@ -184,6 +204,7 @@ my $MODE_SHELL = "shell";
 my $MODE_RES = "res";
 my $MODE_TAP = "tap";
 my $MODE_ORIENT = "orient";
+my $MODE_VIEW = "VIEW";
 my $MODE_INSTALL = "install";
 my $MODE_UNINSTALL = "uninstall";
 my $MODE_LAUNCH = "launch";
@@ -207,6 +228,7 @@ sub main(@){
   };
   my ($tapXpos, $tapYpos);
   my $orientArg;
+  my @mediaFiles;
   my $waitTimeoutSeconds;
 
   while(@_ > 0 and $_[0] =~ /^($OK_OPTS)$/){
@@ -252,6 +274,8 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^--orient=(.+)$/){
       $mode = $MODE_ORIENT;
       $orientArg = $1;
+    }elsif($isFirstArg and $arg =~ /^--view$/){
+      $mode = $MODE_VIEW;
     }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
       $mode = $MODE_INSTALL;
     }elsif($isFirstArg and $arg =~ /^(--install)=(.+)$/){
@@ -277,10 +301,15 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--wait)=(\d+)$/){
       $mode = $MODE_WAIT;
       $waitTimeoutSeconds = $1;
+    }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
+      $mode = $MODE_VIEW;
+      push @mediaFiles, $arg;
     }elsif($mode eq $MODE_INIT){
       push @initCmds, $arg;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
+    }elsif($mode eq $MODE_VIEW){
+      push @mediaFiles, $arg;
     }elsif($mode =~ /^($MODE_INSTALL|$MODE_UNINSTALL)$/){
       if(-f $arg){
         push @apkFileArgs, $arg;
@@ -369,6 +398,25 @@ sub main(@){
     #twice because sometimes inverted is ignored the first time
     lxcShell $opts, ("settings", "put", "system", "accelerometer_rotation", "$accelVal");
     lxcShell $opts, ("settings", "put", "system", "user_rotation", "$userVal");
+  }elsif($mode eq $MODE_VIEW){
+    for my $file(@mediaFiles){
+      my $mimeType = `file -b --mime-type "$file"`;
+      chomp $mimeType;
+
+      my $androidFile = abs_path $file;
+      $androidFile =~ s/^(\/run\/media\/\w+\/[^\/]+\/)/\/sdcard\/SDCARD\//;
+      $androidFile =~ s/^(\/home\/\w+\/android_storage\/)/\/sdcard\//;
+      print "\n\n$androidFile\n\n";
+      my @cmd = (
+        "am",
+        "start",
+        "-a", "android.intent.action.VIEW",
+        "-d", "file://$androidFile",
+        "-t", "$mimeType",
+      );
+      print "\n@cmd\n";
+      lxcShell $opts, @cmd;
+    }
   }elsif($mode eq $MODE_LAUNCH){
     die "ERROR: missing intent\n" if not defined $intent;
     my ($pkgName, $activity);
