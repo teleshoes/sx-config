@@ -218,6 +218,7 @@ my @extraIncludePatterns = qw(
   open-url.desktop
   ovpn-import.desktop
   pptp-import.desktop
+  sailfish-captiveportal.desktop
   sailfish-office-openfile.desktop
   sailfish-share.desktop
   simkit.desktop
