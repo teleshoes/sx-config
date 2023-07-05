@@ -16,6 +16,7 @@ my @HOME_RSYNC_FILES = qw(
   wifi.conf
   wifi-auto.conf
 
+  .config/gehomesdk.config
   .config/midea.conf
   .config/tasmota.conf
   .config/wemo-devices.conf
