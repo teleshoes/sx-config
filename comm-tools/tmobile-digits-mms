@@ -142,6 +142,7 @@ sub formatSMSBodyForCSV($);
 sub formatSMS($);
 sub decodeBase64($);
 sub replaceMIMEUnicodeChars($);
+sub uniqArr(@);
 sub mtime($);
 sub run(@);
 sub nowMillis();
@@ -736,13 +737,7 @@ sub parseAndroid($$$){
     @nums = map {cleanNumber $_} @nums;
     @nums = grep {$_ !~ /$myNum/} @nums;
 
-    my @uniqNums;
-    my %okNums;
-    for my $num(@nums){
-      push @uniqNums, $num if not defined $okNums{$num};
-      $okNums{$num} = 1;
-    }
-    @nums = @uniqNums;
+    @nums = uniqArr @nums;
     if(@nums == 0){
       die "ERROR: could not find a number for msg $$msgObj{_id}\n";
     }
@@ -1025,6 +1020,19 @@ sub replaceMIMEUnicodeChars($){
     $str =~ s/$mimeCode/$char/;
   }
   return $str;
+}
+
+sub uniqArr(@){
+  my @vals = @_;
+  my %seen;
+  my @newVals;
+  for my $val(@vals){
+    if(not defined $seen{$val}){
+      push @newVals, $val;
+    }
+    $seen{$val} = 1;
+  }
+  return @newVals;
 }
 
 sub mtime($){
