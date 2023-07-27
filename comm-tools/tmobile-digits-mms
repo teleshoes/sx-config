@@ -698,6 +698,23 @@ sub getSqliteTableJSONObjById($$$){
 
 sub parseAndroid($$$){
   my ($dbFile, $attFilesDir, $myNum) = @_;
+
+  my $threads = getSqliteTableJSONObjById($dbFile, "threads", "_id");
+  my $presence = getSqliteTableJSONObjById($dbFile, "presence", "_id");
+  for my $threadId(sort keys %$threads){
+    my $thread = $$threads{$threadId};
+    my @pIds = split(/,/, $$thread{thread_participants});
+    $$thread{phone_numbers} = [];
+
+    for my $id(@pIds){
+      my $phone = $$presence{$id}{uri};
+      if(not defined $phone){
+        die "ERROR: missing presence for thread_participants = @pIds\n";
+      }
+      push @{$$thread{phone_numbers}}, $phone;
+    }
+  }
+
   my $msgObjById = getSqliteTableJSONObjById($dbFile, "common", "_id");
   my @messages;
   for my $msgId(sort keys %$msgObjById){
@@ -729,19 +746,6 @@ sub parseAndroid($$$){
     $$msg{dtmFmt} = $dtmFmt;
     $$msg{dtmEpoch} = $epoch;
 
-    my @nums;
-    @nums = (@nums, split(/[ ,\$]/, $$msgObj{correspondent_phone_number}));
-    @nums = (@nums, split(/[ ,\$]/, $$msgObj{conversation_id}));
-    my $h4 = '[0-9a-f]{4}';
-    @nums = grep {$_ !~ /^$h4.*$h4.*$h4$/} @nums;
-    @nums = map {cleanNumber $_} @nums;
-    @nums = grep {$_ !~ /$myNum/} @nums;
-
-    @nums = uniqArr @nums;
-    if(@nums == 0){
-      die "ERROR: could not find a number for msg $$msgObj{_id}\n";
-    }
-
     if($$msgObj{message_type} == 1){
       $$msg{dir} = "OUT";
     }elsif($$msgObj{message_type} == 2){
@@ -750,12 +754,35 @@ sub parseAndroid($$$){
       die "ERROR: unknown message_type=$$msgObj{message_type}\n";
     }
 
+    my @nums;
+    my $thread = $$threads{$$msgObj{thread_id}};
+    if(defined $thread){
+      my @phoneNums = @{$$thread{phone_numbers}};
+      @nums = @phoneNums;
+    }
+    @nums = map {cleanNumber $_} @nums;
+    @nums = uniqArr @nums;
+
+    if(@nums == 0){
+      die "ERROR: could not find a number for msg=$msgId, thread=$$msgObj{thread_id}\n";
+      @nums = (@nums, split(/[ ,\$]/, $$msgObj{correspondent_phone_number}));
+      @nums = (@nums, split(/[ ,\$]/, $$msgObj{conversation_id}));
+      my $h4 = '[0-9a-f]{4}';
+      @nums = grep {$_ !~ /^$h4.*$h4.*$h4$/} @nums;
+      @nums = map {cleanNumber $_} @nums;
+      @nums = grep {$_ !~ /$myNum/} @nums;
+    }
+
+
+    my @otherNums = grep {$_ !~ /$myNum/} @nums;
+
     if($$msg{dir} eq "OUT"){
       $$msg{from} = $myNum;
-      $$msg{toNums} = [@nums];
+      $$msg{toNums} = [@otherNums];
     }
     if($$msg{dir} eq "INC"){
       my $fromGuess = $$msgObj{correspondent_number};
+      my $h4 = '[0-9a-f]{4}';
       if(defined $fromGuess and $fromGuess =~ /^$h4.*$h4.*$h4$/){
         $fromGuess = undef;
       }else{
@@ -764,19 +791,17 @@ sub parseAndroid($$$){
 
       my $from;
       if($fromGuess =~ /\d{10}/){
-        my @fromGuesses = grep {$_ =~ /$fromGuess/} @nums;
+        my @fromGuesses = grep {$_ =~ /$fromGuess/} @otherNums;
         $from = @fromGuesses > 0 ? $fromGuesses[0] : undef;
       }
-      $from = $nums[0] if not defined $from;
+      $from = $otherNums[0] if not defined $from;
 
-      my @to = grep {$_ !~ /^$from$/} @nums;
+      my @to = grep {$_ !~ /^$from$/} @otherNums;
       @to = ($myNum, @to);
 
       $$msg{from} = $from;
       $$msg{toNums} = [@to];
     }
-
-    my @otherNums = grep {$_ !~ /$myNum/} ($$msg{from}, @{$$msg{toNums}});
 
     my $attFile = $$msgObj{file_uri};
     my $attName = $$msgObj{file_name};
