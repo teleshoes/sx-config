@@ -134,6 +134,7 @@ sub getBackupFile($$$);
 sub cleanNumber($);
 sub escapeStr($);
 sub parseIndexedDB($);
+sub parseAndroid($$$);
 sub parseMMSFile($);
 sub parseSMSFile($);
 sub formatSMSBodyForCSV($);
