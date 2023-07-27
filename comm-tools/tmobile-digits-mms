@@ -134,6 +134,7 @@ sub getBackupFile($$$);
 sub cleanNumber($);
 sub escapeStr($);
 sub parseIndexedDB($);
+sub getSqliteTableJSONObjById($$$);
 sub parseAndroid($$$);
 sub parseMMSFile($);
 sub parseSMSFile($);
@@ -680,12 +681,26 @@ sub parseIndexedDB($){
   return @messages;
 }
 
+sub getSqliteTableJSONObjById($$$){
+  my ($dbFile, $tableName, $idColName) = @_;
+  my $json = `sqlite3 \"$dbFile\" -json \"select * from $tableName\"`;
+  my $rowsById = {};
+  for my $row(@{decode_json $json}){
+    my $id = $$row{$idColName};
+    if(not defined $id or defined $$rowsById{$id}){
+      die "ERROR: could not parse primary key on $tableName\n";
+    }
+    $$rowsById{$id} = $row;
+  }
+  return $rowsById;
+}
+
 sub parseAndroid($$$){
   my ($dbFile, $attFilesDir, $myNum) = @_;
+  my $msgObjById = getSqliteTableJSONObjById($dbFile, "common", "_id");
   my @messages;
-  my $json = `sqlite3 \"$dbFile\" -json \"select * from common\"`;
-  my @messageObjList = @{decode_json $json};
-  for my $msgObj(@messageObjList){
+  for my $msgId(sort keys %$msgObjById){
+    my $msgObj = $$msgObjById{$msgId};
     my $msg = {
       type        => undef,  #'sms' or 'mms' or 'call'
       from        => undef,
