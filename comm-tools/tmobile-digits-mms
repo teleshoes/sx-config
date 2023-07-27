@@ -782,6 +782,9 @@ sub parseAndroid($$$){
     }
     if($$msg{dir} eq "INC"){
       my $fromGuess = $$msgObj{correspondent_number};
+      if(not defined $fromGuess){
+        $fromGuess = $$msgObj{correspondent_phone_number};
+      }
       my $h4 = '[0-9a-f]{4}';
       if(defined $fromGuess and $fromGuess =~ /^$h4.*$h4.*$h4$/){
         $fromGuess = undef;
