@@ -43,8 +43,14 @@ sub main(@){
   my $nowMillis = nowMillis();
   my $dtm = `date +%Y-%m-%d_%H%M%S`;
   chomp $dtm;
+
+  my $tmpDbFile = "/tmp/backup-tmobile-digits-$nowMillis.db";
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root",
+    "sqlite3 $REMOTE_DIGITS_DB_FILE 'vacuum into \"$tmpDbFile\"'"
+  ;
+
   my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_messages_repository.sqlite";
-  system "rsync", "-avP", "root\@$host:$REMOTE_DIGITS_DB_FILE", $db;
+  system "rsync", "-avP", "root\@$host:$tmpDbFile", $db;
 
   my $attsDir = "$BACKUP_DIGITS_ATT_FILES_BASE_DIR/${dtm}_${nowMillis}";
   system "rsync", "-avP", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
