@@ -10,7 +10,7 @@ sub getFileIdName($$);
 sub md5($);
 sub nowMillis();
 
-my $REMOTE_DIGITS_DB_FILE = "/home/.android/data/data/com.tmobile.digits/databases/messages_repository.db";
+my $REMOTE_DIGITS_DB_FILE = "/home/.android/data/data/com.tmobile.digits/databases/cDigits3x.db";
 my $REMOTE_DIGITS_ATT_FILES_DIR = "/home/$USER/android_storage/Android/data/com.tmobile.digits/files/DIGITS/.Media";
 
 my $BACKUP_DIGITS_DB_DIR = "$ENV{HOME}/Code/sx/backup/backup-mms/tmobile-digits/android/db";
@@ -49,7 +49,7 @@ sub main(@){
     "sqlite3 $REMOTE_DIGITS_DB_FILE 'vacuum into \"$tmpDbFile\"'"
   ;
 
-  my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_messages_repository.sqlite";
+  my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_cdigits3x.sqlite";
   system "rsync", "-avP", "root\@$host:$tmpDbFile", $db;
 
   my $attsDir = "$BACKUP_DIGITS_ATT_FILES_BASE_DIR/${dtm}_${nowMillis}";
