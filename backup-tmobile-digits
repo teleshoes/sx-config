@@ -6,8 +6,8 @@ use Time::HiRes qw(time);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-sub readNotesBackup();
-sub writeNotesBackup($);
+sub getFileIdName($$);
+sub md5($);
 sub nowMillis();
 
 my $REMOTE_DIGITS_DB_FILE = "/home/.android/data/data/com.tmobile.digits/databases/messages_repository.db";
