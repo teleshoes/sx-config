@@ -213,7 +213,7 @@ sub main(@){
       }
       $backupFile = getBackupFile($backupIndex, $BACKUP_DIR_INDEXEDDB, "indexeddb*.json");
     }elsif($mode eq $MODE_ANDROID){
-      $backupFile = getBackupFile($backupIndex, "$BACKUP_DIR_ANDROID/db", "*messages_repository.sqlite");
+      $backupFile = getBackupFile($backupIndex, "$BACKUP_DIR_ANDROID/db", "*cdigits3x.sqlite");
     }
   }
   if($mode =~ /^($MODE_HAR|$MODE_INDEXEDDB|$MODE_ANDROID)$/){
@@ -221,7 +221,7 @@ sub main(@){
   }
 
   if($mode eq $MODE_ANDROID){
-    if($backupFile =~ /(?:^|\/)(\d\d\d\d-\d\d-\d\d_\d\d\d\d\d\d_\d+)_messages_repository\.sqlite$/){
+    if($backupFile =~ /(?:^|\/)(\d\d\d\d-\d\d-\d\d_\d\d\d\d\d\d_\d+)_\w+\.sqlite$/){
       my $backupName = $1;
       my @dirs = grep {-d $_} glob "$BACKUP_DIR_ANDROID/att-files/*$backupName*";
       $androidAttFilesDir = @dirs > 0 ? $dirs[0] : undef;
@@ -699,26 +699,40 @@ sub getSqliteTableJSONObjById($$$){
 sub parseAndroid($$$){
   my ($dbFile, $attFilesDir, $myNum) = @_;
 
-  my $threads = getSqliteTableJSONObjById($dbFile, "threads", "_id");
-  my $presence = getSqliteTableJSONObjById($dbFile, "presence", "_id");
-  for my $threadId(sort keys %$threads){
-    my $thread = $$threads{$threadId};
-    my @pIds = split(/,/, $$thread{thread_participants});
-    $$thread{phone_numbers} = [];
+  my $convsById = getSqliteTableJSONObjById($dbFile, "conversations", "_id");
+  my $participantsById = getSqliteTableJSONObjById($dbFile, "participants", "_id");
+  my $attachmentsById = getSqliteTableJSONObjById($dbFile, "attachment", "_id");
+  my $messagesById = getSqliteTableJSONObjById($dbFile, "messages", "_id");
 
-    for my $id(@pIds){
-      my $phone = $$presence{$id}{uri};
-      if(not defined $phone){
-        die "ERROR: missing presence for thread_participants = @pIds\n";
+  my $phoneNumbersByConvId = {};
+  for my $convId(sort keys %$convsById){
+    my $conv = $$convsById{$convId};
+    my @partIds = split(/,/, $$conv{participants});
+    my $phoneNums = [];
+
+    for my $partId(@partIds){
+      my $phone = $$participantsById{$partId}{recipientNumber};
+      if(not defined $phone or $phone !~ /^\+?\d+$/){
+        die "ERROR: missing participant for id = $partId\n";
       }
-      push @{$$thread{phone_numbers}}, $phone;
+      push @$phoneNums, $phone;
     }
+    $$phoneNumbersByConvId{$convId} = $phoneNums;
   }
 
-  my $msgObjById = getSqliteTableJSONObjById($dbFile, "common", "_id");
+  my $attsByMsgId = {};
+  for my $attId(sort keys %$attachmentsById){
+    my $att = $$attachmentsById{$attId};
+    my $msgId = $$att{messageId};
+    if(not defined $$attsByMsgId{$msgId}){
+      $$attsByMsgId{$msgId} = [];
+    }
+    push @{$$attsByMsgId{$msgId}}, $att;
+  }
+
   my @messages;
-  for my $msgId(sort keys %$msgObjById){
-    my $msgObj = $$msgObjById{$msgId};
+  for my $msgId(sort keys %$messagesById){
+    my $msgObj = $$messagesById{$msgId};
     my $msg = {
       type        => undef,  #'sms' or 'mms' or 'call'
       from        => undef,
@@ -733,46 +747,40 @@ sub parseAndroid($$$){
       callDur     => undef,
     };
 
-    $$msg{body} = $$msgObj{message_body};
-    $$msg{subject} = $$msgObj{message_subject};
+    $$msg{body} = $$msgObj{messageText};
+    $$msg{subject} = $$msgObj{subject};
+    $$msg{subject} = "" if not defined $$msg{subject};
     $$msg{subject} = "NoSubject" if $$msg{subject} eq "";
     $$msg{msgID} = $$msgObj{_id};
 
-    my $epoch = $$msgObj{message_time};
+    my $msgTime = $$msgObj{messageTime};
+    my $epoch = int($msgTime / 1000.0);
     my $dtmFmt = `date --date='\@$epoch' '+%Y%m%d_%H%M%S'`;
     chomp $dtmFmt;
 
-    $$msg{dtmMillis} = "${epoch}000";
+    $$msg{dtmMillis} = $msgTime;
     $$msg{dtmFmt} = $dtmFmt;
     $$msg{dtmEpoch} = $epoch;
 
-    if($$msgObj{message_type} == 1){
+    if($$msgObj{messageType} == 1){
       $$msg{dir} = "OUT";
-    }elsif($$msgObj{message_type} == 2){
+    }elsif($$msgObj{messageType} == 2){
       $$msg{dir} = "INC";
     }else{
-      die "ERROR: unknown message_type=$$msgObj{message_type}\n";
+      die "ERROR: unknown message_type=$$msgObj{messageType}\n";
     }
 
     my @nums;
-    my $thread = $$threads{$$msgObj{thread_id}};
-    if(defined $thread){
-      my @phoneNums = @{$$thread{phone_numbers}};
-      @nums = @phoneNums;
+    my $convId = $$msgObj{conversationThreadId};
+    if(defined $$phoneNumbersByConvId{$convId}){
+      @nums = @{$$phoneNumbersByConvId{$convId}};
     }
     @nums = map {cleanNumber $_} @nums;
     @nums = uniqArr @nums;
 
     if(@nums == 0){
-      die "ERROR: could not find a number for msg=$msgId, thread=$$msgObj{thread_id}\n";
-      @nums = (@nums, split(/[ ,\$]/, $$msgObj{correspondent_phone_number}));
-      @nums = (@nums, split(/[ ,\$]/, $$msgObj{conversation_id}));
-      my $h4 = '[0-9a-f]{4}';
-      @nums = grep {$_ !~ /^$h4.*$h4.*$h4$/} @nums;
-      @nums = map {cleanNumber $_} @nums;
-      @nums = grep {$_ !~ /$myNum/} @nums;
+      die "ERROR: could not find a number for msg=$msgId, conv=$convId\n";
     }
-
 
     my @otherNums = grep {$_ !~ /$myNum/} @nums;
 
@@ -781,10 +789,7 @@ sub parseAndroid($$$){
       $$msg{toNums} = [@otherNums];
     }
     if($$msg{dir} eq "INC"){
-      my $fromGuess = $$msgObj{correspondent_number};
-      if(not defined $fromGuess){
-        $fromGuess = $$msgObj{correspondent_phone_number};
-      }
+      my $fromGuess = $$msgObj{sender};
       my $h4 = '[0-9a-f]{4}';
       if(defined $fromGuess and $fromGuess =~ /^$h4.*$h4.*$h4$/){
         $fromGuess = undef;
@@ -806,20 +811,32 @@ sub parseAndroid($$$){
       $$msg{toNums} = [@to];
     }
 
-    my $attFile = $$msgObj{file_uri};
-    my $attName = $$msgObj{file_name};
-    if(length $attFile > 0){
-      $attFile =~ s/^.*\/com\.tmobile\.digits\/files\/DIGITS\/.Media\//$attFilesDir\//;
-      if(-f $attFile){
-        my $attContents = `cat \"$attFile\"`;
-        push @{$$msg{atts}}, {
-          attName     => $attName,
-          attContents => $attContents,
-        };
-      }else{
-        my $json = encode_json($msgObj);
-        print STDERR "WARNING: att file URL unparseable in json\n$json\n";
-        print STDERR "WARNING: could not find file $attFile\n";
+    my @atts;
+    if(defined $$attsByMsgId{$msgId}){
+      @atts = @{$$attsByMsgId{$msgId}};
+    }
+    for my $att(@atts){
+      my $attFile = $$att{fileUri};
+      my $attName = $$att{fileName};
+      if(defined $attFile and $attFile ne ""){
+        $attFile =~ s/^.*\/com\.tmobile\.digits\/files\/DIGITS\/.Media\//$attFilesDir\//;
+        if(-f $attFile){
+          my $attContents = `cat \"$attFile\"`;
+          push @{$$msg{atts}}, {
+            attName     => $attName,
+            attContents => $attContents,
+          };
+        }else{
+          my $json = encode_json($msgObj);
+          print STDERR "WARNING: att file URL unparseable in json\n$json\n";
+          print STDERR "WARNING: could not find file $attFile\n";
+        }
+      }
+    }
+
+    if(@{$$msg{atts}} > 0){
+      if($$msg{body} eq "Attachment Message"){
+        $$msg{body} = "";
       }
     }
 
