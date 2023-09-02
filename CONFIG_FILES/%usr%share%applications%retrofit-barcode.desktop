@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=retrofit barcode
+Icon=retrofit-barcode
+Exec=/usr/local/bin/img-view /media/sdcard/phone/retrofit_barcode_xid.png
+Type=Application
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled
