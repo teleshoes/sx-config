@@ -53,7 +53,25 @@ sub main(@){
   system "rsync", "-avP", "root\@$host:$tmpDbFile", $db;
 
   my $attsDir = "$BACKUP_DIGITS_ATT_FILES_BASE_DIR/${dtm}_${nowMillis}";
-  system "rsync", "-avP", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
+
+  #copy previous repo files to new atts dir to speedup rsync
+  my @prevRepoAttFiles = glob "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/*";
+
+  for my $file(@prevRepoAttFiles){
+    if($file =~ /^(?:.*\/)?(.*)-([0-9a-f]{32})$/){
+      my $relFile = $1;
+      $relFile =~ s/%/\//g;
+      my $relDir = $relFile;
+      $relDir =~ s/\/[^\/]*$//;
+      my $destDir = "$attsDir/$relDir";
+      my $destFile = "$attsDir/$relFile";
+      system "mkdir", "-p", $destDir;
+      system "cp", "-ar", "--reflink=auto", $file, $destFile;
+    }
+  }
+
+  #fetch new digits att files
+  system "rsync", "-avP", "--del", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
   #replace att files with symlinks
   my @files = `find $attsDir -type f`;
