@@ -108,6 +108,8 @@ my @config = qw(
   modrana
   qtbtn-lap
   rheem
+
+  retrofit-barcode
 );
 
 my @unused = qw(
