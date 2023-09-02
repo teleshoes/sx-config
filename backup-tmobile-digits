@@ -8,6 +8,7 @@ my $USER = "nemo";
 
 sub getFileIdName($$);
 sub md5($);
+sub mtime($);
 sub nowMillis();
 
 my $REMOTE_DIGITS_DB_FILE = "/home/.android/data/data/com.tmobile.digits/databases/cDigits3x.db";
@@ -56,6 +57,7 @@ sub main(@){
 
   #copy previous repo files to new atts dir to speedup rsync
   my @prevRepoAttFiles = glob "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/*";
+  @prevRepoAttFiles = sort {mtime($a) <=> mtime($b)} @prevRepoAttFiles;
 
   for my $file(@prevRepoAttFiles){
     if($file =~ /^(?:.*\/)?(.*)-([0-9a-f]{32})$/){
@@ -113,6 +115,12 @@ sub md5($){
   }else{
     die "ERROR: could not md5sum file $file\n";
   }
+}
+
+sub mtime($){
+  my ($file) = @_;
+  my @stat = stat $file;
+  return $stat[9];
 }
 
 sub nowMillis(){
