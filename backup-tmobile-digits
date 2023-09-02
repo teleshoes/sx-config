@@ -86,7 +86,10 @@ sub main(@){
     my $fileIdName = getFileIdName($relFile, md5($file));
     my $dest = "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/$fileIdName";
 
-    system "rsync", "-avP", $file, $dest;
+    if(not -e $dest){
+      print "adding $dest\n";
+    }
+    system "cp", "-ar", $file, $dest;
 
     system "rm", $file;
     system "ln", "-s", $dest, $file;
