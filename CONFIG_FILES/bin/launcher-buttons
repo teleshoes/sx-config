@@ -50,7 +50,7 @@ my @config = qw(
 
   sailfish-office
   jolla-notes
-  harbour-mlsmanager
+  retrofit-barcode
   kill-lipstick2vnc
 
   okboard
@@ -109,7 +109,7 @@ my @config = qw(
   qtbtn-lap
   rheem
 
-  retrofit-barcode
+  harbour-mlsmanager
 );
 
 my @unused = qw(
