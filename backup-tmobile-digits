@@ -89,25 +89,46 @@ sub main(@){
   run "rsync", "-avP", "--del", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
 
-  print "\n\nprepare att file md5 filenames, add att files to repo, and replace att files with symlinks to repo\n";
+  print "\n\nprepare att files with md5 filename for repo\n";
   my @files = `find $attsDir -type f`;
-  for my $file(@files){
-    chomp $file;
+  chomp $_ for @files;
 
+  my $fileIdNames = {};
+  for my $file(@files){
     my $relFile = $file;
     $relFile =~ s/^$attsDir\///;
 
     my $fileIdName = getFileIdName($relFile, md5($file));
-    my $dest = "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/$fileIdName";
+    $$fileIdNames{$file} = $fileIdName;
+  }
 
-    if(not -e $dest){
-      print "adding $dest\n";
+  my $tmpBoingFilesDir = "/tmp/backup-tmobile-digits-att-files-$nowMillis";
+  runQuiet "mkdir", "-p", $tmpBoingFilesDir;
+
+  for my $file(@files){
+    my $fileIdName = $$fileIdNames{$file};
+    runQuiet "cp", "-ar", $file, "$tmpBoingFilesDir/$fileIdName";
+  }
+
+
+  print "\n\nadd att files to repo\n";
+  run "rsync", "-avP", "$tmpBoingFilesDir/", "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/";
+
+  run "rm", "-r", "$tmpBoingFilesDir/";
+
+
+  print "\n\nreplace att files with symlinks to repo\n";
+  for my $file(@files){
+    my $fileIdName = $$fileIdNames{$file};
+    my $repoFile = "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/$fileIdName";
+
+    if(not -e $repoFile){
+      die "ERROR: missing repo file after rsync \"$repoFile\"\n";
     }
-    runQuiet "cp", "-ar", $file, $dest;
 
     runQuiet "rm", $file;
-    runQuiet "ln", "-s", $dest, $file;
-    runQuiet "touch", "-h", "-r", $dest, $file;
+    runQuiet "ln", "-s", $repoFile, $file;
+    runQuiet "touch", "-h", "-r", $repoFile, $file;
   }
 
 
