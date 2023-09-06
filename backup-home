@@ -6,7 +6,7 @@ my $user = "nemo";
 my $ipmagicName = "sx";
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
-my $BACKUP_DIR = "$BASE_DIR/backup/backup-home";
+my $BACKUP_HOME_DIR = "$BASE_DIR/backup/backup-home";
 
 my @excludes = qw(
   .cache/org.nemomobile/thumbnails/
@@ -42,7 +42,7 @@ sub main(@){
     "--del",
     "--one-file-system",
     "$rootUser\@$host:/home/$user/",
-    "$BACKUP_DIR/",
+    "$BACKUP_HOME_DIR/",
   );
 
   for my $exclude(@excludes){
