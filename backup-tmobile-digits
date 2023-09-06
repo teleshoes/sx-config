@@ -76,6 +76,11 @@ sub main(@){
     }
   }
 
+  print "\n\nsilently delete files from new atts dir that are not on remote\n";
+  run "rsync", "-r", "--del",
+    "--ignore-non-existing", "--ignore-existing",
+    "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
+
   print "\n\nfetch new digits att files\n";
   run "rsync", "-avP", "--del", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
