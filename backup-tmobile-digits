@@ -48,7 +48,6 @@ sub main(@){
   chomp $dtm;
 
   print "\n\nfetch sqlite DB\n";
-
   my $tmpDbFile = "/tmp/backup-tmobile-digits-$nowMillis.db";
   run "ipmagic", $IPMAGIC_NAME, "-u", "root",
     "sqlite3 $REMOTE_DIGITS_DB_FILE 'vacuum into \"$tmpDbFile\"'"
@@ -57,9 +56,10 @@ sub main(@){
   my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_cdigits3x.sqlite";
   run "rsync", "-avP", "root\@$host:$tmpDbFile", $db;
 
+
+  print "\n\ncopy previous repo files to new atts dir to speedup remote rsync\n";
   my $attsDir = "$BACKUP_DIGITS_ATT_FILES_BASE_DIR/${dtm}_${nowMillis}";
 
-  print "\n\ncopy previous repo files to new atts dir to speedup rsync\n";
   my @prevRepoAttFiles = glob "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/*";
   @prevRepoAttFiles = sort {mtime($a) <=> mtime($b)} @prevRepoAttFiles;
 
@@ -76,15 +76,18 @@ sub main(@){
     }
   }
 
-  print "\n\nsilently delete files from new atts dir that are not on remote\n";
+
+  print "\n\nsilently delete previous repo files from new atts dir that are not on remote\n";
   run "rsync", "-r", "--del",
     "--ignore-non-existing", "--ignore-existing",
     "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
+
   print "\n\nfetch new digits att files\n";
   run "rsync", "-avP", "--del", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
-  print "\n\nadd att files to repo and replace att files with symlinks to repo\n";
+
+  print "\n\nprepare att file md5 filenames, add att files to repo, and replace att files with symlinks to repo\n";
   my @files = `find $attsDir -type f`;
   for my $file(@files){
     chomp $file;
@@ -104,6 +107,7 @@ sub main(@){
     runQuiet "ln", "-s", $dest, $file;
     runQuiet "touch", "-h", "-r", $dest, $file;
   }
+
 
   print "\n\nupdate git repo\n";
   runQuiet "cd $BACKUP_DIGITS_ATT_FILES_REPO_DIR && git add -A && "
