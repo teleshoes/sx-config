@@ -101,7 +101,8 @@ sub main(@){
   }
 
   print "\n\nupdate git repo\n";
-  runQuiet "cd $BACKUP_DIGITS_ATT_FILES_REPO_DIR && git add -A && git commit -m 'automatic commit'";
+  runQuiet "cd $BACKUP_DIGITS_ATT_FILES_REPO_DIR && git add -A && "
+   . "( git commit -m 'automatic commit' || echo no commit created )";
 }
 
 sub getFileIdName($$){
