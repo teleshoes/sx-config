@@ -1,12 +1,14 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Time::HiRes qw(time);
 
 my $user = "nemo";
 my $ipmagicName = "sx";
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_HOME_DIR = "$BASE_DIR/backup/backup-home";
+my $BACKUP_BASH_HIST_DIR = "$BASE_DIR/backup/backup-bash-history";
 
 my @excludes = qw(
   .cache/org.nemomobile/thumbnails/
@@ -30,6 +32,7 @@ my @excludes = qw(
 );
 
 sub run(@);
+sub nowMillis();
 
 sub main(@){
   my $host = `ipmagic $ipmagicName`;
@@ -50,11 +53,21 @@ sub main(@){
   }
 
   run @cmd;
+
+  print "\n\n";
+  my $nowMillis = nowMillis();
+  run "cp", "-ar",
+    "$BACKUP_HOME_DIR/.bash_history",
+    "$BACKUP_BASH_HIST_DIR/bash-history-$nowMillis";
 }
 
 sub run(@){
   print "@_\n";
   system @_;
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
 }
 
 &main(@ARGV);
