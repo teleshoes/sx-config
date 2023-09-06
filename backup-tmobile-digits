@@ -45,6 +45,8 @@ sub main(@){
   my $dtm = `date +%Y-%m-%d_%H%M%S`;
   chomp $dtm;
 
+  print "\n\nfetch sqlite DB\n";
+
   my $tmpDbFile = "/tmp/backup-tmobile-digits-$nowMillis.db";
   system "ipmagic", $IPMAGIC_NAME, "-u", "root",
     "sqlite3 $REMOTE_DIGITS_DB_FILE 'vacuum into \"$tmpDbFile\"'"
@@ -55,7 +57,7 @@ sub main(@){
 
   my $attsDir = "$BACKUP_DIGITS_ATT_FILES_BASE_DIR/${dtm}_${nowMillis}";
 
-  #copy previous repo files to new atts dir to speedup rsync
+  print "\n\ncopy previous repo files to new atts dir to speedup rsync\n";
   my @prevRepoAttFiles = glob "$BACKUP_DIGITS_ATT_FILES_REPO_DIR/*";
   @prevRepoAttFiles = sort {mtime($a) <=> mtime($b)} @prevRepoAttFiles;
 
@@ -72,10 +74,10 @@ sub main(@){
     }
   }
 
-  #fetch new digits att files
+  print "\n\nfetch new digits att files\n";
   system "rsync", "-avP", "--del", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
-  #replace att files with symlinks
+  print "\n\nadd att files to repo and replace att files with symlinks to repo\n";
   my @files = `find $attsDir -type f`;
   for my $file(@files){
     chomp $file;
@@ -96,6 +98,7 @@ sub main(@){
     system "touch", "-h", "-r", $dest, $file;
   }
 
+  print "\n\nupdate git repo\n";
   system "cd $BACKUP_DIGITS_ATT_FILES_REPO_DIR && git add -A && git commit -m 'automatic commit'";
 }
 
