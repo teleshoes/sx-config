@@ -28,6 +28,9 @@ sub main(@){
 
   print "\n\n===setting up symlink ~/.cache/email => sdcard\n";
   run "$DIR/setup-symlinks 1qtemail";
+
+  print "\n\n===running config files (fix desktop launcher for sailjail)\n";
+  run "$DIR/config-files";
 }
 
 sub run(@){
