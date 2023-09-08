@@ -112,7 +112,6 @@ sub dcimBackup($$$){
         ":$remoteDCIM/",
         "$dir/"
     );
-    die "failed rsync backup\n" if $? != 0;
 
     if(-e "$dir/.recording"){
       system "rmdir $dir/.recording";
@@ -161,7 +160,6 @@ sub reorganizeBackedUpRemotes($$$$$){
       run({retryAttempts=>3, timeoutSeconds=>30},
         "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd,
       );
-      die "failed reorganizing remotes\n" if $? != 0;
     }
   }
 }
