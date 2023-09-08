@@ -414,9 +414,11 @@ sub getFileKey($){
 sub remoteDirExists($){
   my ($dir) = @_;
 
+  $dir =~ s/'/'\\''/g;
+
   my $out = readProc({retryAttempts=>3, timeoutSeconds=>3, printCmd=>0},
     "ipmagic", $ipmagicName, "-u", $user, "-s",
-    "if [ -d \"$dir\" ]; then echo exists; else exit 1; fi",
+    "if [ -d '$dir' ]; then echo exists; else exit 1; fi",
   );
   if($out =~ /^exists$/){
     return 1;
