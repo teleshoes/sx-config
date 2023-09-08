@@ -70,7 +70,11 @@ sub dcimBackup($$$){
   chdir $localDCIM;
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
-  my @remoteMd5sums = `ipmagic $ipmagicName -u $user -s 'find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;'`;
+  my @remoteMd5sums = readProcLines(
+    {retryAttempts=>3, timeoutSeconds=>3600, printCmd=>0},
+    "ipmagic", $ipmagicName, "-u", $user, "-s",
+      "find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;",
+  );
 
   print "===all:\n" . join "", @remoteMd5sums;
   print "===\n\n";
@@ -101,7 +105,14 @@ sub dcimBackup($$$){
     my $dir = "$localDCIM/backup_${now}_${backupSuffix}";
     system "mkdir -p $dir";
 
-    system "ipmagic $ipmagicName -u $user --rsync -avP --exclude=backup_*/ :$remoteDCIM/ $dir/";
+    run({retryAttempts=>3, timeoutSeconds=>3600, printCmd=>0},
+      "ipmagic", $ipmagicName, "-u", $user,
+        "--rsync",
+        "-avP",
+        "--exclude=backup_*/",
+        ":$remoteDCIM/",
+        "$dir/"
+    );
     die "failed rsync backup\n" if $? != 0;
 
     if(-e "$dir/.recording"){
@@ -148,7 +159,9 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $cmd = join '', @$cmdChunk;
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
-      system "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd;
+      run({retryAttempts=>3, timeoutSeconds=>10, printCmd=>0},
+        "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd,
+      );
       die "failed reorganizing remotes\n" if $? != 0;
     }
   }
@@ -359,7 +372,9 @@ sub getRemoteDCIMInfo($){
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
-  my @stats = `ipmagic $ipmagicName -s '$findStatCmd'`;
+  my @stats = readProcLines({retryAttempts=>3, timeoutSeconds=>30, printCmd=>0},
+    "ipmagic", $ipmagicName, "-s", $findStatCmd,
+  );
 
   my $statCount = @stats;
   print "fetched info for $statCount files\n";
@@ -403,7 +418,11 @@ sub remoteDirExists($;$){
     return 0;
   }
 
-  my $out = `ipmagic $ipmagicName -u $user -s 'if [ -d "$dir" ]; then echo exists; fi'`;
+  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3, printCmd=>0},
+    "ipmagic", $ipmagicName, "-u", $user, "-s",
+    "if [ -d \"$dir\" ]; then echo exists; fi",
+  );
+
   if($out =~ /^exists$/){
     return 1;
   }else{
