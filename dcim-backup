@@ -355,7 +355,7 @@ sub writeLocalDCIMInfoCache($$){
 
 sub getRemoteDCIMInfo($){
   my ($remoteDCIM) = @_;
-  my $findStatCmd = "cd $remoteDCIM && find -type f -exec stat -c %Y-%s-%n {} \\;";
+  my $findStatCmd = "find $remoteDCIM -type f -exec stat -c %Y-%s-%n {} \\;";
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
@@ -368,7 +368,13 @@ sub getRemoteDCIMInfo($){
     if($stat !~ /^(\d+)-(\d+)-(.+)$/){
       die "malformed remote stat output: $stat\n";
     }
-    my ($mtime, $size, $file) = ($1, $2, $3);
+    my ($mtime, $size, $filePath) = ($1, $2, $3);
+    my $file;
+    if($filePath =~ /^$remoteDCIM\/(.+)$/){
+      $file = $1;
+    }else{
+      die "ERROR: malformed output of $findStatCmd\n$stat\n";
+    }
     if(defined $$infoByFile{$file}){
       die "duplicate file: $file\n";
     }
