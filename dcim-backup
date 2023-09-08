@@ -70,8 +70,7 @@ sub dcimBackup($$$){
   chdir $localDCIM;
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
-  my @remoteMd5sums = readProcLines(
-    {retryAttempts=>3, timeoutSeconds=>3600, printCmd=>0},
+  my @remoteMd5sums = readProcLines({retryAttempts=>3, timeoutSeconds=>3600},
     "ipmagic", $ipmagicName, "-u", $user, "-s",
       "find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;",
   );
@@ -105,7 +104,7 @@ sub dcimBackup($$$){
     my $dir = "$localDCIM/backup_${now}_${backupSuffix}";
     system "mkdir -p $dir";
 
-    run({retryAttempts=>3, timeoutSeconds=>3600, printCmd=>0},
+    run({retryAttempts=>3, timeoutSeconds=>3600},
       "ipmagic", $ipmagicName, "-u", $user,
         "--rsync",
         "-avP",
@@ -159,7 +158,7 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $cmd = join '', @$cmdChunk;
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
-      run({retryAttempts=>3, timeoutSeconds=>10, printCmd=>0},
+      run({retryAttempts=>3, timeoutSeconds=>10},
         "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd,
       );
       die "failed reorganizing remotes\n" if $? != 0;
@@ -372,7 +371,7 @@ sub getRemoteDCIMInfo($){
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
-  my @stats = readProcLines({retryAttempts=>10, timeoutSeconds=>30, printCmd=>0},
+  my @stats = readProcLines({retryAttempts=>10, timeoutSeconds=>30},
     "ipmagic", $ipmagicName, "-s", $findStatCmd,
   );
 
@@ -416,7 +415,7 @@ sub remoteDirExists($){
 
   $dir =~ s/'/'\\''/g;
 
-  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3, printCmd=>0},
+  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3},
     "ipmagic", $ipmagicName, "-u", $user, "-s",
     "if [ -d '$dir' ]; then echo exists; else exit 1; fi",
   );
@@ -443,7 +442,7 @@ sub run($@){
 
   my $conf = {
     wrapShell      => 0,
-    printCmd       => 1,
+    printCmd       => 0,
     readProc       => 0,
     failOnError    => 1,
     retryAttempts  => 0,
