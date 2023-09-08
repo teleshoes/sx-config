@@ -158,7 +158,7 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $cmd = join '', @$cmdChunk;
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
-      run({retryAttempts=>3, timeoutSeconds=>10},
+      run({retryAttempts=>3, timeoutSeconds=>30},
         "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd,
       );
       die "failed reorganizing remotes\n" if $? != 0;
