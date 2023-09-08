@@ -473,7 +473,7 @@ sub run($@){
       if(open $cmdFH, "-|", @cmd){
         $stdout = join '', <$cmdFH>;
         close $cmdFH;
-        $exitCode = $?;
+        $exitCode = $? >> 8;
         $error = $!;
       }else{
         $stdout = "";
@@ -482,7 +482,7 @@ sub run($@){
       }
     }else{
       system @cmd;
-      $exitCode = $?;
+      $exitCode = $? >> 8;
       $error = $!;
     }
 
