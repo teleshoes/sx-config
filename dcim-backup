@@ -43,6 +43,9 @@ sub writeLocalDCIMInfoCache($$);
 sub getRemoteDCIMInfo($);
 sub getFileKey($);
 sub remoteDirExists($;$);
+sub readProc($@);
+sub readProcLines($@);
+sub run($@);
 
 sub main(@){
   for my $backup(@backups){
@@ -398,6 +401,92 @@ sub remoteDirExists($;$){
   }else{
     sleep 0.1;
     return remoteDirExists $dir, ($attempts - 1);
+  }
+}
+
+sub readProc($@){
+  my ($config, @cmd) = @_;
+  return run({readProc => 1, %$config}, @cmd);
+}
+sub readProcLines($@){
+  my ($config, @cmd) = @_;
+  my $stdout = readProc($config, @cmd);
+  my @lines = split /\r\n|\n/, $stdout;
+  return @lines;
+}
+
+sub run($@){
+  my ($config, @cmd) = @_;
+
+  my $conf = {
+    wrapShell      => 0,
+    printCmd       => 1,
+    readProc       => 0,
+    failOnError    => 1,
+    retryAttempts  => 0,
+    timeoutSeconds => 0,
+    %$config,
+  };
+
+  for my $key(sort keys %$conf){
+    if($key !~ /^(wrapShell|printCmd|readProc|failOnError|retryAttempts|timeoutSeconds)$/){
+      die "ERROR: unknown run conf opt $key\n";
+    }
+  }
+
+  if($$conf{wrapShell}){
+    @cmd = ("sh", "-c", "@cmd");
+  }
+  if($$conf{timeoutSeconds} > 0){
+    @cmd = ("timeout", $$conf{timeoutSeconds}, @cmd);
+  }
+
+  print "@cmd\n" if $$conf{printCmd};
+
+  my $exitCode;
+  my $error;
+  my $stdout;
+  my $retryAttempts = $$conf{retryAttempts};
+  while(1){
+    if($$conf{readProc}){
+      my $cmdFH;
+      if(open $cmdFH, "-|", @cmd){
+        $stdout = join '', <$cmdFH>;
+        close $cmdFH;
+        $exitCode = $?;
+        $error = $!;
+      }else{
+        $stdout = "";
+        $exitCode = -1;
+        $error = $1;
+      }
+    }else{
+      system @cmd;
+      $exitCode = $?;
+      $error = $!;
+    }
+
+    if($exitCode != 0){
+      if($retryAttempts > 0){
+        $retryAttempts--;
+        print "COMMAND FAILED, RETRYING IN 3s...\n";
+        sleep 3;
+      }else{
+        last;
+      }
+    }else{
+      last;
+    }
+  }
+
+  if($exitCode != 0 and $$conf{failOnError}){
+    die "\n\nERROR: '@cmd' failed\n$error\n";
+  }
+
+  if($$conf{readProc}){
+    return $stdout;
+  }else{
+    return $exitCode;
   }
 }
 
