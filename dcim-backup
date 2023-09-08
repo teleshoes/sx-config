@@ -487,9 +487,14 @@ sub run($@){
     }
 
     if($exitCode != 0){
+      my $timedOutMsg = "timedout=no";
+      if($$conf{timeoutSeconds} > 0 and $exitCode == 124){
+        $timedOutMsg = "timedout=yes";
+      }
+
       if($retryAttempts > 0){
         $retryAttempts--;
-        print "COMMAND FAILED, RETRYING IN 3s...\n";
+        print "COMMAND FAILED ($timedOutMsg): @cmd\nRETRYING IN 3s...\n";
         sleep 3;
       }else{
         last;
