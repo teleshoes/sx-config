@@ -21,8 +21,8 @@ my $REMOTE_HOST = "wolke-nuc";
 my $BACKUP_DIR = "~/backup-sx";
 
 my $dcimDirs = {
-  int => "/home/$USER/Pictures",
-  sd  => "/media/sdcard/phone/Pictures",
+  int    => "/home/$USER/Pictures",
+  sd     => "/media/sdcard/phone/Pictures",
 };
 my $mmsPartsDir = "/home/$USER/.local/share/commhistory/data";
 my %sqliteDbs = (
