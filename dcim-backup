@@ -403,7 +403,7 @@ sub remoteDirExists($;$){
     return 0;
   }
 
-  my $out = `ipmagic $ipmagicName -u $user -s 'if [ -d "$dir" ]; then echo exists; fi' 2>/dev/null`;
+  my $out = `ipmagic $ipmagicName -u $user -s 'if [ -d "$dir" ]; then echo exists; fi'`;
   if($out =~ /^exists$/){
     return 1;
   }else{
