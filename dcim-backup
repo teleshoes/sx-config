@@ -162,6 +162,8 @@ sub md5sumMaps(\@){
     if($line =~ /^([0-9a-f]{32})  (.+)\n$/){
       $byFile{$2} = $1;
       $byMd5sum{$1} = $2;
+    }else{
+      die "ERROR: malformed md5sum line $line\n";
     }
   }
   return (\%byMd5sum, \%byFile);
