@@ -101,7 +101,7 @@ sub dcimBackup($$$){
     my $dir = "$localDCIM/backup_${now}_${backupSuffix}";
     system "mkdir -p $dir";
 
-    system "ipmagic $ipmagicName -u $user --rsync -avP :$remoteDCIM/*.* $dir/";
+    system "ipmagic $ipmagicName -u $user --rsync -avP --exclude=backup_*/ :$remoteDCIM/ $dir/";
     die "failed rsync backup\n" if $? != 0;
 
     if(-e "$dir/.recording"){
