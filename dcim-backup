@@ -413,7 +413,7 @@ sub remoteDirExists($){
 
   $dir =~ s/'/'\\''/g;
 
-  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3},
+  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3, failOnError=>0},
     "ipmagic", $ipmagicName, "-u", $user, "-s",
     "if [ -d '$dir' ]; then echo exists; else exit 1; fi",
   );
