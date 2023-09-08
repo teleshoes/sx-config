@@ -350,7 +350,7 @@ sub writeLocalDCIMInfoCache($$){
 
 sub getRemoteDCIMInfo($){
   my ($remoteDCIM) = @_;
-  my $findStatCmd = "cd $remoteDCIM && find \"!\" -type d -exec stat -c %Y-%s-%n {} \\;";
+  my $findStatCmd = "cd $remoteDCIM && find -type f -exec stat -c %Y-%s-%n {} \\;";
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
