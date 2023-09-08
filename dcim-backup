@@ -70,7 +70,7 @@ sub dcimBackup($$$){
   chdir $localDCIM;
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
-  my @remoteMd5sums = `ipmagic $ipmagicName -u $user -s md5sum $remoteDCIM/*.* 2>/dev/null`;
+  my @remoteMd5sums = `ipmagic $ipmagicName -u $user -s 'find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;'`;
 
   print "===all:\n" . join "", @remoteMd5sums;
   print "===\n\n";
