@@ -159,7 +159,7 @@ sub md5sumMaps(\@){
   my %byFile;
   my @md5sumLines = @{shift()};
   for my $line(@md5sumLines){
-    if($line =~ /^([0-9a-f]{32})  (.+)\n$/){
+    if($line =~ /^([0-9a-f]{32})  (.+)\n?$/){
       $byFile{$2} = $1;
       $byMd5sum{$1} = $2;
     }else{
