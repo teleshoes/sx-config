@@ -67,7 +67,7 @@ sub dcimBackup($$$){
   chdir $localDCIM;
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
-  my @remoteMd5sums = `ipmagic $ipmagicName -u $user md5sum $remoteDCIM/*.* 2>/dev/null`;
+  my @remoteMd5sums = `ipmagic $ipmagicName -u $user -s md5sum $remoteDCIM/*.* 2>/dev/null`;
 
   print "===all:\n" . join "", @remoteMd5sums;
   print "===\n\n";
@@ -148,7 +148,7 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $cmd = join '', @$cmdChunk;
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
-      system "ipmagic", $ipmagicName, "-u", $user, $cmd;
+      system "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd;
       die "failed reorganizing remotes\n" if $? != 0;
     }
   }
@@ -293,7 +293,7 @@ sub checkMissing($$){
     print ""
       . "\n\n"
       . "copy command:\n"
-      . "ipmagic $ipmagicName '"
+      . "ipmagic $ipmagicName -s '"
       . "  mkdir -p $remoteTmpDir/$subdir &&"
       . "  cd $remoteDCIM &&"
       . "  cp -ar @files $remoteTmpDir/$subdir"
@@ -357,11 +357,11 @@ sub writeLocalDCIMInfoCache($$){
 
 sub getRemoteDCIMInfo($){
   my ($remoteDCIM) = @_;
-  my $findStatCmd = "cd $remoteDCIM && find '!' -type d -exec stat -c %Y-%s-%n {} \\;";
+  my $findStatCmd = "cd $remoteDCIM && find \"!\" -type d -exec stat -c %Y-%s-%n {} \\;";
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
-  my @stats = `ipmagic $ipmagicName '$findStatCmd'`;
+  my @stats = `ipmagic $ipmagicName -s '$findStatCmd'`;
 
   my $statCount = @stats;
   print "fetched info for $statCount files\n";
@@ -399,7 +399,7 @@ sub remoteDirExists($;$){
     return 0;
   }
 
-  my $out = `ipmagic $ipmagicName -u $user 'if [ -d "$dir" ]; then echo exists; fi' 2>/dev/null`;
+  my $out = `ipmagic $ipmagicName -u $user -s 'if [ -d "$dir" ]; then echo exists; fi' 2>/dev/null`;
   if($out =~ /^exists$/){
     return 1;
   }else{
