@@ -372,7 +372,7 @@ sub getRemoteDCIMInfo($){
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
-  my @stats = readProcLines({retryAttempts=>3, timeoutSeconds=>30, printCmd=>0},
+  my @stats = readProcLines({retryAttempts=>10, timeoutSeconds=>30, printCmd=>0},
     "ipmagic", $ipmagicName, "-s", $findStatCmd,
   );
 
