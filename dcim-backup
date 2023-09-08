@@ -97,11 +97,8 @@ sub dcimBackup($$$){
     chomp $now;
     my $dir = "$localDCIM/backup_${now}_${backupSuffix}";
     system "mkdir -p $dir";
-    my $host = `ipmagic $ipmagicName`;
-    die "could not read ipmagic $ipmagicName hostname\n" if $? != 0;
-    chomp $host;
 
-    system "rsync -avP $user\@$host:$remoteDCIM/*.* $dir/";
+    system "ipmagic $ipmagicName -u $user --rsync -avP :$remoteDCIM/*.* $dir/";
     die "failed rsync backup\n" if $? != 0;
 
     if(-e "$dir/.recording"){
@@ -286,10 +283,6 @@ sub checkMissing($$){
     my $nowMillis = int(time * 1000.0);
     my $subdir = "dcim-missing-$nowMillis";
 
-    my $host = `ipmagic $ipmagicName`;
-    die "could not read ipmagic $ipmagicName hostname\n" if $? != 0;
-    chomp $host;
-
     print ""
       . "\n\n"
       . "copy command:\n"
@@ -298,7 +291,7 @@ sub checkMissing($$){
       . "  cd $remoteDCIM &&"
       . "  cp -ar @files $remoteTmpDir/$subdir"
       . "'\n"
-      . "rsync -avP $user\@$host:$remoteTmpDir/ $localTmpDir/\n";
+      . "ipmagic $ipmagicName -u $user --rsync -avP :$remoteTmpDir/ $localTmpDir/\n";
   }
   print "\n";
 }
