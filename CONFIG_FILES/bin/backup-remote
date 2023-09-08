@@ -80,6 +80,7 @@ sub main(@){
     notificationMsg 0, sprintf "BAK-DCIM-$dcimDirName: %s %s",
       getDCIMSummary($dcimDir), nowHrMin();
     run rsyncCmd($config, "$dcimDir/", "$BACKUP_DIR/DCIM/$dcimDirName/"),
+      "--exclude=*.mp4",
       "--exclude=backup_*";
   }
   ######
@@ -159,6 +160,7 @@ sub getDCIMSummary($){
   my $findCmd = ""
     . "find '$dcimDir'"
     . "  -type f"
+    . "  -not -iname *.mp4"
     . "  -not -iregex .*/backup_.*"
   ;
 
