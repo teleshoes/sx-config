@@ -616,6 +616,7 @@ sub parseIndexedDB($){
     }
 
     my $millis = getEntryField($val, "date");
+    die "ERROR: missing date for $msgID\n" if not defined $millis;
     my $epoch = int($millis / 1000 + 0.5);
     my $dtmFmt = `date --date='\@$epoch' '+%Y%m%d_%H%M%S'`;
     chomp $dtmFmt;
