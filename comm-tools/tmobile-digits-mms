@@ -534,9 +534,15 @@ sub parseIndexedDB($){
   my @jsonChannelEntriesData = eval {
     my $obj = decode_json($json);
     my $db = ${$obj}[0];
-    my $channel_entries = ${$$db{stores}}[0];
-    if($$channel_entries{name} ne "channel_entries"){
-      die "first store is not channel_entries";
+    my $channel_entries;
+    for my $store(@{$$db{stores}}){
+      if($$store{name} eq "channel_entries"){
+        $channel_entries = $store;
+        last;
+      }
+    }
+    if(not defined $channel_entries){
+      die "ERROR: could not find not store 'channel_entries'";
     }
     return @{$$channel_entries{data}};
   };
