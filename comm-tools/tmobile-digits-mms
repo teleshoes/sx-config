@@ -594,13 +594,10 @@ sub parseIndexedDB($){
     my $contentType = getEntryField($val, "contentType");
     if($entryType =~ /^(message)$/ and $contentType =~ /^text\/plain$/){
       $$msg{type} = "sms";
-    }elsif($entryType =~ /^(message|file)$/ and $contentType =~ /(Message\/CPIM|multipart)/){
-      $$msg{type} = "mms";
     }elsif($entryType =~ /^(callLog)/){
       $$msg{type} = "call";
     }else{
-      print STDERR "WARNING: unknown content/entry type for $msgID\n";
-      next;
+      $$msg{type} = "mms";
     }
 
     if($$msg{type} eq "sms" and @{$$msg{toNums}} > 1){
