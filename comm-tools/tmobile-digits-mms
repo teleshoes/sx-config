@@ -134,6 +134,7 @@ sub getBackupFile($$$);
 sub cleanNumber($);
 sub escapeStr($);
 sub parseIndexedDB($);
+sub getEntryField($$);
 sub getSqliteTableJSONObjById($$$);
 sub parseAndroid($$$);
 sub parseMMSFile($);
@@ -580,16 +581,17 @@ sub parseIndexedDB($){
       callDur     => undef,
     };
 
-    $$msg{from} = cleanNumber($$val{sender});
-    for my $to(@{$$val{toArr}}){
+    $$msg{from} = cleanNumber(getEntryField($val, "sender"));
+    my $toArr = getEntryField($val, "toArr");
+    for my $to(@$toArr){
       push @{$$msg{toNums}}, cleanNumber($to);
     }
 
-    my $msgID = $$val{entry}{imdnMessageID};
+    my $msgID = getEntryField($val, "imdnMessageID");
     $$msg{msgID} = $msgID;
 
-    my $entryType = $$val{entry}{entryType};
-    my $contentType = $$val{entry}{contentType};
+    my $entryType = getEntryField($val, "entryType");
+    my $contentType = getEntryField($val, "contentType");
     if($entryType =~ /^(message)$/ and $contentType =~ /^text\/plain$/){
       $$msg{type} = "sms";
     }elsif($entryType =~ /^(message|file)$/ and $contentType =~ /(Message\/CPIM|multipart)/){
@@ -607,16 +609,16 @@ sub parseIndexedDB($){
       $$msg{type} = "mms";
     }
 
-    $$msg{dir} = $$val{direction};
-    if($$val{direction} =~ /^(in)$/i){
+    my $entryDir = getEntryField($val, "direction");
+    if($entryDir =~ /^(in)$/i){
       $$msg{dir} = "INC";
-    }elsif($$val{direction} =~ /^(out)$/i){
+    }elsif($entryDir =~ /^(out)$/i){
       $$msg{dir} = "OUT";
     }else{
-      die "ERROR: invalid direction $$val{direction} for $msgID\n";
+      die "ERROR: invalid direction $entryDir for $msgID\n";
     }
 
-    my $millis = $$val{date};
+    my $millis = getEntryField($val, "date");
     my $epoch = int($millis / 1000 + 0.5);
     my $dtmFmt = `date --date='\@$epoch' '+%Y%m%d_%H%M%S'`;
     chomp $dtmFmt;
@@ -625,9 +627,9 @@ sub parseIndexedDB($){
     $$msg{dtmFmt} = $dtmFmt;
     $$msg{dtmEpoch} = $epoch;
 
-    $$msg{body} = $$val{entry}{textcontent};
+    $$msg{body} = getEntryField($val, "textcontent");
 
-    $$msg{callDur} = $$val{entry}{callDuration};
+    $$msg{callDur} = getEntryField($val, "callDuration");
 
     my $manualFileAttDir = "$BACKUP_DIR_INDEXEDDB/manual-file-attachment-blobs/$key";
     my @manualFileAtts = grep {-f $_} glob "$manualFileAttDir/*";
@@ -645,20 +647,14 @@ sub parseIndexedDB($){
       }
     }
 
-    if(defined $$val{data}){
-      push @files, $$val{data};
+    my $entryData = getEntryField($val, "data");
+    my $entryMultiPartData = getEntryField($val, "multiPartData");
+
+    if(defined $entryData){
+      push @files, $entryData;
     }
-    if(defined $$val{multiPartData}){
-      @files = (@files, @{$$val{multiPartData}});
-    }
-    if(defined $$val{entry}){
-      my $entry = $$val{entry};
-      if(defined $$entry{data}){
-        push @files, $$entry{data};
-      }
-      if(defined $$entry{multiPartData}){
-        @files = (@files, @{$$entry{multiPartData}});
-      }
+    if(defined $entryMultiPartData){
+      @files = (@files, @$entryMultiPartData);
     }
 
     my $seenFiles = {};
@@ -686,6 +682,17 @@ sub parseIndexedDB($){
   }
 
   return @messages;
+}
+
+sub getEntryField($$){
+  my ($entry, $field) = @_;
+  if(defined $entry and defined $$entry{$field}){
+    return $$entry{$field};
+  }elsif(defined $entry and defined $$entry{entry} and defined $$entry{entry}{$field}){
+    return $$entry{entry}{$field};
+  }else{
+    return undef;
+  }
 }
 
 sub getSqliteTableJSONObjById($$$){
