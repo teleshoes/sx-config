@@ -12,7 +12,7 @@ sub gitGetCommitsSince($$);
 sub gitStatCommit($$);
 sub gitAssertRepoDir($);
 sub run(@);
-sub runRetryTimeout(@);
+sub runRetry($@);
 sub runQuiet(@);
 sub tryrun(@);
 sub tryrunQuiet(@);
@@ -120,7 +120,7 @@ sub main(@){
   # copy raw data (dbs, mms files) phone => computer
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
-  runRetryTimeout "ssh", "root\@$host", "
+  runRetry 30, "ssh", "root\@$host", "
     echo preparing sqlite DBs && \
     \
     cd $COMMHISTORY_DB_REMOTE_DIR && \
@@ -147,13 +147,13 @@ sub main(@){
     echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
-  runRetryTimeout "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
-  runRetryTimeout "scp", "$user\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
-  runRetryTimeout "scp", "$user\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
-  runRetryTimeout "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+  runRetry 30, "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
+  runRetry 30, "scp", "$user\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
+  runRetry 30, "scp", "$user\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
+  runRetry 30, "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
-  runRetryTimeout "ssh", "nemo\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
-  runRetryTimeout "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
+  runRetry 30, "ssh", "nemo\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
+  runRetry 30, "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
   # prepare git repo summary
@@ -369,8 +369,9 @@ sub gitAssertRepoDir($){
 sub run(@){
   wrapRun 1, 1, 0, undef, @_;
 }
-sub runRetryTimeout(@){
-  wrapRun 1, 1, 3, 30, @_;
+sub runRetry($@){
+  my ($timeout, @cmd) = @_;
+  wrapRun 1, 1, 3, $timeout, @cmd;
 }
 sub runQuiet(@){
   wrapRun 0, 1, 0, undef, @_;
