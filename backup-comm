@@ -44,10 +44,10 @@ my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
 my $CMD_CONTACTS_SORT = "$COMM_TOOLS_DIR/contacts-sort.pl";
 my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
-my $COMMHISTORY_DB_REMOTE_DIR = "/home/nemo/.local/share/commhistory";
-my $CONTACTS_DB_REMOTE_DIR = "/home/nemo/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
-my $CONTACTS_PRIV_DB_REMOTE_DIR = "/home/nemo/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
-my $MMS_PARTS_REMOTE_DIR = "/home/nemo/.local/share/commhistory/data";
+my $COMMHISTORY_DB_REMOTE_DIR = "/home/$USER/.local/share/commhistory";
+my $CONTACTS_DB_REMOTE_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
+my $CONTACTS_PRIV_DB_REMOTE_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
+my $MMS_PARTS_REMOTE_DIR = "/home/$USER/.local/share/commhistory/data";
 
 my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
 my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms/parts-repo";
@@ -148,7 +148,7 @@ sub main(@){
   runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
   runRetry 30, "rsync", "-avP", "$USER\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
-  runRetry 30, "ssh", "nemo\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
+  runRetry 30, "ssh", "$USER\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
   runRetry 30, "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
