@@ -9,6 +9,7 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw();
 our @EXPORT = qw(
   nowMillis
+  mtime
   run runQuiet
   tryrun tryrunQuiet
   runRetry runRetryQuiet
@@ -19,6 +20,12 @@ our @EXPORT = qw(
 
 sub nowMillis(){
   return int(time * 1000.0 + 0.5);
+}
+
+sub mtime($){
+  my ($file) = @_;
+  my @stat = stat $file;
+  return $stat[9];
 }
 
 
