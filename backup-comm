@@ -44,9 +44,9 @@ my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
 my $CMD_CONTACTS_SORT = "$COMM_TOOLS_DIR/contacts-sort.pl";
 my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
-my $REMOTE_COMMHISTORY_DB_DIR = "/home/$USER/.local/share/commhistory";
-my $REMOTE_CONTACTS_DB_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
-my $REMOTE_CONTACTS_PRIV_DB_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
+my $REMOTE_COMMHISTORY_DB = "/home/$USER/.local/share/commhistory/commhistory.db";
+my $REMOTE_CONTACTS_DB = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite/contacts.db";
+my $REMOTE_CONTACTS_PRIV_DB = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite/contacts.db";
 my $REMOTE_MMS_PARTS_DIR = "/home/$USER/.local/share/commhistory/data";
 
 my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
@@ -113,35 +113,20 @@ sub main(@){
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "
-    echo preparing sqlite DBs && \
-    \
-    cd $REMOTE_COMMHISTORY_DB_DIR && \
-    mkdir -p $tmpDir/commhistory/ && \
-    cp -ar commhistory.db* $tmpDir/commhistory/ && \
-    test -f $tmpDir/commhistory/commhistory.db && \
-    sqlite3 $tmpDir/commhistory/commhistory.db 'PRAGMA wal_checkpoint' && \
-    test ! -f $tmpDir/commhistory/commhistory.db-wal && \
-    \
-    cd $REMOTE_CONTACTS_DB_DIR && \
-    mkdir -p $tmpDir/contacts/ && \
-    cp -ar contacts.db* $tmpDir/contacts/ && \
-    test -f $tmpDir/contacts/contacts.db && \
-    sqlite3 $tmpDir/contacts/contacts.db 'PRAGMA wal_checkpoint' && \
-    test ! -f $tmpDir/contacts/contacts.db-wal && \
-    \
-    cd $REMOTE_CONTACTS_PRIV_DB_DIR && \
-    mkdir -p $tmpDir/contacts-priv/ && \
-    cp -a contacts.db* $tmpDir/contacts-priv/ && \
-    test -f $tmpDir/contacts-priv/contacts.db && \
-    sqlite3 $tmpDir/contacts-priv/contacts.db 'PRAGMA wal_checkpoint' && \
-    test ! -f $tmpDir/contacts-priv/contacts.db-wal && \
-    \
-    echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
+    echo preparing sqlite DBs \\
+    && mkdir -p $tmpDir \\
+    && sqlite3 $REMOTE_COMMHISTORY_DB 'vacuum into \"$tmpDir/commhistory.db\"' \\
+    && sqlite3 $REMOTE_CONTACTS_DB 'vacuum into \"$tmpDir/contacts.db\"' \\
+    && sqlite3 $REMOTE_CONTACTS_PRIV_DB 'vacuum into \"$tmpDir/contacts-priv.db\"' \\
+    && test -f $tmpDir/commhistory.db \\
+    && test -f $tmpDir/contacts.db \\
+    && test -f $tmpDir/contacts-priv.db \\
+    && echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/commhistory/commhistory.db", $commhistoryDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts/contacts.db", $contactsDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/commhistory.db", $commhistoryDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts.db", $contactsDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts-priv.db", $contactsPrivDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
