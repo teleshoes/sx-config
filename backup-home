@@ -47,7 +47,7 @@ sub main(@){
     @cmd = (@cmd, "--exclude=$exclude");
   }
 
-  run @cmd;
+  runRetry 60, @cmd;
 
   print "\n\n";
   my $nowMillis = nowMillis();
