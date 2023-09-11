@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 
 my $user = "nemo";
 my $ipmagicName = "sx";
@@ -26,11 +28,6 @@ sub main(@){
   );
 
   run @cmd;
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
 }
 
 &main(@ARGV);
