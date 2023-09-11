@@ -98,10 +98,6 @@ sub main(@){
     }
   }
 
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  die "failed to get host" if $? != 0;
-  chomp $host;
-
   my $now = `date +'%Y-%m-%d_%s'`;
   chomp $now;
 
