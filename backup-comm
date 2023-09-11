@@ -116,7 +116,7 @@ sub main(@){
   # copy raw data (dbs, mms files) phone => computer
   #########################################################
   print "\n\n=====COPY RAW DATA\n";
-  runRetry 30, "ssh", "root\@$host", "
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "
     echo preparing sqlite DBs && \
     \
     cd $COMMHISTORY_DB_REMOTE_DIR && \
@@ -148,7 +148,7 @@ sub main(@){
   runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
   runRetry 30, "rsync", "-avP", "$USER\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
-  runRetry 30, "ssh", "$USER\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
   runRetry 30, "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
@@ -246,7 +246,7 @@ sub main(@){
   run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--mmspix",
     "$CONTACTS_REPO/contacts.vcf", $MMS_MSG_REPO, $MMSPIX_BY_CONTACT_DIR;
 
-  run "ssh", "$USER\@$host", "
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "
     mkdir -p $REMOTE_REPO_DIR_SMS;
     mkdir -p $REMOTE_REPO_DIR_CALL;
     mkdir -p $REMOTE_REPO_DIR_MMS;
