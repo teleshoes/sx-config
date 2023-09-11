@@ -18,7 +18,7 @@ sub main(@){
   backup "cleanup-connman";
   backup "dcim-backup";
   backup "sync-pixmirror";
-  backup "sync-android-apps --backup";
+  #backup "sync-android-apps --backup"; WAYDROID
   backup "backup-lap";
   backup "backup-home";
   backup "backup-notes";
