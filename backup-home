@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Time::HiRes qw(time);
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 
 my $user = "nemo";
 my $ipmagicName = "sx";
@@ -31,9 +32,6 @@ my @excludes = qw(
   Code/
 );
 
-sub run(@);
-sub nowMillis();
-
 sub main(@){
   my $rootUser = "root";
 
@@ -56,15 +54,6 @@ sub main(@){
   run "cp", "-ar",
     "$BACKUP_HOME_DIR/.bash_history",
     "$BACKUP_BASH_HIST_DIR/bash-history-$nowMillis";
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
-}
-
-sub nowMillis(){
-  return int(time * 1000.0 + 0.5);
 }
 
 &main(@ARGV);
