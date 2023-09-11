@@ -44,10 +44,10 @@ my $CMD_SMS_DB_IMPORTER = "$COMM_TOOLS_DIR/sms_db_importer.py";
 my $CMD_CONTACTS_SORT = "$COMM_TOOLS_DIR/contacts-sort.pl";
 my $CMD_CONTACTS_SYMLINKS = "$COMM_TOOLS_DIR/contacts-symlinks.pl";
 
-my $COMMHISTORY_DB_REMOTE_DIR = "/home/$USER/.local/share/commhistory";
-my $CONTACTS_DB_REMOTE_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
-my $CONTACTS_PRIV_DB_REMOTE_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
-my $MMS_PARTS_REMOTE_DIR = "/home/$USER/.local/share/commhistory/data";
+my $REMOTE_COMMHISTORY_DB_DIR = "/home/$USER/.local/share/commhistory";
+my $REMOTE_CONTACTS_DB_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
+my $REMOTE_CONTACTS_PRIV_DB_DIR = "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite";
+my $REMOTE_MMS_PARTS_DIR = "/home/$USER/.local/share/commhistory/data";
 
 my $MMS_MSG_REPO = "$BACKUP_DIR/backup-mms/repo";
 my $MMS_PARTS_REPO = "$BACKUP_DIR/backup-mms/parts-repo";
@@ -115,21 +115,21 @@ sub main(@){
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "
     echo preparing sqlite DBs && \
     \
-    cd $COMMHISTORY_DB_REMOTE_DIR && \
+    cd $REMOTE_COMMHISTORY_DB_DIR && \
     mkdir -p $tmpDir/commhistory/ && \
     cp -ar commhistory.db* $tmpDir/commhistory/ && \
     test -f $tmpDir/commhistory/commhistory.db && \
     sqlite3 $tmpDir/commhistory/commhistory.db 'PRAGMA wal_checkpoint' && \
     test ! -f $tmpDir/commhistory/commhistory.db-wal && \
     \
-    cd $CONTACTS_DB_REMOTE_DIR && \
+    cd $REMOTE_CONTACTS_DB_DIR && \
     mkdir -p $tmpDir/contacts/ && \
     cp -ar contacts.db* $tmpDir/contacts/ && \
     test -f $tmpDir/contacts/contacts.db && \
     sqlite3 $tmpDir/contacts/contacts.db 'PRAGMA wal_checkpoint' && \
     test ! -f $tmpDir/contacts/contacts.db-wal && \
     \
-    cd $CONTACTS_PRIV_DB_REMOTE_DIR && \
+    cd $REMOTE_CONTACTS_PRIV_DB_DIR && \
     mkdir -p $tmpDir/contacts-priv/ && \
     cp -a contacts.db* $tmpDir/contacts-priv/ && \
     test -f $tmpDir/contacts-priv/contacts.db && \
@@ -142,7 +142,7 @@ sub main(@){
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/commhistory/commhistory.db", $commhistoryDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts/contacts.db", $contactsDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", ":$contactsTmpVcf", $localContactsVcf;
