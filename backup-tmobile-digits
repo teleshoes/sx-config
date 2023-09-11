@@ -36,8 +36,6 @@ sub main(@){
     }
   }
   runQuiet "mkdir", "-p", $BACKUP_DIGITS_DB_DIR;
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
 
   my $nowMillis = nowMillis();
   my $dtm = `date +%Y-%m-%d_%H%M%S`;
@@ -50,7 +48,7 @@ sub main(@){
   ;
 
   my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_cdigits3x.sqlite";
-  run "rsync", "-avP", "root\@$host:$tmpDbFile", $db;
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", ":$tmpDbFile", $db;
 
   run "ipmagic", $IPMAGIC_NAME, "-u", "root", "rm \"$tmpDbFile\"";
 
@@ -76,13 +74,13 @@ sub main(@){
 
 
   print "\n\nsilently delete previous repo files from new atts dir that are not on remote\n";
-  run "rsync", "-r", "--del",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-r", "--del",
     "--ignore-non-existing", "--ignore-existing",
-    "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
+    ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
 
   print "\n\nfetch new digits att files\n";
-  run "rsync", "-avP", "--del", "$USER\@$host:$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
 
   print "\n\nprepare att files with md5 filename for repo\n";
