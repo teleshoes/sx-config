@@ -146,7 +146,7 @@ sub main(@){
   runRetry 30, "scp", "$USER\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
   runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
   runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
-  runRetry 30, "rsync", "-avP", "$USER\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
   runRetry 30, "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
@@ -257,17 +257,17 @@ sub main(@){
     mkdir -p $REMOTE_BYCONTACT_DIR_MMSPIX;
   ";
 
-  run "rsync", "-avP", "--del", "--exclude=.git/",
-    "$SMS_REPO/", "$USER\@$host:$REMOTE_REPO_DIR_SMS/";
-  run "rsync", "-avP", "--del", "--exclude=.git/",
-    "$CALL_REPO/", "$USER\@$host:$REMOTE_REPO_DIR_CALL/";
-  run "rsync", "-avP", "--del", "--exclude=.git/",
-    "$MMS_MSG_REPO/", "$USER\@$host:$REMOTE_REPO_DIR_MMS/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
+    "$SMS_REPO/", ":$REMOTE_REPO_DIR_SMS/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
+    "$CALL_REPO/", ":$REMOTE_REPO_DIR_CALL/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
+    "$MMS_MSG_REPO/", ":$REMOTE_REPO_DIR_MMS/";
 
-  run "rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_SMS/";
-  run "rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_CALL/";
-  run "rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_MMS/";
-  run "rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_MMSPIX/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_SMS/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_CALL/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMS/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMSPIX/";
 
   #########################################################
   # show git repo summary
