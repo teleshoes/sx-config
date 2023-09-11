@@ -17,6 +17,7 @@ my $remoteSym = "/home/nemo/pixmirror";
 
 sub run(@);
 sub runQuiet(@);
+sub runCmd($@);
 
 sub main(@){
   my $host = `ipmagic $ipmagicName`;
@@ -97,13 +98,91 @@ sub main(@){
 }
 
 sub run(@){
-  print "@_\n";
-  system @_;
-  die "FAILED: \"@_\"\n" if $? != 0;
+  runCmd({printCmd => 1, failOnError => 1}, @_);
 }
 sub runQuiet(@){
-  system @_;
-  die "FAILED: \"@_\"\n" if $? != 0;
+  runCmd({printCmd => 0, failOnError => 1}, @_);
+}
+
+
+sub runCmd($@){
+  my ($config, @cmd) = @_;
+
+  my $conf = {
+    wrapShell      => 0,
+    printCmd       => 0,
+    readProc       => 0,
+    failOnError    => 1,
+    retryAttempts  => 0,
+    timeoutSeconds => 0,
+    %$config,
+  };
+
+  for my $key(sort keys %$conf){
+    if($key !~ /^(wrapShell|printCmd|readProc|failOnError|retryAttempts|timeoutSeconds)$/){
+      die "ERROR: unknown run conf opt $key\n";
+    }
+  }
+
+  if($$conf{wrapShell}){
+    @cmd = ("sh", "-c", "@cmd");
+  }
+  if($$conf{timeoutSeconds} > 0){
+    @cmd = ("timeout", $$conf{timeoutSeconds}, @cmd);
+  }
+
+  print "@cmd\n" if $$conf{printCmd};
+
+  my $exitCode;
+  my $error;
+  my $stdout;
+  my $retryAttempts = $$conf{retryAttempts};
+  while(1){
+    if($$conf{readProc}){
+      my $cmdFH;
+      if(open $cmdFH, "-|", @cmd){
+        $stdout = join '', <$cmdFH>;
+        close $cmdFH;
+        $exitCode = $? >> 8;
+        $error = $!;
+      }else{
+        $stdout = "";
+        $exitCode = -1;
+        $error = $1;
+      }
+    }else{
+      system @cmd;
+      $exitCode = $? >> 8;
+      $error = $!;
+    }
+
+    if($exitCode != 0){
+      my $timedOutMsg = "timedout=no";
+      if($$conf{timeoutSeconds} > 0 and $exitCode == 124){
+        $timedOutMsg = "timedout=yes";
+      }
+
+      if($retryAttempts > 0){
+        $retryAttempts--;
+        print "COMMAND FAILED ($timedOutMsg): @cmd\nRETRYING IN 3s...\n";
+        sleep 3;
+      }else{
+        last;
+      }
+    }else{
+      last;
+    }
+  }
+
+  if($exitCode != 0 and $$conf{failOnError}){
+    die "\n\nERROR: '@cmd' failed\n$error\n";
+  }
+
+  if($$conf{readProc}){
+    return $stdout;
+  }else{
+    return $exitCode;
+  }
 }
 
 &main(@ARGV);
