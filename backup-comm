@@ -5,8 +5,8 @@ use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 use Cwd 'abs_path';
 
-my $ipmagicName = "sx";
-my $user = "nemo";
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
 
 sub gitHead($);
 sub gitCommit($$$$);
@@ -98,7 +98,7 @@ sub main(@){
     }
   }
 
-  my $host = `ipmagic $ipmagicName`;
+  my $host = `ipmagic $IPMAGIC_NAME`;
   die "failed to get host" if $? != 0;
   chomp $host;
 
@@ -143,10 +143,10 @@ sub main(@){
     echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
-  runRetry 30, "scp", "$user\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
-  runRetry 30, "scp", "$user\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
-  runRetry 30, "scp", "$user\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
-  runRetry 30, "rsync", "-avP", "$user\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
+  runRetry 30, "scp", "$USER\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
+  runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
+  runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
+  runRetry 30, "rsync", "-avP", "$USER\@$host:$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
   runRetry 30, "ssh", "nemo\@$host", "vcardconverter-sudo -e $contactsTmpVcf";
   runRetry 30, "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
@@ -246,7 +246,7 @@ sub main(@){
   run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--mmspix",
     "$CONTACTS_REPO/contacts.vcf", $MMS_MSG_REPO, $MMSPIX_BY_CONTACT_DIR;
 
-  run "ssh", "$user\@$host", "
+  run "ssh", "$USER\@$host", "
     mkdir -p $REMOTE_REPO_DIR_SMS;
     mkdir -p $REMOTE_REPO_DIR_CALL;
     mkdir -p $REMOTE_REPO_DIR_MMS;
@@ -258,16 +258,16 @@ sub main(@){
   ";
 
   run "rsync", "-avP", "--del", "--exclude=.git/",
-    "$SMS_REPO/", "$user\@$host:$REMOTE_REPO_DIR_SMS/";
+    "$SMS_REPO/", "$USER\@$host:$REMOTE_REPO_DIR_SMS/";
   run "rsync", "-avP", "--del", "--exclude=.git/",
-    "$CALL_REPO/", "$user\@$host:$REMOTE_REPO_DIR_CALL/";
+    "$CALL_REPO/", "$USER\@$host:$REMOTE_REPO_DIR_CALL/";
   run "rsync", "-avP", "--del", "--exclude=.git/",
-    "$MMS_MSG_REPO/", "$user\@$host:$REMOTE_REPO_DIR_MMS/";
+    "$MMS_MSG_REPO/", "$USER\@$host:$REMOTE_REPO_DIR_MMS/";
 
-  run "rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_SMS/";
-  run "rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_CALL/";
-  run "rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_MMS/";
-  run "rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", "$user\@$host:$REMOTE_BYCONTACT_DIR_MMSPIX/";
+  run "rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_SMS/";
+  run "rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_CALL/";
+  run "rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_MMS/";
+  run "rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", "$USER\@$host:$REMOTE_BYCONTACT_DIR_MMSPIX/";
 
   #########################################################
   # show git repo summary
