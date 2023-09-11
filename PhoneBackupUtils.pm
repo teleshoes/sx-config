@@ -10,6 +10,7 @@ our @EXPORT_OK = qw();
 our @EXPORT = qw(
   nowMillis
   mtime
+  md5
   run runQuiet
   tryrun tryrunQuiet
   runRetry runRetryQuiet
@@ -28,6 +29,16 @@ sub mtime($){
   return $stat[9];
 }
 
+sub md5($){
+  my ($file) = @_;
+  die "ERROR: could not find file $file\n" if not -e $file;
+  my $md5 = `md5sum "$file"`;
+  if($md5 =~ /^([0-9a-f]{32})\s/){
+    return $1;
+  }else{
+    die "ERROR: could not md5sum file $file\n";
+  }
+}
 
 sub run(@){
   return runCmd({printCmd => 1, failOnError => 1}, @_);
