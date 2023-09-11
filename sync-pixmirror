@@ -3,17 +3,17 @@ use strict;
 use warnings;
 use File::Spec;
 
-my $ipmagicName = "sx";
+my $IPMAGIC_NAME = "sx";
 
-my $targetSize = "1920x1080";
+my $PIXMIRROR_TARGET_SIZE = "1920x1080";
 
-my $localDCIM = "$ENV{HOME}/Code/sx/backup/DCIM";
-my $localPixmirror = "$ENV{HOME}/Code/sx/backup/DCIM-pixmirror";
-my $localByDateDir = "/tmp/sync-pixmirror-bydate";
+my $LOCAL_DCIM_DIR = "$ENV{HOME}/Code/sx/backup/DCIM";
+my $LOCAL_PIXMIRROR_DIR = "$ENV{HOME}/Code/sx/backup/DCIM-pixmirror";
+my $LOCAL_PIXMIRROR_BY_DATE_DIR = "/tmp/sync-pixmirror-bydate";
 
-my $remotePixmirror = "/media/sdcard/phone/DCIM-pixmirror";
-my $remotePixmirrorByDate = "/media/sdcard/phone/DCIM-pixmirror-bydate";
-my $remoteSym = "/home/nemo/pixmirror";
+my $REMOTE_PIXMIRROR_DIR = "/media/sdcard/phone/DCIM-pixmirror";
+my $REMOTE_PIXMIRROR_BY_DATE_DIR = "/media/sdcard/phone/DCIM-pixmirror-bydate";
+my $REMOTE_SYMLINK = "/home/nemo/pixmirror";
 
 sub run(@);
 sub runRetry(@);
@@ -21,30 +21,30 @@ sub runQuiet(@);
 sub runCmd($@);
 
 sub main(@){
-  my $host = `ipmagic $ipmagicName`;
+  my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
   print "\n\n=====making pixmirror remote dirs\n";
-  runRetry "ipmagic", $ipmagicName, "
-    mkdir -p $remotePixmirror
-    rm -f $remoteSym
-    ln -s $remotePixmirror $remoteSym
+  runRetry "ipmagic", $IPMAGIC_NAME, "
+    mkdir -p $REMOTE_PIXMIRROR_DIR
+    rm -f $REMOTE_SYMLINK
+    ln -s $REMOTE_PIXMIRROR_DIR $REMOTE_SYMLINK
   ";
 
   print "\n\n=====running pixmirror locally\n";
-  run "pixmirror", "--size=$targetSize", "--orient", $localDCIM, $localPixmirror;
-  run "touch", "$localPixmirror/.nomedia" if not -f "$localPixmirror/.nomedia";
+  run "pixmirror", "--size=$PIXMIRROR_TARGET_SIZE", "--orient", $LOCAL_DCIM_DIR, $LOCAL_PIXMIRROR_DIR;
+  run "touch", "$LOCAL_PIXMIRROR_DIR/.nomedia" if not -f "$LOCAL_PIXMIRROR_DIR/.nomedia";
 
   print "\n\n=====syncing pixmirror local=>remote\n";
   runRetry "rsync", "-avP", "--del",
-    "$localPixmirror/",
-    "nemo\@$host:$remotePixmirror";
+    "$LOCAL_PIXMIRROR_DIR/",
+    "nemo\@$host:$REMOTE_PIXMIRROR_DIR";
 
   print "\n\n=====making bydate-subdirs locally\n";
-  run "rm", "-r", $localByDateDir if -d $localByDateDir;
-  run "mkdir", "-p", "$localByDateDir/";
+  run "rm", "-r", $LOCAL_PIXMIRROR_BY_DATE_DIR if -d $LOCAL_PIXMIRROR_BY_DATE_DIR;
+  run "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/";
 
-  for my $dir(glob "$localPixmirror/????-??-??_*"){
+  for my $dir(glob "$LOCAL_PIXMIRROR_DIR/????-??-??_*"){
     if($dir !~ /^(?:.*\/)?(\d\d\d\d)-(\d\d)-(\d\d)_(.+)$/){
       die "malformed dir: $dir\n";
     }
@@ -52,50 +52,50 @@ sub main(@){
     my $subDir = "${y}/${m}";
     my $dirName = "${y}-${m}-${d}_${title}";
 
-    my $remoteSrcAbsDir = "$remotePixmirror/$dirName";
-    my $remoteRelBaseDir = "$remotePixmirrorByDate/$subDir";
+    my $remoteSrcAbsDir = "$REMOTE_PIXMIRROR_DIR/$dirName";
+    my $remoteRelBaseDir = "$REMOTE_PIXMIRROR_BY_DATE_DIR/$subDir";
 
     my $remoteSrcRelDir = File::Spec->abs2rel($remoteSrcAbsDir, $remoteRelBaseDir);
 
-    my $localDestDir = "$localByDateDir/$subDir/$dirName";
+    my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$subDir/$dirName";
 
-    runQuiet "mkdir", "-p", "$localByDateDir/$subDir/";
+    runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/$subDir/";
     runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
 
-    runQuiet "touch", "$localByDateDir/.nomedia", "-r", $dir;
+    runQuiet "touch", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia", "-r", $dir;
 
-    runQuiet "touch", "-h", "$localByDateDir/${y}/${m}/${dirName}", "-r", $dir;
-    runQuiet "touch", "-h", "$localByDateDir/${y}/${m}", "-r", $dir;
-    runQuiet "touch", "-h", "$localByDateDir/${y}", "-r", $dir;
-    runQuiet "touch", "-h", "$localByDateDir", "-r", $dir;
+    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}/${dirName}", "-r", $dir;
+    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}", "-r", $dir;
+    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}", "-r", $dir;
+    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
   }
-  for my $dir(glob "$localPixmirror/*/"){
-    if($dir !~ /^$localPixmirror\/([a-zA-Z0-9_\-]+)\/?$/){
+  for my $dir(glob "$LOCAL_PIXMIRROR_DIR/*/"){
+    if($dir !~ /^$LOCAL_PIXMIRROR_DIR\/([a-zA-Z0-9_\-]+)\/?$/){
       die "malformed dir: $dir\n";
     }
     my $dirName = $1;
     next if $dirName =~ /^\d\d\d\d-\d\d-\d\d_/;
 
-    my $remoteSrcAbsDir = "$remotePixmirror/$dirName";
-    my $remoteRelBaseDir = "$remotePixmirrorByDate";
+    my $remoteSrcAbsDir = "$REMOTE_PIXMIRROR_DIR/$dirName";
+    my $remoteRelBaseDir = "$REMOTE_PIXMIRROR_BY_DATE_DIR";
 
     my $remoteSrcRelDir = File::Spec->abs2rel($remoteSrcAbsDir, $remoteRelBaseDir);
 
-    my $localDestDir = "$localByDateDir/$dirName";
+    my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$dirName";
 
-    runQuiet "mkdir", "-p", "$localByDateDir";
+    runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR";
     runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
 
-    runQuiet "touch", "$localByDateDir/.nomedia", "-r", $dir;
+    runQuiet "touch", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia", "-r", $dir;
 
-    runQuiet "touch", "-h", "$localByDateDir/${dirName}", "-r", $dir;
-    runQuiet "touch", "-h", "$localByDateDir", "-r", $dir;
+    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${dirName}", "-r", $dir;
+    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
   }
 
   print "\n\n=====syncing bydate-subdirs local=>remote\n";
   runRetry "rsync", "-avP", "--del",
-    "$localByDateDir/",
-    "nemo\@$host:$remotePixmirrorByDate";
+    "$LOCAL_PIXMIRROR_BY_DATE_DIR/",
+    "nemo\@$host:$REMOTE_PIXMIRROR_BY_DATE_DIR";
 }
 
 sub run(@){
