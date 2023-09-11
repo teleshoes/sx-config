@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 use File::Spec;
 
 my $IPMAGIC_NAME = "sx";
@@ -16,14 +18,9 @@ my $REMOTE_PIXMIRROR_DIR = "/media/sdcard/phone/DCIM-pixmirror";
 my $REMOTE_PIXMIRROR_BY_DATE_DIR = "/media/sdcard/phone/DCIM-pixmirror-bydate";
 my $REMOTE_SYMLINK = "/home/$USER/pixmirror";
 
-sub run(@);
-sub runRetry(@);
-sub runQuiet(@);
-sub runCmd($@);
-
 sub main(@){
   print "\n\n=====making pixmirror remote dirs\n";
-  runRetry "ipmagic", $IPMAGIC_NAME, "
+  runRetry 10, "ipmagic", $IPMAGIC_NAME, "
     mkdir -p $REMOTE_PIXMIRROR_DIR
     rm -f $REMOTE_SYMLINK
     ln -s $REMOTE_PIXMIRROR_DIR $REMOTE_SYMLINK
@@ -34,7 +31,7 @@ sub main(@){
   run "touch", "$LOCAL_PIXMIRROR_DIR/.nomedia" if not -f "$LOCAL_PIXMIRROR_DIR/.nomedia";
 
   print "\n\n=====syncing pixmirror local=>remote\n";
-  runRetry "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
     "$LOCAL_PIXMIRROR_DIR/",
     ":$REMOTE_PIXMIRROR_DIR";
 
@@ -91,100 +88,9 @@ sub main(@){
   }
 
   print "\n\n=====syncing bydate-subdirs local=>remote\n";
-  runRetry "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
     "$LOCAL_PIXMIRROR_BY_DATE_DIR/",
     ":$REMOTE_PIXMIRROR_BY_DATE_DIR";
-}
-
-sub run(@){
-  runCmd({printCmd => 1, failOnError => 1}, @_);
-}
-sub runRetry(@){
-  runCmd({printCmd => 1, failOnError => 1, retryAttempts => 3, timeoutSeconds => 300}, @_);
-}
-sub runQuiet(@){
-  runCmd({printCmd => 0, failOnError => 1}, @_);
-}
-
-
-sub runCmd($@){
-  my ($config, @cmd) = @_;
-
-  my $conf = {
-    wrapShell      => 0,
-    printCmd       => 0,
-    readProc       => 0,
-    failOnError    => 1,
-    retryAttempts  => 0,
-    timeoutSeconds => 0,
-    %$config,
-  };
-
-  for my $key(sort keys %$conf){
-    if($key !~ /^(wrapShell|printCmd|readProc|failOnError|retryAttempts|timeoutSeconds)$/){
-      die "ERROR: unknown run conf opt $key\n";
-    }
-  }
-
-  if($$conf{wrapShell}){
-    @cmd = ("sh", "-c", "@cmd");
-  }
-  if($$conf{timeoutSeconds} > 0){
-    @cmd = ("timeout", $$conf{timeoutSeconds}, @cmd);
-  }
-
-  print "@cmd\n" if $$conf{printCmd};
-
-  my $exitCode;
-  my $error;
-  my $stdout;
-  my $retryAttempts = $$conf{retryAttempts};
-  while(1){
-    if($$conf{readProc}){
-      my $cmdFH;
-      if(open $cmdFH, "-|", @cmd){
-        $stdout = join '', <$cmdFH>;
-        close $cmdFH;
-        $exitCode = $? >> 8;
-        $error = $!;
-      }else{
-        $stdout = "";
-        $exitCode = -1;
-        $error = $1;
-      }
-    }else{
-      system @cmd;
-      $exitCode = $? >> 8;
-      $error = $!;
-    }
-
-    if($exitCode != 0){
-      my $timedOutMsg = "timedout=no";
-      if($$conf{timeoutSeconds} > 0 and $exitCode == 124){
-        $timedOutMsg = "timedout=yes";
-      }
-
-      if($retryAttempts > 0){
-        $retryAttempts--;
-        print "COMMAND FAILED ($timedOutMsg): @cmd\nRETRYING IN 3s...\n";
-        sleep 3;
-      }else{
-        last;
-      }
-    }else{
-      last;
-    }
-  }
-
-  if($exitCode != 0 and $$conf{failOnError}){
-    die "\n\nERROR: '@cmd' failed\n$error\n";
-  }
-
-  if($$conf{readProc}){
-    return $stdout;
-  }else{
-    return $exitCode;
-  }
 }
 
 &main(@ARGV);
