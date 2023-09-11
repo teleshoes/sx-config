@@ -413,14 +413,17 @@ sub remoteDirExists($){
 
   $dir =~ s/'/'\\''/g;
 
-  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3, failOnError=>0},
+  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3},
     "ipmagic", $ipmagicName, "-u", $user, "-s",
-    "if [ -d '$dir' ]; then echo exists; else exit 1; fi",
+    "if [ -d '$dir' ]; then echo EXISTS; else echo MISSING; fi",
   );
-  if($out =~ /^exists$/){
+
+  if($out =~ /^EXISTS$/){
     return 1;
-  }else{
+  }elsif($out =~ /^MISSING$/){
     return 0;
+  }else{
+    die "ERROR: failed to check status of remote dir $dir\n";
   }
 }
 
