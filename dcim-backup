@@ -43,9 +43,17 @@ sub writeLocalDCIMInfoCache($$);
 sub getRemoteDCIMInfo($);
 sub getFileKey($);
 sub remoteDirExists($);
-sub readProc($@);
-sub readProcLines($@);
-sub run($@);
+sub run(@);
+sub runQuiet(@);
+sub tryrun(@);
+sub tryrunQuiet(@);
+sub runRetry($@);
+sub runRetryQuiet($@);
+sub readProc(@);
+sub readProcRetry($@);
+sub readProcLines(@);
+sub readProcLinesRetry(@);
+sub runCmd($@);
 
 sub main(@){
   for my $backup(@backups){
@@ -70,7 +78,7 @@ sub dcimBackup($$$){
   chdir $localDCIM;
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
-  my @remoteMd5sums = readProcLines({retryAttempts=>3, timeoutSeconds=>3600},
+  my @remoteMd5sums = readProcLinesRetry(3600,
     "ipmagic", $ipmagicName, "-u", $user, "-s",
       "find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;",
   );
@@ -104,7 +112,7 @@ sub dcimBackup($$$){
     my $dir = "$localDCIM/backup_${now}_${backupSuffix}";
     system "mkdir -p $dir";
 
-    run({retryAttempts=>3, timeoutSeconds=>3600},
+    runRetryQuiet(3600,
       "ipmagic", $ipmagicName, "-u", $user,
         "--rsync",
         "-avP",
@@ -157,7 +165,7 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $cmd = join '', @$cmdChunk;
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
-      run({retryAttempts=>3, timeoutSeconds=>30},
+      runRetryQuiet(30,
         "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd,
       );
     }
@@ -369,7 +377,7 @@ sub getRemoteDCIMInfo($){
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
-  my @stats = readProcLines({retryAttempts=>3, timeoutSeconds=>30},
+  my @stats = readProcLinesRetry(30,
     "ipmagic", $ipmagicName, "-s", $findStatCmd,
   );
 
@@ -413,7 +421,7 @@ sub remoteDirExists($){
 
   $dir =~ s/'/'\\''/g;
 
-  my $out = readProc({retryAttempts=>3, timeoutSeconds=>3},
+  my $out = readProcRetry(3,
     "ipmagic", $ipmagicName, "-u", $user, "-s",
     "if [ -d '$dir' ]; then echo EXISTS; else echo MISSING; fi",
   );
@@ -427,18 +435,59 @@ sub remoteDirExists($){
   }
 }
 
-sub readProc($@){
-  my ($config, @cmd) = @_;
-  return run({readProc => 1, %$config}, @cmd);
+sub run(@){
+  return runCmd({printCmd => 1, failOnError => 1}, @_);
 }
-sub readProcLines($@){
-  my ($config, @cmd) = @_;
-  my $stdout = readProc($config, @cmd);
+sub runQuiet(@){
+  return runCmd({printCmd => 0, failOnError => 1}, @_);
+}
+sub tryrun(@){
+  return runCmd({printCmd => 1, failOnError => 0}, @_);
+}
+sub tryrunQuiet(@){
+  return runCmd({printCmd => 0, failOnError => 0}, @_);
+}
+
+sub runRetry($@){
+  my ($timeout, @cmd) = @_;
+  die "ERROR: retry missing timeout\n" if $timeout !~ /^\d+$/;
+  return runCmd({printCmd => 1, failOnError => 1,
+    retryAttempts  => 3, timeoutSeconds => $timeout}, @cmd);
+}
+sub runRetryQuiet($@){
+  my ($timeout, @cmd) = @_;
+  die "ERROR: retry missing timeout\n" if $timeout !~ /^\d+$/;
+  return runCmd({printCmd => 0, failOnError => 1,
+    retryAttempts => 3, timeoutSeconds => $timeout}, @cmd);
+}
+
+sub readProc(@){
+  return runCmd({printCmd => 0, failOnError => 1, readProc => 1}, @_);
+}
+sub readProcRetry($@){
+  my ($timeout, @cmd) = @_;
+  die "ERROR: retry missing timeout\n" if $timeout !~ /^\d+$/;
+  return runCmd({printCmd => 0, failOnError => 1, readProc => 1,
+    retryAttempts => 3, timeoutSeconds => $timeout}, @cmd);
+}
+
+sub readProcLines(@){
+  my $stdout = runCmd({printCmd => 0, failOnError => 1, readProc => 1}, @_);
+  my @lines = split /\r\n|\n/, $stdout;
+  return @lines;
+}
+sub readProcLinesRetry(@){
+  my ($timeout, @cmd) = @_;
+  die "ERROR: retry missing timeout\n" if $timeout !~ /^\d+$/;
+  my $stdout = runCmd({printCmd => 0, failOnError => 1, readProc => 1,
+    retryAttempts => 3, timeoutSeconds => $timeout}, @cmd);
   my @lines = split /\r\n|\n/, $stdout;
   return @lines;
 }
 
-sub run($@){
+
+
+sub runCmd($@){
   my ($config, @cmd) = @_;
 
   my $conf = {
