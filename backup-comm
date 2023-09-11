@@ -118,17 +118,22 @@ sub main(@){
     && sqlite3 $REMOTE_COMMHISTORY_DB 'vacuum into \"$tmpDir/commhistory.db\"' \\
     && sqlite3 $REMOTE_CONTACTS_DB 'vacuum into \"$tmpDir/contacts.db\"' \\
     && sqlite3 $REMOTE_CONTACTS_PRIV_DB 'vacuum into \"$tmpDir/contacts-priv.db\"' \\
+    && ls $tmpDir \\
     && test -f $tmpDir/commhistory.db \\
     && test -f $tmpDir/contacts.db \\
     && test -f $tmpDir/contacts-priv.db \\
     && echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
+  print "\nfetching sqlite DBs\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/commhistory.db", $commhistoryDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts.db", $contactsDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts-priv.db", $contactsPrivDb;
+
+  print "\nfetching MMS parts dir\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
+  print "\nfetching contacts vcf\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", ":$contactsTmpVcf", $localContactsVcf;
 
