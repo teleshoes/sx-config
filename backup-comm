@@ -143,13 +143,13 @@ sub main(@){
     echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
-  runRetry 30, "scp", "$USER\@$host:$tmpDir/commhistory/commhistory.db", $commhistoryDb;
-  runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts/contacts.db", $contactsDb;
-  runRetry 30, "scp", "$USER\@$host:$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/commhistory/commhistory.db", $commhistoryDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts/contacts.db", $contactsDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts-priv/contacts.db", $contactsPrivDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$MMS_PARTS_REMOTE_DIR/", "$MMS_PARTS_REPO/";
 
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
-  runRetry 30, "scp", "root\@$host:$contactsTmpVcf", $localContactsVcf;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", ":$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
   # prepare git repo summary
