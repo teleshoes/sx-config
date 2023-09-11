@@ -35,16 +35,13 @@ sub run(@);
 sub nowMillis();
 
 sub main(@){
-  my $host = `ipmagic $ipmagicName`;
-  chomp $host;
-
   my $rootUser = "root";
 
-  my @cmd = ("rsync",
+  my @cmd = ("ipmagic", $ipmagicName, "-u", $rootUser, "--rsync",
     "-avP",
     "--del",
     "--one-file-system",
-    "$rootUser\@$host:/home/$user/",
+    ":/home/$user/",
     "$BACKUP_HOME_DIR/",
   );
 
