@@ -27,7 +27,7 @@ sub main(@){
     "$BACKUP_DIR/",
   );
 
-  run @cmd;
+  runRetry 5, @cmd;
 }
 
 &main(@ARGV);
