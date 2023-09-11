@@ -43,14 +43,14 @@ sub main(@){
 
   print "\n\nfetch sqlite DB\n";
   my $tmpDbFile = "/tmp/backup-tmobile-digits-$nowMillis.db";
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root",
     "sqlite3 $REMOTE_DIGITS_DB_FILE 'vacuum into \"$tmpDbFile\"'"
   ;
 
   my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_cdigits3x.sqlite";
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", ":$tmpDbFile", $db;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", ":$tmpDbFile", $db;
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "rm \"$tmpDbFile\"";
+  runRetry 5, "ipmagic", $IPMAGIC_NAME, "-u", "root", "rm \"$tmpDbFile\"";
 
 
   print "\n\ncopy previous repo files to new atts dir to speedup remote rsync\n";
@@ -74,13 +74,13 @@ sub main(@){
 
 
   print "\n\nsilently delete previous repo files from new atts dir that are not on remote\n";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-r", "--del",
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-r", "--del",
     "--ignore-non-existing", "--ignore-existing",
     ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
 
   print "\n\nfetch new digits att files\n";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
 
   print "\n\nprepare att files with md5 filename for repo\n";
