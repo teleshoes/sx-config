@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 use Time::HiRes qw(time);
 
 my $IPMAGIC_NAME = "sx";
@@ -8,7 +10,6 @@ my $USER = "nemo";
 
 sub readNotesBackup();
 sub writeNotesBackup($);
-sub nowMillis();
 
 my $NOTES_UUID = "8b63c31a7656301b3f7bcbbfef8a2b6f";
 my $REMOTE_DB_PATH = "/home/$USER/.local/share/com.jolla/notes/QML/OfflineStorage/Databases/$NOTES_UUID.sqlite";
@@ -116,10 +117,6 @@ sub writeNotesBackup($){
     or die "ERROR: could not write $BACKUP_NOTES_CSV_FILE\n$!\n";
   print FH $csv;
   close FH;
-}
-
-sub nowMillis(){
-  return int(time * 1000.0 + 0.5);
 }
 
 &main(@ARGV);
