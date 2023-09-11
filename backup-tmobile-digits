@@ -1,17 +1,13 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Time::HiRes qw(time);
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 sub getFileIdName($$);
-sub md5($);
-sub mtime($);
-sub nowMillis();
-sub run(@);
-sub runQuiet(@);
 
 my $REMOTE_DIGITS_DB_FILE = "/home/.android/data/data/com.tmobile.digits/databases/cDigits3x.db";
 my $REMOTE_DIGITS_ATT_FILES_DIR = "/home/$USER/android_storage/Android/data/com.tmobile.digits/files/DIGITS/.Media";
@@ -145,38 +141,6 @@ sub getFileIdName($$){
   $boingFile =~ s/\/+/%/g;
 
   return "${boingFile}-${md5}";
-}
-
-sub md5($){
-  my ($file) = @_;
-  die "ERROR: could not find file $file\n" if not -e $file;
-  my $md5 = `md5sum "$file"`;
-  if($md5 =~ /^([0-9a-f]{32})\s/){
-    return $1;
-  }else{
-    die "ERROR: could not md5sum file $file\n";
-  }
-}
-
-sub mtime($){
-  my ($file) = @_;
-  my @stat = stat $file;
-  return $stat[9];
-}
-
-sub nowMillis(){
-  return int(time * 1000.0 + 0.5);
-}
-
-sub run(@){
-  print "@_\n";
-  runQuiet(@_);
-}
-sub runQuiet(@){
-  system @_;
-  if($? != 0){
-    die "ERROR: \"@_\" failed\n$!\n";
-  }
 }
 
 &main(@ARGV);
