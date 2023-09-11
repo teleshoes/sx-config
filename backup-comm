@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 use Cwd 'abs_path';
 
 my $ipmagicName = "sx";
@@ -11,12 +13,6 @@ sub gitCommit($$$$);
 sub gitGetCommitsSince($$);
 sub gitStatCommit($$);
 sub gitAssertRepoDir($);
-sub run(@);
-sub runRetry($@);
-sub runQuiet(@);
-sub tryrun(@);
-sub tryrunQuiet(@);
-sub wrapRun($$$$@);
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup";
@@ -363,41 +359,6 @@ sub gitAssertRepoDir($){
   my $absRepoDir = abs_path $repoDir;
   if($absGitDir ne $absRepoDir){
     die "git toplevel (\"$gitDir\") does not match expected (\"$repoDir\")";
-  }
-}
-
-sub run(@){
-  wrapRun 1, 1, 0, undef, @_;
-}
-sub runRetry($@){
-  my ($timeout, @cmd) = @_;
-  wrapRun 1, 1, 3, $timeout, @cmd;
-}
-sub runQuiet(@){
-  wrapRun 0, 1, 0, undef, @_;
-}
-sub tryrun(@){
-  wrapRun 1, 0, 0, undef, @_;
-}
-sub tryrunQuiet(@){
-  wrapRun 0, 0, 0, undef, @_;
-}
-sub wrapRun($$$$@){
-  my ($printCmd, $failOnError, $retryAttempts, $timeoutSeconds, @cmd) = @_;
-  print "@cmd\n" if $printCmd;
-  if(defined $timeoutSeconds){
-    system "timeout", $timeoutSeconds, @cmd;
-  }else{
-    system @cmd;
-  }
-  if($? != 0){
-    if($retryAttempts > 0){
-      print "COMMAND FAILED, RETRYING IN 3s...\n";
-      sleep 3;
-      wrapRun($printCmd, $failOnError, $retryAttempts - 1, $timeoutSeconds, @cmd);
-    }elsif($failOnError){
-      die "\n\nERROR: $_[0]\n";
-    }
   }
 }
 
