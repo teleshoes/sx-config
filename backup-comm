@@ -242,7 +242,7 @@ sub main(@){
   run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--mmspix",
     "$CONTACTS_REPO/contacts.vcf", $MMS_MSG_REPO, $MMSPIX_BY_CONTACT_DIR;
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "
+  runRetry 5, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "
     mkdir -p $REMOTE_REPO_DIR_SMS;
     mkdir -p $REMOTE_REPO_DIR_CALL;
     mkdir -p $REMOTE_REPO_DIR_MMS;
@@ -253,17 +253,17 @@ sub main(@){
     mkdir -p $REMOTE_BYCONTACT_DIR_MMSPIX;
   ";
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
     "$SMS_REPO/", ":$REMOTE_REPO_DIR_SMS/";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
     "$CALL_REPO/", ":$REMOTE_REPO_DIR_CALL/";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
     "$MMS_MSG_REPO/", ":$REMOTE_REPO_DIR_MMS/";
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_SMS/";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_CALL/";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMS/";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMSPIX/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_SMS/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_CALL/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMS/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMSPIX/";
 
   #########################################################
   # show git repo summary
