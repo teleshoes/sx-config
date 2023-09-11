@@ -3,9 +3,12 @@ use warnings;
 use strict;
 require Exporter;
 
+use Time::HiRes qw(time);
+
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw();
 our @EXPORT = qw(
+  nowMillis
   run runQuiet
   tryrun tryrunQuiet
   runRetry runRetryQuiet
@@ -13,6 +16,11 @@ our @EXPORT = qw(
   readProcLines readProcLinesRetry
   runCmd
 );
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
+}
+
 
 sub run(@){
   return runCmd({printCmd => 1, failOnError => 1}, @_);
