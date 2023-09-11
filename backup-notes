@@ -37,12 +37,10 @@ sub main(@){
     }
   }
   system "mkdir", "-p", $BACKUP_NOTES_DB_DIR;
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
 
   my $nowMillis = nowMillis();
   my $db = "$BACKUP_NOTES_DB_DIR/notes-db-$nowMillis.sqlite";
-  system "rsync", "-avP", "$USER\@$host:$REMOTE_DB_PATH", $db;
+  system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$REMOTE_DB_PATH", $db;
 
   my $notes = readNotesBackup();
   my %seenBodies = map {$$_{body} => 1} @$notes;
@@ -68,9 +66,9 @@ sub main(@){
   writeNotesBackup($notes);
 
   print "copying the CSV backup to remote\n";
-  system "rsync", "-avP",
+  system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     $BACKUP_NOTES_CSV_FILE,
-    "$USER\@$host:$BACKUP_NOTES_CSV_REMOTE_FILE",
+    ":$BACKUP_NOTES_CSV_REMOTE_FILE",
   ;
 }
 
