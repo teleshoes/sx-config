@@ -20,6 +20,8 @@ sub main(@){
   run "mkdir -p $BACKUP_DIR" if not -d $BACKUP_DIR;
   die "ERROR: $BACKUP_DIR is not a dir\n" if not -d $BACKUP_DIR;
 
+  runRetry 5, "ipmagic", $ipmagicName, "mkdir -p $SRC_DIR";
+
   my @cmd = ("ipmagic", $ipmagicName, "-u", $rootUser, "--rsync",
     "-avP",
     "--one-file-system",
