@@ -35,6 +35,8 @@ my @excludes = qw(
 sub main(@){
   my $rootUser = "root";
 
+  runRetry 120, "ipmagic", $ipmagicName, "log-archive-rotate";
+
   my @cmd = ("ipmagic", $ipmagicName, "-u", $rootUser, "--rsync",
     "-avP",
     "--del",
