@@ -1,0 +1,160 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Date::Format qw(time2str);
+use Time::HiRes qw(time);
+
+my $LOG_DIR = "$ENV{HOME}/.cache/logs";
+
+sub archiveChunk($$$);
+sub rotateArchiveDays($);
+sub mtime($);
+sub nowMillis();
+
+sub main(@){
+  archiveChunk("proc-watchdog", "c6817f74df751a73180987211159d746", "empty");
+  rotateArchiveDays("display-keepalive-window");
+  rotateArchiveDays("email-daemon");
+  rotateArchiveDays("backup-daemon");
+  rotateArchiveDays("networkfix-daemon");
+  rotateArchiveDays("button-monitor");
+  rotateArchiveDays("gps-mls-update-daemon");
+}
+
+sub rotateArchiveDays($){
+  my ($logName) = @_;
+  my @files = glob "$LOG_DIR/$logName/$logName-*.log";
+  my $filesByDate = {};
+
+  my $lastFile = $files[-1];
+  my $lastMillis = $1 if $lastFile =~ /$logName-(\d+)\.log$/;
+  die "ERROR: malformed file $lastFile\n" if not defined $lastMillis;
+  my $lastEpoch = $lastMillis/1000.0;
+  my $lastDate = time2str('%Y-%m-%d', $lastEpoch);
+  chomp $lastDate;
+
+  for my $file(@files){
+    my $millis = $1 if $file =~ /$logName-(\d+)\.log$/;
+    die "ERROR: malformed file $file\n" if not defined $millis;
+    my $epoch = $millis/1000.0;
+
+    my $date = time2str('%Y-%m-%d', $epoch);
+    chomp $date;
+
+    next unless ($date cmp $lastDate) < 0; #skip all files on the last date
+
+    if(not defined $$filesByDate{$date}){
+      $$filesByDate{$date} = [];
+    }
+    push @{$$filesByDate{$date}}, $file;
+  }
+
+  for my $date(sort keys %$filesByDate){
+    my @files = @{$$filesByDate{$date}};
+    my $first = $files[0];
+    my $last = $files[-1];
+
+    my $lastMtime = mtime $last;
+
+    my $startMillis = $1 if $first =~ /$logName-(\d+)\.log$/;
+    my $endMillis = $1 if $last =~ /$logName-(\d+)\.log$/;
+    my $startEpoch = $startMillis / 1000.0;
+    my $endEpoch = $endMillis / 1000.0;
+    my $startDate = `date --date=\@$startEpoch +%Y%m%d`;
+    my $endDate = `date --date=\@$endEpoch +%Y%m%d`;
+    chomp $startDate;
+    chomp $endDate;
+    if($startDate ne $endDate){
+      die "ERROR: mismatched date for $first + $last\n";
+    }
+    my $date = $startDate;
+    my $name = "$logName-${startMillis}-${endMillis}_${date}";
+    print "$name\n";
+
+    my @cmd = ("tar",
+      "--remove-files",
+      "--xform", "s:^.*/::", #flatten dirs
+      "-cJf", "$LOG_DIR/$logName/$name.tar.xz",
+      @files,
+    );
+    print "@cmd\n";
+    system @cmd;
+    system "touch $LOG_DIR/$logName/$name.tar.xz --date=\@$lastMtime";
+  }
+}
+
+sub archiveChunk($$$){
+  my ($logName, $normalMd5, $normalName) = @_;
+  my @chunks;
+  my $curChunkFH = undef;
+  my $timestampSed = 'daemon-run|[0-9]\{4\}-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9][0-9][0-9] \(-\|\+\)*[0-9][0-9][0-9][0-9]';
+  my @files = glob "$LOG_DIR/$logName/$logName-*.log";
+  for my $file(@files){
+    my $md5 = `cat $file | sed s/'$timestampSed'/TIMESTAMP/ | md5sum`;
+    chomp $md5;
+    $md5 =~ s/\s+.*//;
+    if($md5 eq $normalMd5){
+      #normal log
+      if(not defined $curChunkFH){
+        my $chunkName = $file;
+        $chunkName =~ s/.*\///;
+        $chunkName .= "_" . nowMillis();
+        my $chunkFile = "/tmp/log-archive-rotate-$logName-chunk-$chunkName.chunk";
+        push @chunks, $chunkFile;
+        open $curChunkFH, "> $chunkFile" or die "ERROR: could not write $chunkFile\n$!\n";
+      }
+      print $curChunkFH "$file\n";
+    }else{
+      if(defined $curChunkFH){
+        close $curChunkFH;
+        $curChunkFH = undef;
+      }
+    }
+  }
+
+  if(defined $curChunkFH){
+    close $curChunkFH;
+    $curChunkFH = undef;
+  }
+
+  for my $chunkFile(@chunks){
+    my $first = `head -1 $chunkFile`;
+    my $last = `tail -1 $chunkFile`;
+    chomp $first;
+    chomp $last;
+    my $lastMtime = mtime $last;
+
+    my $startMillis = $1 if $first =~ /$logName-(\d+)\.log$/;
+    my $endMillis = $1 if $last =~ /$logName-(\d+)\.log$/;
+    my $startEpoch = $startMillis / 1000.0;
+    my $endEpoch = $endMillis / 1000.0;
+    my $startDate = `date --date=\@$startEpoch +%Y%m%d_%H%M%S_%3N`;
+    my $endDate = `date --date=\@$endEpoch +%Y%m%d_%H%M%S_%3N`;
+    chomp $startDate;
+    chomp $endDate;
+    my $name = "$logName-${startMillis}-${endMillis}_${startDate}-${endDate}-${normalName}";
+    print "$name\n";
+
+    my @cmd = ("tar",
+      "--remove-files",
+      "--xform", "s:^.*/::", #flatten dirs
+      "-cJf", "$LOG_DIR/$logName/$name.tar.xz",
+      "-T", "$chunkFile",
+    );
+    print "@cmd\n";
+    system @cmd;
+    system "touch $LOG_DIR/$logName/$name.tar.xz --date=\@$lastMtime";
+  }
+}
+
+sub mtime($){
+  my ($file) = @_;
+  my @stat = stat $file;
+  return $stat[9];
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
+}
+
+&main(@ARGV);
