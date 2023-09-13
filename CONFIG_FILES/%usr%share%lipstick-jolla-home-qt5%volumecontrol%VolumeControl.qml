@@ -10,6 +10,7 @@ import org.nemomobile.lipstick 0.1
 import Sailfish.Silica 1.0
 import org.nemomobile.systemsettings 1.0
 import org.nemomobile.configuration 1.0
+import Nemo.Configuration 1.0
 import com.jolla.lipstick 0.1
 import QtFeedback 5.0
 import "../systemwindow"
@@ -27,6 +28,7 @@ SystemWindow {
                                     volumeControl.callActive || showContinuousVolume
     property real statusBarPushDownY: volumeArea.y + volumeArea.height
     property bool showContinuousVolume: false
+    property bool suppressVolumeBar
     property int maximumVolume: controllingMedia ? volumeControl.maximumVolume : 100
     property real initialChange: 0
     property bool disableSmoothChange: true
@@ -121,6 +123,13 @@ SystemWindow {
     ConfigurationValue {
         id: disableVolumeButtons
         key: "/jolla/sound/disable_volume_buttons"
+        defaultValue: false
+    }
+
+    // FIXME: This should be something cleaner for API point of view. JB#59279
+    ConfigurationValue {
+        id: swVolumeSliderActive
+        key: "/jolla/sound/sw_volume_slider/active"
         defaultValue: false
     }
 
@@ -419,6 +428,10 @@ SystemWindow {
         property bool warningActive
 
         function showWarning(initial) {
+            if (swVolumeSliderActive.value) {
+                volumeBar.suppressVolumeBar = !volumeControl.windowVisible
+                volumeControl.windowVisible = true
+            }
             warningActive = true
             loader.item.initial = initial
             loader.item.dismiss.connect(function () {
@@ -477,7 +490,7 @@ SystemWindow {
     Connections {
         target: volumeControl
         onWindowVisibleChanged: {
-            if (volumeControl.windowVisible) {
+            if (volumeControl.windowVisible && !suppressVolumeBar) {
                 if (volumeBar.state == "") {
                     if (Lipstick.compositor.volumeGestureFilterItem.active) {
                         volumeBar.state = "showBarGesture"
@@ -487,6 +500,7 @@ SystemWindow {
                     }
                 }
             }
+            suppressVolumeBar = false
         }
         onVolumeChanged: restartHideTimerIfWindowVisibleAndWarningNotVisible()
         onVolumeKeyPressed: {
