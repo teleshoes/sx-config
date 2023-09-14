@@ -74,13 +74,13 @@ sub main(@){
 
 
   print "\n\nsilently delete previous repo files from new atts dir that are not on remote\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-r", "--del",
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-r", "--del",
     "--ignore-non-existing", "--ignore-existing",
     ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
 
   print "\n\nfetch new digits att files\n";
-  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", "--del", ":$REMOTE_DIGITS_ATT_FILES_DIR/", $attsDir;
 
 
   print "\n\nprepare att files with md5 filename for repo\n";
