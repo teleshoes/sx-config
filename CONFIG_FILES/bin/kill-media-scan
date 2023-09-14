@@ -1,0 +1,6 @@
+while [ 1 ]; do
+  date
+  pgrep -f -l com.android.providers.media
+  sudo pkill -f -9 "^com.android.providers.media"
+  sleep 30
+done
