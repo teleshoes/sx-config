@@ -1,4 +1,4 @@
 #!/bin/sh
-sudo pkill -9 -f /system/bin/cameraserver
-sudo ad am force-stop net.sourceforge.opencamera
+#sudo pkill -9 -f /system/bin/cameraserver
+#sudo ad am force-stop net.sourceforge.opencamera
 udo ad --launch-intent='net.sourceforge.opencamera/net.sourceforge.opencamera.MainActivity'
