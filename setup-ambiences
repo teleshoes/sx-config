@@ -7,8 +7,8 @@ use File::Basename qw(basename);
 
 my $ipmagicName = "sx";
 
-my $wallpaperDir = "/home/nemo/Backgrounds/sx-ambience";
-my $wallpaperFullDir = "/home/nemo/Backgrounds/sx-ambience-full";
+my $wallpaperDir = "/media/sdcard/phone/Backgrounds/sx-ambience";
+my $wallpaperFullDir = "/media/sdcard/phone/Backgrounds/sx-ambience-full";
 my $ambienceDir = "/usr/share/ambience";
 
 my @ambienceOrder = qw(silent neko hisaishi sailfish3 seconds ada);
