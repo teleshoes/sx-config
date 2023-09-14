@@ -84,11 +84,9 @@ sub main(@){
       ;
   }
 
-  my $host = `ipmagic $ipmagicName`;
-  chomp $host;
-
   run "ipmagic", $ipmagicName, "-u", "root", "mv $ambienceDir $ambienceDir-bak$nowMillis";
-  run "rsync", "-avP", "--no-owner", "--no-group", "$tmpAmbienceDir/", "root\@$host:$ambienceDir/";
+  run "ipmagic", $ipmagicName, "-u", "root",
+    "--rsync", "-avP", "--no-owner", "--no-group", "$tmpAmbienceDir/", ":$ambienceDir/";
   my @cmds = (
     "rm -rf /home/nemo/.local/share/system/privileged/Ambienced/",
     "rm -rf /home/nemo/.local/share/ambienced/",
