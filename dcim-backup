@@ -16,6 +16,7 @@ my @backups = (
   [ $localDir, "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
   [ $localDir, "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
   [ $localDir, "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
+  [ $localDir, "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
 
   [ $localDir, "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
 
