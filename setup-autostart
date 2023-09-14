@@ -13,6 +13,12 @@ sudo mkdir /media/sdcard/
 sudo rm -f /media/sdcard/phone
 sudo ln -s /run/media/nemo/????????-????-????-????-???????????? /media/sdcard/phone
 
+SD_DROID_MNT=`sudo lsblk /dev/mmcblk0p2 -n -o MOUNTPOINT`
+
+sudo mkdir -p /media/sdcard/
+sudo rm -f /media/sdcard/droid
+sudo ln -s \$SD_DROID_MNT /media/sdcard/droid
+
 /home/nemo/bin/screen-daemon button-monitor --start
 /home/nemo/bin/screen-daemon keepalive --start
 /home/nemo/bin/screen-daemon mpris-fakeplayer --start
