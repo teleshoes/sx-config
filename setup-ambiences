@@ -50,6 +50,8 @@ sub main(@){
 
   my $timestampOffsetSex = 0;
 
+  my @ambienceCopyImgCommands;
+
   for my $ambienceName(reverse @ambienceOrder){
     run "mkdir", "-p", "$tmpAmbienceDir/$ambienceName";
     my ($isFavorite, $wallpaperPath, $extraConfig) = @{$$ambiences{$ambienceName}};
@@ -78,19 +80,22 @@ sub main(@){
     close FH;
 
     run "mkdir", "-p", "$tmpAmbienceDir/$ambienceName/images";
-    run "ln", "-s",
-      "$wallpaperPath",
-      "$tmpAmbienceDir/$ambienceName/images/$wallpaperFileName"
-      ;
+    push @ambienceCopyImgCommands, (""
+      . "cp -ar"
+      . " $wallpaperPath"
+      . " $ambienceDir/$ambienceName/images/$wallpaperFileName"
+    );
   }
 
   run "ipmagic", $ipmagicName, "-u", "root", "mv $ambienceDir $ambienceDir-bak$nowMillis";
   run "ipmagic", $ipmagicName, "-u", "root",
     "--rsync", "-avP", "--no-owner", "--no-group", "$tmpAmbienceDir/", ":$ambienceDir/";
+
   my @cmds = (
     "rm -rf /home/nemo/.local/share/system/privileged/Ambienced/",
     "rm -rf /home/nemo/.local/share/ambienced/",
     "rm -rf /home/nemo/.cache/ambienced/",
+    @ambienceCopyImgCommands,
   );
   for my $file(@preloadConfFiles){
     push @cmds, "echo $preloadAmbience > $preloadDir/$file";
