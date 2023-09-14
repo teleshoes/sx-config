@@ -1,0 +1,99 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename dirname);
+
+my $DEV = "/dev/mmcblk0p1";
+my $TARGET_MOUNT_DIR = "/media/sdcard/phone";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+  $EXEC --move
+    -get <CURRENT_MOUNT_POINT> of $DEV from `mount`
+    -if <CURRENT_MOUNT_POINT> is $TARGET_MOUNT_DIR:
+      -do nothing
+    -otherwise:
+      -make parent mountpoint private
+      -mount --move <CURRENT_DIR> $TARGET_MOUNT_DIR
+      -make parent mountpoint shared
+
+  $EXEC --loop
+    -perform `$EXEC --move` every 30s
+";
+
+my $MODE_MOVE = "move";
+
+sub moveSdcard();
+
+sub main(@){
+  my $mode = $MODE_MOVE;
+  my $isLoop = 0;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(--move)$/){
+      $mode = $MODE_MOVE;
+    }elsif($arg =~ /^(--loop)$/){
+      $isLoop = 1;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($mode eq $MODE_MOVE){
+    if($isLoop){
+      while(1){
+        system "date";
+        moveSdcard();
+        sleep 30;
+      }
+    }else{
+      moveSdcard();
+    }
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub moveSdcard(){
+  my $mount = `mount`;
+  if($mount =~ /^$DEV on (.+) type/m){
+    my $dir = $1;
+    if($dir ne $TARGET_MOUNT_DIR){
+      system "sudo rmdir $TARGET_MOUNT_DIR" if -d $TARGET_MOUNT_DIR;
+      system "sudo rm -f $TARGET_MOUNT_DIR" if -e $TARGET_MOUNT_DIR;
+      system "sudo mkdir -p $TARGET_MOUNT_DIR";
+
+      die "ERROR: could not create $TARGET_MOUNT_DIR\n" if not -d $TARGET_MOUNT_DIR;
+
+      my $parentDir = dirname $dir;
+      my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
+      chomp $parentMountPoint;
+
+      system "sudo", "mount", "--make-private", $parentMountPoint;
+      system "sudo", "mount", "--move", $dir, $TARGET_MOUNT_DIR;
+      system "sudo", "mount", "--make-shared", $parentMountPoint;
+
+      $mount = `mount`;
+
+      if($mount =~ /^$DEV on $TARGET_MOUNT_DIR type/m){
+        print "moved $DEV mountpoint from $dir to $TARGET_MOUNT_DIR\n";
+      }else{
+        die "ERROR: failed to re-mount $DEV\n";
+      }
+    }else{
+      print "$DEV already mounted on $TARGET_MOUNT_DIR\n";
+    }
+  }else{
+    print "$DEV not mounted\n";
+  }
+}
+
+&main(@ARGV);
