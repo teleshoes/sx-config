@@ -3,9 +3,7 @@ use strict;
 use warnings;
 
 my $SRC_BG_DIR = "$ENV{HOME}/.cache/backgrounds";
-my $DEST_BG_DIR_SDCARD = "/media/sdcard/phone/Backgrounds";
-my $DEST_BG_DIR_INT = "/home/nemo/Backgrounds";
-
+my $DEST_BG_DIR = "/media/sdcard/phone/Backgrounds";
 
 my @BG_DIR_NAMES = qw(sx sx-ambience sx-ambience-full sx-ambience-small);
 
@@ -16,18 +14,13 @@ my $USER = "nemo";
 sub run(@);
 
 sub main(@){
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "mkdir -p $DEST_BG_DIR_SDCARD";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "mkdir -p $DEST_BG_DIR_INT";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "mkdir -p $DEST_BG_DIR";
 
-  #local => sdcard
   for my $bgDirName(@BG_DIR_NAMES){
-    run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--no-owner", "--no-group",
-      "$SRC_BG_DIR/$bgDirName/", ":$DEST_BG_DIR_SDCARD/$bgDirName/";
+    run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync",
+      "-avP", "--del", "--no-owner", "--no-group",
+      "$SRC_BG_DIR/$bgDirName/", ":$DEST_BG_DIR/$bgDirName/";
   }
-
-  #sdcard => internal
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER,
-    "rsync -avP --del $DEST_BG_DIR_SDCARD/ $DEST_BG_DIR_INT/";
 }
 
 sub run(@){
