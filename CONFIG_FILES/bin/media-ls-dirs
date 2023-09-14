@@ -1,0 +1,1 @@
+ad 'lsof -p `pgrep -f "android.providers.media.module$"`' | sed 's/.* //' | grep ^/ | grep -v '^/\(dev\|apex\|system\|sys\|odm\|host_vendor\)' | sort | uniq
