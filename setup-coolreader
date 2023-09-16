@@ -25,6 +25,8 @@ my @ANDROID_STORAGE_DIRS = (
 );
 my $CR3_INI_FILE = "cr3.ini";
 
+my $MEDIA_PROVIDERS_MODULE_DATA_DIR = "/home/.android/data/data/com.android.providers.media.module";
+
 my $usage = "Usage:
   $0 -h|--help
     show this message
@@ -328,9 +330,11 @@ sub writeRemoteConfigLines($@){
   run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
     mkdir -p $iniDir
     cp -a $tmpFile $iniFile
-    uidgid=`stat -c %u.%g $androidStorageDir`
+    uidgid=`stat -c %u:%g $MEDIA_PROVIDERS_MODULE_DATA_DIR`
     chown -R \\\$uidgid $iniDir
-    rm $tmpFile
+    setfacl -m 'group:$USER:rwx' $iniDir $iniFile
+    chmod 0660 $iniFile
+    rm $tmpFile /tmp/facl
   ";
 
   run "rm", $tmpFile;
