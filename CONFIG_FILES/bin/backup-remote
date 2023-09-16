@@ -21,9 +21,10 @@ my $REMOTE_HOST = "wolke-nuc";
 my $BACKUP_DIR = "~/backup-sx";
 
 my $dcimDirs = {
-  int    => "/home/$USER/Pictures",
-  int_oc => "/home/nemo/android_storage/DCIM/OpenCamera",
-  sd     => "/media/sdcard/phone/Pictures",
+  int_pix  => "/home/$USER/Pictures",
+  sd_pix   => "/media/sdcard/phone/Pictures",
+  int_dcim => "/home/$USER/DCIM",
+  sd_dcim  => "/media/sdcard/phone/DCIM",
 };
 my $mmsPartsDir = "/home/$USER/.local/share/commhistory/data";
 my %sqliteDbs = (
@@ -78,11 +79,14 @@ sub main(@){
   ######
   for my $dcimDirName(sort keys %$dcimDirs){
     my $dcimDir = $$dcimDirs{$dcimDirName};
-    notificationMsg 0, sprintf "BAK-DCIM-$dcimDirName: %s %s",
-      getDCIMSummary($dcimDir), nowHrMin();
-    run rsyncCmd($config, "$dcimDir/", "$BACKUP_DIR/DCIM/$dcimDirName/"),
-      "--exclude=*.mp4",
-      "--exclude=backup_*";
+    if(-e $dcimDir){
+      notificationMsg 0, sprintf "BAK-DCIM-$dcimDirName: %s %s",
+        getDCIMSummary($dcimDir), nowHrMin();
+      run rsyncCmd($config, "$dcimDir/", "$BACKUP_DIR/DCIM/$dcimDirName/"),
+        "--exclude=*.mp4",
+        "--exclude=.thumbnails",
+        "--exclude=backup_*";
+    }
   }
   ######
 
