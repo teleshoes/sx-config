@@ -519,11 +519,8 @@ sub parseUriGrants(){
     my $path = $$uriGrant{path};
 
     if(not defined $$devUUIDs{$dev}){
-      my $devUUID = `ipmagic $IPMAGIC_NAME -u root lsblk $dev -n -o UUID`;
-      chomp $devUUID;
-      if($devUUID !~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/){
-        die "ERROR: could not fetch UUID of $dev with lsblk\n";
-      }
+      my $devUUID = getIpmagicBlockDevUUID($IPMAGIC_NAME, $dev);
+      die "ERROR: could not fetch UUID of $dev\n" if not defined $devUUID;
       $$devUUIDs{$dev} = $devUUID;
     }
 

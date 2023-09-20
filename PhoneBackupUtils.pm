@@ -8,6 +8,7 @@ use Time::HiRes qw(time);
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw();
 our @EXPORT = qw(
+  getIpmagicBlockDevUUID
   nowMillis
   mtime
   md5
@@ -18,6 +19,17 @@ our @EXPORT = qw(
   readProcLines readProcLinesRetry
   runCmd
 );
+
+sub getIpmagicBlockDevUUID($$){
+  my ($ipmagicName, $blockDev) = @_;
+  my $devUUID = `ipmagic $ipmagicName -u root lsblk $blockDev -n -o UUID`;
+  chomp $devUUID;
+  if($devUUID =~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/){
+    return $devUUID;
+  }else{
+    return undef;
+  }
+}
 
 sub nowMillis(){
   return int(time * 1000.0 + 0.5);
