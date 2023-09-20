@@ -12,6 +12,8 @@ my $PREFS_XML_FILE = "$OPENCAMERA_DATA_DIR/shared_prefs/net.sourceforge.opencame
 
 my $PREFS_TEMPLATE = [
   ["preference_camera_api"        => "string"   => "preference_camera_api_camera2"],
+  ["focus_value_0_false"          => "string"   => "focus_mode_manual2"],
+  ["preference_focus_distance"    => "float"    => "3.3533278"],
 ];
 
 sub editPrefs();
