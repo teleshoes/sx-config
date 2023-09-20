@@ -5,6 +5,22 @@ require Exporter;
 
 use Time::HiRes qw(time);
 
+sub getIpmagicBlockDevUUID($$);
+sub nowMillis();
+sub mtime($);
+sub md5($);
+sub run(@);
+sub runQuiet(@);
+sub tryrun(@);
+sub tryrunQuiet(@);
+sub runRetry($@);
+sub runRetryQuiet($@);
+sub readProc(@);
+sub readProcRetry($@);
+sub readProcLines(@);
+sub readProcLinesRetry(@);
+sub runCmd($@);
+
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw();
 our @EXPORT = qw(
