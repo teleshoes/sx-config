@@ -576,9 +576,9 @@ sub initJitsi(){
 
 sub updateJitsiDB(){
   my $nowMillis = nowMillis();
-  my $jitsiName = `jitsi-meet --name`;
+  my $jitsiName = `jitsi-meet --jitsi --print-name`;
   chomp $jitsiName;
-  my $jitsiRoom = `jitsi-meet --room`;
+  my $jitsiRoom = `jitsi-meet --jitsi --print-room`;
   chomp $jitsiRoom;
 
   for my $rowKey(sort keys %$JITSI_DB_CONF){
