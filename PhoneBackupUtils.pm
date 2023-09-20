@@ -9,6 +9,8 @@ sub getIpmagicBlockDevUUID($$);
 sub nowMillis();
 sub mtime($);
 sub md5($);
+sub readFile($);
+sub writeFile($$);
 sub run(@);
 sub runQuiet(@);
 sub tryrun(@);
@@ -28,6 +30,8 @@ our @EXPORT = qw(
   nowMillis
   mtime
   md5
+  readFile
+  writeFile
   run runQuiet
   tryrun tryrunQuiet
   runRetry runRetryQuiet
@@ -66,6 +70,21 @@ sub md5($){
   }else{
     die "ERROR: could not md5sum file $file\n";
   }
+}
+
+sub readFile($){
+  my ($file) = @_;
+  open my $fh, "< $file" or die "ERROR: could not read $file\n$!\n";
+  my $content = join '', <$fh>;
+  close $fh;
+  return $content;
+}
+
+sub writeFile($$){
+  my ($file, $content) = @_;
+  open my $fh, "> $file" or die "ERROR: could not write $file\n$!\n";
+  print $fh $content;
+  close $fh;
 }
 
 sub run(@){
