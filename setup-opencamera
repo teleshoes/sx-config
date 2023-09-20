@@ -10,10 +10,15 @@ my $USER = "nemo";
 my $OPENCAMERA_DATA_DIR = "/home/.android/data/data/net.sourceforge.opencamera";
 my $PREFS_XML_FILE = "$OPENCAMERA_DATA_DIR/shared_prefs/net.sourceforge.opencamera_preferences.xml";
 
+my $SDCARD_BLOCK_DEV = "/dev/mmcblk0p2";
+my $DCIM_PATH = "DCIM/OpenCamera",
+
 my $PREFS_TEMPLATE = [
   ["preference_camera_api"        => "string"   => "preference_camera_api_camera2"],
   ["focus_value_0_false"          => "string"   => "focus_mode_manual2"],
   ["preference_focus_distance"    => "float"    => "3.3533278"],
+  ["preference_using_saf"         => "boolean"  => "true"],
+  ["preference_save_location_saf" => "string"   => "%DCIM_URI%"],
 ];
 
 sub editPrefs();
@@ -22,7 +27,16 @@ sub main(@){
   editPrefs();
 }
 
+sub getDCIMUri(){
+  my $sdcardUUID = getIpmagicBlockDevUUID($IPMAGIC_NAME, $SDCARD_BLOCK_DEV);
+  my $path = $DCIM_PATH;
+  $path =~ s/\//%2F/g;
+  return "content://com.android.externalstorage.documents/tree/$sdcardUUID%3A$path";
+}
+
 sub editPrefs(){
+  my $dcimUri = getDCIMUri();
+
   my $contents = "";
   if(ipmagicTest $IPMAGIC_NAME, "root", "-f", $PREFS_XML_FILE){
     $contents = readProc "ipmagic", $IPMAGIC_NAME, "-u", "root", "cat", $PREFS_XML_FILE;
@@ -31,6 +45,7 @@ sub editPrefs(){
   my $prefs = {};
   for my $prefArr(@$PREFS_TEMPLATE){
     my ($key, $type, $val) = @$prefArr;
+    $val =~ s/%DCIM_URI%/$dcimUri/g;
     $$prefs{$key} = {type => $type, value => $val};
   }
 
@@ -101,6 +116,10 @@ sub editPrefs(){
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "chown", "-R", "$OPENCAMERA_DATA_DIR/shared_prefs",
       "--reference=$OPENCAMERA_DATA_DIR/cache";
+
+    if(defined $$prefs{preference_save_location_saf}){
+      print "\n\n\n#####\nNOTE: URI GRANT NEEDED FOR SAF LOCATION UPDATE\n";
+    }
   }else{
     print "NO CHANGE IN PREFS\n";
   }
