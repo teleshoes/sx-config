@@ -6,11 +6,17 @@ use Time::HiRes qw(time);
 my $IPMAGIC_NAME = "sx";
 my $PACKAGE_RESTRICTIONS_XML_FILE = "/home/.android/data/system/users/0/package-restrictions.xml";
 my $NOTIFICATION_POLICY_XML_FILE = "/home/.android/data/system/notification_policy.xml";
+my $URI_GRANTS_XML_FILE = "/home/.android/data/system/urigrants.xml";
 
 my $ALIENDALVIK_START_SCRIPT = "/usr/sbin/start-aliendalvik.sh";
 my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
 my $REMOTE_DATA_DIR = "/home/.android/data/data";
+
+#pkg, SFOS block device, path relative to storage device
+#  uri=content://com.android.externalstorage.documents/tree/$BLOCK_UUID%:$RELATIVE_PATH"
+my $EXTERNAL_STORAGE_URI_GRANTS = [
+];
 
 my $SETTINGS = {
   secure => {
@@ -129,8 +135,10 @@ my @NOMEDIA = qw(
 sub applySettings();
 sub editRemoteFile($$$);
 sub editPackageRestrictions($);
+sub editUriGrants($$);
 sub editNotificationPolicy($);
 sub editStartScript($);
+sub parseUriGrants();
 sub setupJitsi();
 sub isJitsiInitialized();
 sub initJitsi();
@@ -172,6 +180,14 @@ sub main(@){
     "package-restrictions",
     $PACKAGE_RESTRICTIONS_XML_FILE,
     \&editPackageRestrictions,
+  );
+
+  my $uriGrants = parseUriGrants();
+  print "\n\n\nediting URI grants\n";
+  editRemoteFile(
+    "uri-grants",
+    $URI_GRANTS_XML_FILE,
+    sub($){ editUriGrants($_[0], $uriGrants) },
   );
 
   print "\n\n\nediting notification policy\n";
@@ -363,6 +379,71 @@ sub editPackageRestrictions($){
   return $isChanged;
 }
 
+sub editUriGrants($$){
+  my ($file, $uriGrants) = @_;
+  open FH, "< $file" or die "could not read $file\n$!\n";
+  my $contents = join '', <FH>;
+  close FH;
+
+  my @uriGrantLines = $contents =~ /(<uri-grant .*\/>)/g;
+  s/$/\n/ foreach @uriGrantLines;
+
+  my $oldUriGrants = [];
+  for my $line(@uriGrantLines){
+    my $pkg = $1 if $line =~ /targetPkg="([^"]+)"/;
+    my $uri = $1 if $line =~ /uri="([^"]+)"/;
+    if(not defined $pkg or not defined $uri){
+      die "ERROR: malformed uri-grant line $line\n";
+    }
+    push @$oldUriGrants, {
+      pkg => $pkg,
+      uri => $uri,
+    };
+  }
+
+  for my $newUriGrant(@$uriGrants){
+    my $alreadyPresent = 0;
+    for my $oldUriGrant(@$oldUriGrants){
+      if($$oldUriGrant{pkg} eq $$newUriGrant{pkg} and $$oldUriGrant{uri} and $$newUriGrant{uri}){
+        $alreadyPresent = 1;
+        last;
+      }
+    }
+    if(not $alreadyPresent){
+      my $pkg = $$newUriGrant{pkg};
+      my $uri = $$newUriGrant{uri};
+      my $nowMillis = nowMillis();
+      my $grantLine = "<uri-grant"
+        . " sourceUserId=\"0\""
+        . " targetUserId=\"0\""
+        . " sourcePkg=\"com.android.externalstorage\""
+        . " targetPkg=\"$pkg\""
+        . " uri=\"$uri\""
+        . " prefix=\"true\""
+        . " modeFlags=\"3\""
+        . " createdTime=\"$nowMillis\""
+        . " />\n";
+      push @uriGrantLines, $grantLine;
+    }
+  }
+
+  my $newContents = ""
+    . "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
+    . "<uri-grants>\n"
+    . join("", @uriGrantLines)
+    . "</uri-grants>\n";
+
+  my $isChanged = $contents eq $newContents ? 0 : 1;
+
+  if($isChanged){
+    open FH, "> $file" or die "could not write $file\n$!\n";
+    print FH $newContents;
+    close FH;
+  }
+
+  return $isChanged;
+}
+
 sub editNotificationPolicy($){
   my ($file) = @_;
   open FH, "< $file" or die "could not read $file\n$!\n";
@@ -427,6 +508,35 @@ sub editStartScript($){
   }
 
   return $isChanged;
+}
+
+sub parseUriGrants(){
+  my $devUUIDs = {};
+  my $parsedUriGrants = [];
+  for my $uriGrant(@$EXTERNAL_STORAGE_URI_GRANTS){
+    my $pkg = $$uriGrant{pkg};
+    my $dev = $$uriGrant{dev};
+    my $path = $$uriGrant{path};
+
+    if(not defined $$devUUIDs{$dev}){
+      my $devUUID = `ipmagic $IPMAGIC_NAME -u root lsblk /dev/mmcblk0p2 -n -o UUID`;
+      chomp $devUUID;
+      if($devUUID !~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/){
+        die "ERROR: could not fetch UUID of $dev with lsblk\n";
+      }
+      $$devUUIDs{$dev} = $devUUID;
+    }
+
+    $path =~ s/\//%2F/g;
+
+    my $uuid = $$devUUIDs{$dev};
+    my $uri = "content://com.android.externalstorage.documents/tree/$uuid%3A$path";
+    push @$parsedUriGrants, {
+      pkg => $pkg,
+      uri => $uri,
+    };
+  }
+  return $parsedUriGrants;
 }
 
 sub setupJitsi(){
