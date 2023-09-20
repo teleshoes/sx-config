@@ -93,7 +93,6 @@ my $GRANT_PERMS = {
 };
 
 my @NOMEDIA = qw(
-  /home/nemo/Backgrounds/.nomedia
   /home/nemo/Code/.nomedia
 
   /home/nemo/android_storage/Alarms/.nomedia
