@@ -1,0 +1,106 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $OPENCAMERA_DATA_DIR = "/home/.android/data/data/net.sourceforge.opencamera";
+my $PREFS_XML_FILE = "$OPENCAMERA_DATA_DIR/shared_prefs/net.sourceforge.opencamera_preferences.xml";
+
+my $PREFS_TEMPLATE = [
+];
+
+sub editPrefs();
+
+sub main(@){
+  editPrefs();
+}
+
+sub editPrefs(){
+  my $contents = "";
+  if(ipmagicTest $IPMAGIC_NAME, "root", "-f", $PREFS_XML_FILE){
+    $contents = readProc "ipmagic", $IPMAGIC_NAME, "-u", "root", "cat", $PREFS_XML_FILE;
+  }
+
+  my $prefs = {};
+  for my $prefArr(@$PREFS_TEMPLATE){
+    my ($key, $type, $val) = @$prefArr;
+    $$prefs{$key} = {type => $type, value => $val};
+  }
+
+  my @prefLines;
+
+  print "\n\n";
+  my $oldPrefs = {};
+  for my $line(split /\n/, $contents){
+    next if $line =~ /^(<\?xml|<map>|<\/map>)/;
+    next if $line =~ /^\s+$/;
+
+    my ($type, $key, $val);
+    if($line =~ /^\s*<(boolean|float|int)\s+name="([^"]+)"\s+value="([^"]*)"\s*\/\s*>\s*$/){
+      ($type, $key, $val) = ($1, $2, $3);
+    }elsif($line =~ /^\s*<(string)\s+name="([^"]+)">(.*)<\s*\/\s*string>\s*$/){
+      ($type, $key, $val) = ($1, $2, $3);
+    }else{
+      die "ERROR: malformed opencamera prefs line $line\n";
+    }
+
+    if(defined $$prefs{$key}){
+      my $newType = $$prefs{$key}{type};
+      my $newVal = $$prefs{$key}{value};
+      if($type eq $newType and $val eq $newVal){
+        #pref is already set
+        delete $$prefs{$key};
+        push @prefLines, $line;
+      }else{
+        print "removing old $key=$val\n";
+      }
+    }else{
+      push @prefLines, $line;
+    }
+  }
+
+  my $isChanged = 0;
+  for my $key(sort keys %$prefs){
+    my $type = $$prefs{$key}{type};
+    my $val = $$prefs{$key}{value};
+    my $line;
+    if($type eq "string"){
+      $line = "    <$type name=\"$key\">$val</$type>";
+    }else{
+      $line = "    <$type name=\"$key\" value=\"$val\" />";
+    }
+    print "adding $key=$val\n";
+    $isChanged = 1;
+    push @prefLines, $line;
+  }
+
+  print "\n\n";
+
+  my @lines = (
+    "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>",
+    "<map>",
+    @prefLines,
+    "</map>",
+  );
+  my $newContents = join("", map {"$_\n"} @lines);
+
+  if($isChanged){
+    my $tmpFile = "/tmp/setup-opencamera-" . nowMillis();
+    writeFile $tmpFile, $newContents;
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "mkdir", "-p", "$OPENCAMERA_DATA_DIR/shared_prefs";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "--rsync", "-avP", $tmpFile, ":$PREFS_XML_FILE";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "chown", "-R", "$OPENCAMERA_DATA_DIR/shared_prefs",
+      "--reference=$OPENCAMERA_DATA_DIR/cache";
+  }else{
+    print "NO CHANGE IN PREFS\n";
+  }
+}
+
+&main(@ARGV);
