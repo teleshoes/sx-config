@@ -198,8 +198,7 @@ sub main(@){
   );
 
   print "\n\n\nediting start script\n";
-  tryrun "ipmagic", $IPMAGIC_NAME, "test -f $ALIENDALVIK_START_SCRIPT";
-  if($? == 0){
+  if(ipmagicTest $IPMAGIC_NAME, "root", "-f", $ALIENDALVIK_START_SCRIPT){
     editRemoteFile(
       "start-script",
       $ALIENDALVIK_START_SCRIPT,
