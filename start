@@ -143,6 +143,8 @@ ipmagic sx okboard-toggle --init-default
 
 ./setup-coolreader
 
+./setup-opencamera
+
 ./launcher-buttons
 
 #commands and alarms
