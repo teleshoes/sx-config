@@ -5,6 +5,7 @@ require Exporter;
 
 use Time::HiRes qw(time);
 
+sub ipmagicTest($$@);
 sub getIpmagicBlockDevUUID($$);
 sub nowMillis();
 sub mtime($);
@@ -26,6 +27,7 @@ sub runCmd($@);
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw();
 our @EXPORT = qw(
+  ipmagicTest
   getIpmagicBlockDevUUID
   nowMillis
   mtime
@@ -40,9 +42,17 @@ our @EXPORT = qw(
   runCmd
 );
 
+sub ipmagicTest($$@){
+  my ($ipmagicName, $ipmagicUser, @testArgs) = @_;
+  my $exitCode = tryrun("ipmagic", $ipmagicName, "-u", $ipmagicUser,
+    "test", @testArgs);
+  return $exitCode == 0 ? 1 : 0;
+}
+
 sub getIpmagicBlockDevUUID($$){
   my ($ipmagicName, $blockDev) = @_;
-  my $devUUID = `ipmagic $ipmagicName -u root lsblk $blockDev -n -o UUID`;
+  my $devUUID = readProc("ipmagic", $ipmagicName, "-u", "root",
+    "lsblk", $blockDev, "-n", "-o", "UUID");
   chomp $devUUID;
   if($devUUID =~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/){
     return $devUUID;
