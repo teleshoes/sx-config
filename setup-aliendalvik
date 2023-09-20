@@ -267,7 +267,7 @@ sub editRemoteFile($$$){
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "systemctl stop aliendalvik.service";
 
-    run "diff", $tmpFileOld, $tmpFileNew;
+    tryrun "diff", $tmpFileOld, $tmpFileNew;
     run "scp", $tmpFileNew, "root\@$host:$tmpFileNew";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
       cat $tmpFileNew > $remoteFile
