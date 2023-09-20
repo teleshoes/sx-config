@@ -11,6 +11,7 @@ my $OPENCAMERA_DATA_DIR = "/home/.android/data/data/net.sourceforge.opencamera";
 my $PREFS_XML_FILE = "$OPENCAMERA_DATA_DIR/shared_prefs/net.sourceforge.opencamera_preferences.xml";
 
 my $PREFS_TEMPLATE = [
+  ["preference_camera_api"        => "string"   => "preference_camera_api_camera2"],
 ];
 
 sub editPrefs();
