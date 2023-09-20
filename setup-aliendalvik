@@ -16,6 +16,7 @@ my $REMOTE_DATA_DIR = "/home/.android/data/data";
 #pkg, SFOS block device, path relative to storage device
 #  uri=content://com.android.externalstorage.documents/tree/$BLOCK_UUID%:$RELATIVE_PATH"
 my $EXTERNAL_STORAGE_URI_GRANTS = [
+  {pkg => "net.sourceforge.opencamera", dev => "/dev/mmcblk0p2", path => "DCIM/OpenCamera"},
 ];
 
 my $SETTINGS = {
