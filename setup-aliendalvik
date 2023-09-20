@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 use Time::HiRes qw(time);
 
 my $IPMAGIC_NAME = "sx";
@@ -144,9 +146,6 @@ sub setupJitsi();
 sub isJitsiInitialized();
 sub initJitsi();
 sub updateJitsiDB();
-sub nowMillis();
-sub run(@);
-sub runQuiet(@);
 
 sub main(@){
   print "\n\n\napplying perms\n";
@@ -199,7 +198,7 @@ sub main(@){
   );
 
   print "\n\n\nediting start script\n";
-  run "ipmagic", $IPMAGIC_NAME, "test -f $ALIENDALVIK_START_SCRIPT";
+  tryrun "ipmagic", $IPMAGIC_NAME, "test -f $ALIENDALVIK_START_SCRIPT";
   if($? == 0){
     editRemoteFile(
       "start-script",
@@ -601,18 +600,6 @@ sub updateJitsiDB(){
       \"
     ";
   }
-}
-
-sub nowMillis(){
-  return int(time * 1000.0 + 0.5);
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
-}
-sub runQuiet(@){
-  system @_;
 }
 
 &main(@ARGV);
