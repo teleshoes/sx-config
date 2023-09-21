@@ -1,0 +1,30 @@
+logInfoMask=0
+logPerfInfoMask=0
+logVerboseMask=0
+logWarningMask=0
+systemLogEnable=TRUE
+maxHalRequests=9
+numPCRsBeforeStreamOn=1
+preFlashMaxFrameWaitLimitAF=45
+preFlashMaxFrameWaitLimitAWB=6
+waitAllResultsTimeout=20
+
+numMetadataResults=1
+maxNonHfrFps=120
+
+enableDualIFE=TRUE
+# Disable multiple rear camera lenses support to avoid issues when switching between cameras
+# when using Camera1 API. We can revert this when this when we have Camera2 API support.
+# Re: https://github.com/sonyxperiadev/bug_tracker/issues/732
+multiCameraEnable=FALSE
+multiCameraHWSyncMask=0x7
+dualBHistSupport=TRUE
+overrideEnableMFNR=1
+advanceFeatureMask=119
+enableOfflineNoiseReprocess=1
+enableCHIPartialData=CHIPartialDataSeparate
+enableTBMChiFence=TRUE
+
+enableFDStreamInRealTime=TRUE
+enableSMDetection=TRUE
+enableCTDetection=TRUE
