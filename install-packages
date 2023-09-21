@@ -65,6 +65,7 @@ my %packages = (
     harbour-mimer
     harbour-mlsmanager
     harbour-modrana
+    harbour-sfos-forum-viewer
     harbour-storeman
     harbour-unplayer
     harbour-whisperfish
@@ -170,6 +171,7 @@ my @openrepos = qw(
   sailfish_lib
   Schturman
   Sfiet_Konstantin
+  szopin
   taixzo
   teleshoes
   tmi
