@@ -110,6 +110,7 @@ my @config = qw(
   rheem
 
   harbour-mlsmanager
+  sfos-forum-viewer
 );
 
 my @unused = qw(
