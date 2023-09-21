@@ -16,7 +16,7 @@ enableDualIFE=TRUE
 # Disable multiple rear camera lenses support to avoid issues when switching between cameras
 # when using Camera1 API. We can revert this when this when we have Camera2 API support.
 # Re: https://github.com/sonyxperiadev/bug_tracker/issues/732
-multiCameraEnable=FALSE
+multiCameraEnable=TRUE
 multiCameraHWSyncMask=0x7
 dualBHistSupport=TRUE
 overrideEnableMFNR=1
