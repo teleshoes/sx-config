@@ -25,6 +25,8 @@ my $PREFS_TEMPLATE = [
   ["preference_startup_focus"           => "boolean"  => "false"],
 
   ["preference_show_whats_new"          => "boolean"  => "false"],
+
+  ["preference_show_white_balance_lock" => "boolean"  => "true"],
 ];
 
 sub editPrefs();
