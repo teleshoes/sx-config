@@ -15,11 +15,12 @@ my $DCIM_PATH = "DCIM/OpenCamera",
 
 my $PREFS_TEMPLATE = [
   ["preference_camera_api"              => "string"   => "preference_camera_api_camera2"],
-  ["focus_value_0_false"                => "string"   => "focus_mode_manual2"],
-  ["preference_focus_distance"          => "float"    => "3.3533278"],
+
   ["preference_using_saf"               => "boolean"  => "true"],
   ["preference_save_location_saf"       => "string"   => "%DCIM_URI%"],
 
+  ["focus_value_0_false"                => "string"   => "focus_mode_manual2"],
+  ["preference_focus_distance"          => "float"    => "3.3533278"],
   ["preference_focus_assist"            => "string"   => "2"],  #0=none, 2=2x, 4=4x
   ["preference_startup_focus"           => "boolean"  => "false"],
 ];
