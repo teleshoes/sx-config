@@ -14,11 +14,11 @@ my $SDCARD_BLOCK_DEV = "/dev/mmcblk0p2";
 my $DCIM_PATH = "DCIM/OpenCamera",
 
 my $PREFS_TEMPLATE = [
-  ["preference_camera_api"        => "string"   => "preference_camera_api_camera2"],
-  ["focus_value_0_false"          => "string"   => "focus_mode_manual2"],
-  ["preference_focus_distance"    => "float"    => "3.3533278"],
-  ["preference_using_saf"         => "boolean"  => "true"],
-  ["preference_save_location_saf" => "string"   => "%DCIM_URI%"],
+  ["preference_camera_api"              => "string"   => "preference_camera_api_camera2"],
+  ["focus_value_0_false"                => "string"   => "focus_mode_manual2"],
+  ["preference_focus_distance"          => "float"    => "3.3533278"],
+  ["preference_using_saf"               => "boolean"  => "true"],
+  ["preference_save_location_saf"       => "string"   => "%DCIM_URI%"],
 ];
 
 sub editPrefs();
