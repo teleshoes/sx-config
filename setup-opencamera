@@ -23,6 +23,8 @@ my $PREFS_TEMPLATE = [
   ["preference_focus_distance"          => "float"    => "3.3533278"],
   ["preference_focus_assist"            => "string"   => "2"],  #0=none, 2=2x, 4=4x
   ["preference_startup_focus"           => "boolean"  => "false"],
+
+  ["preference_show_whats_new"          => "boolean"  => "false"],
 ];
 
 sub editPrefs();
