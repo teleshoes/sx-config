@@ -228,8 +228,6 @@ def main():
     for mms in mmsMessages:
       if mms.direction == MMS_DIR.NTF:
         ignoredNTFCount += 1
-      elif len(mms.to_numbers) > 1:
-        ignoredGroupCount += 1
       elif len(mms.to_numbers) < 1:
         ignoredMissingToCount += 1
       elif mms.from_number == None or mms.from_number == "":
@@ -240,7 +238,6 @@ def main():
 
     print("ignoring:")
     print(" %5d NTF MMS" % ignoredNTFCount)
-    print(" %5d group MMS (unsupported on sailfish)" % ignoredGroupCount)
     print(" %5d MMS missing 'to' number\n" % ignoredMissingToCount)
     print(" %5d MMS missing 'from' number\n" % ignoredMissingFromCount)
 
@@ -1226,9 +1223,6 @@ def importMMSToDb(mmsMessages, db_file):
   statusMsg = ""
 
   for mms in mmsMessages:
-    if len(mms.to_numbers) > 1:
-      print("ERROR: group-MMS is not supported on sailfish\n" + str(mms))
-      quit(1)
     if len(mms.to_numbers) < 1:
       print("ERROR: mms missing 'to' number\n" + str(mms))
       quit(1)
