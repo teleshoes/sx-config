@@ -833,6 +833,21 @@ sub parseAndroid($$$){
       my $attName = $$att{fileName};
       if(defined $attFile and $attFile ne ""){
         $attFile =~ s/^.*\/com\.tmobile\.digits\/files\/DIGITS\/.Media\//$attFilesDir\//;
+        if(not -f $attFile and $$msg{dir} eq "OUT"){
+          my $fileName = basename $attFile;
+          if($fileName =~ /(?:IMG_|VID_)?(\d\d\d\d\d\d\d\d_\d\d\d\d\d\d)(?:_.*)?\.(\w+)$/){
+            my ($dtm, $ext) = ($1, $2);
+            my @files = `find $ENV{HOME}/DCIM/ -iname '*$dtm*.$ext'`;
+            chomp foreach @files;
+            if(@files > 1){
+              die "ERROR: more than one DCIM match for att file $attFile\n";
+            }elsif(@files < 1){
+              die "ERROR: could not find DCIM match for att file $attFile\n";
+            }else{
+              $attFile = $files[0];
+            }
+          }
+        }
         if(-f $attFile){
           my $attContents = `cat \"$attFile\"`;
           push @{$$msg{atts}}, {
