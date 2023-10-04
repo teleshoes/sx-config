@@ -808,7 +808,7 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
   i=0
   texts = []
   query = c.execute(
-    'SELECT id, remoteUid, groupId, startTime, endTime, direction, subject, freeText \
+    'SELECT id, remoteUid, groupId, startTime, endTime, direction, subject, freeText, headers \
      FROM Events \
      WHERE type = 6 \
      ORDER BY id ASC;')
@@ -823,6 +823,7 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
     dir_type_mms = row[5]
     subject = row[6]
     body = row[7]
+    headers = row[8]
 
     if subject == None:
       subject = ""
@@ -847,6 +848,14 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
     msg.date_format = date_format
     msg.subject = subject
     msg.body = body
+
+    if headers != None:
+      m = regexMatch(r'x-mms-to(?:\u001D)?([0-9\+\u001E]*)', headers, re.IGNORECASE)
+      if m:
+        nums = regexSplit(r'[\+\u001E]+', m.group(1))
+        for num in nums:
+          if num != None and regexMatch('\d', num):
+            msg.to_numbers.append(cleanNumber(num))
 
     msgs[event_id] = msg
     event_groups[event_id] = group_id
@@ -902,6 +911,11 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
     elif msg.direction == MMS_DIR.INC:
       msg.from_number = cleanNumber(groupNumber)
       msg.to_numbers.append(cleanNumber(MY_NUMBER))
+
+  #TO is from x-mms-to header and event groups
+  for event_id in msgs.keys():
+    msg = msgs[event_id]
+    msg.to_numbers = uniq(msg.to_numbers)
 
   return msgs.values()
 
@@ -1339,6 +1353,15 @@ def guessContentType(filename, filepath):
 
   return contentType
 
+def uniq(items):
+  seen = set()
+  uniqItems = []
+  for x in items:
+    if not x in seen:
+      seen.add(x)
+      uniqItems.append(x)
+  return uniqItems
+
 def regexMatch(pattern, string, flags=0):
   if type(string) != str:
     string = string.decode("utf-8")
@@ -1348,6 +1371,11 @@ def regexSub(pattern, repl, string, count=0, flags=0):
   if type(string) != str:
     string = string.decode("utf-8")
   return re.sub(pattern, repl, string, count, flags)
+
+def regexSplit(pattern, string, maxsplit=0, flags=0):
+  if type(string) != str:
+    string = string.decode("utf-8")
+  return re.split(pattern, string, maxsplit, flags)
 
 if __name__ == '__main__':
   main()
