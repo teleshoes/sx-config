@@ -415,6 +415,7 @@ sub handleMMS($$$$){
     push @attFileList, $textAttFile;
     if(not $$opts{dryRun}){
       open FH, "> $textAttFile" or die "ERROR: could not write $textAttFile\n$!\n";
+      binmode(FH, ":encoding(UTF-8)");
       print FH $$mms{body};
       close FH;
     }
@@ -469,6 +470,7 @@ sub handleMMS($$$$){
   my $infoFile = "$mmsRepoDir/info";
   if(not $$opts{dryRun}){
     open FH, "> $infoFile" or die "ERROR: could not write $infoFile\n$!\n";
+    binmode(FH, ":encoding(UTF-8)");
     print FH $info;
     close FH;
   }
