@@ -620,6 +620,13 @@ def cleanNumber(number):
   number = regexSub(r'^\+?1(\d{10})$', '\\1', number)
   return number
 
+def maybePrependUSANumber(number):
+  if number == None:
+    number = ''
+  if regexMatch('^\d{10}$', number):
+    number = '+1' + number
+  return number
+
 def readTextsFromCSV(csvFile):
   try:
     csvFile = open(csvFile, 'r')
@@ -1228,6 +1235,10 @@ def importMMSToDb(mmsMessages, db_file):
 
     to_number = mms.to_numbers[0]
 
+    toNumsFmt = [maybePrependUSANumber(num) for num in mms.to_numbers]
+
+    xMMSToHeader = "x-mms-to\u001D" + "\u001E".join(toNumsFmt)
+
     if mms.isDirection(MMS_DIR.OUT):
       dir_type = 2
       status_type = 2
@@ -1266,7 +1277,7 @@ def importMMSToDb(mmsMessages, db_file):
                            , "validityPeriod":        0
                            , "contentLocation":       ""
                            , "messageParts":          ""
-                           , "headers":               "x-mms-to" + to_number
+                           , "headers":               xMMSToHeader
                            , "readStatus":            0
                            , "reportRead":            0
                            , "reportedReadRequested": 0
