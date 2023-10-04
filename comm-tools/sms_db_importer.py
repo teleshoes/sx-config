@@ -536,6 +536,32 @@ class MMS:
         unprefixedFilename = MMS_ATT_FILENAME_PREFIX_REGEX.sub('', filename)
         attName = unprefixedFilename
         localFilepath = self.mms_parts_dir + "/" + relFilepath
+
+        #attempt to find renamed event-id dirs
+        if not os.path.isfile(localFilepath):
+          newPartDirFiles = []
+          m = regexMatch('^(\d+)/', relFilepath)
+          if m:
+            oldEventId = m.group(1)
+            newPartDirFiles = glob.glob(
+              self.mms_parts_dir + "/msg-*-" + str(oldEventId) + "/" + filename)
+
+          minDiff = None
+          match = None
+          for newPartDirFile in newPartDirFiles:
+            mtimeMillis = None
+            m = regexMatch('^.*/msg-(\d+)-\d+/', newPartDirFile)
+            if m:
+              mtimeMillis = 1000 * int(m.group(1))
+              diff = self.date_millis - mtimeMillis
+              if diff < 0:
+                diff = 0 - diff
+              if minDiff == None or diff < minDiff:
+                minDiff = diff
+                match = newPartDirFile
+          if match != None:
+            localFilepath = match
+
         self.attFiles[attName] = localFilepath
         self.attFilesRemotePaths[attName] = p.filepath
       else:
