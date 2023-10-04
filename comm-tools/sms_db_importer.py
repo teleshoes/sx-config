@@ -115,6 +115,9 @@ def main():
       attName = os.path.basename(attFile)
       attFiles[attName] = attFile
     checksum = generateMMSChecksum(subject, body, attFiles)
+    if checksum == None:
+      print("ERROR: checksum failed")
+      quit(1)
     print(checksum)
     quit(0)
 
@@ -372,7 +375,7 @@ def generateMMSChecksum(subject, body, attFiles):
     filepath = attFiles[attName]
     if not os.path.isfile(filepath):
       print("missing att file: " + filepath)
-      quit(1)
+      return None
     f = open(filepath, 'rb')
     md5Update(md5, f.read())
     f.close()
@@ -541,7 +544,11 @@ class MMS:
     if not skipChecksum:
       self.checksum = self.generateChecksum()
   def generateChecksum(self):
-    return generateMMSChecksum(self.subject, self.body, self.attFiles)
+    csum = generateMMSChecksum(self.subject, self.body, self.attFiles)
+    if csum == None:
+      print("ERROR: failed checksum for MMS\n" + str(self))
+      quit(1)
+    return csum
   def getMsgDirName(self):
     dirName = ""
     dirName += str(self.date_millis)
