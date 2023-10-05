@@ -748,11 +748,18 @@ def readTextsFromCommHistory(db_file):
   c = conn.cursor()
   i=0
   texts = []
-  query = c.execute(
-    'SELECT remoteUid, startTime, endTime, direction, freeText \
-     FROM events \
-     WHERE type = 2 \
-     ORDER BY id ASC;')
+  query = c.execute(""
+      + " SELECT"
+      + "   e.remoteUid,"
+      + "   e.startTime,"
+      + "   e.endTime,"
+      + "   e.direction,"
+      + "   e.freeText"
+      + " FROM events e"
+      + " WHERE e.type = 2"
+      + " ORDER BY e.id ASC"
+      + ";"
+  )
   for row in query:
     number = row[0]
     date_start_millis = int(row[1]) * 1000
@@ -787,11 +794,18 @@ def readCallsFromCommHistory(db_file):
   c = conn.cursor()
   i=0
   calls = []
-  query = c.execute(
-    'SELECT remoteUid, startTime, endTime, direction, isMissedCall, headers \
-     FROM events \
-     WHERE type = 3 \
-     ORDER BY id ASC;')
+  query = c.execute(""
+      + " SELECT"
+      + "   e.remoteUid,"
+      + "   e.startTime,"
+      + "   e.endTime,"
+      + "   e.direction,"
+      + "   e.isMissedCall,"
+      + "   e.headers"
+      + " FROM events e"
+      + " WHERE e.type = 3"
+      + " ORDER BY e.id ASC"
+      + ";")
   for row in query:
     number = row[0]
     date_start_millis = int(row[1]) * 1000
@@ -888,11 +902,22 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
   c = conn.cursor()
   i=0
   texts = []
-  query = c.execute(
-    'SELECT id, remoteUid, groupId, startTime, endTime, direction, subject, freeText, headers \
-     FROM Events \
-     WHERE type = 6 \
-     ORDER BY id ASC;')
+  query = c.execute(""
+      + " SELECT"
+      + "   e.id,"
+      + "   e.remoteUid,"
+      + "   e.groupId,"
+      + "   e.startTime,"
+      + "   e.endTime,"
+      + "   e.direction,"
+      + "   e.subject,"
+      + "   e.freeText,"
+      + "   e.headers"
+      + " FROM Events e"
+      + " WHERE e.type = 6"
+      + " ORDER BY e.id ASC"
+      + ";"
+  )
   msgs = {}
   event_groups = {}
   for row in query:
