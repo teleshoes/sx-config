@@ -754,7 +754,17 @@ def readTextsFromCommHistory(db_file):
       + "   e.startTime,"
       + "   e.endTime,"
       + "   e.direction,"
-      + "   e.freeText"
+      + "   e.freeText,"
+      + "   ( select min(value)"
+      + "     from EventProperties p"
+      + "     where p.eventid = e.id"
+      + "       and key = 'external_date_sent_millis'"
+      + "   ) external_date_millis,"
+      + "   ( select min(value)"
+      + "     from EventProperties p"
+      + "     where p.eventid = e.id"
+      + "       and key = 'external_date_sent_millis'"
+      + "   ) external_date_sent_millis"
       + " FROM events e"
       + " WHERE e.type = 2"
       + " ORDER BY e.id ASC"
@@ -766,6 +776,8 @@ def readTextsFromCommHistory(db_file):
     date_end_millis = int(row[2]) * 1000
     dir_type = row[3]
     body = row[4]
+    external_date_millis = row[5]
+    external_date_sent_millis = row[6]
 
     if dir_type == 2:
       direction = SMS_DIR.OUT
@@ -778,6 +790,22 @@ def readTextsFromCommHistory(db_file):
     sms_mms_type = "S"
     date_millis = date_end_millis
     date_sent_millis = date_start_millis
+
+    if external_date_millis != None and regexMatch('^\d+$', external_date_millis):
+      old_date_millis = date_millis
+      date_millis = int(external_date_millis)
+      if int(old_date_millis/1000) != int(date_millis/1000):
+        print("ERROR: invalid external_date_millis "
+          + external_date_millis + " for event_id " + event_id)
+        quit(1)
+
+    if external_date_sent_millis != None and regexMatch('^\d+$', external_date_sent_millis):
+      old_date_sent_millis = date_sent_millis
+      date_sent_millis = int(external_date_sent_millis)
+      if int(old_date_sent_millis/1000) != int(date_sent_millis/1000):
+        print("ERROR: invalid external_date_sent_millis "
+          + external_date_sent_millis + " for event_id " + event_id)
+        quit(1)
 
     date_format = time.strftime("%Y-%m-%d %H:%M:%S",
       time.localtime(date_millis/1000))
@@ -801,7 +829,12 @@ def readCallsFromCommHistory(db_file):
       + "   e.endTime,"
       + "   e.direction,"
       + "   e.isMissedCall,"
-      + "   e.headers"
+      + "   e.headers,"
+      + "   ( select min(value)"
+      + "     from EventProperties p"
+      + "     where p.eventid = e.id"
+      + "       and key = 'external_date_sent_millis'"
+      + "   ) external_date_millis"
       + " FROM events e"
       + " WHERE e.type = 3"
       + " ORDER BY e.id ASC"
@@ -813,6 +846,7 @@ def readCallsFromCommHistory(db_file):
     dir_type = row[3]
     is_missed_call = row[4]
     headersRejectedHack = row[5]
+    external_date_millis = row[6]
 
     if headersRejectedHack != None and "rejected" in headersRejectedHack:
       direction = CALL_DIR.REJ
@@ -828,6 +862,14 @@ def readCallsFromCommHistory(db_file):
 
     date_millis = date_start_millis
     durationSex = int((date_end_millis - date_start_millis)/1000)
+
+    if external_date_millis != None and regexMatch('^\d+$', external_date_millis):
+      old_date_millis = date_millis
+      date_millis = int(external_date_millis)
+      if int(old_date_millis/1000) != int(date_millis/1000):
+        print("ERROR: invalid external_date_millis "
+          + external_date_millis + " for event_id " + event_id)
+        quit(1)
 
     date_format = time.strftime("%Y-%m-%d %H:%M:%S",
       time.localtime(date_millis/1000))
@@ -912,7 +954,17 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
       + "   e.direction,"
       + "   e.subject,"
       + "   e.freeText,"
-      + "   e.headers"
+      + "   e.headers,"
+      + "   ( select min(value)"
+      + "     from EventProperties p"
+      + "     where p.eventid = e.id"
+      + "       and key = 'external_date_sent_millis'"
+      + "   ) external_date_millis,"
+      + "   ( select min(value)"
+      + "     from EventProperties p"
+      + "     where p.eventid = e.id"
+      + "       and key = 'external_date_sent_millis'"
+      + "   ) external_date_sent_millis"
       + " FROM Events e"
       + " WHERE e.type = 6"
       + " ORDER BY e.id ASC"
@@ -930,9 +982,27 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
     subject = row[6]
     body = row[7]
     headers = row[8]
+    external_date_millis = row[9]
+    external_date_sent_millis = row[10]
 
     date_millis = date_end_millis
     date_sent_millis = date_start_millis
+
+    if external_date_millis != None and regexMatch('^\d+$', external_date_millis):
+      old_date_millis = date_millis
+      date_millis = int(external_date_millis)
+      if int(old_date_millis/1000) != int(date_millis/1000):
+        print("ERROR: invalid external_date_millis "
+          + external_date_millis + " for event_id " + event_id)
+        quit(1)
+
+    if external_date_sent_millis != None and regexMatch('^\d+$', external_date_sent_millis):
+      old_date_sent_millis = date_sent_millis
+      date_sent_millis = int(external_date_sent_millis)
+      if int(old_date_sent_millis/1000) != int(date_sent_millis/1000):
+        print("ERROR: invalid external_date_sent_millis "
+          + external_date_sent_millis + " for event_id " + event_id)
+        quit(1)
 
     if subject == None:
       subject = ""
