@@ -1199,6 +1199,18 @@ def importSMSToDb(texts, db_file):
                            , "mmsId":                 ""
                            , "isAction":              0
                            })
+    eventId = c.lastrowid
+
+    if txt.date_millis % 1000 > 0:
+      insertRow(c, "EventProperties", { "eventId": eventId
+                                      , "key":     'external_date_millis'
+                                      , "value":   txt.date_millis
+                                      })
+    if txt.date_sent_millis % 1000 > 0:
+      insertRow(c, "EventProperties", { "eventId": eventId
+                                      , "key":     'external_date_sent_millis'
+                                      , "value":   txt.date_sent_millis
+                                      })
 
     count += 1
     groupsSeen.add(groupId)
@@ -1288,6 +1300,13 @@ def importCallsToDb(calls, db_file):
                            , "mmsId":                 ""
                            , "isAction":              0
                            })
+    eventId = c.lastrowid
+
+    if call.date_millis % 1000 > 0:
+      insertRow(c, "EventProperties", { "eventId": eventId
+                                      , "key":     'external_date_millis'
+                                      , "value":   call.date_millis
+                                      })
 
     count += 1
     numbersSeen.add(call.number)
@@ -1384,6 +1403,17 @@ def importMMSToDb(mmsMessages, db_file):
                            , "isAction":              0
                            })
     eventId = c.lastrowid
+
+    if mms.date_millis % 1000 > 0:
+      insertRow(c, "EventProperties", { "eventId": eventId
+                                      , "key":     'external_date_millis'
+                                      , "value":   mms.date_millis
+                                      })
+    if mms.date_sent_millis % 1000 > 0:
+      insertRow(c, "EventProperties", { "eventId": eventId
+                                      , "key":     'external_date_sent_millis'
+                                      , "value":   mms.date_sent_millis
+                                      })
 
     contentId = 1
     for attName in sorted(mms.attFiles.keys()):
