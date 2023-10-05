@@ -210,8 +210,8 @@ sub main(@){
       die "error parsing mms dir: $msgDir\n";
     }elsif($dirName =~ /^(\d{13})_/){
       my $dateMillis = $1;
-      my $dateSex = int($dateMillis/1000);
-      tryrunQuiet "touch", $msgDir, "-d", "\@$dateSex";
+      my $dateFracS = sprintf "%.3f", $dateMillis/1000.0;
+      tryrunQuiet "touch", $msgDir, "-d", "\@$dateFracS";
     }else{
       die "invalid MMS dir name: $dirName\n";
     }
