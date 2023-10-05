@@ -158,7 +158,6 @@ def main():
       infoFile = codecs.open(infoFilePath, 'w', 'utf-8')
       infoFile.write(msg.getInfo())
       infoFile.close()
-      os.system("touch '" + infoFilePath + "' -r '" + msgDir + "'")
       for attName in sorted(msg.attFiles.keys()):
         srcFile = msg.attFiles[attName]
         destFile = msgDir + "/" + attName
@@ -166,6 +165,11 @@ def main():
           print("failed to copy " + str(srcFile))
           quit(1)
         attFileCount += 1
+
+      dtmFracS = "{fracS:.3f}".format(fracS=msg.date_millis/1000.0)
+      os.system("touch '" + msgDir + "' --date=@'" + dtmFracS + "'")
+      os.system("touch '" + infoFilePath + "' --date=@'" + dtmFracS + "'")
+
     print("copied " + str(attFileCount) + " files from " + args.MMS_PARTS_DIR)
   elif args.COMMAND == "import-to-db-sms":
     print("Reading texts from CSV file:")
