@@ -154,7 +154,12 @@ def main():
       msgDir = args.MMS_MSG_DIR + "/" + dirName
       if not os.path.isdir(msgDir):
         os.mkdir(msgDir)
+
       infoFilePath = msgDir + "/" + "info"
+
+      if os.path.isfile(infoFilePath):
+        msg.mergeExistingToNumbersFromInfo(infoFilePath)
+
       infoFile = codecs.open(infoFilePath, 'w', 'utf-8')
       infoFile.write(msg.getInfo())
       infoFile.close()
@@ -609,12 +614,47 @@ class MMS:
       info += "att=" + str(attName) + "\n"
     info += "checksum=" + str(self.checksum) + "\n"
     return info
+  def readInfo(self, infoFilePath):
+    lines = []
+    try:
+      with open(infoFilePath,'r') as info_fh:
+        lines = info_fh.readlines()
+    except Exception as e:
+      print("WARNING: could not read " + infoFilePath + "\n" + str(e))
+
+    infoDict = {}
+    for line in lines:
+      if regexMatch('^\s*$', line):
+        continue
+      m = regexMatch('^(from|to|dir|date|date_sent|subject|body|att|checksum)=(.*)$', line)
+      if m:
+        key = m.group(1)
+        val = m.group(2)
+        if key == "to":
+          if "to" not in infoDict:
+            infoDict["to"] = []
+          infoDict["to"].append(val)
+        else:
+          infoDict[key] = val
+      else:
+        print("WARNING: malformed line in " + infoFilePath + "\n" + line)
+
+    return infoDict
   def getMainNumber(self):
     if self.isOutgoing() and len(self.to_numbers) > 0:
       return self.to_numbers[0]
     elif self.isIncoming:
       return self.from_number
     return None
+  def mergeExistingToNumbersFromInfo(self, infoFilePath):
+    existingInfo = self.readInfo(infoFilePath)
+    oldTo = []
+    if "to" in existingInfo:
+      oldTo = existingInfo["to"]
+    newTo = self.to_numbers
+    mergeTo = oldTo
+    mergeTo.extend(self.to_numbers)
+    self.to_numbers = uniq(mergeTo)
   def formatPretty(self):
     fmt = ""
     if self.subject != None and len(self.subject) > 0 and self.subject != "NoSubject":
