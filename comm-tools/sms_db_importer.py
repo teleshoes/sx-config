@@ -166,7 +166,7 @@ def main():
       for attName in sorted(msg.attFiles.keys()):
         srcFile = msg.attFiles[attName]
         destFile = msgDir + "/" + attName
-        if 0 != os.system("cp -ar --reflink '" + srcFile + "' '" + destFile + "'"):
+        if 0 != os.system("cp -ar --reflink=auto '" + srcFile + "' '" + destFile + "'"):
           print("failed to copy " + str(srcFile))
           quit(1)
         attFileCount += 1
