@@ -924,12 +924,15 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
     event_id = row[0]
     number = row[1]
     group_id = row[2]
-    date_sent_millis = int(row[3]) * 1000
-    date_millis = int(row[4]) * 1000
+    date_start_millis = int(row[3]) * 1000
+    date_end_millis = int(row[4]) * 1000
     dir_type_mms = row[5]
     subject = row[6]
     body = row[7]
     headers = row[8]
+
+    date_millis = date_end_millis
+    date_sent_millis = date_start_millis
 
     if subject == None:
       subject = ""
