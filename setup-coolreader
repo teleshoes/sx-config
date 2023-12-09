@@ -16,7 +16,9 @@ sub run(@);
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $BOOKS_SDCARD_DIR = "/media/sdcard/phone/books";
+my $SDCARD_DIR = "/media/sdcard/phone";
+
+my $BOOKS_SDCARD_DIR = "$SDCARD_DIR/books";
 my $BOOKS_STORAGE_REL_DIR = "Books";
 
 my @ANDROID_STORAGE_DIRS = (
@@ -36,6 +38,9 @@ my $usage = "Usage:
     select <ANDROID_STORAGE_DIR>:
       @ANDROID_STORAGE_DIRS
     update `ipmagic $IPMAGIC_NAME`:<ANDROID_STORAGE_DIR>/.cr3/$CR3_INI_FILE
+    backup cr3.ini to:
+      <ANDROID_STORAGE_DIR>/.cr3/bak-cr3-ini-good
+      $SDCARD_DIR/bak-cr3-ini-good
 
   $0 --copy-books-internal
     sync $BOOKS_SDCARD_DIR/ => <ANDROID_STORAGE_DIR>/$BOOKS_STORAGE_REL_DIR/
@@ -330,11 +335,13 @@ sub writeRemoteConfigLines($@){
   run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
     mkdir -p $iniDir
     cp -a $tmpFile $iniFile
+    rm $tmpFile
     uidgid=`stat -c %u:%g $MEDIA_PROVIDERS_MODULE_DATA_DIR`
     chown -R \\\$uidgid $iniDir
     setfacl -m 'group:$USER:rwx' $iniDir $iniFile
     chmod 0660 $iniFile
-    rm $tmpFile
+    cp -a $iniFile $iniDir/bak-cr3-ini-good
+    cp -a $iniFile $SDCARD_DIR/bak-cr3-ini-good
   ";
 
   run "rm", $tmpFile;
