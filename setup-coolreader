@@ -334,7 +334,7 @@ sub writeRemoteConfigLines($@){
     chown -R \\\$uidgid $iniDir
     setfacl -m 'group:$USER:rwx' $iniDir $iniFile
     chmod 0660 $iniFile
-    rm $tmpFile /tmp/facl
+    rm $tmpFile
   ";
 
   run "rm", $tmpFile;
