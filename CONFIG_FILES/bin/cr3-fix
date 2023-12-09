@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub restoreIniFile();
+sub checkIniFile();
+sub run(@);
+sub getRoot(@);
+
+my $USER = "nemo";
+my $INI_DIR = "/home/$USER/android_storage/.cr3";
+my $MEDIA_PROVIDERS_DIR = "/home/.android/data/data/com.android.providers.media.module";
+
+my $INI_FILE = "$INI_DIR/cr3.ini";
+my $BAK_INI_FILE = "$INI_DIR/bak-cr3-ini-good";
+
+my $INI_FILE_CHECK_LINE = "app.tapzone.action.tap.long.5=TOGGLE_ORIENTATION";
+
+my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0 -s | --set | s | set
+    copy $BAK_INI_FILE to $INI_FILE
+    update uid/gid/perms/acls
+
+  $0 -c | --check | c | check
+    check that $INI_FILE exists and contains:
+      $INI_FILE_CHECK_LINE
+    if it does, print 'YES' and exit with exit code 0
+    if it does NOT, print 'NO' and exit with exit code 1
+
+  $0
+  $0 -a | --auto | a | auto
+    update $INI_FILE only if --check fails
+    same as: '$0 --check || $0 --set'
+";
+
+my $CMD_SET = "set";
+my $CMD_CHECK = "check";
+my $CMD_AUTO = "auto";
+
+sub main(@){
+  my $cmd = $CMD_AUTO;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-s|--set|s|set)$/){
+      $cmd = $CMD_SET;
+    }elsif($arg =~ /^(-c|--check|c|check)$/){
+      $cmd = $CMD_CHECK;
+    }elsif($arg =~ /^(-a|--auto|a|auto)$/){
+      $cmd = $CMD_AUTO;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  getRoot(@ARGV);
+
+  if($cmd eq $CMD_SET){
+    restoreIniFile();
+  }elsif($cmd eq $CMD_CHECK){
+    if(checkIniFile()){
+      print "YES\n";
+      exit 0;
+    }else{
+      print "NO\n";
+      exit 1;
+    }
+  }elsif($cmd eq $CMD_AUTO){
+    if(checkIniFile()){
+      print "skipping updating $INI_FILE\n";
+    }else{
+      print "UPDATING $INI_FILE\n";
+      restoreIniFile();
+    }
+  }else{
+    die "ERROR: unknown command $cmd\n";
+  }
+}
+
+sub restoreIniFile(){
+  my $cr3UIDGID = `sudo stat -c %u:%g $MEDIA_PROVIDERS_DIR`;
+  chomp $cr3UIDGID;
+
+  run "rm", "-f", $INI_FILE;
+  run "cp", "-a", $BAK_INI_FILE, $INI_FILE;
+  run "chown", "-R", $cr3UIDGID, $INI_DIR;
+  run "setfacl", "-m", "group:$USER:rwx", $INI_DIR, $INI_FILE;
+  run "chmod", "0660", $INI_FILE;
+}
+
+sub checkIniFile(){
+  my $contents = `cat $INI_FILE 2>/dev/null`;
+  if($contents =~ /$INI_FILE_CHECK_LINE/){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+sub getRoot(@){
+  if(`whoami` ne "root\n"){
+    exec "sudo", $0, @_;
+  }
+}
+
+&main(@ARGV);
