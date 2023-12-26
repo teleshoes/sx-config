@@ -206,7 +206,7 @@ sub main(@){
     }
   }elsif($cmdType eq $CMD_TYPE_MMSPIX){
     for my $file(glob "$srcDir/*_*_*_*/*.*"){
-      if($file =~ /^.*\/(\d+)_([0-9+]*)(?:-[0-9+]+)*_(INC|OUT|NTF)_([0-9a-f]+)\/(.*)\.(\w+)$/){
+      if($file =~ /^.*\/(\d+)_([0-9+]*)(?:-[0-9+]+)*_(INC|OUT|NTF)_([0-9a-f]+)\/(.*)\.(.+)$/){
         my $srcFileEntry = {
           file => $file,
           number => $2,
