@@ -167,7 +167,7 @@ sub main(@){
           fileext => undef,
         };
       }else{
-        die "malformed file: $file\n";
+        die "malformed SMS file: $file\n";
       }
     }
   }elsif($cmdType eq $CMD_TYPE_CALL){
@@ -184,7 +184,7 @@ sub main(@){
         };
         push @srcFileEntries, $srcFileEntry;
       }else{
-        die "malformed file: $file\n";
+        die "malformed call file: $file\n";
       }
     }
   }elsif($cmdType eq $CMD_TYPE_MMS){
@@ -201,7 +201,7 @@ sub main(@){
         };
         push @srcFileEntries, $srcFileEntry;
       }else{
-        die "malformed file: $file\n";
+        die "malformed MMS dir file: $file\n";
       }
     }
   }elsif($cmdType eq $CMD_TYPE_MMSPIX){
@@ -219,7 +219,7 @@ sub main(@){
         next if $$srcFileEntry{fileext} !~ /^($okImgExts)$/;
         push @srcFileEntries, $srcFileEntry;
       }else{
-        die "malformed file: $file\n";
+        die "malformed MMS pix file: $file\n";
       }
     }
   }
