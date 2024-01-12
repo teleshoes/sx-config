@@ -10,21 +10,21 @@ my $IPMAGIC_NAME = "sx";
 
 my $LOCAL_DIR = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @BACKUPS = (
-  [ 'CHK', "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
-  [ 'CHK', "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
-  [ 'CHK', "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
-  [ 'CHK', "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
-  [ 'CHK', "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
+  [ 'REQ', 'CHK', "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
+  [ 'REQ', 'CHK', "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
+  [ 'REQ', 'CHK', "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
+  [ 'REQ', 'CHK', "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
+  [ 'REQ', 'CHK', "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
 
-  [ 'CHK', "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
+  [ 'REQ', 'CHK', "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
 
-  [ 'CHK', "/home/nemo/Pictures/Camera",               "int_sf"],
-  [ 'CHK', "/home/nemo/Videos/Camera",                 "int_sf_vid"],
-  [ 'CHK', "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
-  [ 'CHK', "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
-  [ 'CHK', "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
-  [ 'SKP', "/home/nemo/Pictures/",                     "int-pix_sf"],
-  [ 'CHK', "/home/nemo/Pictures/Screenshots",          "int_scrn"],
+  [ 'REQ', 'CHK', "/home/nemo/Pictures/Camera",               "int_sf"],
+  [ 'REQ', 'CHK', "/home/nemo/Videos/Camera",                 "int_sf_vid"],
+  [ 'REQ', 'CHK', "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
+  [ 'REQ', 'CHK', "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
+  [ 'REQ', 'CHK', "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
+  [ 'REQ', 'SKP', "/home/nemo/Pictures/",                     "int-pix_sf"],
+  [ 'REQ', 'CHK', "/home/nemo/Pictures/Screenshots",          "int_scrn"],
 );
 my $REMOTE_TMP_DIR = "/media/sdcard/phone/dcim-tmp";
 my $LOCAL_TMP_DIR = "$ENV{HOME}/dcim-tmp";
@@ -46,7 +46,7 @@ my $USAGE = "Usage:
       skip checking for missing files
 ";
 
-sub dcimBackup($$$);
+sub dcimBackup($$$$);
 sub reorganizeBackedUpRemotes($$$$$);
 sub md5sumMaps(\@);
 sub runMd5sum($);
@@ -77,12 +77,12 @@ sub main(@){
   }
 
   for my $backup(@BACKUPS){
-    my ($checkType, $remoteDCIM, $backupSuffix) = @$backup;
-    dcimBackup($LOCAL_DIR, $remoteDCIM, $backupSuffix);
+    my ($reqType, $checkType, $remoteDCIM, $backupSuffix) = @$backup;
+    dcimBackup($reqType, $LOCAL_DIR, $remoteDCIM, $backupSuffix);
   }
 
   for my $backup(@BACKUPS){
-    my ($checkType, $remoteDCIM, $backupSuffix) = @$backup;
+    my ($reqType, $checkType, $remoteDCIM, $backupSuffix) = @$backup;
     if($checkType =~ /CHK/){
       if($$opts{quick}){
         print "SKIP check-missing for $remoteDCIM [QUICK]\n";
@@ -97,11 +97,28 @@ sub main(@){
   }
 }
 
-sub dcimBackup($$$){
-  my ($localDCIM, $remoteDCIM, $backupSuffix) = @_;
+sub dcimBackup($$$$){
+  my ($reqType, $localDCIM, $remoteDCIM, $backupSuffix) = @_;
 
-  die "local $localDCIM does not exist\n" if not -d $localDCIM;
-  die "remote $remoteDCIM does not exist\n" if not remoteDirExists $remoteDCIM;
+  my $isFailure = 0;
+  my $failureMsg = undef;
+  if(not -d $localDCIM){
+    $isFailure = 1;
+    $failureMsg = "local $localDCIM does not exist\n";
+  }elsif(not remoteDirExists $remoteDCIM){
+    $isFailure = 1;
+    $failureMsg ="remote $remoteDCIM does not exist\n";
+  }
+
+  if($isFailure){
+    if($reqType eq 'OPT'){
+      print "\nWARNING: $failureMsg\n";
+      return;
+    }else{
+      die "\n\nERROR: $failureMsg\n";
+    }
+  }
+
   chdir $localDCIM;
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
