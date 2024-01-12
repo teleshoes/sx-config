@@ -5,41 +5,41 @@ use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 use Time::HiRes qw(time);
 
-my $user = "nemo";
-my $ipmagicName = "sx";
+my $USER = "nemo";
+my $IPMAGIC_NAME = "sx";
 
-my $skipMissing = "skip-missing";
+my $SKIP_MISSING = "skip-missing";
 
-my $localDir = "$ENV{HOME}/Code/sx/backup/DCIM";
-my @backups = (
-  [ $localDir, "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
-  [ $localDir, "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
-  [ $localDir, "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
-  [ $localDir, "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
-  [ $localDir, "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
+my $LOCAL_DIR = "$ENV{HOME}/Code/sx/backup/DCIM";
+my @BACKUPS = (
+  [ $LOCAL_DIR, "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
+  [ $LOCAL_DIR, "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
+  [ $LOCAL_DIR, "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
+  [ $LOCAL_DIR, "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
+  [ $LOCAL_DIR, "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
 
-  [ $localDir, "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
+  [ $LOCAL_DIR, "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
 
-  [ $localDir, "/home/nemo/Pictures/Camera",               "int_sf"],
-  [ $localDir, "/home/nemo/Videos/Camera",                 "int_sf_vid"],
-  [ $localDir, "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
-  [ $localDir, "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
-  [ $localDir, "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
-  [ $localDir, "/home/nemo/Pictures/",                     "int-pix_sf", $skipMissing],
-  [ $localDir, "/home/nemo/Pictures/Screenshots",          "int_scrn"],
+  [ $LOCAL_DIR, "/home/nemo/Pictures/Camera",               "int_sf"],
+  [ $LOCAL_DIR, "/home/nemo/Videos/Camera",                 "int_sf_vid"],
+  [ $LOCAL_DIR, "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
+  [ $LOCAL_DIR, "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
+  [ $LOCAL_DIR, "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
+  [ $LOCAL_DIR, "/home/nemo/Pictures/",                     "int-pix_sf", $SKIP_MISSING],
+  [ $LOCAL_DIR, "/home/nemo/Pictures/Screenshots",          "int_scrn"],
 );
-my $remoteTmpDir = "/media/sdcard/phone/dcim-tmp";
-my $localTmpDir = "$ENV{HOME}/dcim-tmp";
+my $REMOTE_TMP_DIR = "/media/sdcard/phone/dcim-tmp";
+my $LOCAL_TMP_DIR = "$ENV{HOME}/dcim-tmp";
 
-my @filetypes = qw(jpg jpeg png gif mp4);
+my @FILETYPE_EXTS = qw(jpg jpeg png gif mp4);
 
 my $USAGE = "Usage:
   $0 -h | --help
     show this message
 
   $0 [OPTS]
-    -backup DCIM/image/video dirs from $ipmagicName home and sdcard with rsync to:
-      $localDir
+    -backup DCIM/image/video dirs from $IPMAGIC_NAME home and sdcard with rsync to:
+      $LOCAL_DIR
     -move the files to subdirs of the original dir named backup_YYYY-MM-DD_EPOCH_NAME
     -check for missing files
 
@@ -78,14 +78,14 @@ sub main(@){
     }
   }
 
-  for my $backup(@backups){
+  for my $backup(@BACKUPS){
     my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
     dcimBackup($localDCIM, $remoteDCIM, $backupSuffix);
   }
 
-  for my $backup(@backups){
+  for my $backup(@BACKUPS){
     my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
-    if(defined $extraArg and $extraArg =~ /$skipMissing/){
+    if(defined $extraArg and $extraArg =~ /$SKIP_MISSING/){
       print "SKIP check-missing for $remoteDCIM\n";
     }else{
       if($$opts{quick}){
@@ -106,7 +106,7 @@ sub dcimBackup($$$){
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
   my @remoteMd5sums = readProcLinesRetry(3600,
-    "ipmagic", $ipmagicName, "-u", $user, "-s",
+    "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s",
       "find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;",
   );
 
@@ -140,7 +140,7 @@ sub dcimBackup($$$){
     system "mkdir -p $dir";
 
     runRetryQuiet(3600,
-      "ipmagic", $ipmagicName, "-u", $user,
+      "ipmagic", $IPMAGIC_NAME, "-u", $USER,
         "--rsync",
         "-avP",
         "--exclude=backup_*/",
@@ -193,7 +193,7 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
       runRetryQuiet(30,
-        "ipmagic", $ipmagicName, "-u", $user, "-s", $cmd,
+        "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", $cmd,
       );
     }
   }
@@ -233,10 +233,10 @@ sub findDCIMFiles($){
   my ($localDCIM) = @_;
   my @files = `cd $localDCIM && find -not -type d`;
   my @okFiles;
-  my $okFiletypes = join "|", @filetypes;
+  my $okFiletypeExts = join "|", @FILETYPE_EXTS;
   for my $file(sort @files){
     chomp $file;
-    if($file =~ /\.($okFiletypes)$/i){
+    if($file =~ /\.($okFiletypeExts)$/i){
       push @okFiles, $file;
     }
   }
@@ -282,7 +282,7 @@ sub checkMissing($$){
   my ($localDCIM, $remoteDCIM) = @_;
   print "checking $remoteDCIM for missing files"
     . " (by rough filename and exact mtime+size)\n";
-  my $localDCIMInfo = updateLocalDCIMInfo $localDir;
+  my $localDCIMInfo = updateLocalDCIMInfo $LOCAL_DIR;
 
   my $localInfosByKey = {};
   for my $file(sort keys %$localDCIMInfo){
@@ -336,12 +336,12 @@ sub checkMissing($$){
     print ""
       . "\n\n"
       . "copy command:\n"
-      . "ipmagic $ipmagicName -s '"
-      . "  mkdir -p $remoteTmpDir/$subdir &&"
+      . "ipmagic $IPMAGIC_NAME -s '"
+      . "  mkdir -p $REMOTE_TMP_DIR/$subdir &&"
       . "  cd $remoteDCIM &&"
-      . "  cp -ar @files $remoteTmpDir/$subdir"
+      . "  cp -ar @files $REMOTE_TMP_DIR/$subdir"
       . "'\n"
-      . "ipmagic $ipmagicName -u $user --rsync -avP :$remoteTmpDir/ $localTmpDir/\n";
+      . "ipmagic $IPMAGIC_NAME -u $USER --rsync -avP :$REMOTE_TMP_DIR/ $LOCAL_TMP_DIR/\n";
   }
   print "\n";
 }
@@ -405,7 +405,7 @@ sub getRemoteDCIMInfo($){
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
   my @stats = readProcLinesRetry(30,
-    "ipmagic", $ipmagicName, "-s", $findStatCmd,
+    "ipmagic", $IPMAGIC_NAME, "-s", $findStatCmd,
   );
 
   my $statCount = @stats;
@@ -449,7 +449,7 @@ sub remoteDirExists($){
   $dir =~ s/'/'\\''/g;
 
   my $out = readProcRetry(3,
-    "ipmagic", $ipmagicName, "-u", $user, "-s",
+    "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s",
     "if [ -d '$dir' ]; then echo EXISTS; else echo MISSING; fi",
   );
 
