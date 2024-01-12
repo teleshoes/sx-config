@@ -44,6 +44,8 @@ my $USAGE = "Usage:
     -check for missing files
 
   OPTS
+    --quick | --fast
+      skip checking for missing files
 ";
 
 sub dcimBackup($$$);
@@ -61,11 +63,16 @@ sub getFileKey($);
 sub remoteDirExists($);
 
 sub main(@){
+  my $opts = {
+    quick => 0,
+  };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(--quick|--fast)$/){
+      $$opts{quick} = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -75,12 +82,17 @@ sub main(@){
     my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
     dcimBackup($localDCIM, $remoteDCIM, $backupSuffix);
   }
+
   for my $backup(@backups){
     my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
     if(defined $extraArg and $extraArg =~ /$skipMissing/){
       print "SKIP check-missing for $remoteDCIM\n";
     }else{
-      checkMissing($localDCIM, $remoteDCIM);
+      if($$opts{quick}){
+        print "SKIP check-missing for $remoteDCIM [QUICK]\n";
+      }else{
+        checkMissing($localDCIM, $remoteDCIM);
+      }
     }
   }
 }
