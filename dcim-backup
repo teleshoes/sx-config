@@ -20,11 +20,11 @@ my @BACKUPS = (
 
   [ 'REQ', 'CHK', "/home/nemo/Pictures/Camera",               "int_sf"],
   [ 'REQ', 'CHK', "/home/nemo/Videos/Camera",                 "int_sf_vid"],
-  [ 'REQ', 'CHK', "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
+  [ 'OPT', 'CHK', "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
   [ 'REQ', 'CHK', "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
   [ 'REQ', 'CHK', "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
   [ 'REQ', 'SKP', "/home/nemo/Pictures/",                     "int-pix_sf"],
-  [ 'REQ', 'CHK', "/home/nemo/Pictures/Screenshots",          "int_scrn"],
+  [ 'OPT', 'CHK', "/home/nemo/Pictures/Screenshots",          "int_scrn"],
 );
 my $REMOTE_TMP_DIR = "/media/sdcard/phone/dcim-tmp";
 my $LOCAL_TMP_DIR = "$ENV{HOME}/dcim-tmp";
