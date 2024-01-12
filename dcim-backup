@@ -80,6 +80,12 @@ sub main(@){
     }
   }
 
+  my $host = `ipmagic $IPMAGIC_NAME --host`;
+  chomp $host;
+  print "closing sshc sessions\n";
+  tryrunQuiet("sshc", "--close", "$host");
+  tryrunQuiet("sshc", "--close", "$USER\@$host");
+
   for my $backup(@BACKUPS){
     my ($reqType, $checkType, $remoteDCIM, $backupSuffix) = @$backup;
     dcimBackup($reqType, $LOCAL_DIR, $remoteDCIM, $backupSuffix);
@@ -127,7 +133,7 @@ sub dcimBackup($$$$){
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
   my @remoteMd5sums = readProcLinesRetry(3600,
-    "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s",
+    "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--ssh-exec", "sshc", "-s",
       "find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;",
   );
 
@@ -161,7 +167,7 @@ sub dcimBackup($$$$){
     system "mkdir -p $dir";
 
     runRetryQuiet(3600,
-      "ipmagic", $IPMAGIC_NAME, "-u", $USER,
+      "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--ssh-exec", "sshc",
         "--rsync",
         "-avP",
         "--exclude=backup_*/",
@@ -214,7 +220,7 @@ sub reorganizeBackedUpRemotes($$$$$){
       my $count = @$cmdChunk;
       print "\n\n#running $count mv commands\n$cmd";
       runRetryQuiet(30,
-        "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", $cmd,
+        "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--ssh-exec", "sshc", "-s", $cmd,
       );
     }
   }
@@ -426,7 +432,7 @@ sub getRemoteDCIMInfo($){
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
   my @stats = readProcLinesRetry(30,
-    "ipmagic", $IPMAGIC_NAME, "-s", $findStatCmd,
+    "ipmagic", $IPMAGIC_NAME, "--ssh-exec", "sshc",  "-s", $findStatCmd,
   );
 
   my $statCount = @stats;
@@ -470,7 +476,7 @@ sub remoteDirExists($){
   $dir =~ s/'/'\\''/g;
 
   my $out = readProcRetry(3,
-    "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s",
+    "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--ssh-exec", "sshc", "-s",
     "if [ -d '$dir' ]; then echo EXISTS; else echo MISSING; fi",
   );
 
