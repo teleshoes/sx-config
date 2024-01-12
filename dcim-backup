@@ -12,21 +12,21 @@ my $SKIP_MISSING = "skip-missing";
 
 my $LOCAL_DIR = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @BACKUPS = (
-  [ $LOCAL_DIR, "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
-  [ $LOCAL_DIR, "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
-  [ $LOCAL_DIR, "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
-  [ $LOCAL_DIR, "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
-  [ $LOCAL_DIR, "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
+  [ "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
+  [ "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
+  [ "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
+  [ "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
+  [ "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
 
-  [ $LOCAL_DIR, "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
+  [ "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
 
-  [ $LOCAL_DIR, "/home/nemo/Pictures/Camera",               "int_sf"],
-  [ $LOCAL_DIR, "/home/nemo/Videos/Camera",                 "int_sf_vid"],
-  [ $LOCAL_DIR, "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
-  [ $LOCAL_DIR, "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
-  [ $LOCAL_DIR, "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
-  [ $LOCAL_DIR, "/home/nemo/Pictures/",                     "int-pix_sf", $SKIP_MISSING],
-  [ $LOCAL_DIR, "/home/nemo/Pictures/Screenshots",          "int_scrn"],
+  [ "/home/nemo/Pictures/Camera",               "int_sf"],
+  [ "/home/nemo/Videos/Camera",                 "int_sf_vid"],
+  [ "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
+  [ "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
+  [ "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
+  [ "/home/nemo/Pictures/",                     "int-pix_sf", $SKIP_MISSING],
+  [ "/home/nemo/Pictures/Screenshots",          "int_scrn"],
 );
 my $REMOTE_TMP_DIR = "/media/sdcard/phone/dcim-tmp";
 my $LOCAL_TMP_DIR = "$ENV{HOME}/dcim-tmp";
@@ -79,19 +79,19 @@ sub main(@){
   }
 
   for my $backup(@BACKUPS){
-    my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
-    dcimBackup($localDCIM, $remoteDCIM, $backupSuffix);
+    my ($remoteDCIM, $backupSuffix, $extraArg) = @$backup;
+    dcimBackup($LOCAL_DIR, $remoteDCIM, $backupSuffix);
   }
 
   for my $backup(@BACKUPS){
-    my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
+    my ($remoteDCIM, $backupSuffix, $extraArg) = @$backup;
     if(defined $extraArg and $extraArg =~ /$SKIP_MISSING/){
       print "SKIP check-missing for $remoteDCIM\n";
     }else{
       if($$opts{quick}){
         print "SKIP check-missing for $remoteDCIM [QUICK]\n";
       }else{
-        checkMissing($localDCIM, $remoteDCIM);
+        checkMissing($LOCAL_DIR, $remoteDCIM);
       }
     }
   }
