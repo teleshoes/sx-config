@@ -8,23 +8,27 @@ use Time::HiRes qw(time);
 my $USER = "nemo";
 my $IPMAGIC_NAME = "sx";
 
+my $SDCARD = "/media/sdcard/phone";
+my $HOME = "/home/$USER";
+my $ANDROID = "$HOME/android_storage";
+
 my $LOCAL_DIR = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @BACKUPS = (
-  [ 'REQ', 'CHK', "/media/sdcard/phone/Pictures/Camera",      "sd-phone_sf"],
-  [ 'REQ', 'CHK', "/media/sdcard/phone/Videos/Camera",        "sd-phone_sf_vid"],
-  [ 'REQ', 'CHK', "/media/sdcard/phone/Pictures/AdvancedCam", "sd-phone-adv_sf"],
-  [ 'REQ', 'CHK', "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
-  [ 'REQ', 'CHK', "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
+  [ 'REQ', 'CHK', "$SDCARD/Pictures/Camera",        "sd-phone_sf"],
+  [ 'REQ', 'CHK', "$SDCARD/Videos/Camera",          "sd-phone_sf_vid"],
+  [ 'REQ', 'CHK', "$SDCARD/Pictures/AdvancedCam",   "sd-phone-adv_sf"],
+  [ 'REQ', 'CHK', "$SDCARD/Videos/AdvancedCam",     "sd-phone-adv_sf_vid"],
+  [ 'REQ', 'CHK', "$SDCARD/DCIM/OpenCamera",        "sd-phone-oc"],
 
-  [ 'REQ', 'CHK', "/home/$USER/android_storage/DCIM/OpenCamera", "int_oc"],
+  [ 'REQ', 'CHK', "$ANDROID/DCIM/OpenCamera",       "int_oc"],
 
-  [ 'REQ', 'CHK', "/home/$USER/Pictures/Camera",               "int_sf"],
-  [ 'REQ', 'CHK', "/home/$USER/Videos/Camera",                 "int_sf_vid"],
-  [ 'OPT', 'CHK', "/home/$USER/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
-  [ 'REQ', 'CHK', "/home/$USER/Pictures/AdvancedCam",          "int-adv_sf"],
-  [ 'REQ', 'CHK', "/home/$USER/Videos/AdvancedCam",            "int-adv_sf_vid"],
-  [ 'REQ', 'SKP', "/home/$USER/Pictures/",                     "int-pix_sf"],
-  [ 'OPT', 'CHK', "/home/$USER/Pictures/Screenshots",          "int_scrn"],
+  [ 'REQ', 'CHK', "$HOME/Pictures/Camera",          "int_sf"],
+  [ 'REQ', 'CHK', "$HOME/Videos/Camera",            "int_sf_vid"],
+  [ 'OPT', 'CHK', "$HOME/Videos/Camera/.recording", "int_sf_vid_RECORDING"],
+  [ 'REQ', 'CHK', "$HOME/Pictures/AdvancedCam",     "int-adv_sf"],
+  [ 'REQ', 'CHK', "$HOME/Videos/AdvancedCam",       "int-adv_sf_vid"],
+  [ 'REQ', 'SKP', "$HOME/Pictures/",                "int-pix_sf"],
+  [ 'OPT', 'CHK', "$HOME/Pictures/Screenshots",     "int_scrn"],
 );
 my $REMOTE_TMP_DIR = "/media/sdcard/phone/dcim-tmp";
 my $LOCAL_TMP_DIR = "$ENV{HOME}/dcim-tmp";
