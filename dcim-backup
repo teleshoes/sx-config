@@ -16,15 +16,15 @@ my @BACKUPS = (
   [ 'REQ', 'CHK', "/media/sdcard/phone/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
   [ 'REQ', 'CHK', "/media/sdcard/phone/DCIM/OpenCamera",      "sd-phone-oc"],
 
-  [ 'REQ', 'CHK', "/home/nemo/android_storage/DCIM/OpenCamera", "int_oc"],
+  [ 'REQ', 'CHK', "/home/$USER/android_storage/DCIM/OpenCamera", "int_oc"],
 
-  [ 'REQ', 'CHK', "/home/nemo/Pictures/Camera",               "int_sf"],
-  [ 'REQ', 'CHK', "/home/nemo/Videos/Camera",                 "int_sf_vid"],
-  [ 'OPT', 'CHK', "/home/nemo/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
-  [ 'REQ', 'CHK', "/home/nemo/Pictures/AdvancedCam",          "int-adv_sf"],
-  [ 'REQ', 'CHK', "/home/nemo/Videos/AdvancedCam",            "int-adv_sf_vid"],
-  [ 'REQ', 'SKP', "/home/nemo/Pictures/",                     "int-pix_sf"],
-  [ 'OPT', 'CHK', "/home/nemo/Pictures/Screenshots",          "int_scrn"],
+  [ 'REQ', 'CHK', "/home/$USER/Pictures/Camera",               "int_sf"],
+  [ 'REQ', 'CHK', "/home/$USER/Videos/Camera",                 "int_sf_vid"],
+  [ 'OPT', 'CHK', "/home/$USER/Videos/Camera/.recording",      "int_sf_vid_RECORDING"],
+  [ 'REQ', 'CHK', "/home/$USER/Pictures/AdvancedCam",          "int-adv_sf"],
+  [ 'REQ', 'CHK', "/home/$USER/Videos/AdvancedCam",            "int-adv_sf_vid"],
+  [ 'REQ', 'SKP', "/home/$USER/Pictures/",                     "int-pix_sf"],
+  [ 'OPT', 'CHK', "/home/$USER/Pictures/Screenshots",          "int_scrn"],
 );
 my $REMOTE_TMP_DIR = "/media/sdcard/phone/dcim-tmp";
 my $LOCAL_TMP_DIR = "$ENV{HOME}/dcim-tmp";
