@@ -33,6 +33,19 @@ my $localTmpDir = "$ENV{HOME}/dcim-tmp";
 
 my @filetypes = qw(jpg jpeg png gif mp4);
 
+my $USAGE = "Usage:
+  $0 -h | --help
+    show this message
+
+  $0 [OPTS]
+    -backup DCIM/image/video dirs from $ipmagicName home and sdcard with rsync to:
+      $localDir
+    -move the files to subdirs of the original dir named backup_YYYY-MM-DD_EPOCH_NAME
+    -check for missing files
+
+  OPTS
+";
+
 sub dcimBackup($$$);
 sub reorganizeBackedUpRemotes($$$$$);
 sub md5sumMaps(\@);
@@ -48,6 +61,16 @@ sub getFileKey($);
 sub remoteDirExists($);
 
 sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
   for my $backup(@backups){
     my ($localDCIM, $remoteDCIM, $backupSuffix, $extraArg) = @$backup;
     dcimBackup($localDCIM, $remoteDCIM, $backupSuffix);
