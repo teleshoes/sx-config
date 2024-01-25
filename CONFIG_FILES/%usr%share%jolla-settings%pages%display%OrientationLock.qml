@@ -33,7 +33,7 @@ SettingsToggle {
 
     onToggled: {
         var nowMillis = Date.now();
-        var dblClick = nowMillis - lastToggledMillis < 500 ? true : false;
+        var dblClick = nowMillis - lastToggledMillis < 800 ? true : false;
         var orient = __silica_applicationwindow_instance.orientation;
 
         var targetLock;
