@@ -206,6 +206,9 @@ sub main(@){
   print "MMS REPO\n";
   gitCommit $MMS_MSG_REPO, "-A", "diff", "automatic commit";
 
+  print "touching sms/calls\n";
+  run "$CMD_ADD_COMM_TO_REPO", "--touch";
+
   my @msgDirs = grep {-d $_} glob "$MMS_MSG_REPO/*";
   my $msgDirCount = @msgDirs;
   print "touching $msgDirCount MMS message dirs\n";
