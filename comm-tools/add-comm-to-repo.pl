@@ -15,7 +15,6 @@ my $DEFAULT_FUZZY_DUPE_MILLIS = 5 * 60 * 1000; #5 minutes
 my $DUPE_MODE_EXACT = "exact";
 my $DUPE_MODE_MILLIS = "millis";
 my $DUPE_MODE_FUZZY = "fuzzy";
-my $DUPE_MODE_REGEX = join "|", ($DUPE_MODE_EXACT, $DUPE_MODE_MILLIS, $DUPE_MODE_FUZZY);
 
 sub readRepoFile($$);
 sub writeRepoFile($$@);
@@ -99,8 +98,12 @@ sub main(@){
       $dryRun = 1;
     }elsif($arg =~ /^(--allow-old)$/){
       $allowOld = 1;
-    }elsif($arg =~ /^--dupe=($DUPE_MODE_REGEX)$/){
-      $dupeMode = $1;
+    }elsif($arg =~ /^--dupe=($DUPE_MODE_EXACT)$/){
+      $dupeMode = $DUPE_MODE_EXACT;
+    }elsif($arg =~ /^--dupe=($DUPE_MODE_MILLIS)$/){
+      $dupeMode = $DUPE_MODE_MILLIS;
+    }elsif($arg =~ /^--dupe=($DUPE_MODE_FUZZY)$/){
+      $dupeMode = $DUPE_MODE_FUZZY;
     }elsif($arg =~ /^(--fuzzy-whitespace-dupes)$/){
       $isFuzzyWhitespaceDupes = 1;
     }elsif($arg =~ /^--fuzzy-dupe-millis=(\d+)$/){
