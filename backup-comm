@@ -141,6 +141,7 @@ sub main(@){
   #########################################################
   my @allRepos = ($DB_REPO, $MMS_PARTS_REPO, $CONTACTS_REPO,
     $SMS_REPO, $MMS_MSG_REPO, $CALL_REPO);
+  gitAssertClean($_) foreach @allRepos;
   my %oldRepoHeads = map {$_ => gitHead $_} @allRepos;
 
   #########################################################
@@ -258,6 +259,7 @@ sub main(@){
   # show git repo summary
   #########################################################
   print "\n\n=====GIT REPO SUMMARY\n";
+  gitAssertClean($_) foreach @allRepos;
   my %newRepoHeads = map {$_ => gitHead $_} @allRepos;
   for my $repo(@allRepos){
     my $oldHead = $oldRepoHeads{$repo};
@@ -303,11 +305,6 @@ sub gitHead($){
   chomp $head;
   die "invalid commit: $head\n" if $head !~ /^[0-9a-f]{40}$/;
   return $head;
-
-  my @status = `git -C '$repoDir' status --short 2>&1`;
-  if(@status > 0){
-    die "git repo $repoDir has changes or errors: @status";
-  }
 }
 
 sub gitGetCommitsSince($$){
@@ -326,6 +323,15 @@ sub gitStatCommit($$){
 
   my $stat = `git -C '$repoDir' show $commit --format='' --stat`;
   return $stat;
+}
+
+sub gitAssertClean($){
+  my ($repoDir) = @_;
+
+  my @status = `git -C '$repoDir' status --short 2>&1`;
+  if(@status > 0){
+    die "git repo $repoDir has changes or errors: @status";
+  }
 }
 
 &main(@ARGV);
