@@ -188,6 +188,12 @@ sub main(@){
   run $CMD_SMS_DB_IMPORTER, "export-from-db-mms",
     $commhistoryDb, $MMS_MSG_REPO, $MMS_PARTS_REPO, "--my-number", $myNumber;
 
+  print "removing dupe sms/calls\n";
+  run "$CMD_ADD_COMM_TO_REPO", "--remove-exact-dupes";
+  gitCommit $SMS_REPO, "*.sms", "diff", "automatic commit - remove duplicate sms";
+  gitCommit $CALL_REPO, "*.call", "diff", "automatic commit - remove duplicate calls";
+
+  print "adding sms/calls to repo\n";
   run "$CMD_ADD_COMM_TO_REPO", "--sms", $smsFile;
   run "$CMD_ADD_COMM_TO_REPO", "--call", $callFile;
 
