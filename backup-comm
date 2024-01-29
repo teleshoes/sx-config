@@ -174,7 +174,7 @@ sub main(@){
   # parse SMS+CALLS+MMS into repo
   #########################################################
   print "\n\n=====PARSE SMS+CALLS+MMS\n";
-  my $myNumber = `cat $MY_NUMBER_FILE`;
+  my $myNumber = readFile $MY_NUMBER_FILE;
   chomp $myNumber;
   die "\nERROR: missing/malformed $MY_NUMBER_FILE\n" if $myNumber !~ /^\+?\d+$/;
 
@@ -301,7 +301,7 @@ sub gitCommit($$$$){
 sub gitHead($){
   my ($repoDir) = @_;
 
-  my $head = `git -C '$repoDir' rev-parse HEAD`;
+  my $head = readProc "git", "-C", $repoDir, "rev-parse", "HEAD";
   chomp $head;
   die "\nERROR: invalid commit: $head\n" if $head !~ /^[0-9a-f]{40}$/;
   return $head;
@@ -310,7 +310,7 @@ sub gitHead($){
 sub gitGetCommitsSince($$){
   my ($repoDir, $commit) = @_;
 
-  my @commits = `git -C '$repoDir' rev-list $commit..HEAD`;
+  my @commits = readProcLines "git", "-C", $repoDir, "rev-list", "$commit..HEAD";
   chomp foreach @commits;
   for my $commit(@commits){
     die "\nERROR: invalid output of rev-list: $commit\n" if $commit !~ /^[0-9a-f]{40}$/;
@@ -321,7 +321,7 @@ sub gitGetCommitsSince($$){
 sub gitStatCommit($$){
   my ($repoDir, $commit) = @_;
 
-  my $stat = `git -C '$repoDir' show $commit --format='' --stat`;
+  my $stat = readProc "git", "-C", $repoDir, "show", $commit, "--format=", "--stat";
   return $stat;
 }
 
