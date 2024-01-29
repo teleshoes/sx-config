@@ -283,7 +283,7 @@ sub gitCommit($$$$){
     runQuiet "git", "-C", $repoDir, "--no-pager", "diff", "--cached";
   }
 
-  my @status = `git -C '$repoDir' status --short 2>&1`;
+  my @status = `git -C '$repoDir' status --porcelain 2>&1`;
   for my $line(@status){
     die "\nERROR: unexpected git status:\n@status" if $line !~ /^(M|A)\s/;
   }
@@ -325,7 +325,7 @@ sub gitStatCommit($$){
 sub gitAssertClean($){
   my ($repoDir) = @_;
 
-  my @status = `git -C '$repoDir' status --short 2>&1`;
+  my @status = `git -C '$repoDir' status --porcelain 2>&1`;
   if(@status > 0){
     die "\nERROR: git repo $repoDir has changes or errors:\n@status";
   }
