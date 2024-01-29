@@ -292,10 +292,7 @@ sub gitCommit($$$$){
     runQuiet "git", "-C", $repoDir, "commit", "-m", $commitMessage;
   }
 
-  @status = `git -C '$repoDir' status --short 2>&1`;
-  if(@status > 0){
-    die "\nERROR: git repo $repoDir has changes or errors:\n@status";
-  }
+  gitAssertClean($repoDir);
 }
 
 sub gitHead($){
