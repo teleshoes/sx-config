@@ -7,6 +7,9 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
+my $TYPE_SMS = "sms";
+my $TYPE_CALL = "call";
+
 my $DEFAULT_FUZZY_DUPE_MILLIS = 5 * 60 * 1000; #5 minutes
 
 my $DUPE_MODE_EXACT = "exact";
@@ -28,10 +31,12 @@ my $usage = "Usage:
     show this message
 
   $0 [OPTS] --sms FILE
+  $0 [OPTS] sms FILE
     parse FILE and add to $SMS_REPO_DIR
     ignores duplicate entries, and entries that are the same except for milliseconds
 
   $0 [OPTS] --call FILE
+  $0 [OPTS] call FILE
     parse FILE and add to $CALL_REPO_DIR
     ignores duplicate entries, and entries that are the same except for milliseconds
 
@@ -73,8 +78,8 @@ my $usage = "Usage:
 ";
 
 sub main(@){
-  my $type;
-  my $file;
+  my $type = undef;
+  my $file = undef;
   my $dryRun = 0;
   my $allowOld = 0;
   my $dupeMode = $DUPE_MODE_MILLIS;
@@ -86,9 +91,10 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $usage;
       exit 0;
-    }elsif($arg =~ /^(-|--)?(sms|call)$/){
-      die "ERROR: sms/call type specified more than once\n" if defined $type;
-      $type = $2;
+    }elsif($arg =~ /^(-|--)?(sms)$/){
+      $type = $TYPE_SMS;
+    }elsif($arg =~ /^(-|--)?(call)$/){
+      $type = $TYPE_CALL;
     }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
       $dryRun = 1;
     }elsif($arg =~ /^(--allow-old)$/){
