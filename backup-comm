@@ -176,7 +176,7 @@ sub main(@){
   print "\n\n=====PARSE SMS+CALLS+MMS\n";
   my $myNumber = `cat $MY_NUMBER_FILE`;
   chomp $myNumber;
-  die "missing/malformed $MY_NUMBER_FILE\n" if $myNumber !~ /^\+?\d+$/;
+  die "\nERROR: missing/malformed $MY_NUMBER_FILE\n" if $myNumber !~ /^\+?\d+$/;
 
   my $smsFile = "$SMS_RAW_DIR/sms-$now.sms";
   my $callFile = "$CALL_RAW_DIR/call-$now.call";
@@ -207,13 +207,13 @@ sub main(@){
     my $dirName = $msgDir;
     $dirName =~ s/^$MMS_MSG_REPO\/?//;
     if($dirName =~ /\// or not -d "$MMS_MSG_REPO/$dirName"){
-      die "error parsing mms dir: $msgDir\n";
+      die "\nERROR: failed parsing mms dir '$msgDir'\n";
     }elsif($dirName =~ /^(\d{13})_/){
       my $dateMillis = $1;
       my $dateFracS = sprintf "%.3f", $dateMillis/1000.0;
       tryrunQuiet "touch", $msgDir, "-d", "\@$dateFracS";
     }else{
-      die "invalid MMS dir name: $dirName\n";
+      die "\nERROR: invalid MMS dir name '$dirName'\n";
     }
   }
 
@@ -266,7 +266,7 @@ sub main(@){
     my $newHead = $newRepoHeads{$repo};
     if($oldHead ne $newHead){
       my @commits = gitGetCommitsSince $repo, $oldHead;
-      die "error listing commits since $oldHead\n" if @commits == 0;
+      die "\nERROR: failed listing commits since $oldHead\n" if @commits == 0;
       for my $commit(reverse @commits){
         print gitStatCommit($repo, $commit);
       }
@@ -285,7 +285,7 @@ sub gitCommit($$$$){
 
   my @status = `git -C '$repoDir' status --short 2>&1`;
   for my $line(@status){
-    die "unexpected git status: @status" if $line !~ /^(M|A)\s/;
+    die "\nERROR: unexpected git status:\n@status" if $line !~ /^(M|A)\s/;
   }
 
   if(@status > 0){
@@ -294,7 +294,7 @@ sub gitCommit($$$$){
 
   @status = `git -C '$repoDir' status --short 2>&1`;
   if(@status > 0){
-    die "git repo $repoDir has changes or errors: @status";
+    die "\nERROR: git repo $repoDir has changes or errors:\n@status";
   }
 }
 
@@ -303,7 +303,7 @@ sub gitHead($){
 
   my $head = `git -C '$repoDir' rev-parse HEAD`;
   chomp $head;
-  die "invalid commit: $head\n" if $head !~ /^[0-9a-f]{40}$/;
+  die "\nERROR: invalid commit: $head\n" if $head !~ /^[0-9a-f]{40}$/;
   return $head;
 }
 
@@ -313,7 +313,7 @@ sub gitGetCommitsSince($$){
   my @commits = `git -C '$repoDir' rev-list $commit..HEAD`;
   chomp foreach @commits;
   for my $commit(@commits){
-    die "invalid output of rev-list: $commit\n" if $commit !~ /^[0-9a-f]{40}$/;
+    die "\nERROR: invalid output of rev-list: $commit\n" if $commit !~ /^[0-9a-f]{40}$/;
   }
   return @commits;
 }
@@ -330,7 +330,7 @@ sub gitAssertClean($){
 
   my @status = `git -C '$repoDir' status --short 2>&1`;
   if(@status > 0){
-    die "git repo $repoDir has changes or errors: @status";
+    die "\nERROR: git repo $repoDir has changes or errors:\n@status";
   }
 }
 
