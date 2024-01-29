@@ -12,7 +12,6 @@ sub gitHead($);
 sub gitCommit($$$$);
 sub gitGetCommitsSince($$);
 sub gitStatCommit($$);
-sub gitAssertRepoDir($);
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup";
@@ -275,25 +274,23 @@ sub main(@){
 
 sub gitCommit($$$$){
   my ($repoDir, $addArg, $diff, $commitMessage) = @_;
-  chdir $repoDir;
-  gitAssertRepoDir $repoDir;
 
-  runQuiet "git", "add", $addArg;
+  runQuiet "git", "-C", $repoDir, "add", $addArg;
   if(defined $diff and $diff eq "diff"){
-    runQuiet "git", "--no-pager", "diff";
-    runQuiet "git", "--no-pager", "diff", "--cached";
+    runQuiet "git", "-C", $repoDir, "--no-pager", "diff";
+    runQuiet "git", "-C", $repoDir, "--no-pager", "diff", "--cached";
   }
 
-  my @status = `git status --short 2>&1`;
+  my @status = `git -C '$repoDir' status --short 2>&1`;
   for my $line(@status){
     die "unexpected git status: @status" if $line !~ /^(M|A)\s/;
   }
 
   if(@status > 0){
-    runQuiet "git", "commit", "-m", $commitMessage;
+    runQuiet "git", "-C", $repoDir, "commit", "-m", $commitMessage;
   }
 
-  @status = `git status --short 2>&1`;
+  @status = `git -C '$repoDir' status --short 2>&1`;
   if(@status > 0){
     die "git repo $repoDir has changes or errors: @status";
   }
@@ -301,15 +298,13 @@ sub gitCommit($$$$){
 
 sub gitHead($){
   my ($repoDir) = @_;
-  chdir $repoDir;
-  gitAssertRepoDir $repoDir;
 
-  my $head = `git rev-parse HEAD`;
+  my $head = `git -C '$repoDir' rev-parse HEAD`;
   chomp $head;
   die "invalid commit: $head\n" if $head !~ /^[0-9a-f]{40}$/;
   return $head;
 
-  my @status = `git status --short 2>&1`;
+  my @status = `git -C '$repoDir' status --short 2>&1`;
   if(@status > 0){
     die "git repo $repoDir has changes or errors: @status";
   }
@@ -317,10 +312,8 @@ sub gitHead($){
 
 sub gitGetCommitsSince($$){
   my ($repoDir, $commit) = @_;
-  chdir $repoDir;
-  gitAssertRepoDir $repoDir;
 
-  my @commits = `git rev-list $commit..HEAD`;
+  my @commits = `git -C '$repoDir' rev-list $commit..HEAD`;
   chomp foreach @commits;
   for my $commit(@commits){
     die "invalid output of rev-list: $commit\n" if $commit !~ /^[0-9a-f]{40}$/;
@@ -330,22 +323,9 @@ sub gitGetCommitsSince($$){
 
 sub gitStatCommit($$){
   my ($repoDir, $commit) = @_;
-  chdir $repoDir;
-  gitAssertRepoDir $repoDir;
 
-  my $stat = `git show $commit --format='' --stat`;
+  my $stat = `git -C '$repoDir' show $commit --format='' --stat`;
   return $stat;
-}
-
-sub gitAssertRepoDir($){
-  my ($repoDir) = @_;
-  my $gitDir = `git rev-parse --show-toplevel`;
-  chomp $gitDir;
-  my $absGitDir = abs_path $gitDir;
-  my $absRepoDir = abs_path $repoDir;
-  if($absGitDir ne $absRepoDir){
-    die "git toplevel (\"$gitDir\") does not match expected (\"$repoDir\")";
-  }
 }
 
 &main(@ARGV);
