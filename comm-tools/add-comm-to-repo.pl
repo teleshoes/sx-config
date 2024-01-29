@@ -23,7 +23,7 @@ sub parseFile($$);
 sub parseSmsFile($);
 sub parseCallFile($);
 sub getEntryHash($$$);
-sub isDateDupe($$$$);
+sub isDateDupe($$$);
 
 my $usage = "Usage:
   $0 -h|--help
@@ -79,12 +79,15 @@ my $usage = "Usage:
 sub main(@){
   my $type = undef;
   my $file = undef;
-  my $dryRun = 0;
-  my $allowOld = 0;
-  my $dupeMode = $DUPE_MODE_MILLIS;
-  my $fuzzyDupeMillis = $DEFAULT_FUZZY_DUPE_MILLIS;
-  my $isFuzzyWhitespaceDupes = 0;
-  my $isVerbose = 0;
+
+  my $opts = {
+    dryRun               => 0,
+    allowOld             => 0,
+    dupeMode             => $DUPE_MODE_MILLIS,
+    fuzzyDupeMillis      => $DEFAULT_FUZZY_DUPE_MILLIS,
+    fuzzyWhitespaceDupes => 0,
+    verbose              => 0,
+  };
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -95,21 +98,21 @@ sub main(@){
     }elsif($arg =~ /^(-|--)?(call)$/){
       $type = $TYPE_CALL;
     }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
-      $dryRun = 1;
+      $$opts{dryRun} = 1;
     }elsif($arg =~ /^(--allow-old)$/){
-      $allowOld = 1;
+      $$opts{allowOld} = 1;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_EXACT)$/){
-      $dupeMode = $DUPE_MODE_EXACT;
+      $$opts{dupeMode} = $DUPE_MODE_EXACT;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_MILLIS)$/){
-      $dupeMode = $DUPE_MODE_MILLIS;
+      $$opts{dupeMode} = $DUPE_MODE_MILLIS;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_FUZZY)$/){
-      $dupeMode = $DUPE_MODE_FUZZY;
+      $$opts{dupeMode} = $DUPE_MODE_FUZZY;
     }elsif($arg =~ /^(--fuzzy-whitespace-dupes)$/){
-      $isFuzzyWhitespaceDupes = 1;
+      $$opts{fuzzyWhitespaceDupes} = 1;
     }elsif($arg =~ /^--fuzzy-dupe-millis=(\d+)$/){
-      $fuzzyDupeMillis = $1;
+      $$opts{fuzzyDupeMillis} = $1;
     }elsif($arg =~ /^(-v|--verbose)$/){
-      $isVerbose = 1;
+      $$opts{verbose} = 1;
     }elsif(-f $arg){
       die "ERROR: can only specify one FILE\n" if defined $file;
       $file = $arg;
@@ -143,7 +146,7 @@ sub main(@){
     my %repoDateSentValsByHash;
     for my $repoEntry(@repoEntries){
       my $line = $$repoEntry{line};
-      my $hash = getEntryHash($type, $isFuzzyWhitespaceDupes, $repoEntry);
+      my $hash = getEntryHash($type, $$opts{fuzzyWhitespaceDupes}, $repoEntry);
       $repoDateValsByHash{$hash} = [] if not defined $repoDateValsByHash{$hash};
       push @{$repoDateValsByHash{$hash}}, $$repoEntry{date};
       if(defined $$repoEntry{dateSent}){
@@ -157,12 +160,12 @@ sub main(@){
 
     my @entriesToAdd;
     for my $entry(@newEntries){
-      my $hash = getEntryHash($type, $isFuzzyWhitespaceDupes, $entry);
+      my $hash = getEntryHash($type, $$opts{fuzzyWhitespaceDupes}, $entry);
 
       my $dateDupeFound = 0;
       my @repoDateVals = @{$repoDateValsByHash{$hash}} if defined $repoDateValsByHash{$hash};
       for my $repoDate(@repoDateVals){
-        if(isDateDupe($dupeMode, $fuzzyDupeMillis, $$entry{date}, $repoDate)){
+        if(isDateDupe($opts, $$entry{date}, $repoDate)){
           $dateDupeFound = 1;
         }
       }
@@ -172,7 +175,7 @@ sub main(@){
         my @repoDateSentVals = @{$repoDateSentValsByHash{$hash}} if defined $repoDateSentValsByHash{$hash};
         my $dateSentDupeFound = 0;
         for my $repoDateSent(@repoDateSentVals){
-          if(isDateDupe($dupeMode, $fuzzyDupeMillis, $$entry{dateSent}, $repoDateSent)){
+          if(isDateDupe($opts, $$entry{dateSent}, $repoDateSent)){
             $dateSentDupeFound = 1;
           }
         }
@@ -188,7 +191,7 @@ sub main(@){
         $countToAdd++;
       }
 
-      if(not $allowOld){
+      if(not $$opts{allowOld}){
         if(defined $latestRepoEntry and $$entry{date} <= $$latestRepoEntry{date}){
           my ($newLine, $oldLine) = ($$entry{line}, $$latestRepoEntry{line});
           die "ERROR: new entry older than last repo entry:\nnew: ${newLine}old: ${oldLine}";
@@ -200,22 +203,22 @@ sub main(@){
     $totalToAdd += $countToAdd;
     $totalDupes += $countDupes;
 
-    if($isVerbose){
-      my $addingVerb = $dryRun ? "dryrun-not-adding" : "adding";
+    if($$opts{verbose}){
+      my $addingVerb = $$opts{dryRun} ? "dryrun-not-adding" : "adding";
       print "$repoFileName: $addingVerb $countToAdd entries, skipping $countDupes dupes\n";
     }
 
     my @allEntries = (@repoEntries, @entriesToAdd);
     @allEntries = sort {$$a{line} cmp $$b{line}} @allEntries;
 
-    if(not $dryRun){
+    if(not $$opts{dryRun}){
       writeRepoFile($type, $repoFileName, @allEntries);
     }
   }
 
   my $fileCount = keys %$entriesByFileName;
 
-  my $addedVerb = $dryRun ? "dryrun-did-not-add" : "added";
+  my $addedVerb = $$opts{dryRun} ? "dryrun-did-not-add" : "added";
   print "\nTOTAL: $addedVerb $totalToAdd entries to $fileCount files, skipped $totalDupes dupes\n";
 }
 
@@ -393,17 +396,17 @@ sub getEntryHash($$$){
   }
 }
 
-sub isDateDupe($$$$){
-  my ($dupeMode, $fuzzyDupeMillis, $date1, $date2) = @_;
-  if($dupeMode eq $DUPE_MODE_EXACT){
+sub isDateDupe($$$){
+  my ($opts, $date1, $date2) = @_;
+  if($$opts{dupeMode} eq $DUPE_MODE_EXACT){
     return $date1 == $date2;
-  }elsif($dupeMode eq $DUPE_MODE_MILLIS){
+  }elsif($$opts{dupeMode} eq $DUPE_MODE_MILLIS){
     return int($date1/1000.0) == int($date2/1000.0);
-  }elsif($dupeMode eq $DUPE_MODE_FUZZY){
+  }elsif($$opts{dupeMode} eq $DUPE_MODE_FUZZY){
     my $absDiffMillis = $date1 > $date2 ? $date1 - $date2 : $date2 - $date1;
-    return $absDiffMillis < $fuzzyDupeMillis;
+    return $absDiffMillis < $$opts{fuzzyDupeMillis};
   }else{
-    die "ERROR: unknown DUPE_MODE $dupeMode\n";
+    die "ERROR: unknown DUPE_MODE $$opts{dupeMode}\n";
   }
 }
 
