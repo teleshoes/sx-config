@@ -10,11 +10,11 @@ my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 my $TYPE_SMS = "sms";
 my $TYPE_CALL = "call";
 
-my $DEFAULT_FUZZY_DUPE_MILLIS = 5 * 60 * 1000; #5 minutes
-
 my $DUPE_MODE_EXACT = "exact";
 my $DUPE_MODE_MILLIS = "millis";
 my $DUPE_MODE_FUZZY = "fuzzy";
+
+my $DEFAULT_FUZZY_DUPE_MILLIS = 5 * 60 * 1000; #5 minutes
 
 sub readRepoFile($$);
 sub writeRepoFile($$@);
@@ -43,8 +43,14 @@ my $usage = "Usage:
     -n | -s | --dry-run | --simulate
       do not modify the repo
 
+    -v | --verbose
+      print a count of added/skipped entries for each repo file written
+
     --allow-old
       do not fail if a new entry is older than the newest entry in the repo
+
+    --fuzzy-whitespace-dupes
+      remove leading and trailing whitespace from SMS body when considering duplicates
 
     --dupe=DUPE_MODE
       set criteria for which entries are considered duplicates for ignoring
@@ -66,14 +72,8 @@ my $usage = "Usage:
             AND date is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
             AND dateSent (if present) is within ${DEFAULT_FUZZY_DUPE_MILLIS} milliseconds
 
-    --fuzzy-whitespace-dupes
-      remove leading and trailing whitespace from SMS body when considering duplicates
-
     --fuzzy-dupe-millis=FUZZY_DUPE_MILLIS
       for DUPE_MODE=$DUPE_MODE_FUZZY, use FUZZY_DUPE_MILLIS instead of $DEFAULT_FUZZY_DUPE_MILLIS millis
-
-    -v | --verbose
-      print a count of added/skipped entries for each repo file written
 ";
 
 sub main(@){
@@ -82,11 +82,11 @@ sub main(@){
 
   my $opts = {
     dryRun               => 0,
+    verbose              => 0,
     allowOld             => 0,
+    fuzzyWhitespaceDupes => 0,
     dupeMode             => $DUPE_MODE_MILLIS,
     fuzzyDupeMillis      => $DEFAULT_FUZZY_DUPE_MILLIS,
-    fuzzyWhitespaceDupes => 0,
-    verbose              => 0,
   };
   while(@_ > 0){
     my $arg = shift @_;
@@ -99,20 +99,20 @@ sub main(@){
       $type = $TYPE_CALL;
     }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
       $$opts{dryRun} = 1;
+    }elsif($arg =~ /^(-v|--verbose)$/){
+      $$opts{verbose} = 1;
     }elsif($arg =~ /^(--allow-old)$/){
       $$opts{allowOld} = 1;
+    }elsif($arg =~ /^(--fuzzy-whitespace-dupes)$/){
+      $$opts{fuzzyWhitespaceDupes} = 1;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_EXACT)$/){
       $$opts{dupeMode} = $DUPE_MODE_EXACT;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_MILLIS)$/){
       $$opts{dupeMode} = $DUPE_MODE_MILLIS;
     }elsif($arg =~ /^--dupe=($DUPE_MODE_FUZZY)$/){
       $$opts{dupeMode} = $DUPE_MODE_FUZZY;
-    }elsif($arg =~ /^(--fuzzy-whitespace-dupes)$/){
-      $$opts{fuzzyWhitespaceDupes} = 1;
     }elsif($arg =~ /^--fuzzy-dupe-millis=(\d+)$/){
       $$opts{fuzzyDupeMillis} = $1;
-    }elsif($arg =~ /^(-v|--verbose)$/){
-      $$opts{verbose} = 1;
     }elsif(-f $arg){
       die "ERROR: can only specify one FILE\n" if defined $file;
       $file = $arg;
