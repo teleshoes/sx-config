@@ -8,6 +8,7 @@ my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
 my $CMD_ADD_COMM = "add-comm";
+my $CMD_REMOVE_DUPES = "remove-dupes";
 
 my $TYPE_SMS = "sms";
 my $TYPE_CALL = "call";
@@ -41,6 +42,14 @@ my $usage = "Usage:
   $0 [OPTS] call FILE
     parse FILE and add to $CALL_REPO_DIR
     ignores duplicate entries, and entries that are the same except for milliseconds
+
+  $0 [OPTS] --remove-exact-dupes
+    -use gawk to remove exactly identical lines across all sms/call files in repos
+       (ignores DUPE_MODE)
+    -runs:
+      gawk -i inplace '!seen[\$0]++' \\
+        $SMS_REPO_DIR/*.sms \\
+        $CALL_REPO_DIR/*.call
 
   OPTS
     -n | -s | --dry-run | --simulate
@@ -103,6 +112,8 @@ sub main(@){
     }elsif($arg =~ /^(-|--)?(call)$/){
       $type = $TYPE_CALL;
       $cmd = $CMD_ADD_COMM;
+    }elsif($arg =~ /^(--remove-exact-dupes)$/){
+      $cmd = $CMD_REMOVE_DUPES;
     }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
       $$opts{dryRun} = 1;
     }elsif($arg =~ /^(-v|--verbose)$/){
@@ -128,9 +139,14 @@ sub main(@){
   }
 
   if($cmd eq $CMD_ADD_COMM){
-    die "$usage\nERROR: missing --sms/--call\n" if not defined $type;
-    die "$usage\nERROR: missing SMS/call file\n" if not defined $file;
+    die "$usage\nERROR: missing --sms/--call for $cmd\n" if not defined $type;
+    die "$usage\nERROR: missing SMS/call file for $cmd\n" if not defined $file;
     addCommToRepo($type, $file, $opts);
+  }elsif($cmd eq $CMD_REMOVE_DUPES){
+    die "$usage\nERROR: cannot specify --sms/--call for $cmd\n" if defined $type;
+    die "$usage\nERROR: cannot specify SMS/call file for $cmd\n" if defined $file;
+    my @files = grep {-f $_} (glob("$SMS_REPO_DIR/*.sms"), glob("$CALL_REPO_DIR/*.call"));
+    system "gawk", "-i", "inplace", "!seen[\$0]++", @files;
   }else{
     die "ERROR: unknown cmd $cmd\n";
   }
