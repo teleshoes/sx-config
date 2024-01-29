@@ -7,6 +7,8 @@ my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $SMS_REPO_DIR = "$BACKUP_DIR/backup-sms/repo";
 my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
+my $CMD_ADD_COMM = "add-comm";
+
 my $TYPE_SMS = "sms";
 my $TYPE_CALL = "call";
 
@@ -16,6 +18,7 @@ my $DUPE_MODE_FUZZY = "fuzzy";
 
 my $DEFAULT_FUZZY_DUPE_MILLIS = 5 * 60 * 1000; #5 minutes
 
+sub addCommToRepo($$$);
 sub readRepoFile($$);
 sub writeRepoFile($$@);
 
@@ -77,6 +80,7 @@ my $usage = "Usage:
 ";
 
 sub main(@){
+  my $cmd = $CMD_ADD_COMM;
   my $type = undef;
   my $file = undef;
 
@@ -95,8 +99,10 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-|--)?(sms)$/){
       $type = $TYPE_SMS;
+      $cmd = $CMD_ADD_COMM;
     }elsif($arg =~ /^(-|--)?(call)$/){
       $type = $TYPE_CALL;
+      $cmd = $CMD_ADD_COMM;
     }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
       $$opts{dryRun} = 1;
     }elsif($arg =~ /^(-v|--verbose)$/){
@@ -120,8 +126,18 @@ sub main(@){
       die "$usage\nERROR: unknown arg $arg\n";
     }
   }
-  die "$usage\nERROR: missing --sms/--call\n" if not defined $type;
-  die "$usage\nERROR: missing SMS/call file\n" if not defined $file;
+
+  if($cmd eq $CMD_ADD_COMM){
+    die "$usage\nERROR: missing --sms/--call\n" if not defined $type;
+    die "$usage\nERROR: missing SMS/call file\n" if not defined $file;
+    addCommToRepo($type, $file, $opts);
+  }else{
+    die "ERROR: unknown cmd $cmd\n";
+  }
+}
+
+sub addCommToRepo($$$){
+  my ($type, $file, $opts) = @_;
 
   my $totalToAdd = 0;
   my $totalDupes = 0;
