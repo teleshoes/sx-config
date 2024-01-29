@@ -9,6 +9,7 @@ my $CALL_REPO_DIR = "$BACKUP_DIR/backup-call/repo";
 
 my $CMD_ADD_COMM = "add-comm";
 my $CMD_REMOVE_DUPES = "remove-dupes";
+my $CMD_TOUCH = "touch";
 
 my $TYPE_SMS = "sms";
 my $TYPE_CALL = "call";
@@ -28,6 +29,7 @@ sub parseSmsFile($);
 sub parseCallFile($);
 sub getEntryHash($$$);
 sub isDateDupe($$$);
+sub readFile($);
 
 my $usage = "Usage:
   $0 -h|--help
@@ -50,6 +52,15 @@ my $usage = "Usage:
       gawk -i inplace '!seen[\$0]++' \\
         $SMS_REPO_DIR/*.sms \\
         $CALL_REPO_DIR/*.call
+
+  $0 [OPTS] --touch
+    -read the last line of each sms/call file, parse the date, and touch the file
+    -roughly the same as:
+      for x in \\
+        $SMS_REPO_DIR/*.sms \\
+        $CALL_REPO_DIR/*.call; \\
+      do touch \$x --date=@`tail -1 \$x | sed 's/[^,]*,//' | sed 's/,.*//' | cut -c-10`
+      done
 
   OPTS
     -n | -s | --dry-run | --simulate
@@ -114,6 +125,8 @@ sub main(@){
       $cmd = $CMD_ADD_COMM;
     }elsif($arg =~ /^(--remove-exact-dupes)$/){
       $cmd = $CMD_REMOVE_DUPES;
+    }elsif($arg =~ /^(--touch)$/){
+      $cmd = $CMD_TOUCH;
     }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
       $$opts{dryRun} = 1;
     }elsif($arg =~ /^(-v|--verbose)$/){
@@ -147,6 +160,24 @@ sub main(@){
     die "$usage\nERROR: cannot specify SMS/call file for $cmd\n" if defined $file;
     my @files = grep {-f $_} (glob("$SMS_REPO_DIR/*.sms"), glob("$CALL_REPO_DIR/*.call"));
     system "gawk", "-i", "inplace", "!seen[\$0]++", @files;
+  }elsif($cmd eq $CMD_TOUCH){
+    die "$usage\nERROR: cannot specify --sms/--call for $cmd\n" if defined $type;
+    die "$usage\nERROR: cannot specify SMS/call file for $cmd\n" if defined $file;
+    my @files = grep {-f $_} (glob("$SMS_REPO_DIR/*.sms"), glob("$CALL_REPO_DIR/*.call"));
+    my $cur = 0;
+    my $chunk = 1 + int(@files / 10);
+    for my $file(@files){
+      my @lines = readFile $file;
+      my $lastLine = @lines > 0 ? $lines[-1] : "";
+      if($lastLine =~ /^([0-9+*#]*),(\d{10})(\d\d\d),/){
+        my ($num, $dateEpoch, $millis) = ($1, $2, $3);
+        system "touch", $file, "--date=\@$dateEpoch\.$millis";
+      }else{
+        die "ERROR: could not read date for $file\n";
+      }
+      printf " %d%%", int(100.0 * $cur/@files) if ++$cur % $chunk == 0;
+    }
+    print " done\n";
   }else{
     die "ERROR: unknown cmd $cmd\n";
   }
@@ -439,6 +470,17 @@ sub isDateDupe($$$){
     return $absDiffMillis < $$opts{fuzzyDupeMillis};
   }else{
     die "ERROR: unknown DUPE_MODE $$opts{dupeMode}\n";
+  }
+}
+
+sub readFile($){
+  open my $fh, "< $_[0]" or die "ERROR: could not read $_[0]\n$!\n";
+  my @lines = <$fh>;
+  close $fh;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
   }
 }
 
