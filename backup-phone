@@ -20,6 +20,7 @@ sub main(@){
   backup "sync-pixmirror";
   #backup "sync-android-apps --backup"; WAYDROID
   backup "backup-lap";
+  backup "backup-amazfish";
   backup "backup-home";
   backup "backup-notes";
   backup "backup-klomp-lists";
