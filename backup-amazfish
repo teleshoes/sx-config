@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
+use Date::Format qw(time2str);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $REMOTE_DIR = "/home/$USER/.local/share/harbour-amazfish/harbour-amazfish";
+my $REMOTE_KEXI_DB = "$REMOTE_DIR/amazfish.kexi";
+
+my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-amazfish";
+my $WORKOUTS_DIR = "$BACKUP_DIR/workouts";
+my $DB_DIFFS_DIR = "$BACKUP_DIR/kexi-db/diffs";
+my $DB_EMPTY_FILE = "$BACKUP_DIR/kexi-db/empty.txt";
+my $DB_LATEST_FILE = "$BACKUP_DIR/kexi-db/latest.txt";
+
+sub main(@){
+  my $nowMillis = nowMillis();
+  my $nowFmt = time2str "%Y-%m-%d_%H%M%S", time();
+
+  my $tmpDbPrefix = "/tmp/amazfish-tmp-db-$nowMillis";
+  my $tmpDbKexi = "$tmpDbPrefix.kexi";
+  my $tmpDbDump = "$tmpDbPrefix.dump";
+
+  my $destDiff = "$DB_DIFFS_DIR/diff-$nowFmt";
+
+  print "\n=== amazfish: fetching workouts\n";
+  run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP",
+    "--exclude=amazfish.kexi",
+    ":$REMOTE_DIR/",
+    "$WORKOUTS_DIR/",
+  ;
+  run "chmod", "og-w", $WORKOUTS_DIR;
+
+  print "\n=== amazfish: fetching kexi db\n";
+  run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP", ":$REMOTE_KEXI_DB", $tmpDbKexi;
+
+  print "\n=== amazfish: generating kexi db diff\n";
+  run "sqlite3 $tmpDbKexi .dump > $tmpDbDump";
+  refreshLatest();
+  tryrun "diff $DB_LATEST_FILE $tmpDbDump > $destDiff";
+  run "rm -f $tmpDbPrefix*";
+
+  print "\n=== amazfish: refreshing latest kexi db from diffs\n";
+  refreshLatest();
+  print "$DB_LATEST_FILE\n";
+}
+
+sub refreshLatest(){
+  run "cp", $DB_EMPTY_FILE, $DB_LATEST_FILE;
+  for my $diff(sort glob "$DB_DIFFS_DIR/diff-*"){
+    runQuiet "patch", "--quiet", $DB_LATEST_FILE, $diff;
+  }
+}
+
+&main(@ARGV);
