@@ -14,8 +14,8 @@ sub writeNotesBackup($);
 my $NOTES_UUID = "8b63c31a7656301b3f7bcbbfef8a2b6f";
 my $REMOTE_DB_PATH = "/home/$USER/.local/share/com.jolla/notes/QML/OfflineStorage/Databases/$NOTES_UUID.sqlite";
 
-my $BACKUP_NOTES_DB_DIR = "$ENV{HOME}/Code/sx/backup/backup-notes-db/";
-my $BACKUP_NOTES_CSV_FILE = "$ENV{HOME}/Code/sx/backup/backup-notes.csv";
+my $BACKUP_NOTES_DB_DIR = "$ENV{HOME}/Code/sx/backup/backup-notes/backup-notes-db/";
+my $BACKUP_NOTES_CSV_FILE = "$ENV{HOME}/Code/sx/backup/backup-notes/backup-notes.csv";
 my $BACKUP_NOTES_CSV_REMOTE_FILE = "/media/sdcard/phone/backup-notes.csv";
 
 my $USAGE = "Usage:
