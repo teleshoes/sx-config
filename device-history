@@ -35,16 +35,21 @@ my $USAGE = "Usage:
     -print the earliest relevant date for each device switch
 
   OPTS
+    -v | --verbose
+      include commit date + SMS network conf dates + photo file mtimes
 ";
 
 sub main(@){
   my $opts = {
+    verbose => 0,
   };
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-v|--verbose)$/){
+      $$opts{verbose} = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -151,9 +156,13 @@ sub main(@){
       $photoDtmsFmt .= "$photoFmt=$photoDtmFmt";
     }
 
-    printf "%-11s | %s\n", $devName, $dtmFmt;
-    #printf "%-11s | %s | %s | %s | %s\n",
-    #  $devName, $dtmFmt, $commitDtmFmt, $confDtmsFmt, $photoDtmsFmt;
+
+    if($$opts{verbose}){
+      printf "%-11s | %s | %s | %s | %s\n",
+        $devName, $dtmFmt, $commitDtmFmt, $confDtmsFmt, $photoDtmsFmt;
+    }else{
+      printf "%-11s | %s\n", $devName, $dtmFmt;
+    }
   }
 }
 
