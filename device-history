@@ -59,7 +59,7 @@ sub main(@){
       devName         => $$commitInfo{devName},
       dtm             => $$commitInfo{dtm},
       commitDtm       => $$commitInfo{dtm},
-      photoDtms       => [],
+      photoDtms       => {},
       networkConfDtms => [],
     };
     $$commitInfo{networkConfDtms} = [];
@@ -78,7 +78,7 @@ sub main(@){
         devName         => $devName,
         dtm             => undef,
         commitDtm       => undef,
-        photoDtms       => [],
+        photoDtms       => {},
         networkConfDtms => [],
       };
     }
@@ -101,7 +101,7 @@ sub main(@){
           $closestDiff = $diff;
         }
       }
-      push @{$$closestEvent{photoDtms}}, $mtime;
+      $$closestEvent{photoDtms}{$photo} = $mtime;
       if(not defined $$closestEvent{dtm} or $mtime < $$closestEvent{dtm}){
         $$closestEvent{dtm} = $mtime;
       }
@@ -140,7 +140,16 @@ sub main(@){
       $commitDtmFmt = time2str "%Y-%m-%d %H:%M:%S", $$event{commitDtm};
     }
     my $confDtmsFmt = join " + ", map {time2str "%Y-%m-%d %H:%M:%S", $_} @confDtms;
-    my $photoDtmsFmt = join " + ", map {time2str "%Y-%m-%d %H:%M:%S", $_} @confDtms;
+
+    my $photoDtmsFmt = "";
+    for my $photo(sort keys %{$$event{photoDtms}}){
+      my $photoDtm = $$event{photoDtms}{$photo};
+      my $photoFmt = $photo;
+      $photoFmt =~ s/^$PHOTO_BASE_DIR\/?//;
+      my $photoDtmFmt = time2str "%Y-%m-%d %H:%M:%S", $photoDtm;
+      $photoDtmsFmt .= " + " if length $photoDtmsFmt > 0;
+      $photoDtmsFmt .= "$photoFmt=$photoDtmFmt";
+    }
 
     printf "%-11s | %s\n", $devName, $dtmFmt;
     #printf "%-11s | %s | %s | %s | %s\n",
