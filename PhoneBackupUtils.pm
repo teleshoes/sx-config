@@ -39,6 +39,7 @@ our @EXPORT = qw(
   runRetry runRetryQuiet
   readProc readProcRetry
   readProcLines readProcLinesRetry
+  readProcChomp
   runCmd
 );
 
@@ -149,6 +150,11 @@ sub readProcLinesRetry(@){
     retryAttempts => 3, timeoutSeconds => $timeout}, @cmd);
   my @lines = split /\r\n|\n/, $stdout;
   return @lines;
+}
+sub readProcChomp(@){
+  my $out = readProc(@_);
+  chomp $out;
+  return $out;
 }
 
 
