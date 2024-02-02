@@ -85,9 +85,13 @@ sub md5($){
 sub readFile($){
   my ($file) = @_;
   open my $fh, "< $file" or die "ERROR: could not read $file\n$!\n";
-  my $content = join '', <$fh>;
+  my @lines = <$fh>;
   close $fh;
-  return $content;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
+  }
 }
 
 sub writeFile($$){
