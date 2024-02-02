@@ -1,0 +1,213 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+use Date::Format qw(time2str);
+
+sub parseDevicesCsv($);
+sub getIpmagicCommitInfo();
+sub getNetworkConfSMSDatetimes();
+
+my $PHOTO_BASE_DIR = "$ENV{HOME}/DCIM";
+my $BACKUP_SMS_REPO = "$ENV{HOME}/Code/sx/backup/backup-sms/repo";
+my $DEVICES_CSV = "$ENV{HOME}/Code/sx/backup/device-history/devices.csv";
+my $DEVICES = parseDevicesCsv($DEVICES_CSV);
+
+my @DEV_NAMES = map {$$_{devName}} @$DEVICES;
+my %DEVICES_BY_NAME = map {$$_{devName} => $_} @$DEVICES;
+my %DEV_NAME_BY_MAC = map {$$_{mac} => $$_{devName}} @$DEVICES;
+
+my @AUTOMATIC_NETWORK_CONF_SMS = (
+  "We see your phone does not have correct settings to access the internet or send MMS. "
+    . "Settings will be sent to your handset.",
+  "Configuration Notification. Open configuration message to save new Service Settings.",
+);
+
+sub main(@){
+  my @ipmagicCommitInfo = getIpmagicCommitInfo();
+  my @networkConfDtms = getNetworkConfSMSDatetimes();
+
+  my @events;
+  for my $commitInfo(@ipmagicCommitInfo){
+    push @events, {
+      devName         => $$commitInfo{devName},
+      dtm             => $$commitInfo{dtm},
+      commitDtm       => $$commitInfo{dtm},
+      photoDtms       => [],
+      networkConfDtms => [],
+    };
+    $$commitInfo{networkConfDtms} = [];
+  }
+
+  for my $devName(@DEV_NAMES){
+    my $found = 0;
+    for my $event(@events){
+      if($$event{devName} eq $devName){
+        $found = 1;
+        last;
+      }
+    }
+    if(not $found){
+      push @events, {
+        devName         => $devName,
+        dtm             => undef,
+        commitDtm       => undef,
+        photoDtms       => [],
+        networkConfDtms => [],
+      };
+    }
+  }
+
+  for my $devName(@DEV_NAMES){
+    my @photos = @{${$DEVICES_BY_NAME{$devName}}{photos}};
+    for my $photo(@photos){
+      my $mtime = mtime $photo;
+      my $closestEvent = undef;
+      my $closestDiff = undef;
+      for my $event(@events){
+        next if $$event{devName} ne $devName;
+        my $dtm = $$event{dtm};
+        $dtm = 0 if not defined $dtm;
+        my $diff = $dtm - $mtime;
+        $diff = 0 - $diff if $diff < 0;
+        if(not defined $closestDiff or $diff < $closestDiff){
+          $closestEvent = $event;
+          $closestDiff = $diff;
+        }
+      }
+      push @{$$closestEvent{photoDtms}}, $mtime;
+      if(not defined $$closestEvent{dtm} or $mtime < $$closestEvent{dtm}){
+        $$closestEvent{dtm} = $mtime;
+      }
+    }
+  }
+
+  for my $confDtm(@networkConfDtms){
+    my $closestEvent = undef;
+    my $closestDiff = undef;
+    for my $event(@events){
+      my $dtm = $$event{dtm};
+      $dtm = 0 if not defined $dtm;
+      my $diff = $dtm - $confDtm;
+      $diff = 0 - $diff if $diff < 0;
+      if(not defined $closestDiff or $diff < $closestDiff){
+        $closestEvent = $event;
+        $closestDiff = $diff;
+      }
+    }
+    push @{$$closestEvent{networkConfDtms}}, $confDtm;
+    if(not defined $$closestEvent{dtm} or $confDtm < $$closestEvent{dtm}){
+      $$closestEvent{dtm} = $confDtm;
+    }
+  }
+
+  @events = sort {$$a{dtm} <=> $$b{dtm}} @events;
+
+  for my $event(@events){
+    my $devName = $$event{devName};
+    my $dtm = $$event{dtm};
+    my @confDtms = @{$$event{networkConfDtms}};
+
+    my $dtmFmt = time2str "%Y-%m-%d %H:%M:%S", $dtm;
+    my $commitDtmFmt = "";
+    if(defined $$event{commitDtm}){
+      $commitDtmFmt = time2str "%Y-%m-%d %H:%M:%S", $$event{commitDtm};
+    }
+    my $confDtmsFmt = join " + ", map {time2str "%Y-%m-%d %H:%M:%S", $_} @confDtms;
+    my $photoDtmsFmt = join " + ", map {time2str "%Y-%m-%d %H:%M:%S", $_} @confDtms;
+
+    printf "%-11s | %s\n", $devName, $dtmFmt;
+    #printf "%-11s | %s | %s | %s | %s\n",
+    #  $devName, $dtmFmt, $commitDtmFmt, $confDtmsFmt, $photoDtmsFmt;
+  }
+}
+
+sub parseDevicesCsv($){
+  my ($csvFile) = @_;
+  my @lines = readFile $csvFile;
+  my $devices = [];
+  for my $line(@lines){
+    next if $line =~ /^\s*(#.*)?$/;
+    if($line =~ /^\s*(\w+)\s*,\s*(\w+)\s*,\s*([0-9a-f:]+)\s*,(.*)$/i){
+      my ($devType, $devName, $mac, $photoList) = ($1, $2, $3, $4);
+      $photoList =~ s/^\s*//;
+      $photoList =~ s/\s*$//;
+      my @photoPtrns = split /\s+/, $photoList;
+      my @photos = grep {-f $_} map {glob("$PHOTO_BASE_DIR/$_")} @photoPtrns;
+      if(@photoPtrns != @photos){
+        die "ERROR: file list mismatch for files $photoList\n";
+      }
+      push @$devices, {
+        devType => $devType,
+        devName => $devName,
+        mac     => $mac,
+        photos  => [@photos],
+      };
+    }else{
+      print STDERR "WARNING: malformed line in $csvFile\n";
+    }
+  }
+  return $devices;
+}
+
+sub getIpmagicCommitInfo(){
+  my @ipmagicCommits = `git log --format=%h --follow ipmagic.conf`;
+  chomp $_ foreach @ipmagicCommits;
+
+  my @info;
+  for my $commit(reverse @ipmagicCommits){
+    my $diff = `git show $commit`;
+    my $mac;
+    if($diff =~ /^\+mac\s*=\s*(..:..:..:..:..:..)/m){
+      $mac = $1;
+    }else{
+      #commit did not touch the mac
+      next;
+    }
+
+    if($diff =~ /^-mac\s*=\s*$mac/mi){
+      #mac was present before commit, commit did not change the mac
+      next;
+    }
+
+    my $devName = $DEV_NAME_BY_MAC{$mac};
+    die "ERROR: no DEV_NAME for mac $mac\n" if not defined $devName;
+
+    my $dtm = readProcChomp("git", "show", "--no-patch", "--format=%at", $commit);
+    my $msg = readProcChomp("git", "show", "--no-patch", "--format=%s", $commit);
+
+    die "ERROR: could not get date/time for commit $commit\n" if $dtm !~ /^\d+$/;
+
+    push @info, {
+      commit  => $commit,
+      devName => $devName,
+      dtm     => $dtm,
+      msg     => $msg,
+    };
+  }
+
+  return @info;
+}
+
+sub getNetworkConfSMSDatetimes(){
+  my @networkConfDtms;
+  my $regex = "(" . join("|", @AUTOMATIC_NETWORK_CONF_SMS) . ")";
+  my @lines = `grep -P -h '$regex' $BACKUP_SMS_REPO/*.sms`;
+  for my $line(@lines){
+    if($line =~ /^[0-9+]+,(\d+),/){
+      my $dtmMillis = $1;
+      if($dtmMillis !~ /^(\d{10})000$/){
+        die "ERROR: incorrect precision in sms $line";
+      }
+      my $dtm = $1;
+      push @networkConfDtms, $dtm;
+    }else{
+      die "ERROR: malformed SMS line $line";
+    }
+  }
+  @networkConfDtms = sort @networkConfDtms;
+  return @networkConfDtms;
+}
+
+&main(@ARGV);
