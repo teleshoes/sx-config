@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $AMAZFISH_SERVICE = "uk.co.piggz.amazfish";
+
+sub readUntilLine($$$);
+
+sub main(@){
+  my $dbusMonPid = open my $dbusMonFh, "-|",
+    "dbus-monitor", "--session", "interface=$AMAZFISH_SERVICE";
+
+  print "\n\nfetching sports..\n";
+  system "qdbus --session $AMAZFISH_SERVICE /application downloadSportsData";
+  readUntilLine($dbusMonFh, "operationRunningChanged", 5);
+  readUntilLine($dbusMonFh, "operationRunningChanged", 30);
+  print "\ndone\n";
+
+
+  print "\n\nfetching activity..\n";
+  system "qdbus --session $AMAZFISH_SERVICE /application downloadActivityData";
+  readUntilLine($dbusMonFh, "operationRunningChanged", 5);
+  readUntilLine($dbusMonFh, "operationRunningChanged", 30);
+  print "\ndone\n";
+
+
+  kill(9, $dbusMonPid);
+  waitpid($dbusMonPid, 0);
+  close $dbusMonFh;
+}
+
+sub readUntilLine($$$){
+  my ($fh, $targetRegex, $timeoutSeconds) = @_;
+
+  local $SIG{ALRM} = sub {
+    die "ERROR: timeout waiting for line '$targetRegex'\n";
+  };
+  alarm($timeoutSeconds);
+
+  while(my $line = <$fh>) {
+    print $line;
+    if($line =~ /$targetRegex/){
+      alarm(0);
+      last;
+    }
+  }
+}
+
+&main(@ARGV);
