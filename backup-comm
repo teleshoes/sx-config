@@ -125,16 +125,16 @@ sub main(@){
   ";
 
   print "\nfetching sqlite DBs\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/commhistory.db", $commhistoryDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts.db", $contactsDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--scp", ":$tmpDir/contacts-priv.db", $contactsPrivDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$tmpDir/commhistory.db", $commhistoryDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$tmpDir/contacts.db", $contactsDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$tmpDir/contacts-priv.db", $contactsPrivDb;
 
   print "\nfetching MMS parts dir\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
   print "\nfetching contacts vcf\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", ":$contactsTmpVcf", $localContactsVcf;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", ":$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
   # prepare git repo summary
