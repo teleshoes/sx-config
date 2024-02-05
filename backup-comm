@@ -141,7 +141,12 @@ sub main(@){
   #########################################################
   my @allRepos = ($DB_REPO, $MMS_PARTS_REPO, $CONTACTS_REPO,
     $SMS_REPO, $MMS_MSG_REPO, $CALL_REPO);
-  gitAssertClean($_) foreach @allRepos;
+  for my $repo(@allRepos){
+    #mms-parts repo is rsync'd directly from phone
+    if($repo ne $MMS_PARTS_REPO){
+      gitAssertClean($repo);
+    }
+  }
   my %oldRepoHeads = map {$_ => gitHead $_} @allRepos;
 
   #########################################################
