@@ -16,7 +16,7 @@ my $MAX_TIMEOUT = 30;
 my $SECRETS_FILE = "$ENV{HOME}/.secrets";
 my @CONFIG_KEYS = ("revtun.portfile");
 my $REMOTE_USER = "wolke";
-my $REMOTE_HOST = "wolke-nuc";
+my $REMOTE_HOST = "wolke-ser";
 
 my $BACKUP_DIR = "~/backup-sx";
 
