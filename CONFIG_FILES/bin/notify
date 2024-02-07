@@ -137,7 +137,7 @@ sub main(@){
     }elsif($arg =~ /^(-t|-T|--timeout)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
       $timeoutMillis = shift;
     }elsif($arg =~ /^(--timeout)=(\d+)$/){
-      $timeoutMillis = $1;
+      $timeoutMillis = $2;
     }elsif($arg =~ /^(-n|--no-timeout)$/){
       $timeoutMillis = 0;
     }elsif($arg =~ /^(-v|--verbose)$/){
