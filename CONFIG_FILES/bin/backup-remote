@@ -290,6 +290,7 @@ sub fail($){
   chomp $msg;
 
   my $lastSuccess = `cat $lastSuccessFile 2>/dev/null`;
+  chomp $lastSuccess;
   my $now = nowHrMin;
   notificationMsg 1, sprintf "BACKUP FAILED %s (%s)", $now, $lastSuccess;
 
