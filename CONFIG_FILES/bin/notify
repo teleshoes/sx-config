@@ -11,6 +11,7 @@ sub queryDBLatestID($);
 sub createNotification($);
 sub updateNotification($$$$$);
 sub removeNotification($);
+sub readProc(@);
 sub readFile($);
 
 my $EXEC = basename $0;
@@ -231,7 +232,7 @@ sub getLatestCachedID($){
 sub queryDBAllIDs($){
   my ($appName) = @_;
   my $sql = "select id from notifications where app_name = '$appName'";
-  my @lines = `sudo sqlite3 '$DB' "$sql"`;
+  my @lines = readProc "sudo", "sqlite3", $DB, $sql;
   chomp foreach @lines;
   return grep {/^\d+$/} @lines;
 }
@@ -248,7 +249,7 @@ sub queryDBLatestID($){
 sub createNotification($){
   my ($appName) = @_;
   $appName =~ s/'/'\\''/g;
-  my $out = `notificationtool -A '$appName' -o add`;
+  my $out = readProc "notificationtool", "-A", $appName, "-o", "add";
   if($out =~ /^Created notification with id (\d+)$/){
     return $1;
   }else{
@@ -258,15 +259,16 @@ sub createNotification($){
 
 sub updateNotification($$$$$){
   my ($id, $appName, $summary, $body, $timeoutMillis) = @_;
-  my $cmd = "notificationtool"
-    . " -A '$appName'"
-    . " -o update"
-    . " -i $id"
-    . ($timeoutMillis > 0 ? " --timeout=$timeoutMillis" : "")
-    . " $summary"
-    . " $body"
-  ;
-  my $out = `$cmd`;
+  my @cmd = ("notificationtool",
+    , "-A", "$appName",
+    , "-o", "update",
+    , "-i", "$id",
+    , ($timeoutMillis > 0 ? ("--timeout=$timeoutMillis") : ())
+    , "$summary",
+    , "$body",
+  );
+
+  my $out = readProc @cmd;
   if($out =~ /^Created notification with id (\d+)$/){
     return $1;
   }else{
@@ -277,6 +279,18 @@ sub updateNotification($$$$$){
 sub removeNotification($){
   my ($id) = @_;
   system "notificationtool", "-o", "remove", "-i", $id;
+}
+
+sub readProc(@){
+  my @cmd = @_;
+  open my $fh, "-|", @cmd or die "ERROR: could not run @cmd\n$!\n";
+  my @lines = <$fh>;
+  close $fh;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
+  }
 }
 
 sub readFile($){
