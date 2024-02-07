@@ -11,6 +11,7 @@ sub queryDBLatestID($);
 sub createNotification($);
 sub updateNotification($$$$$);
 sub removeNotification($);
+sub readFile($);
 
 my $EXEC = basename $0;
 
@@ -213,7 +214,7 @@ sub getAllCachedIDs($){
   if(not -f $cacheFile){
     return ();
   }
-  my @lines = `cat '$cacheFile'`;
+  my @lines = readFile $cacheFile;
   chomp foreach @lines;
   return grep {/^\d+$/} @lines;
 }
@@ -276,6 +277,18 @@ sub updateNotification($$$$$){
 sub removeNotification($){
   my ($id) = @_;
   system "notificationtool", "-o", "remove", "-i", $id;
+}
+
+sub readFile($){
+  my ($file) = @_;
+  open my $fh, "<", $file or die "ERROR: could not read $file\n$!\n";
+  my @lines = <$fh>;
+  close $fh;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
+  }
 }
 
 &main(@ARGV);
