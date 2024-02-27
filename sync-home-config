@@ -18,6 +18,7 @@ my @HOME_RSYNC_FILES = qw(
 
   .config/gehomesdk.config
   .config/midea.conf
+  .config/predictit-markets.conf
   .config/tasmota.conf
   .config/wemo-devices.conf
 
