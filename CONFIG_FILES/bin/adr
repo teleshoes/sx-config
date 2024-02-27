@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(sleep);
+
+my $LOG_CMD = "journalctl -f | grep -i 'dalvik\\|android'";
+
+my $USAGE = "Usage:
+  $0
+    restart aliendalvik
+      -re-run with sudo if not root
+      -fork and run: $LOG_CMD
+      -run: ad restart
+      -kill child
+";
+
+sub main(@){
+  die "$USAGE\n" if @_ > 0;
+  getRoot(@_);
+
+  my $pid = fork();
+  if($pid){
+    system "ad", "restart";
+    kill 9, -$pid;
+    waitpid $pid, 0;
+    print "\n\nRESTART COMPLETE\n";
+  }else{
+    setpgrp(0, 0);
+    exec $LOG_CMD;
+  }
+}
+
+sub getRoot(@){
+  if(`whoami` ne "root\n"){
+    print "rerunning as root\n";
+    exec "sudo", $0, @_;
+  }
+}
+&main(@ARGV);
