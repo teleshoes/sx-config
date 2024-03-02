@@ -43,6 +43,8 @@ sub main(@){
   run "sqlite3 $tmpDbKexi .dump > $tmpDbDump";
   refreshLatest();
   tryrun "diff $DB_LATEST_FILE $tmpDbDump > $destDiff";
+  run "xz", $destDiff;
+
   run "rm -f $tmpDbPrefix*";
 
   print "\n=== amazfish: refreshing latest kexi db from diffs\n";
@@ -66,6 +68,8 @@ sub refreshLatest(){
     }
     runQuiet "$readDiffCmd | patch --quiet '$DB_LATEST_FILE'";
   }
+
+  run "xz", $DB_LATEST_FILE;
 }
 
 &main(@ARGV);
