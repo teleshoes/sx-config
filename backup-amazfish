@@ -58,7 +58,9 @@ sub main(@){
 
   print "\n=== amazfish: refreshing latest kexi db from diffs\n";
   refreshLatest();
-  print "$DB_LATEST_FILE\n";
+
+  print "\n===compressing $DB_LATEST_FILE\n";
+  run "xz", $DB_LATEST_FILE;
 }
 
 sub refreshLatest(){
@@ -77,8 +79,6 @@ sub refreshLatest(){
     }
     runQuiet "$readDiffCmd | patch --quiet '$DB_LATEST_FILE'";
   }
-
-  run "xz", $DB_LATEST_FILE;
 }
 
 &main(@ARGV);
