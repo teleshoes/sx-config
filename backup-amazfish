@@ -51,6 +51,11 @@ sub main(@){
 }
 
 sub refreshLatest(){
+  my @latestFiles = grep {-f $_} ($DB_LATEST_FILE, "$DB_LATEST_FILE.xz");
+  if(@latestFiles > 0){
+    run "rm", @latestFiles;
+  }
+
   run "cp", $DB_EMPTY_FILE, $DB_LATEST_FILE;
   for my $diff(sort glob "$DB_DIFFS_DIR/diff-*"){
     my $readDiffCmd;
