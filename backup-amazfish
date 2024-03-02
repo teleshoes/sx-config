@@ -53,7 +53,13 @@ sub main(@){
 sub refreshLatest(){
   run "cp", $DB_EMPTY_FILE, $DB_LATEST_FILE;
   for my $diff(sort glob "$DB_DIFFS_DIR/diff-*"){
-    runQuiet "patch", "--quiet", $DB_LATEST_FILE, $diff;
+    my $readDiffCmd;
+    if($diff =~ /\.xz$/){
+      $readDiffCmd = "xz --stdout -d '$diff'";
+    }else{
+      $readDiffCmd = "cat '$diff'";
+    }
+    runQuiet "$readDiffCmd | patch --quiet '$DB_LATEST_FILE'";
   }
 }
 
