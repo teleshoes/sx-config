@@ -43,7 +43,9 @@ sub main(@){
   run "sqlite3 $tmpDbKexi .dump > $tmpDbDump";
   refreshLatest();
   tryrun "diff $DB_LATEST_FILE $tmpDbDump > $destDiff";
-  run "xz", $destDiff;
+  if(not -z $destDiff){
+    run "xz", $destDiff;
+  }
 
   run "rm -f $tmpDbPrefix*";
 
