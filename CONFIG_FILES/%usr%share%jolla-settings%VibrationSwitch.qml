@@ -6,38 +6,48 @@ import com.jolla.settings 1.0
 import Mer.Cutes 1.1
 
 SettingsToggle {
-    property var pulseVol: 0
+    property var ngfdActive: false
 
     name: "Vibration"
     icon.source: "image://theme/icon-m-vibration"
     showOnOffLabel: false
 
-    checked: pulseVol != 100
+    checked: ngfdActive
     busy: false
 
     onToggled: {
-      var targetVol = 100;
-      setPulseVol(targetVol);
+      setNgfdActive(!ngfdActive);
     }
 
-    Component.onCompleted: retrievePulseVol();
+    Component.onCompleted: retrieveNgfdStatus();
 
     onVisibleChanged: {
       if(visible){
-        retrievePulseVol();
+        retrieveNgfdStatus();
       }
     }
 
-    function retrievePulseVol() {
-      var vol = readProc(["sh", "-c", "/usr/local/bin/pulse-vol -g"]);
-      console.log(vol)
-      vol = vol.replace(/(\n|\r)+$/, '');
-      pulseVol = parseInt(vol, 10);
+    function retrieveNgfdStatus() {
+      var activeStr = readProc(["sh", "-c", "systemctl --user is-active ngfd"]);
+      if(!activeStr){
+        activeStr = "";
+      }
+      activeStr = activeStr.trim();
+      console.log("vibration ngfd: " + activeStr);
+      if(activeStr == "active"){
+        ngfdActive = true;
+      }else{
+        ngfdActive = false;
+      }
     }
 
-    function setPulseVol(targetVol) {
-      readProc(["sh", "-c", "/usr/local/bin/pulse-vol " + targetVol]);
-      retrievePulseVol();
+    function setNgfdActive(isActive) {
+      if(isActive){
+        readProc(["sh", "-c", "systemctl --user restart ngfd"]);
+      }else{
+        readProc(["sh", "-c", "systemctl --user stop ngfd"]);
+      }
+      retrieveNgfdStatus()
     }
 
     function readProc(cmdArr) {
