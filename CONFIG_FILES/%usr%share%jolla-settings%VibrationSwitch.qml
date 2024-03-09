@@ -42,12 +42,14 @@ SettingsToggle {
     }
 
     function setNgfdActive(isActive) {
+      busy = true;
       if(isActive){
         readProc(["sh", "-c", "systemctl --user restart ngfd"]);
       }else{
         readProc(["sh", "-c", "systemctl --user stop ngfd"]);
       }
       retrieveNgfdStatus()
+      busy = false;
     }
 
     function readProc(cmdArr) {
