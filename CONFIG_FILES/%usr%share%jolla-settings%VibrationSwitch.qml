@@ -10,8 +10,8 @@ SettingsToggle {
 
     property var defaultTarget: 150
 
-    name: "pv" + pulseVol
-    icon.source: "image://theme/icon-m-sounds"
+    name: "Vibration"
+    icon.source: "image://theme/icon-m-vibration"
     showOnOffLabel: false
 
     checked: pulseVol != 100
