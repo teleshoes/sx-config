@@ -2,14 +2,14 @@
     "translation_catalog": "settings-system",
     "entries": [
         {
-            "path": "system_settings/connectivity/wlan/pulse_vol_switch",
-            "title": "pulseVol",
+            "path": "system_settings/look_and_feel/vibration",
+            "title": "Vibration",
             "type": "custom",
-            "icon": "image://theme/icon-m-sounds",
+            "icon": "image://theme/icon-m-vibration",
             "params": {
-                "source": "/usr/share/jolla-settings/PulseVolSwitch.qml",
+                "source": "/usr/share/jolla-settings/VibrationSwitch.qml",
                 "type": "grid",
-                "settings_path": "system_settings/look_and_feel/sounds"
+                "settings_path": "system_settings/look_and_feel/vibration"
             }
         }
     ]
