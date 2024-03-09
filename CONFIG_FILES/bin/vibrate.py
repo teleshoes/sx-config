@@ -42,9 +42,10 @@ def main():
 
       Rectangle {
         HapticsEffect {
+          id: vib
           duration: %(durationMillis)d
-          running: true
         }
+        Component.onCompleted: vib.start()
       }
   """ % {"durationMillis": durationMillis}
 
