@@ -10,7 +10,7 @@ SettingsToggle {
 
     name: "Vibration"
     icon.source: "image://theme/icon-m-vibration"
-    showOnOffLabel: false
+    showOnOffLabel: true
 
     checked: ngfdActive
     busy: false
