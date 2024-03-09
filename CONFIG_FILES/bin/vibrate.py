@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #vibrate.py
-#Copyright 2018 Elliot Wolk
+#Copyright 2018,2024 Elliot Wolk
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
