@@ -8,17 +8,17 @@ use Time::HiRes qw(time);
 my $USER = "nemo";
 my $IPMAGIC_NAME = "sx";
 
-my $SDCARD = "/media/sdcard/phone";
+my $SD_PHONE = "/media/sdcard/phone";
 my $HOME = "/home/$USER";
 my $ANDROID = "$HOME/android_storage";
 
 my $LOCAL_DIR = "$ENV{HOME}/Code/sx/backup/DCIM";
 my @BACKUPS = (
-  [ 'REQ', 'CHK', "$SDCARD/Pictures/Camera",        "sd-phone_sf"],
-  [ 'REQ', 'CHK', "$SDCARD/Videos/Camera",          "sd-phone_sf_vid"],
-  [ 'REQ', 'CHK', "$SDCARD/Pictures/AdvancedCam",   "sd-phone-adv_sf"],
-  [ 'REQ', 'CHK', "$SDCARD/Videos/AdvancedCam",     "sd-phone-adv_sf_vid"],
-  [ 'REQ', 'CHK', "$SDCARD/DCIM/OpenCamera",        "sd-phone-oc"],
+  [ 'REQ', 'CHK', "$SD_PHONE/Pictures/Camera",      "sd-phone_sf"],
+  [ 'REQ', 'CHK', "$SD_PHONE/Videos/Camera",        "sd-phone_sf_vid"],
+  [ 'REQ', 'CHK', "$SD_PHONE/Pictures/AdvancedCam", "sd-phone-adv_sf"],
+  [ 'REQ', 'CHK', "$SD_PHONE/Videos/AdvancedCam",   "sd-phone-adv_sf_vid"],
+  [ 'REQ', 'CHK', "$SD_PHONE/DCIM/OpenCamera",      "sd-phone-oc"],
 
   [ 'REQ', 'CHK', "$ANDROID/DCIM/OpenCamera",       "int_oc"],
 
