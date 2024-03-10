@@ -9,6 +9,7 @@ my $USER = "nemo";
 my $IPMAGIC_NAME = "sx";
 
 my $SD_PHONE = "/media/sdcard/phone";
+my $SD_DROID = "/media/sdcard/droid";
 my $HOME = "/home/$USER";
 my $ANDROID = "$HOME/android_storage";
 
