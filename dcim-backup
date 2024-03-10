@@ -22,6 +22,8 @@ my @BACKUPS = (
 
   [ 'REQ', 'CHK', "$SD_DROID/Pictures/Camera",      "sd-droid_sf"],
   [ 'REQ', 'CHK', "$SD_DROID/Videos/Camera",        "sd-droid_sf_vid"],
+  [ 'OPT', 'CHK', "$SD_DROID/Pictures/AdvancedCam", "sd-droid-adv_sf"],
+  [ 'OPT', 'CHK', "$SD_DROID/Videos/AdvancedCam",   "sd-droid-adv_sf_vid"],
 
   [ 'REQ', 'CHK', "$SD_DROID/DCIM/OpenCamera",      "sd-phone-oc"],
 
