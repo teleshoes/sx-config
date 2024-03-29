@@ -234,6 +234,8 @@ my $user = "nemo";
 my $defaultIconName = "icon-launcher-folder-14";
 my $activeDir = '/usr/share/applications';
 my $allDir = '/opt/app-launchers';
+my $userDir = "/home/$user/.local/share/applications";
+my $origLaunchersUserDir = '/opt/app-launchers-user';
 my $directoryFileDir = "/home/$user/.config/lipstick";
 my $confFileDest = "/home/$user/.config/lipstick/applications.menu";
 
@@ -535,13 +537,6 @@ sub createAppDesktopFiles(@){
   run "mkdir", "-p", $allDir;
   my @active = glob "$activeDir/*.desktop";
 
-  for my $file(@active){
-    if(-z $file){
-      run "chattr", "-i", $file;
-      run "rm", $file;
-    }
-  }
-
   run "rsync", "-avP", "--ignore-existing", @active, $allDir;
   run "rm -rf $activeDir";
   run "mkdir", "-p", $activeDir;
@@ -555,20 +550,23 @@ sub createAppDesktopFiles(@){
   }
 
   if($USE_ALIENDALVIK){
-    my %okPkgNameFmts;
+    run "mkdir", "-p", $origLaunchersUserDir;
+
+    my @userLaunchers = glob "$userDir/*.desktop";
+    run "chattr", "-i", @userLaunchers;
+
     for my $appName(sort keys %androidLaunchers){
       my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
       my $pkgNameFmt = $pkg;
       $pkgNameFmt =~ s/\W/_/g;
-      $okPkgNameFmts{$pkgNameFmt} = 1;
-    }
-    for my $oldActive(@active){
-      if(not -f $oldActive and $oldActive =~ /^$activeDir\/apkd_launcher_(\w+)-/){
-        my $pkgNameFmt = $1;
-        if(defined $okPkgNameFmts{$pkgNameFmt}){
-          #create empty placeholder desktop file, and prevent deletion
-          run "touch", $oldActive;
-          run "chattr", "+i", $oldActive;
+      my @launchers = glob "$userDir/apkd_launcher_$pkgNameFmt-*.desktop";
+      for my $launcher(@launchers){
+        if(not -z $launcher){
+          #backup desktop file, create empty placeholder, and prevent deletion
+          run "mv", "--no-clobber", $launcher, "$origLaunchersUserDir/";
+          run "rm", "-f", $launcher;
+          run "touch", $launcher;
+          run "chattr", "+i", $launcher;
         }
       }
     }
