@@ -33,6 +33,7 @@ my $SETTINGS = {
     "accelerometer_rotation" => "1",
   },
   global => {
+    "debug_app"      => "org.coolreader",
     "time_zone"      => "America/New_York",
     "auto_time_zone" => "0",
   },
