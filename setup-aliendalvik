@@ -23,6 +23,7 @@ my $EXTERNAL_STORAGE_URI_GRANTS = [
 
 my $SETTINGS = {
   secure => {
+    "anr_show_background"         => "1",
     "tts_default_synth"           => "com.google.android.tts",
     "tts_default_rate"            => "122",
     "tts_default_pitch"           => "92",
