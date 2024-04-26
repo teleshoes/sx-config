@@ -17,6 +17,7 @@ sub performConfigReplacements($$);
 sub readProcLines(@);
 sub run(@);
 
+#vars: <PROXY>   <MMS_HOST>   <PROXY_OR_MMS_HOST>
 my $CFG = {
   internet => {
     Name                 => "T-Mobile",
