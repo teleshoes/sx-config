@@ -125,6 +125,7 @@ sub main(@){
       "internet" => {},
       "mms" => {
         "<PROXY>" => defined $proxy ? $proxy : "",
+        "<MMS_HOST>" => $MMS_HOST,
         "<PROXY_OR_MMS_HOST>" => (defined $proxy ? $proxy : $MMS_HOST),
       },
     };
