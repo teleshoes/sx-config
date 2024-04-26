@@ -29,7 +29,7 @@ my $CFG = {
   },
   mms => {
     Name                 => "T-Mobile MMS",
-    AccessPointName      => "fast.t-mobile.com",
+    AccessPointName      => "epc.tmobile.com",
     Protocol             => "dual", #ip, ipv6, dual
     AuthenticationMethod => "none",
     Username             => "",
