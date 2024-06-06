@@ -11,6 +11,7 @@ my $REMOTE_SRC_DIR = "/home/$USER/Code";
 my $BIN_CACHE_BASE_DIR = "$ENV{HOME}/Code/backup/cached-bins",
 
 my %INSTALLS = (
+  bleheartrate   => ["GIT", "https://github.com/teleshoes/BLEHeartRateLogger","sudo cp ./BLEHeartRateLogger.py /usr/bin"],
   sfbm           => ["GIT", "https://github.com/teleshoes/sf-button-monitor", "./install.sh"],
   klomp          => ["GIT", "https://github.com/teleshoes/klomp",             "./install.pl"],
   lirrtraintime  => ["GIT", "https://github.com/teleshoes/lirrtraintime",     "./install.sh"],
