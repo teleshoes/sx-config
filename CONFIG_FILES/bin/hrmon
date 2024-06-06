@@ -11,6 +11,9 @@ my $USAGE = "Usage:
     show this message
 
   $0
+  $0 --screen-daemon
+    same as: 'screen-daemon hrmon'
+
   $0 --start | start
     run: pkill -f $BLE_HRL_EXEC
     run: $BLE_HRL_EXEC -b -v -m $MAC
@@ -19,16 +22,19 @@ my $USAGE = "Usage:
     run: pkill -f BLEHeartRateLogger.py
 ";
 
+my $CMD_SCREEN_DAEMON = "screen-daemon";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
 
 sub main(@){
-  my $cmd = $CMD_START;
+  my $cmd = $CMD_SCREEN_DAEMON;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(--screen-daemon)$/){
+      $cmd = $CMD_SCREEN_DAEMON;
     }elsif($arg =~ /^(--start|start)$/){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(--stop|stop)$/){
@@ -38,7 +44,9 @@ sub main(@){
     }
   }
 
-  if($cmd eq $CMD_START){
+  if($cmd eq $CMD_SCREEN_DAEMON){
+    exec "screen-daemon", "hrmon";
+  }elsif($cmd eq $CMD_START){
     system "pkill", "-f", $BLE_HRL_EXEC;
     exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
   }elsif($cmd eq $CMD_STOP){
