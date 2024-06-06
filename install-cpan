@@ -24,6 +24,9 @@ my %MODULES = (
   tasmota => [qw(
     Parallel::ForkManager
   )],
+  utils => [qw(
+    XML::LibXML
+  )],
 );
 my @GROUPS = sort keys %MODULES;
 
