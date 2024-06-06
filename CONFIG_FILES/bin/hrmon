@@ -6,6 +6,8 @@ my $MAC = '00:22:D0:44:94:5A';
 
 my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
+my $LOG_FILE_LATEST = "$ENV{HOME}/.cache/logs/hrmon/latest";
+
 my $USAGE = "Usage:
   $0 -h | --help
     show this message
@@ -20,11 +22,15 @@ my $USAGE = "Usage:
 
   $0 --stop | stop
     run: pkill -f BLEHeartRateLogger.py
+
+  $0 --get | get | -g | g
+    get the latest value logged to '$LOG_FILE_LATEST'
 ";
 
 my $CMD_SCREEN_DAEMON = "screen-daemon";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
+my $CMD_GET = "get";
 
 sub main(@){
   my $cmd = $CMD_SCREEN_DAEMON;
@@ -39,6 +45,8 @@ sub main(@){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(--stop|stop)$/){
       $cmd = $CMD_STOP;
+    }elsif($arg =~ /^(--get|get|-g|g)$/){
+      $cmd = $CMD_GET;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -51,6 +59,8 @@ sub main(@){
     exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
   }elsif($cmd eq $CMD_STOP){
     system "pkill", "-f", $BLE_HRL_EXEC;
+  }elsif($cmd eq $CMD_GET){
+    system "grep 'Heart rate' '$LOG_FILE_LATEST' | tail -1"
   }else{
     die "ERROR: unknown cmd $cmd\n"
   }
