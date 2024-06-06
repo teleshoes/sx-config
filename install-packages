@@ -27,6 +27,7 @@ my @removals = qw(
 my %packages = (
   "1-essential" => [qw(
     rsync screen
+    bluez5-tools
     diffutils
     perl perl-CPAN
     htop git gnupg2 sudo gnu-tar vim-enhanced zypper
