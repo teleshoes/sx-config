@@ -15,36 +15,49 @@ my $USAGE = "Usage:
     show this message
 
   $0
-  $0 --screen-daemon
-    same as: 'screen-daemon hrmon'
+  $0 --screen-daemon | --ensure-attach | ensure-attach
+    ensure screen-daemon is running and attach to it
+      -run: 'screen-daemon hrmon --ensure-attach'
+
+  $0 --run
+    kill any $BLE_HRL_EXEC procs and run $BLE_HRL_EXEC
+      -run: pkill -f BLEHeartRateLogger.py
+      -run: $BLE_HRL_EXEC -b -v -m $MAC
 
   $0 --start | start
-    run: screen-daemon hrmon --stop
-    run: pkill -f $BLE_HRL_EXEC
-    run: $BLE_HRL_EXEC -b -v -m $MAC
+    run --stop, and then start screen-daemon
+      -run: $0 --stop
+      -run: screen-daemon hrmon --start
 
   $0 --stop | stop
-    run: screen-daemon hrmon --stop
-    run: pkill -f BLEHeartRateLogger.py
+    stop screen-daemon and kill any other $BLE_HRL_EXEC procs
+      -run: screen-daemon hrmon --stop
+      -run: pkill -f BLEHeartRateLogger.py
 
   $0 --get | get | -g | g
-    get the latest value logged to '$LOG_DIR/*.log*'
+    print the last line of the last log file, decompressing gz/bz2/xz if necessary
+      -fetch latest log file as in: `ls $LOG_DIR/*.log* | sort | tail -1`
+      -if compressed, decompress in memory
+      -print the last line
 ";
 
-my $CMD_SCREEN_DAEMON = "screen-daemon";
+my $CMD_ENSURE_ATTACH = "ensure-attach";
+my $CMD_RUN = "run";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
 my $CMD_GET = "get";
 
 sub main(@){
-  my $cmd = $CMD_SCREEN_DAEMON;
+  my $cmd = $CMD_ENSURE_ATTACH;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(--screen-daemon)$/){
-      $cmd = $CMD_SCREEN_DAEMON;
+    }elsif($arg =~ /^(--screen-daemon|--ensure-attach|ensure-attach)$/){
+      $cmd = $CMD_ENSURE_ATTACH;
+    }elsif($arg =~ /^(--run|run)$/){
+      $cmd = $CMD_RUN;
     }elsif($arg =~ /^(--start|start)$/){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(--stop|stop)$/){
@@ -56,12 +69,14 @@ sub main(@){
     }
   }
 
-  if($cmd eq $CMD_SCREEN_DAEMON){
-    exec "screen-daemon", "hrmon";
+  if($cmd eq $CMD_ENSURE_ATTACH){
+    exec "screen-daemon", "hrmon", "--ensure-attach";
+  }elsif($cmd eq $CMD_RUN){
+    exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
   }elsif($cmd eq $CMD_START){
     run "screen-daemon", "hrmon", "--stop";
     run "pkill", "-f", $BLE_HRL_EXEC;
-    exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
+    run "screen-daemon", "hrmon", "--start";
   }elsif($cmd eq $CMD_STOP){
     run "screen-daemon", "hrmon", "--stop";
     run "pkill", "-f", $BLE_HRL_EXEC;
