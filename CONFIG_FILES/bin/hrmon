@@ -35,6 +35,10 @@ my $USAGE = "Usage:
       -run: screen-daemon hrmon --stop
       -run: pkill -f BLEHeartRateLogger.py
 
+  $0 --status
+    print 'on' or 'off' if screen daemon is running
+      -run: screen-daemon hrmon --status
+
   $0 --get | get | -g | g
     print the last line of the last log file, decompressing gz/bz2/xz if necessary
       -fetch latest log file as in: `ls $LOG_DIR/*.log* | sort | tail -1`
@@ -46,6 +50,7 @@ my $CMD_ENSURE_ATTACH = "ensure-attach";
 my $CMD_RUN = "run";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
+my $CMD_STATUS = "status";
 my $CMD_GET = "get";
 
 sub main(@){
@@ -63,6 +68,8 @@ sub main(@){
       $cmd = $CMD_START;
     }elsif($arg =~ /^(--stop|stop)$/){
       $cmd = $CMD_STOP;
+    }elsif($arg =~ /^(--status|status)$/){
+      $cmd = $CMD_STATUS;
     }elsif($arg =~ /^(--get|get|-g|g)$/){
       $cmd = $CMD_GET;
     }else{
@@ -79,6 +86,8 @@ sub main(@){
     run "screen-daemon", "hrmon", "--start";
   }elsif($cmd eq $CMD_STOP){
     stopHrmon();
+  }elsif($cmd eq $CMD_STATUS){
+    run "screen-daemon", "hrmon", "--status";
   }elsif($cmd eq $CMD_GET){
     my @logFiles = sort glob "$LOG_DIR/*.log*";
     die "ERROR: no log files available in $LOG_DIR\n" if @logFiles == 0;
