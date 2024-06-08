@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 
+sub stopHrmon();
 sub run(@);
 
 my $MAC = '00:22:D0:44:94:5A';
@@ -74,12 +75,10 @@ sub main(@){
   }elsif($cmd eq $CMD_RUN){
     exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
   }elsif($cmd eq $CMD_START){
-    run "screen-daemon", "hrmon", "--stop";
-    run "pkill", "-f", $BLE_HRL_EXEC;
+    stopHrmon();
     run "screen-daemon", "hrmon", "--start";
   }elsif($cmd eq $CMD_STOP){
-    run "screen-daemon", "hrmon", "--stop";
-    run "pkill", "-f", $BLE_HRL_EXEC;
+    stopHrmon();
   }elsif($cmd eq $CMD_GET){
     my @logFiles = sort glob "$LOG_DIR/*.log*";
     die "ERROR: no log files available in $LOG_DIR\n" if @logFiles == 0;
@@ -98,6 +97,11 @@ sub main(@){
   }else{
     die "ERROR: unknown cmd $cmd\n"
   }
+}
+
+sub stopHrmon(){
+  run "screen-daemon", "hrmon", "--stop";
+  run "pkill", "-f", $BLE_HRL_EXEC;
 }
 
 sub run(@){
