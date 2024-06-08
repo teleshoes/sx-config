@@ -28,7 +28,7 @@ my $USAGE = "Usage:
     run: pkill -f BLEHeartRateLogger.py
 
   $0 --get | get | -g | g
-    get the latest value logged to '$LOG_DIR/*.log'
+    get the latest value logged to '$LOG_DIR/*.log*'
 ";
 
 my $CMD_SCREEN_DAEMON = "screen-daemon";
@@ -66,10 +66,20 @@ sub main(@){
     run "screen-daemon", "hrmon", "--stop";
     run "pkill", "-f", $BLE_HRL_EXEC;
   }elsif($cmd eq $CMD_GET){
-    my @logFiles = sort glob "$LOG_DIR/*.log";
+    my @logFiles = sort glob "$LOG_DIR/*.log*";
     die "ERROR: no log files available in $LOG_DIR\n" if @logFiles == 0;
     my $lastLogFile = $logFiles[-1];
-    system "grep 'Heart rate' '$lastLogFile' | tail -1"
+    if($lastLogFile =~ /\.log$/){
+      system "grep 'Heart rate' '$lastLogFile' | tail -1"
+    }elsif($lastLogFile =~ /\.log\.gz$/){
+      system "zgrep 'Heart rate' '$lastLogFile' | tail -1"
+    }elsif($lastLogFile =~ /\.log\.xz$/){
+      system "xz -d -c '$lastLogFile' | grep 'Heart rate' | tail -1"
+    }elsif($lastLogFile =~ /\.log\.bz2/){
+      system "bzip2 -d -c '$lastLogFile' | grep 'Heart rate' | tail -1"
+    }else{
+      die "ERROR: unrecognized log file format '$lastLogFile'\n";
+    }
   }else{
     die "ERROR: unknown cmd $cmd\n"
   }
