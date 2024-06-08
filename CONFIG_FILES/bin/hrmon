@@ -44,6 +44,14 @@ my $USAGE = "Usage:
       -fetch latest log file as in: `ls $LOG_DIR/*.log* | sort | tail -1`
       -if compressed, decompress in memory
       -print the last line
+
+  $0 --rotate-logs | rotate-logs | logs
+    stop monitoring, compress all logs, and restart if was running
+      -get PREV_STATUS as in: STATUS=`$0 --status`
+      -run: $0 --stop
+      -run: bzip2 $LOG_DIR/*.log
+      -if \$PREV_STATUS = 'on':
+        run: $0 --start
 ";
 
 my $CMD_ENSURE_ATTACH = "ensure-attach";
@@ -52,6 +60,7 @@ my $CMD_START = "start";
 my $CMD_STOP = "stop";
 my $CMD_STATUS = "status";
 my $CMD_GET = "get";
+my $CMD_ROTATE_LOGS = "rotate-logs";
 
 sub main(@){
   my $cmd = $CMD_ENSURE_ATTACH;
@@ -72,6 +81,8 @@ sub main(@){
       $cmd = $CMD_STATUS;
     }elsif($arg =~ /^(--get|get|-g|g)$/){
       $cmd = $CMD_GET;
+    }elsif($arg =~ /^(--rotate-logs|rotate-logs|logs)$/){
+      $cmd = $CMD_ROTATE_LOGS;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -102,6 +113,25 @@ sub main(@){
       system "bzip2 -d -c '$lastLogFile' | grep 'Heart rate' | tail -1"
     }else{
       die "ERROR: unrecognized log file format '$lastLogFile'\n";
+    }
+  }elsif($cmd eq $CMD_ROTATE_LOGS){
+    my @logFiles = sort glob "$LOG_DIR/*.log*";
+    if(@logFiles == 0){
+      die "ERROR: no log files available in $LOG_DIR\n" if @logFiles == 0;
+    }
+
+    my $status = `screen-daemon hrmon --status`;
+    stopHrmon();
+    run "bzip2", @logFiles;
+    if(-l "$LOG_DIR/latest"){
+      #remove latest symlink if present, since compressing breaks it
+      run "rm", "$LOG_DIR/latest";
+    }
+
+    if($status =~ /on/){
+      stopHrmon();
+      print "re-starting screen-daemon\n";
+      run "screen-daemon", "hrmon", "--start";
     }
   }else{
     die "ERROR: unknown cmd $cmd\n"
