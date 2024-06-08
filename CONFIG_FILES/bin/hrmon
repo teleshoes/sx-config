@@ -115,9 +115,10 @@ sub main(@){
       die "ERROR: unrecognized log file format '$lastLogFile'\n";
     }
   }elsif($cmd eq $CMD_ROTATE_LOGS){
-    my @logFiles = sort glob "$LOG_DIR/*.log*";
+    my @logFiles = sort glob "$LOG_DIR/*.log";
     if(@logFiles == 0){
-      die "ERROR: no log files available in $LOG_DIR\n" if @logFiles == 0;
+      print "skipping, no uncompressed log files available in $LOG_DIR\n";
+      exit 0;
     }
 
     my $status = `screen-daemon hrmon --status`;
