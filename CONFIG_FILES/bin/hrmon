@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 
+sub run(@);
+
 my $MAC = '00:22:D0:44:94:5A';
 
 my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
@@ -55,15 +57,20 @@ sub main(@){
   if($cmd eq $CMD_SCREEN_DAEMON){
     exec "screen-daemon", "hrmon";
   }elsif($cmd eq $CMD_START){
-    system "pkill", "-f", $BLE_HRL_EXEC;
+    run "pkill", "-f", $BLE_HRL_EXEC;
     exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
   }elsif($cmd eq $CMD_STOP){
-    system "pkill", "-f", $BLE_HRL_EXEC;
+    run "pkill", "-f", $BLE_HRL_EXEC;
   }elsif($cmd eq $CMD_GET){
     system "grep 'Heart rate' '$LOG_FILE_LATEST' | tail -1"
   }else{
     die "ERROR: unknown cmd $cmd\n"
   }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 &main(@ARGV);
