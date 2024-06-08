@@ -19,10 +19,12 @@ my $USAGE = "Usage:
     same as: 'screen-daemon hrmon'
 
   $0 --start | start
+    run: screen-daemon hrmon --stop
     run: pkill -f $BLE_HRL_EXEC
     run: $BLE_HRL_EXEC -b -v -m $MAC
 
   $0 --stop | stop
+    run: screen-daemon hrmon --stop
     run: pkill -f BLEHeartRateLogger.py
 
   $0 --get | get | -g | g
@@ -57,9 +59,11 @@ sub main(@){
   if($cmd eq $CMD_SCREEN_DAEMON){
     exec "screen-daemon", "hrmon";
   }elsif($cmd eq $CMD_START){
+    run "screen-daemon", "hrmon", "--stop";
     run "pkill", "-f", $BLE_HRL_EXEC;
     exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
   }elsif($cmd eq $CMD_STOP){
+    run "screen-daemon", "hrmon", "--stop";
     run "pkill", "-f", $BLE_HRL_EXEC;
   }elsif($cmd eq $CMD_GET){
     system "grep 'Heart rate' '$LOG_FILE_LATEST' | tail -1"
