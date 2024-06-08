@@ -22,6 +22,7 @@ my @removals = qw(
   busybox-symlinks-grep
   busybox-symlinks-procps
   busybox-symlinks-tar
+  busybox-symlinks-gzip
 );
 
 my %packages = (
