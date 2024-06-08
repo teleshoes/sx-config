@@ -21,6 +21,7 @@ sub main(@){
   #backup "sync-android-apps --backup"; WAYDROID
   backup "backup-lap";
   backup "backup-amazfish";
+  backup "backup-hrmon";
   backup "backup-home";
   backup "backup-notes";
   backup "backup-klomp-lists";
