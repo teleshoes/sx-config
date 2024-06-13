@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $REMOTE_LOG_DIR = "/home/$USER/.cache/logs/hrmon";
+my $BACKUP_LOG_DIR = "$ENV{HOME}/Code/sx/backup/backup-hrmon";
+
+sub main(@){
+  run "ipmagic", $IPMAGIC_NAME, "hrmon --rotate-logs";
+  run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP", ":$REMOTE_LOG_DIR/", "$BACKUP_LOG_DIR/";
+}
+
+&main(@ARGV);
