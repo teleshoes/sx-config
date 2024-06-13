@@ -109,7 +109,7 @@ sub main(@){
       system "zgrep 'Heart rate' '$lastLogFile' | tail -1";
     }elsif($lastLogFile =~ /\.log\.xz$/){
       system "xz -d -c '$lastLogFile' | grep 'Heart rate' | tail -1";
-    }elsif($lastLogFile =~ /\.log\.bz2/){
+    }elsif($lastLogFile =~ /\.log\.bz2$/){
       system "bzip2 -d -c '$lastLogFile' | grep 'Heart rate' | tail -1";
     }else{
       die "ERROR: unrecognized log file format '$lastLogFile'\n";
