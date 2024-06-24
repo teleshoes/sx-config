@@ -120,23 +120,23 @@ PagedView {
         }
     }
 
-    delegate: Loader {
-        id: layoutLoader
+    delegate: Item {
+        id: layoutDelegate
 
-        readonly property bool exposed: status === Loader.Ready && PagedView.exposed
-        readonly property bool current: status === Loader.Ready && PagedView.isCurrentItem
+        property Item loadedLayout: layoutLoader.item
+        property Item loader: layoutLoader
+        readonly property bool exposed: layoutLoader.status === Loader.Ready && PagedView.exposed
+        readonly property bool current: layoutLoader.status === Loader.Ready && PagedView.isCurrentItem
 
         width: keyboard.width
-        height: status === Loader.Error ? Theme.itemSizeHuge : implicitHeight
-
-        source: keyboard.sourceDirectory + model.file
+        height: layoutLoader.height
 
         onExposedChanged: {
             // Reset the layout keyboard state when it is dragged into view.
-            var attributes = exposed && !PagedView.isCurrentItem ? item.attributes : null
+            var attributes = exposed && !PagedView.isCurrentItem ? layoutLoader.item.attributes : null
 
             if (attributes) {
-                attributes.isShifted = keyboard.shouldUseAutocaps(item)
+                attributes.isShifted = keyboard.shouldUseAutocaps(layoutLoader.item)
                 attributes.inSymView = false
                 attributes.inSymView2 = false
                 attributes.isShiftLocked = false
@@ -144,7 +144,7 @@ PagedView {
         }
 
         onCurrentChanged: {
-            var attributes = item.attributes
+            var attributes = layoutLoader.item.attributes
 
             if (current) {
                 // Bind to the active keyboad state when made the current layout.
@@ -163,16 +163,24 @@ PagedView {
         }
 
         KeyboardBackground {
-            z: -1
-            width: layoutLoader.width
-            height: layoutLoader.height
-
+            width: layoutDelegate.width
+            height: layoutDelegate.height
             transformItem: keyboard
+        }
+
+        Loader {
+            id: layoutLoader
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: keyboard.portraitMode ? keyboard.width : geometry.keyboardWidthLandscape
+            height: status === Loader.Error ? Theme.itemSizeHuge : implicitHeight
+            source: keyboard.sourceDirectory + model.file
         }
     }
 
     Popper {
         id: popper
+
         z: 10
         target: lastPressedKey
         onExpandedChanged: {
@@ -199,6 +207,7 @@ PagedView {
 
     Timer {
         id: languageSwitchTimer
+
         interval: 500
         onTriggered: {
             if (canvas.layoutModel.enabledCount > 1) {
@@ -210,6 +219,7 @@ PagedView {
 
     Timer {
         id: autocapsTimer
+
         interval: 1
         onTriggered: applyAutocaps()
     }
@@ -345,7 +355,7 @@ PagedView {
                     mouseArea.preventStealing = true
                 }
 
-                if (yDiff > closeSwipeThreshold) {
+                if (yDiff > closeSwipeThreshold && !MInputMethodQuick.extensions.keyboardClosingDisabled) {
                     // swiped down to close keyboard
                     MInputMethodQuick.userHide()
                     if (point.pressedKey) {
@@ -475,9 +485,9 @@ PagedView {
         var item = layout
         var current = currentItem
 
-        if (current && current.item === layout) {
-            x -= current.x
-            y -= current.y
+        if (current && current.loadedLayout === layout) {
+            x -= current.x + current.loader.x
+            y -= current.y + current.loader.y
         } else {
             x -= item.x
             y -= item.y

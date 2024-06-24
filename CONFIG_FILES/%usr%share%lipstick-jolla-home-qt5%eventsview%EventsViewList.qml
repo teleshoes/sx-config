@@ -5,7 +5,7 @@
  **
  ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.6
 import Sailfish.Silica 1.0
 import com.jolla.lipstick 0.1
 import org.nemomobile.lipstick 0.1
@@ -45,6 +45,7 @@ SilicaFlickable {
 
     Connections {
         id: expandingItemConn
+
         property real targetYOffset
 
         onHeightChanged: {
@@ -60,6 +61,7 @@ SilicaFlickable {
 
     Behavior on contentY {
         id: scrollBehavior
+
         enabled: false
 
         SequentialAnimation {

@@ -3,3 +3,4 @@ Defaults env_keep+="HOME DISPLAY"
 Defaults env_reset
 nemo ALL = (ALL:ALL) NOPASSWD: ALL
 root ALL = (ALL:ALL) NOPASSWD: ALL
+@includedir /etc/sudoers.d

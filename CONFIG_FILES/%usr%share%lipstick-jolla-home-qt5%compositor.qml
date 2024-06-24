@@ -1,13 +1,13 @@
 /****************************************************************************
 **
-** Copyright (c) 2013 - 2020 Jolla Ltd.
+** Copyright (c) 2013 - 2023 Jolla Ltd.
 ** Copyright (c) 2020 - 2021 Open Mobile Platform LLC.
 **
 ** License: Proprietary
 **
 ****************************************************************************/
 
-import QtQuick 2.2
+import QtQuick 2.6
 import QtQuick.Window 2.2 as QtQuick
 import org.nemomobile.lipstick 0.1
 import org.nemomobile.systemsettings 1.0
@@ -129,7 +129,7 @@ Compositor {
 
     // When true the device unlock screen will be shown immediately during displayAboutToBeOn.
     // Set when display is turned on with double power key press or when plugging in USB cable
-    property bool showDeviceLock
+    property bool pendingShowUnlockScreen
 
     // True if only the current notification window is allowed to be visible
     property bool onlyCurrentNotificationAllowed
@@ -247,7 +247,8 @@ Compositor {
     readonly property bool largeScreen: SS.Screen.sizeCategory >= SS.Screen.Large
 
     property string _peekDirection
-    property bool _displayOn
+    property bool _displayOn      // display is powered on, which is not the same as
+    property bool _displayWokenUp // display is in on/dimmed state
 
     readonly property bool multitaskingHome: experimentalFeatures.multitasking_home
 
@@ -329,6 +330,7 @@ Compositor {
         property bool multitasking_home: true
         property bool topmenu_shutdown_reboot_visible
         property int lockscreen_notification_count: 4
+        property bool dismiss_lockscreen_on_bootup
     }
 
     MultiPointTouchDrag {
@@ -525,10 +527,17 @@ Compositor {
         if (alarmLayer.window) windows.push(alarmLayer.window.window)
         else if (dialogLayer.window) windows.push(dialogLayer.window.window)
         else if (topmostWindow) windows.push(topmostWindow.window)
+        var notifications = notificationLayer.children
+        for (var i = 0; i < notifications.length; i++) {
+            if (notifications[i].window) {
+                windows.push(notifications[i].window)
+            }
+        }
 
         var overlays = overlayLayer.contentItem.children
-        for (var ii = 0; ii < overlays.length; ++ii)
-            windows.push(overlays[ii].window)
+        for (i = 0; i < overlays.length; ++i) {
+            windows.push(overlays[i].window)
+        }
         // Lipstick does not use real Qt windows.  Instead, all "windows"
         // within the lipstick home application are just special QtQuick
         // items added to a single global scene.
@@ -566,8 +575,12 @@ Compositor {
         launchManager.launch(item, arguments || [])
     }
 
-    function invokeRemoteAction(remoteAction) {
-        launchManager.invokeRemoteAction(remoteAction)
+    function invokeRemoteAction(remoteAction, trusted) {
+        launchManager.invokeRemoteAction(remoteAction, trusted)
+    }
+
+    function invokeRemoteTextAction(remoteAction, text, trusted) {
+        launchManager.invokeRemoteTextAction(remoteAction, text, trusted)
     }
 
     function invokeDBusMethod(service, path, iface, method, arguments) {
@@ -762,6 +775,57 @@ Compositor {
                 }
                 opacityBehavior.enabled: !launcherLayerItem.closeFromEdge && !launcherLayer.peekFilter.bottomActive
             }
+
+            Item {
+                id: closeAreaIndicator
+
+                width: parent.width
+                height: Theme.paddingMedium
+                opacity: 0
+
+                Rectangle {
+                    anchors.left: parent.left
+                    height: parent.height
+                    width: Theme.itemSizeMedium // topMenuLayerItem.edgeFilter.topRejectMargin except always set
+                    gradient: Gradient {
+                        GradientStop { position: 0; color: Theme.highlightColor }
+                        GradientStop { position: 1; color: "transparent" }
+                    }
+                }
+                Rectangle {
+                    anchors.right: parent.right
+                    height: parent.height
+                    width: Theme.itemSizeMedium
+                    gradient: Gradient {
+                        GradientStop { position: 0; color: Theme.highlightColor }
+                        GradientStop { position: 1; color: "transparent" }
+                    }
+                }
+
+                states: [
+                    State {
+                        name: "shown"
+                        when: appLayerItem.closingWindowId != 0
+                        PropertyChanges {
+                            target: closeAreaIndicator
+                            // triggered closing reverts briefly to peekfilter progress 0
+                            opacity: Theme.opacityHigh *
+                                     (appLayerItem.peekFilter.progress > 0 ? appLayerItem.peekFilter.progress : 1)
+                        }
+                    }
+                ]
+                transitions: [
+                    Transition {
+                        from: "shown"
+                        to: ""
+                        OpacityAnimator {
+                            target: closeAreaIndicator
+                            to: 0
+                            duration: 250
+                        }
+                    }
+                ]
+            }
         }
 
         Layer {
@@ -870,8 +934,8 @@ Compositor {
 
             BlurSource {
                 id: peekBlurSource
-                anchors.fill: parent
 
+                anchors.fill: parent
                 blur: (topMenuLayer.exposed
                         || launcherLayerItem.exposed
                         || unresponsiveApplicationDialog.windowVisible
@@ -1309,6 +1373,16 @@ Compositor {
 
         OverlayLayer {
             id: overlayLayer
+
+            // There's no notification for item flags, but the only known instances of
+            // ItemAcceptsInputMethod changing dynamically is the TextInput/Edit read only
+            // property. By including it in the binding we'll force a re-evaluation if
+            // the property both exists and changes.
+            activeFocusItem: root.activeFocusItem
+                             && !root.activeFocusItem.readOnly
+                             && JollaSystemInfo.itemAcceptsInputMethod(root.activeFocusItem)
+                             ? root.activeFocusItem
+                             : null
         }
     }
 
@@ -1321,6 +1395,8 @@ Compositor {
         id: notificationLayer
 
         property alias contentItem: notificationLayer
+        property alias overlayItem: notificationLayer
+        property int __compositor_is_layer  // Identifies this as a layer to OverlayLayer.qml
 
         anchors.fill: parent
 
@@ -1405,10 +1481,7 @@ Compositor {
         var isApplicationWindow = window.category == "" || window.category == "silica"
         var isWallpaperWindow = window.category === "wallpaper"
 
-        var component = null;
-        if (window.isInProcess) component = inProcWindowWrapper
-        else component = windowWrapper
-
+        var component = window.isInProcess ? inProcWindowWrapper : windowWrapper
         var properties = {
             'window': window,
             'parent': null
@@ -1549,7 +1622,7 @@ Compositor {
     onWindowRemoved: {
         if (debug) console.debug("\nCompositor: Window removed \"" + window.title + "\"")
 
-        var w = window.userData;
+        var w = window.userData
 
         if (!w) {
             return
@@ -1577,7 +1650,7 @@ Compositor {
         }
 
         if (topmostWindow == w) {
-            setCurrentWindow(root.obscuredWindow);
+            setCurrentWindow(root.obscuredWindow)
         }
 
         var closingIndex = windowsBeingClosed.indexOf(window.userData)
@@ -1639,12 +1712,26 @@ Compositor {
 
     onShowUnlockScreen: {
         if (!root.visible) {
-            showDeviceLock = true
+            pendingShowUnlockScreen = true // -> onDisplayAboutToBeOn in LockScreen.qml
+        } else if (!_displayWokenUp) {
+            pendingShowUnlockScreen = true // -> onDisplayOn below
         } else if (root.deviceIsLocked && !cameraLayerItem.active) {
+            pendingShowUnlockScreen = false
             root.unlock()
         }
     }
-    onDisplayOn: showDeviceLock = false
+    onDisplayOn: {
+        _displayWokenUp = true
+        if (pendingShowUnlockScreen) {
+            pendingShowUnlockScreen = false
+            pendingShowUnlockScreenTimer.start()
+        }
+    }
+    onPendingShowUnlockScreenChanged: {
+        if (!pendingShowUnlockScreen) {
+            pendingShowUnlockScreenTimer.stop()
+        }
+    }
 
     onDisplayAboutToBeOn: {
         _displayOn = true
@@ -1654,6 +1741,7 @@ Compositor {
     }
 
     onDisplayAboutToBeOff: {
+        _displayWokenUp = false
         if (lipstickSettings.blankingPolicy == "call" || lipstickSettings.blankingPolicy == "alarm") {
             currentAlarm = true
         }
@@ -1663,7 +1751,8 @@ Compositor {
         _displayOn = false
         root.PeekFilter.cancelGesture()
         displayOffAnimation.complete()
-        showDeviceLock = false
+        pendingShowUnlockScreen = false
+        pendingShowUnlockScreenTimer.stop()
         showApplicationOverLockscreen = Desktop.startupWizardRunning
         topMenuLayerItem.active = false
 
@@ -1683,6 +1772,12 @@ Compositor {
             // to the application.
             clearKeyboardFocus()
         }
+    }
+
+    Timer {
+        id: pendingShowUnlockScreenTimer
+        interval: 250 // As short as possible without the end result looking unintentional
+        onTriggered: root.showUnlockScreen()
     }
 
     Timer {
@@ -1723,7 +1818,7 @@ Compositor {
         ConfigurationValue {
             id: displayCursor
             key: "/desktop/sailfish/compositor/display_cursor"
-            defaultValue: false
+            defaultValue: true
         }
 
         Image {
@@ -1827,14 +1922,14 @@ Compositor {
         drag.target: screenshotButton
         drag.axis: Drag.XAndYAxis
         drag.minimumX: 0 - width * dragOverscan
-        drag.maximumX: SS.Screen.width - width * (1 - dragOverscan)
+        drag.maximumX: root.width - width * (1 - dragOverscan)
         drag.minimumY: 0 - height * dragOverscan
-        drag.maximumY: SS.Screen.height - height * (1 - dragOverscan)
+        drag.maximumY: root.height - height * (1 - dragOverscan)
 
         property bool active
         property bool snapping
-        readonly property real defaultX: (SS.Screen.width - width) * 0.50
-        readonly property real defaultY: (SS.Screen.height - height) * 0.75
+        readonly property real defaultX: (root.width - width) * 0.50
+        readonly property real defaultY: (root.height - height) * 0.75
         readonly property real dragOverscan: 0.4
         readonly property real hideOverscan: 0.3
         property var screenshotObject
@@ -1850,9 +1945,9 @@ Compositor {
         }
         function spotHidden() {
             if ((x + width * hideOverscan < 0)
-                || (x + width * (1 - hideOverscan) > SS.Screen.width)
+                || (x + width * (1 - hideOverscan) > root.width)
                 || (y + height * hideOverscan < 0)
-                || (y + height * (1 - hideOverscan) > SS.Screen.height)) {
+                || (y + height * (1 - hideOverscan) > root.height)) {
                 active = false
             }
         }

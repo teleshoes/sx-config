@@ -6,7 +6,6 @@ X-MeeGo-Translation-Catalog=jolla-camera
 Icon=icon-launcher-camera
 Exec=/usr/bin/jolla-camera
 Comment=Jolla Camera
-
 X-Desktop-File-Install-Version=0.26
 
 [X-Sailjail]

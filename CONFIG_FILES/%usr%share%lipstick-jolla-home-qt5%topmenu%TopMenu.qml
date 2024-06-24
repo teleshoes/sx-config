@@ -7,7 +7,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.5
+import QtQuick 2.6
 import Sailfish.Silica 1.0
 import Sailfish.Silica.private 1.0
 import Nemo.Notifications 1.0 as SystemNotifications
@@ -132,8 +132,15 @@ SilicaFlickable {
         id: column
         width: parent.width
         Item {
-            id: headerItem
+            id: topPadding
 
+            width: 1
+            height: Lipstick.compositor.topmostWindowOrientation === Qt.PortraitOrientation
+                    && Screen.topCutout.height > 0
+                    ? (Screen.topCutout.height + Theme.paddingSmall) : 0
+        }
+
+        Item {
             width: topMenu.width
             height: topMenu.itemSize
 
@@ -172,7 +179,7 @@ SilicaFlickable {
             Row {
                 id: shutdownOptions
 
-                y: Math.min(0, -height + topMenu.offset)
+                y: Math.min(0, -height - topPadding.height + topMenu.offset)
 
                 width: topMenu.width
                 height: topMenu.itemSize
@@ -214,8 +221,7 @@ SilicaFlickable {
             PowerButton {
                 id: lockButton
 
-                y: Math.min(0, -height + topMenu.offset)
-
+                y: Math.min(0, -height - topPadding.height + topMenu.offset)
                 width: topMenu.width
                 height: topMenu.itemSize
 
@@ -251,7 +257,7 @@ SilicaFlickable {
         Loader {
             id: shortcutsLoader
             width: parent.width
-            active: shortcutsEnabled.value || actionsEnabled.value ||  Desktop.showMultiSimSelector
+            active: shortcutsEnabled.value || actionsEnabled.value || Desktop.showMultiSimSelector
 
             ConfigurationValue {
                 id: shortcutsEnabled

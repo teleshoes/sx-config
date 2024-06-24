@@ -2,7 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import Sailfish.Policy 1.0
 import Sailfish.Settings.Networking 1.0 as Networking
-import MeeGo.Connman 0.2
+import Connman 0.2
 import Nemo.Configuration 1.0
 import Nemo.DBus 2.0
 import com.jolla.connection 1.0
@@ -39,7 +39,7 @@ SettingsToggle {
         if (!AccessPolicy.wlanToggleEnabled) {
             errorNotification.notify(SettingsControlError.BlockedByAccessPolicy)
         } else if (wifiTechnology.tethering) {
-            connectionAgent.stopTethering(true)
+            connectionAgent.stopTethering("wifi", true)
         } else {
             wifiTechnology.powered = !wifiTechnology.powered
             if (wifiTechnology.powered) {
