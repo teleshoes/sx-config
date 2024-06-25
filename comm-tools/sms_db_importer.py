@@ -1572,20 +1572,19 @@ def uniq(items):
       uniqItems.append(x)
   return uniqItems
 
-def regexMatch(pattern, string, flags=0):
+def convertToStr(string):
   if type(string) != str:
     string = string.decode("utf-8")
-  return re.match(pattern, string, flags)
+  return string
+
+def regexMatch(pattern, string, flags=0):
+  return re.match(pattern, convertToStr(string), flags)
 
 def regexSub(pattern, repl, string, count=0, flags=0):
-  if type(string) != str:
-    string = string.decode("utf-8")
-  return re.sub(pattern, repl, string, count, flags)
+  return re.sub(pattern, repl, convertToStr(string), count, flags)
 
 def regexSplit(pattern, string, maxsplit=0, flags=0):
-  if type(string) != str:
-    string = string.decode("utf-8")
-  return re.split(pattern, string, maxsplit, flags)
+  return re.split(pattern, convertToStr(string), maxsplit, flags)
 
 if __name__ == '__main__':
   main()
