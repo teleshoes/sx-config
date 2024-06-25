@@ -100,6 +100,7 @@ my %packages = (
     harbour-meecast
     harbour-meecast-daemon
     harbour-meecast-event
+    lipstick-jolla-home-qt5-weather-widget-settings
   )],
 
   "8-chum-use-zypper" => [qw(
