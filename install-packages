@@ -110,9 +110,9 @@ my %packages = (
     harbour-advanced-camera
     harbour-pure-maps
 
-    waydroid
-    waydroid-runner
   )],
+    #waydroid
+    #waydroid-runner
 );
 
 my @zypperForceInstallPackages = qw(
