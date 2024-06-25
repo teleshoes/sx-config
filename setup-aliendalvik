@@ -161,7 +161,7 @@ sub main(@){
   my $result = `ipmagic $IPMAGIC_NAME "ad '$permCmd'"`;
   print $result;
   if($result !~ /^start.*%SUCCESS%$/s){
-    die "ERROR: could not set perms\n";
+    die "ERROR: could not set perms\n$permCmd\n";
   }
 
   print "\n\n\ncreating .nomedia files\n";
