@@ -1573,7 +1573,7 @@ def uniq(items):
   return uniqItems
 
 def convertToStr(string):
-  if type(string) != str:
+  if type(string) == bytes:
     string = string.decode("utf-8")
   return string
 
