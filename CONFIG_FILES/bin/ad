@@ -29,7 +29,7 @@ my $SHELL_ENV_VARS_SH_FMT = join " ", map{"$_=$SHELL_ENV_VARS{$_}"}
 my $SHELL_ENV_VARS_USAGE_FMT = join " \\\n            ", map{"$_=$SHELL_ENV_VARS{$_}"}
   sort keys %SHELL_ENV_VARS;
 
-my $CONTAINER_NAME = "aliendalvik";
+my $CONTAINER_NAME = "default";
 my @LXC_PATHS = qw(
   /tmp/appsupport
   /var/lib/lxc
