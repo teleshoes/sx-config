@@ -61,6 +61,7 @@ my %packages = (
     cutes-js
     gpscon
     gstreamer1.0-tools
+    harbour-amazfish
     harbour-filetug
     harbour-gpsinfo
     harbour-jollacompass
