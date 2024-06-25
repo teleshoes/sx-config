@@ -1575,6 +1575,8 @@ def uniq(items):
 def convertToStr(string):
   if type(string) == bytes:
     string = string.decode("utf-8")
+  if type(string) != str:
+    string = str(string)
   return string
 
 def regexMatch(pattern, string, flags=0):
