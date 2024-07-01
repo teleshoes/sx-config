@@ -91,7 +91,11 @@ sub main(@){
   if($cmd eq $CMD_ENSURE_ATTACH){
     exec "screen-daemon", "hrmon", "--ensure-attach";
   }elsif($cmd eq $CMD_RUN){
-    exec $BLE_HRL_EXEC, "-b", "-v", "-m", $MAC;
+    exec $BLE_HRL_EXEC,
+      "-b",            #display battery
+      "-v",            #display rr
+      "-m", $MAC,      #device bt mac
+    ;
   }elsif($cmd eq $CMD_START){
     stopHrmon();
     run "screen-daemon", "hrmon", "--start";
