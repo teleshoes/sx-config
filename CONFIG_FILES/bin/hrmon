@@ -5,7 +5,9 @@ use warnings;
 sub stopHrmon();
 sub run(@);
 
-my $MAC = '00:22:D0:44:94:5A';
+my $MAC_H7 = '00:22:D0:44:94:5A';
+
+my $MAC = $MAC_H7;
 
 my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
