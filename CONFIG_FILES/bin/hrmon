@@ -96,6 +96,7 @@ sub main(@){
       "-v",            #display rr
       "-H", "0x0010",  #use handle 0x0010 to read BLE hr values
       "-C", "0x0011",  #use handle 0x0011 to request BLE hr values
+      "-t", "public",  #pass '-t public' to gatttool instead of '-t random'
       "-m", $MAC,      #device bt mac
     ;
   }elsif($cmd eq $CMD_START){
