@@ -5,6 +5,7 @@ use warnings;
 sub stopHrmon();
 sub run(@);
 
+my $MAC_H10 = 'A0:9E:1A:D0:56:2E';
 my $MAC_H7 = '00:22:D0:44:94:5A';
 
 my $MAC = $MAC_H7;
