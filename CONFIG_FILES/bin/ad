@@ -260,7 +260,7 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--shell|shell)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
-    }elsif($isFirstArg and $arg =~ /^(res|-res)$/){
+    }elsif($isFirstArg and $arg =~ /^(res|--res)$/){
       $mode = $MODE_RES;
     }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-2){
       $mode = $MODE_TAP;
