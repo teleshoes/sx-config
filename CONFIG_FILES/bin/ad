@@ -78,6 +78,12 @@ my $USAGE = "Usage:
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
 
+  $EXEC fuse|remount-fuse|--fuse|--remount-fuse
+    remount all fuse filesystems in android container
+    fixes out-of-sync /storage mounts for android_storage and external sdcards
+    (and symlinks like /sdcard)
+      -same as: $EXEC --shell 'mount -a -t fuse -o remount'
+
   $EXEC res|--res
     -get window info as in: $EXEC --shell dumpsys window
     -parse DisplayInfo.real
@@ -260,6 +266,10 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--shell|shell)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
+    }elsif($isFirstArg and $arg =~ /^(fuse|--fuse|remount-fuse|--remount-fuse)$/){
+      $mode = $MODE_SHELL;
+      $$opts{shellEnvWrapper} = 1;
+      @cmdArgs = ("mount -a -t fuse -o remount");
     }elsif($isFirstArg and $arg =~ /^(res|--res)$/){
       $mode = $MODE_RES;
     }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-2){
