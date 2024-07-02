@@ -91,6 +91,8 @@ sub restoreIniFile(){
   run "chown", "-R", $cr3UIDGID, $INI_DIR;
   run "setfacl", "-m", "group:$USER:rwx", $INI_DIR, $INI_FILE;
   run "chmod", "0660", $INI_FILE;
+
+  run "ad", "--remount-fuse";
 }
 
 sub checkIniFile(){
