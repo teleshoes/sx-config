@@ -18,6 +18,8 @@ my $DB_DIFFS_DIR = "$BACKUP_DIR/kexi-db/diffs";
 my $DB_EMPTY_FILE = "$BACKUP_DIR/kexi-db/empty.txt";
 my $DB_LATEST_FILE = "$BACKUP_DIR/kexi-db/latest.txt";
 
+my $REMOTE_BACKUP_DIR = "/home/$USER/.cache/workouts/backup-amazfish";
+
 sub main(@){
   my $nowMillis = nowMillis();
   my $nowFmt = time2str "%Y-%m-%d_%H%M%S", time();
@@ -61,6 +63,10 @@ sub main(@){
 
   print "\n===compressing $DB_LATEST_FILE\n";
   run "xz", $DB_LATEST_FILE;
+
+  print "\n=== syncing local cache => remote cache\n";
+  run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP", ":$REMOTE_KEXI_DB", $tmpDbKexi;
+  run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP", "$BACKUP_DIR/", ":$REMOTE_BACKUP_DIR/";
 }
 
 sub refreshLatest(){
