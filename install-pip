@@ -12,6 +12,7 @@ my @PIP_MODULES = qw(
   mpris-fakeplayer
   gehomesdk
   pexpect
+  pyjwt
 );
 
 my $EXEC = basename $0;
