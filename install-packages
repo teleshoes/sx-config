@@ -61,7 +61,6 @@ my %packages = (
     cutes-js
     gpscon
     gstreamer1.0-tools
-    harbour-amazfish
     harbour-filetug
     harbour-gpsinfo
     harbour-jollacompass
@@ -119,6 +118,7 @@ my @zypperForceInstallPackages = qw(
   perl-CPANPLUS
   python2-pyqt5
   lipstick2vnc
+  harbour-amazfish
 );
 
 my @groups = sort keys %packages;
