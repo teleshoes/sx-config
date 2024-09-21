@@ -34,6 +34,11 @@ my %SYMLINKS = (
     src => ".bashrc",
     dest => ".profile",
   },
+  "6vnclib" => {
+    dir => "/usr/lib64",
+    src => "libvncserver.so.1",
+    dest => "libvncserver.so.0",
+  },
 );
 my @SYMLINK_NAMES = sort keys %SYMLINKS;
 my %DIR = map {$_ => $SYMLINKS{$_}{dir}} @SYMLINK_NAMES;
