@@ -239,6 +239,8 @@ my $usage = "Usage:
           pkcon repo-set-data harbour-storeman-obs refresh-now true
       removals
         remove packages: @removals
+      killpkg
+        forcibly kill process packagekitd
       $groupCmdFmt
       force-install
         use zypper and expect to forcibly install: @zypperForceInstallPackages
@@ -257,7 +259,7 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-z|--zypper)$/){
       $useZypper = 1;
-    }elsif($arg =~ /^(removals|hosts|keys|repos|refresh|storeman-obs|force-install)$/){
+    }elsif($arg =~ /^(removals|hosts|keys|repos|refresh|killpkg|storeman-obs|force-install)$/){
       push @commands, $arg;
     }elsif($arg =~ /^(repo-\w+|refresh-\w+)$/){
       push @commands, $arg;
@@ -310,6 +312,8 @@ sub main(@){
     }elsif($command =~ /^refresh-(\w+)$/){
       tryrunIpmagicRoot "pkill", "packagekitd";
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
+    }elsif($command =~ /^killpkg$/){
+      tryrunIpmagicRoot "pkill", "-f", "packagekitd";
     }elsif($command =~ /^storeman-obs$/){
       runIpmagicRoot "ssu", "rr", "mentaljam-obs";
       runIpmagicRoot "rm", "-f", "/var/cache/ssu/features.ini";
