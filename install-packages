@@ -229,7 +229,6 @@ my $usage = "Usage:
         use pkcon to update package lists from repos
       refresh-<OPENREPOS_USERNAME>
         use zypper to update package lists for a single repo
-        CAUTION: before running zypper, kills packagekitd
       storeman-obs
         run:
           ssu rr mentaljam-obs
@@ -304,13 +303,11 @@ sub main(@){
       installRepos($1);
     }elsif($command =~ /^refresh$/){
       if($useZypper){
-        #tryrunIpmagicRoot "pkill", "packagekitd";
         runIpmagicRoot "zypper", "ref", "-f";
       }else{
         runIpmagicRoot "pkcon", "refresh";
       }
     }elsif($command =~ /^refresh-(\w+)$/){
-      tryrunIpmagicRoot "pkill", "packagekitd";
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
     }elsif($command =~ /^killpkg$/){
       tryrunIpmagicRoot "pkill", "-f", "packagekitd";
