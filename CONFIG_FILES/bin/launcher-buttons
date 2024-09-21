@@ -324,7 +324,7 @@ sub rearrangeLauncherButtons(){
 
   writeLipstickConfig(@configItems);
 
-  run "pkill lipstick";
+  run "udo systemctl --user restart lipstick";
 
   my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $activeDir;
 
