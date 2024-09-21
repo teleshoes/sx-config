@@ -260,7 +260,7 @@ sub main(@){
       $useZypper = 1;
     }elsif($arg =~ /^(removals|hosts|keys|repos|refresh|killpkg|storeman-obs|force-install)$/){
       push @commands, $arg;
-    }elsif($arg =~ /^(repo-\w+|refresh-\w+)$/){
+    }elsif($arg =~ /^(repo-[a-zA-Z0-9_\-]+|refresh-[a-zA-Z0-9_\-]+)$/){
       push @commands, $arg;
     }elsif(defined $packages{$arg}){
       push @commands, $arg;
@@ -299,7 +299,7 @@ sub main(@){
       }
     }elsif($command =~ /^repos$/){
       installRepos(@openrepos);
-    }elsif($command =~ /^repo-(\w+)$/){
+    }elsif($command =~ /^repo-([a-zA-Z0-9_\-]+)$/){
       installRepos($1);
     }elsif($command =~ /^refresh$/){
       if($useZypper){
@@ -307,7 +307,7 @@ sub main(@){
       }else{
         runIpmagicRoot "pkcon", "refresh";
       }
-    }elsif($command =~ /^refresh-(\w+)$/){
+    }elsif($command =~ /^refresh-([a-zA-Z0-9_\-]+)$/){
       my $repoName = "openrepos-$1";
       if($useZypper){
         runIpmagicRoot "zypper", "refresh", $repoName;
