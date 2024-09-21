@@ -27,7 +27,7 @@ my @BACKUPS = (
 
   [ 'REQ', 'CHK', "$SD_DROID/DCIM/OpenCamera",      "sd-phone-oc"],
 
-  [ 'REQ', 'CHK', "$ANDROID/DCIM/OpenCamera",       "int_oc"],
+  [ 'OPT', 'CHK', "$ANDROID/DCIM/OpenCamera",       "int_oc"],
 
   [ 'REQ', 'CHK', "$HOME/Pictures/Camera",          "int_sf"],
   [ 'REQ', 'CHK', "$HOME/Videos/Camera",            "int_sf_vid"],
