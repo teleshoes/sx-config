@@ -99,7 +99,6 @@ my %packages = (
   "7-weather" => [qw(
     harbour-meecast
     harbour-meecast-daemon
-    harbour-meecast-event
     lipstick-jolla-home-qt5-weather-widget-settings
   )],
 
@@ -121,6 +120,7 @@ my @zypperForceInstallPackages = qw(
   python2-pyqt5
   lipstick2vnc
   harbour-amazfish
+  harbour-meecast-event
 );
 
 my @groups = sort keys %packages;
