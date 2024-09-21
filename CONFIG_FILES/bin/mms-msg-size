@@ -73,6 +73,9 @@ sub main(@){
   }
 
   my @imsiList = getIMSIs();
+  if(@imsiList == 0){
+    die "ERROR: no IMSIs listed in dconf\n";
+  }
 
   for my $imsi(@imsiList){
     if(@imsiList > 1){
