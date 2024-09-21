@@ -76,6 +76,7 @@ my %packages = (
     jolla-mediaplayer
     jolla-notes
     jolla-calendar
+    libvncserver
     lipstick2vnc
     python2-dbus
     sailfish-office
