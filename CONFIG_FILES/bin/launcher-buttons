@@ -324,7 +324,7 @@ sub rearrangeLauncherButtons(){
 
   writeLipstickConfig(@configItems);
 
-  run "udo systemctl --user restart lipstick";
+  run "pkill -9 lipstick";
 
   my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $activeDir;
 
@@ -350,6 +350,8 @@ sub rearrangeLauncherButtons(){
 
   print "\n\nMISSING (not installed): @missing\n" if @missing > 0;
   print "\n\nREMOVED (newly installed): @removedNew\n" if @removedNew > 0;
+
+  run "udo systemctl --user restart lipstick";
 }
 
 sub createAndroidDesktopFiles(){
