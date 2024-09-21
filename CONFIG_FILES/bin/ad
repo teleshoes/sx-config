@@ -176,14 +176,14 @@ my $USAGE = "Usage:
   $EXEC -w|w|--wait TIMEOUT_SECONDS
   $EXEC --wait=TIMEOUT_SECONDS
     wait until aliendalvik is running
-    e.g.: $EXEC --wait 30 && echo OK || echo FAIL
-      -every 1s, check if aliendalvik is running as in `$EXEC --check-running`
-        -if TIMEOUT_SECONDS has transpired:
-          print error message and exit with exit code 1
-        -if `LXC_ATTACH_CMD` succeeded:
-          exit with exit code 0
-        -otherwise:
-          sleep for 1s and retry
+         e.g.: $EXEC --wait 30 && echo OK || echo FAIL
+    -every 1s, check if aliendalvik is running as in `$EXEC --check-running`
+      -if TIMEOUT_SECONDS has transpired:
+        print error message and exit with exit code 1
+      -if `LXC_ATTACH_CMD` succeeded:
+        exit with exit code 0
+      -otherwise:
+        sleep for 1s and retry
 
   $EXEC --check-running
     check if aliendalvik is running with `LXC_ATTACH_CMD`
