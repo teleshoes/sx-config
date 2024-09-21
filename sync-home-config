@@ -17,6 +17,7 @@ my @HOME_RSYNC_FILES = qw(
   wifi-auto.conf
 
   .config/gehomesdk.config
+  .config/ha.conf
   .config/midea.conf
   .config/predictit-markets.conf
   .config/tasmota.conf
