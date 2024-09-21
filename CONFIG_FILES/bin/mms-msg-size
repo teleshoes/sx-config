@@ -75,6 +75,9 @@ sub main(@){
   my @imsiList = getIMSIs();
 
   for my $imsi(@imsiList){
+    if(@imsiList > 1){
+      print "IMSI: $imsi\n";
+    }
     if($mode eq $MODE_GET){
       print formatSize(getSize($imsi));
     }elsif($mode eq $MODE_SET){
