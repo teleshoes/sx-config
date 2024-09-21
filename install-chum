@@ -1,69 +1,33 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 use Time::HiRes qw(time);
 
 my $IPMAGIC_NAME = "sx";
 
-my $CHUM_RPM_QUERY_URL_PREFIX =
-  "https://chumrpm.netlify.app/.netlify/functions/lambda/packages/";
-
-sub getRpmUrls($$);
 sub getRelease();
 sub getArch();
-sub nowMillis();
-sub run(@);
 
 sub main(@){
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
+  print "fetching release+arch\n";
   my $release = getRelease();
   my $arch = getArch();
 
-  my $rpms = getRpmUrls($release, $arch);
+  my $releaseMajMin = "$1.$2" if $release =~ /^(\d+)\.(\d+)/;
+  die "ERROR: could not parse release $release\n" if not defined $releaseMajMin;
 
-  my $nowMillis = nowMillis();
-  my $dir = "/tmp/install-chum-$nowMillis";
-  run "mkdir", "-p", $dir;
+  my $repoURL = "https://repo.sailfishos.org/obs/sailfishos:/chum/${releaseMajMin}_${arch}";
 
-  print "only installing chum-gui (seems to conflict with and not need chum now)\n";
-
-  #run "curl", $$rpms{chum}, "-o", "$dir/chum.rpm";
-  run "curl", $$rpms{gui}, "-o", "$dir/chum-gui.rpm";
-
-  run "scp",
-    #"$dir/chum.rpm",
-    "$dir/chum-gui.rpm",
-    "root\@$host:/tmp";
-
-  run "ipmagic $IPMAGIC_NAME -u root pkcon install-local -y /tmp/chum*.rpm";
-
-  run "ipmagic $IPMAGIC_NAME -u root rm /tmp/chum*.rpm";
-  run "rm", "-rf", $dir;
-}
-
-sub getRpmUrls($$){
-  my ($release, $arch) = @_;
-  my $queryUrl = "${CHUM_RPM_QUERY_URL_PREFIX}/${release}_${arch}";
-  my $out = `curl $queryUrl`;
-  chomp $out;
-  my $rpms = {};
-  if($out =~ /"chum":"(https:\/\/[^"]*\.rpm)"/){
-    $$rpms{chum} = $1;
-  }else{
-    die "ERROR: could not parse chum rpm from $queryUrl\n";
-  }
-  if($out =~ /"gui":"(https:\/\/[^"]*\.rpm)"/){
-    $$rpms{gui} = $1;
-  }else{
-    die "ERROR: could not parse chum rpm from $queryUrl\n";
-  }
-  return $rpms;
+  print "adding repo sailfishos-chum = $repoURL\n";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "ssu", "rr", "sailfishos-chum";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "ssu", "ar", "sailfishos-chum", $repoURL;
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "ssu", "ur";
 }
 
 sub getRelease(){
-  my $out = `ipmagic $IPMAGIC_NAME ssu release 2>/dev/null`;
+  my $out = `ipmagic $IPMAGIC_NAME -u root ssu release 2>/dev/null`;
   chomp $out;
   if($out =~ /^Device release is currently: (\d+[\.0-9]*)$/){
     return $1;
@@ -82,15 +46,6 @@ sub getArch(){
   }else{
     die "ERROR: could not get instruction bit length to guess arch\n";
   }
-}
-
-sub nowMillis(){
-  return int(time*1000.0 + 0.5);
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
 }
 
 &main(@ARGV);
