@@ -45,9 +45,15 @@ our @EXPORT = qw(
 
 sub ipmagicTest($$@){
   my ($ipmagicName, $ipmagicUser, @testArgs) = @_;
-  my $exitCode = tryrun("ipmagic", $ipmagicName, "-u", $ipmagicUser,
-    "test", @testArgs);
-  return $exitCode == 0 ? 1 : 0;
+  my @testCmd = ("ipmagic", $ipmagicName, "-u", $ipmagicUser, "test", @testArgs);
+  my $exitCode = tryrun @testCmd;
+  if($exitCode == 0){
+    return 1;
+  }elsif($exitCode == 1){
+    return 0;
+  }else{
+    die "ERROR: could not run '@testCmd' (result not TRUE or FALSE)\n";
+  }
 }
 
 sub getIpmagicBlockDevUUID($$){
