@@ -25,6 +25,7 @@ my %MODULES = (
     Parallel::ForkManager
   )],
   utils => [qw(
+    DateTime
     XML::LibXML
   )],
 );
