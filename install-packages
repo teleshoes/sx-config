@@ -10,6 +10,7 @@ sub installPackages($@);
 sub installRepos(@);
 sub zypperForceInstall($);
 sub getZypperForceInstallExpect($);
+sub getRepoNames();
 sub run(@);
 sub tryrun(@);
 sub runIpmagicRoot(@);
@@ -227,8 +228,10 @@ my $usage = "Usage:
         use ssu to install a single openrepos repository
       refresh
         use pkcon to update package lists from repos
-      refresh-<OPENREPOS_USERNAME>
-        use zypper to update package lists for a single repo
+      refresh-<REPO_NAME>
+        use pkcon or zypper to update package lists for a single repo
+        REPO_NAME can be a repo name (e.g.: \"openrepos-jsmith\"),
+          or an existing OPENREPOS_USERNAME (e.g.: \"jsmith\")
       storeman-obs
         run:
           ssu rr mentaljam-obs
@@ -308,7 +311,12 @@ sub main(@){
         runIpmagicRoot "pkcon", "refresh";
       }
     }elsif($command =~ /^refresh-([a-zA-Z0-9_\-]+)$/){
-      my $repoName = "openrepos-$1";
+      my $repoName = $1;
+      my %okRepos = map {$_ => 1} getRepoNames();
+      if(not defined $okRepos{$repoName} and defined $okRepos{"openrepos-$repoName"}){
+        $repoName = "openrepos-$repoName";
+      }
+
       if($useZypper){
         runIpmagicRoot "zypper", "refresh", $repoName;
       }else{
@@ -383,6 +391,17 @@ sub getZypperForceInstallExpect($){
     . "  eof\n"
     . "}\n"
     ;
+}
+
+sub getRepoNames(){
+  my @ssuRepoLines = `ipmagic $ipmagicName -u root ssu lr`;
+  my @repos;
+  for my $line(@ssuRepoLines){
+    if($line =~ /^\s*-\s*([a-zA-Z0-9_\-]+)\s+/){
+      push @repos, $1;
+    }
+  }
+  return @repos;
 }
 
 sub run(@){
