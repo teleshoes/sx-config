@@ -77,7 +77,6 @@ my %packages = (
     jolla-notes
     jolla-calendar
     libvncserver
-    lipstick2vnc
     python2-dbus
     sailfish-office
     youtube-dl
@@ -119,6 +118,7 @@ my %packages = (
 my @zypperForceInstallPackages = qw(
   perl-CPANPLUS
   python2-pyqt5
+  lipstick2vnc
 );
 
 my @groups = sort keys %packages;
