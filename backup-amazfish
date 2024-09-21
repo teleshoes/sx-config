@@ -30,6 +30,11 @@ sub main(@){
 
   my $destDiff = "$DB_DIFFS_DIR/diff-$nowFmt";
 
+  if(not ipmagicTest $IPMAGIC_NAME, $USER, "-d", $REMOTE_DIR){
+    print STDERR "\n\n\n!!!!!\n\n\nWARNING: $REMOTE_DIR does not exist, skipping backup\n";
+    exit 0;
+  }
+
   print "\n=== amazfish: fetching workouts\n";
   run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP",
     "--exclude=amazfish.kexi",
