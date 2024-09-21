@@ -301,9 +301,12 @@ sub main(@){
     }elsif($command =~ /^repo-(\w+)$/){
       installRepos($1);
     }elsif($command =~ /^refresh$/){
-      runIpmagicRoot "pkcon", "refresh";
-      #tryrunIpmagicRoot "pkill", "packagekitd";
-      #runIpmagicRoot "zypper", "ref", "-f";
+      if($useZypper){
+        #tryrunIpmagicRoot "pkill", "packagekitd";
+        runIpmagicRoot "zypper", "ref", "-f";
+      }else{
+        runIpmagicRoot "pkcon", "refresh";
+      }
     }elsif($command =~ /^refresh-(\w+)$/){
       tryrunIpmagicRoot "pkill", "packagekitd";
       runIpmagicRoot "zypper", "refresh", "openrepos-$1";
