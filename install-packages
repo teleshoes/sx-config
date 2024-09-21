@@ -103,6 +103,7 @@ my %packages = (
   )],
 
   "8-chum-use-zypper" => [qw(
+    sailfishos-chum-gui
     wget
     rpmrebuild
 
