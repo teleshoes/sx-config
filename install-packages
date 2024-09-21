@@ -308,7 +308,12 @@ sub main(@){
         runIpmagicRoot "pkcon", "refresh";
       }
     }elsif($command =~ /^refresh-(\w+)$/){
-      runIpmagicRoot "zypper", "refresh", "openrepos-$1";
+      my $repoName = "openrepos-$1";
+      if($useZypper){
+        runIpmagicRoot "zypper", "refresh", $repoName;
+      }else{
+        runIpmagicRoot "pkcon", "repo-set-data", $repoName, "refresh-now", "true";
+      }
     }elsif($command =~ /^killpkg$/){
       tryrunIpmagicRoot "pkill", "-f", "packagekitd";
     }elsif($command =~ /^storeman-obs$/){
