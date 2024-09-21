@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 my $ipmagicName = "sx";
+my $USER = "root";
 
 sub run(@);
 
@@ -44,17 +45,18 @@ my $usage = "Usage:
 sub main(@){
   die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
 
-  run "ipmagic", $ipmagicName, "cpanp 's conf pushy_https 0; s save'";
-  run "ipmagic", $ipmagicName, "cpanp 's conf prereqs 1; s save'";
+  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf pushy_https 0; s save'";
+  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf prereqs 1; s save'";
 
-  run "ipmagic", $ipmagicName, ''
+  run "ipmagic", $ipmagicName, "-u", $USER, ''
     . '( echo;'
     . '  echo o conf pushy_https 0;'
     . '  echo o conf prerequisites_policy follow;'
     . '  echo o conf commit;'
     . ') | cpan';
 
-  run "ipmagic", $ipmagicName, "perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
+  run "ipmagic", $ipmagicName, "-u", $USER,
+    "perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
 
   my @groups = @_;
   @groups = @GROUPS if @_ == 0;
@@ -62,7 +64,11 @@ sub main(@){
     die "$usage\n\nunknown module group: $group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
 
-    run "ipmagic", $ipmagicName, "cpan -T install @modules";
+    my @cpanInstallArgs = ("install", @modules);
+    my $cpanInstallArgStr = join ", ", map {"'$_'"} @cpanInstallArgs;
+
+    run "ipmagic", $ipmagicName, "-u", $USER,
+      "perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
   }
 }
 
