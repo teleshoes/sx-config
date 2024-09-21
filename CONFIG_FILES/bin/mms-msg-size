@@ -72,16 +72,19 @@ sub main(@){
     }
   }
 
+  my @imsiList = getIMSIs();
 
-  if($mode eq $MODE_GET){
-    print formatSize(getSize($_)) foreach getIMSIs();
-  }elsif($mode eq $MODE_SET){
-    print formatSize(getSize($_)) foreach getIMSIs();
-    setSize($_, $sizeBytes) foreach getIMSIs();
-    print " =>\n";
-    print formatSize(getSize($_)) foreach getIMSIs();
-  }else{
-    die "ERROR: unknown mode $mode\n";
+  for my $imsi(@imsiList){
+    if($mode eq $MODE_GET){
+      print formatSize(getSize($imsi));
+    }elsif($mode eq $MODE_SET){
+      print formatSize(getSize($imsi));
+      setSize($imsi, $sizeBytes);
+      print " =>\n";
+      print formatSize(getSize($imsi));
+    }else{
+      die "ERROR: unknown mode $mode\n";
+    }
   }
 }
 
