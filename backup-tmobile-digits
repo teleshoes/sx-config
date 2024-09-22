@@ -35,6 +35,13 @@ sub main(@){
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
+
+  if(not ipmagicTest $IPMAGIC_NAME, $USER, "-f", $REMOTE_DIGITS_DB_FILE){
+    print STDERR "\n\n\n!!!!! SKIPPING T-MOBILE DIGITS BACKUP\n\n\n";
+    print "WARNING: $REMOTE_DIGITS_DB_FILE does not exist\n";
+    exit 0;
+  }
+
   runQuiet "mkdir", "-p", $BACKUP_DIGITS_DB_DIR;
 
   my $nowMillis = nowMillis();
