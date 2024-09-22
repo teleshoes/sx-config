@@ -26,6 +26,11 @@ sub rotateArchiveDays($){
   my @files = glob "$LOG_DIR/$logName/$logName-*.log";
   my $filesByDate = {};
 
+  if(@files == 0){
+    print "skipping empty log $logName\n";
+    return;
+  }
+
   my $lastFile = $files[-1];
   my $lastMillis = $1 if $lastFile =~ /$logName-(\d+)\.log$/;
   die "ERROR: malformed file $lastFile\n" if not defined $lastMillis;
