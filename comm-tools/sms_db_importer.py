@@ -537,8 +537,8 @@ class MMS:
         relFilepath = p.filepath
         relFilepath = regexSub('^' + REMOTE_MMS_PARTS_DIR + '/', '', relFilepath)
         filename = relFilepath
-        filename = regexSub('^\d+/', '', filename)
-        filename = regexSub('^msg-\d+-\d+/', '', filename)
+        filename = regexSub(r'^\d+/', '', filename)
+        filename = regexSub(r'^msg-\d+-\d+/', '', filename)
         if "/" in filename:
           print("filename contains path sep '/': " + filename)
           quit(1)
@@ -549,7 +549,7 @@ class MMS:
         #attempt to find renamed event-id dirs
         if not os.path.isfile(localFilepath):
           newPartDirFiles = []
-          m = regexMatch('^(\d+)/', relFilepath)
+          m = regexMatch(r'^(\d+)/', relFilepath)
           if m:
             oldEventId = m.group(1)
             newPartDirFiles = glob.glob(
@@ -559,7 +559,7 @@ class MMS:
           match = None
           for newPartDirFile in newPartDirFiles:
             mtimeMillis = None
-            m = regexMatch('^.*/msg-(\d+)-\d+/', newPartDirFile)
+            m = regexMatch(r'^.*/msg-(\d+)-\d+/', newPartDirFile)
             if m:
               mtimeMillis = 1000 * int(m.group(1))
               diff = self.date_millis - mtimeMillis
@@ -624,9 +624,9 @@ class MMS:
 
     infoDict = {}
     for line in lines:
-      if regexMatch('^\s*$', line):
+      if regexMatch(r'^\s*$', line):
         continue
-      m = regexMatch('^(from|to|dir|date|date_sent|subject|body|att|checksum)=(.*)$', line)
+      m = regexMatch(r'^(from|to|dir|date|date_sent|subject|body|att|checksum)=(.*)$', line)
       if m:
         key = m.group(1)
         val = m.group(2)
@@ -697,7 +697,7 @@ def cleanNumber(number):
 def maybePrependUSANumber(number):
   if number == None:
     number = ''
-  if regexMatch('^\d{10}$', number):
+  if regexMatch(r'^\d{10}$', number):
     number = '+1' + number
   return number
 
@@ -791,7 +791,7 @@ def readTextsFromCommHistory(db_file):
     date_millis = date_end_millis
     date_sent_millis = date_start_millis
 
-    if external_date_millis != None and regexMatch('^\d+$', external_date_millis):
+    if external_date_millis != None and regexMatch(r'^\d+$', external_date_millis):
       old_date_millis = date_millis
       date_millis = int(external_date_millis)
       if int(old_date_millis/1000) != int(date_millis/1000):
@@ -799,7 +799,7 @@ def readTextsFromCommHistory(db_file):
           + external_date_millis + " for event_id " + event_id)
         quit(1)
 
-    if external_date_sent_millis != None and regexMatch('^\d+$', external_date_sent_millis):
+    if external_date_sent_millis != None and regexMatch(r'^\d+$', external_date_sent_millis):
       old_date_sent_millis = date_sent_millis
       date_sent_millis = int(external_date_sent_millis)
       if int(old_date_sent_millis/1000) != int(date_sent_millis/1000):
@@ -863,7 +863,7 @@ def readCallsFromCommHistory(db_file):
     date_millis = date_start_millis
     durationSex = int((date_end_millis - date_start_millis)/1000)
 
-    if external_date_millis != None and regexMatch('^\d+$', external_date_millis):
+    if external_date_millis != None and regexMatch(r'^\d+$', external_date_millis):
       old_date_millis = date_millis
       date_millis = int(external_date_millis)
       if int(old_date_millis/1000) != int(date_millis/1000):
@@ -988,7 +988,7 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
     date_millis = date_end_millis
     date_sent_millis = date_start_millis
 
-    if external_date_millis != None and regexMatch('^\d+$', external_date_millis):
+    if external_date_millis != None and regexMatch(r'^\d+$', external_date_millis):
       old_date_millis = date_millis
       date_millis = int(external_date_millis)
       if int(old_date_millis/1000) != int(date_millis/1000):
@@ -996,7 +996,7 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
           + external_date_millis + " for event_id " + event_id)
         quit(1)
 
-    if external_date_sent_millis != None and regexMatch('^\d+$', external_date_sent_millis):
+    if external_date_sent_millis != None and regexMatch(r'^\d+$', external_date_sent_millis):
       old_date_sent_millis = date_sent_millis
       date_sent_millis = int(external_date_sent_millis)
       if int(old_date_sent_millis/1000) != int(date_sent_millis/1000):
@@ -1033,7 +1033,7 @@ def readMMSFromCommHistory(db_file, mms_parts_dir, skipChecksums=False):
       if m:
         nums = regexSplit(r'[\+\u001E]+', m.group(1))
         for num in nums:
-          if num != None and regexMatch('\d', num):
+          if num != None and regexMatch(r'\d', num):
             msg.to_numbers.append(cleanNumber(num))
 
     msgs[event_id] = msg
