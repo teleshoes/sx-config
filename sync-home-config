@@ -142,11 +142,11 @@ sub main(@){
 
 sub ipmagic($$@){
   my ($ipmagicName, $user, @cmd) = @_;
-  run "ipmagic", $ipmagicName, "-u", $user, @cmd;
+  run "ipmagic", $ipmagicName, "-u", $user, "--sshc", @cmd;
 }
 sub rsync($$@){
   my ($ipmagicName, $user, @cmd) = @_;
-  run "ipmagic", $ipmagicName, "-u", $user, "--rsync", @cmd;
+  run "ipmagic", $ipmagicName, "-u", $user, "--sshc", "--rsync", @cmd;
 }
 
 sub run(@){
