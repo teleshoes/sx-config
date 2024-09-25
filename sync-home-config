@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 sub ipmagic($$@);
+sub rsync($$@);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
@@ -112,26 +113,26 @@ sub main(@){
 
   print "\n\n===RSYNC /usr/local/bin FILES\n";
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
-  run("ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", @usrlocalbinFiles, ":$USRLOCALBIN_REMOTE_DIR/");
+  rsync($IPMAGIC_NAME, "root", "-avP", @usrlocalbinFiles, ":$USRLOCALBIN_REMOTE_DIR/");
 
   print "\n\n===RSYNC ~/bin FILES\n";
-  run("ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "$HOMEBIN_LOCAL_DIR/", ":$HOMEBIN_REMOTE_DIR/",
+  rsync($IPMAGIC_NAME, $USER, "-avP", "$HOMEBIN_LOCAL_DIR/", ":$HOMEBIN_REMOTE_DIR/",
     map{"--exclude=$_"} @HOMEBIN_EXCLUDES);
 
   print "\n\n===RSYNC HOME FILES\n";
   for my $file(@HOME_RSYNC_FILES){
-    run("ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "$ENV{HOME}/$file", ":~/$file");
-    run("ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", "$ENV{HOME}/$file", ":~/$file");
+    rsync($IPMAGIC_NAME, $USER, "-avP", "$ENV{HOME}/$file", ":~/$file");
+    rsync($IPMAGIC_NAME, "root", "-avP", "$ENV{HOME}/$file", ":~/$file");
   }
 
   print "\n\n===RSYNC SPECIAL FILES\n";
   for my $rsync(@SPECIAL_USER_RSYNCS){
     my ($src, $dest, $extraRsyncArgs) = @$rsync;
-    run("ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", @$extraRsyncArgs, $src, ":$dest");
+    rsync($IPMAGIC_NAME, $USER, "-avP", @$extraRsyncArgs, $src, ":$dest");
   }
   for my $rsync(@SPECIAL_ROOT_RSYNCS){
     my ($src, $dest, $extraRsyncArgs) = @$rsync;
-    run("ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", @$extraRsyncArgs, $src, ":$dest");
+    rsync($IPMAGIC_NAME, "root", "-avP", @$extraRsyncArgs, $src, ":$dest");
   }
 
   print "\n\n===FINAL COMMANDS\n";
@@ -142,6 +143,10 @@ sub main(@){
 sub ipmagic($$@){
   my ($ipmagicName, $user, @cmd) = @_;
   run "ipmagic", $ipmagicName, "-u", $user, @cmd;
+}
+sub rsync($$@){
+  my ($ipmagicName, $user, @cmd) = @_;
+  run "ipmagic", $ipmagicName, "-u", $user, "--rsync", @cmd;
 }
 
 sub run(@){
