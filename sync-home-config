@@ -104,7 +104,7 @@ sub main(@){
   die "Usage: $0\n" if @_ > 0;
 
   print "making sure $IPMAGIC_NAME is ssh-able\n";
-  system "ipmagic", $IPMAGIC_NAME, "-s", "echo found $IPMAGIC_NAME!\n";
+  ipmagic($IPMAGIC_NAME, $USER, "echo found $IPMAGIC_NAME!\n");
   die "failed" if $? != 0;
 
   print "\n\n===INITIAL COMMANDS\n";
