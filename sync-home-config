@@ -104,35 +104,32 @@ sub main(@){
   system "ipmagic", $IPMAGIC_NAME, "-s", "echo found $IPMAGIC_NAME!\n";
   die "failed" if $? != 0;
 
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
   print "\n\n===INITIAL COMMANDS\n";
   run "ipmagic", $IPMAGIC_NAME, "-u", $USER, $INITIAL_USER_CMD;
   run "ipmagic", $IPMAGIC_NAME, "-u", "root", $INITIAL_ROOT_CMD;
 
   print "\n\n===RSYNC /usr/local/bin FILES\n";
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
-  run "rsync", "-avP", @usrlocalbinFiles, "root\@$host:$USRLOCALBIN_REMOTE_DIR/";
+  run("ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", @usrlocalbinFiles, ":$USRLOCALBIN_REMOTE_DIR/");
 
   print "\n\n===RSYNC ~/bin FILES\n";
-  run "rsync", "-avP", "$HOMEBIN_LOCAL_DIR/", "$USER\@$host:$HOMEBIN_REMOTE_DIR/",
-    map{"--exclude=$_"} @HOMEBIN_EXCLUDES;
+  run("ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "$HOMEBIN_LOCAL_DIR/", ":$HOMEBIN_REMOTE_DIR/",
+    map{"--exclude=$_"} @HOMEBIN_EXCLUDES);
 
   print "\n\n===RSYNC HOME FILES\n";
   for my $file(@HOME_RSYNC_FILES){
-    run "rsync", "-avP", "$ENV{HOME}/$file", "$USER\@$host:~/$file";
-    run "rsync", "-avP", "$ENV{HOME}/$file", "root\@$host:~/$file";
+    run("ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "$ENV{HOME}/$file", ":~/$file");
+    run("ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", "$ENV{HOME}/$file", ":~/$file");
   }
 
   print "\n\n===RSYNC SPECIAL FILES\n";
   for my $rsync(@SPECIAL_USER_RSYNCS){
     my ($src, $dest, $extraRsyncArgs) = @$rsync;
-    run "rsync", "-avP", @$extraRsyncArgs, $src, "$USER\@$host:$dest";
+    run("ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", @$extraRsyncArgs, $src, ":$dest");
   }
   for my $rsync(@SPECIAL_ROOT_RSYNCS){
     my ($src, $dest, $extraRsyncArgs) = @$rsync;
-    run "rsync", "-avP", @$extraRsyncArgs, $src, "root\@$host:$dest";
+    run("ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", @$extraRsyncArgs, $src, ":$dest");
   }
 
   print "\n\n===FINAL COMMANDS\n";
