@@ -23,6 +23,7 @@ my @HOME_RSYNC_FILES = qw(
   .config/tasmota.conf
   .config/wemo-devices.conf
 
+  .cache/workouts/viewfit-workouts-json/
   .cache/workouts/viewfit-workouts-combine
   .cache/workouts/viewfit-workouts-extra-info
 
