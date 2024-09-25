@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 
+sub ipmagic($$@);
+
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 my $COMM_TOOLS_DIR = "$ENV{HOME}/Code/sx/comm-tools";
@@ -105,8 +107,8 @@ sub main(@){
   die "failed" if $? != 0;
 
   print "\n\n===INITIAL COMMANDS\n";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, $INITIAL_USER_CMD;
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", $INITIAL_ROOT_CMD;
+  ipmagic($IPMAGIC_NAME, $USER, $INITIAL_USER_CMD);
+  ipmagic($IPMAGIC_NAME, "root", $INITIAL_ROOT_CMD);
 
   print "\n\n===RSYNC /usr/local/bin FILES\n";
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
@@ -133,8 +135,13 @@ sub main(@){
   }
 
   print "\n\n===FINAL COMMANDS\n";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, $FINAL_USER_CMD;
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", $FINAL_ROOT_CMD;
+  ipmagic($IPMAGIC_NAME, $USER, $FINAL_USER_CMD);
+  ipmagic($IPMAGIC_NAME, "root", $FINAL_ROOT_CMD);
+}
+
+sub ipmagic($$@){
+  my ($ipmagicName, $user, @cmd) = @_;
+  run "ipmagic", $ipmagicName, "-u", $user, @cmd;
 }
 
 sub run(@){
