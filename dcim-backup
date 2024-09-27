@@ -103,6 +103,12 @@ sub main(@){
     if($checkType =~ /CHK/){
       if($$opts{quick}){
         print "SKIP check-missing for $remoteDCIM [QUICK]\n";
+      }elsif(not remoteDirExists $remoteDCIM){
+        if($reqType eq 'OPT'){
+          print "SKIP check-missing for $remoteDCIM [OPT dir not present]\n";
+        }else{
+          die "ERROR: missing $reqType dir $remoteDCIM\n";
+        }
       }else{
         checkMissing($LOCAL_DIR, $remoteDCIM);
       }
