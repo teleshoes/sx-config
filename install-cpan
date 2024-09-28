@@ -28,6 +28,7 @@ my %MODULES = (
   utils => [qw(
     DateTime
     XML::LibXML
+    Cpanel::JSON::XS
   )],
 );
 my @GROUPS = sort keys %MODULES;
