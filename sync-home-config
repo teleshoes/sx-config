@@ -27,6 +27,8 @@ my @HOME_RSYNC_FILES = qw(
   .config/wemo-devices.conf
 
   .cache/workouts/viewfit-workouts-json/
+  .cache/workouts/hr-cache-amazfish/
+  .cache/workouts/hr-cache-hrmon/
   .cache/workouts/viewfit-workouts-combine
   .cache/workouts/viewfit-workouts-extra-info
 
