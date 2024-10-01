@@ -133,23 +133,19 @@ my $RSYNCS_ARR = [
     dest => "/media/sdcard/phone/ddr-videos/",
     args => ["-avP"],
   },
-  sheet_shows_1080p => {
+  sheet_music => {
     user => $USER,
-    src  => "$ENV{HOME}/Music/sheet_music/shows/sheet_1080p/",
-    dest => "/media/sdcard/phone/sheet_music/shows/sheet_1080p/",
-    args => ["-avP"],
-  },
-  sheet_shows_music => {
-    user => $USER,
-    src  => "$ENV{HOME}/Music/sheet_music/shows/music/",
-    dest => "/media/sdcard/phone/sheet_music/shows/music/",
-    args => ["-avP"],
-  },
-  sheet_trumpet => {
-    user => $USER,
-    src  => "$ENV{HOME}/Music/sheet_music/trumpet/",
-    dest => "/media/sdcard/phone/sheet_music/trumpet/",
-    args => ["-avP"],
+    src  => "$ENV{HOME}/Music/sheet_music/",
+    dest => "/media/sdcard/phone/sheet_music/",
+    args => [
+      "-avP", "-O",
+      "--include=shows/",
+      "--include=trumpet/",
+      "--include=shows/sheet_1080p/***",
+      "--include=shows/music/***",
+      "--include=trumpet/***",
+      "--exclude=**",
+    ],
   },
   alarms => {
     user => $USER,
