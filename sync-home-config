@@ -121,7 +121,7 @@ my $RSYNCS_ARR = [
     args => ["-avP"],
   },
 
-  #transform symlinks to referent file/dir
+  #transform symlinks to referent file/dir with -L
   ipmagic_unsymlink => {
     user => $USER,
     src  => "$ENV{HOME}/.config/ipmagic/",
