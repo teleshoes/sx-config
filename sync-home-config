@@ -6,6 +6,7 @@ use List::Util qw(uniq);
 sub ipmagic($$@);
 sub rsync($$@);
 sub getAllParentDirs($);
+sub run(@);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
@@ -178,8 +179,6 @@ my $RSYNCS_ARR = [
 
 my %RSYNCS = @$RSYNCS_ARR;
 my @RSYNC_NAME_ORDER = map {$$RSYNCS_ARR[$_]} grep {$_ % 2 == 0} (0..$#$RSYNCS_ARR);
-
-sub run(@);
 
 sub main(@){
   die "Usage: $0\n" if @_ > 0;
