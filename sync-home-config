@@ -65,56 +65,56 @@ my @HOMEBIN_EXCLUDES = qw(
   touchClick
 );
 
-my @RSYNCS = (
-  {
+my $RSYNCS_ARR = [
+  robinhood => {
     user => $USER,
     src  => "$ENV{HOME}/.cache/robinhood/",
     dest => "/home/$USER/.cache/robinhood/",
     args => ["-avP"],
   },
-  {
+  klomp_config => {
     user => $USER,
     src  => "$ENV{HOME}/.klomp/config-$IPMAGIC_NAME",
     dest => "/media/sdcard/phone/klomp/config",
     args => ["-avP"],
   },
-  {
+  klomp_lib => {
     user => $USER,
     src  => "$ENV{HOME}/.klomp/lib-$IPMAGIC_NAME",
     dest => "/media/sdcard/phone/klomp/lib",
     args => ["-avP"],
   },
-  {
+  ddr_videos => {
     user => $USER,
     src  => "$ENV{HOME}/DCIM/xddr/videos/good/",
     dest => "/media/sdcard/phone/ddr-videos/",
     args => ["-avP"],
   },
-  {
+  sheet_shows_1080p => {
     user => $USER,
     src  => "$ENV{HOME}/Music/sheet_music/shows/sheet_1080p/",
     dest => "/media/sdcard/phone/sheet_music/shows/sheet_1080p/",
     args => ["-avP"],
   },
-  {
+  sheet_shows_music => {
     user => $USER,
     src  => "$ENV{HOME}/Music/sheet_music/shows/music/",
     dest => "/media/sdcard/phone/sheet_music/shows/music/",
     args => ["-avP"],
   },
-  {
+  sheet_trumpet => {
     user => $USER,
     src  => "$ENV{HOME}/Music/sheet_music/trumpet/",
     dest => "/media/sdcard/phone/sheet_music/trumpet/",
     args => ["-avP"],
   },
-  {
+  alarms => {
     user => $USER,
     src  => "/usr/share/alarms/",
     dest => "/media/sdcard/phone/alarms/",
     args => ["-avP"],
   },
-  {
+  sounds => {
     user => $USER,
     src  => "/usr/share/sounds/custom/",
     dest => "/media/sdcard/phone/sounds/",
@@ -122,20 +122,23 @@ my @RSYNCS = (
   },
 
   #transform symlinks to referent file/dir
-  {
+  ipmagic_unsymlink => {
     user => $USER,
     src  => "$ENV{HOME}/.config/ipmagic/",
     dest => "/home/$USER/.config/ipmagic/",
     args => ["-avP", "-L"],
   },
 
-  {
+  sms_db_importer => {
     user => "root",
     src  => "$COMM_TOOLS_DIR/sms_db_importer.py",
     dest => "$USRLOCALBIN_REMOTE_DIR/",
     args => ["-avP"],
   },
-);
+];
+
+my %RSYNCS = @$RSYNCS_ARR;
+my @RSYNC_NAME_ORDER = map {$$RSYNCS_ARR[$_]} grep {$_ % 2 == 0} (0..$#$RSYNCS_ARR);
 
 my $INITIAL_USER_CMD = "
   echo ok
@@ -195,7 +198,8 @@ sub main(@){
   );
 
   print "\n\n===RSYNC FILES\n";
-  for my $rsyncInfo(@RSYNCS){
+  for my $rsyncName(@RSYNC_NAME_ORDER){
+    my $rsyncInfo = $RSYNCS{$rsyncName};
     rsync($IPMAGIC_NAME, $$rsyncInfo{user},
       @{$$rsyncInfo{args}},
       "$$rsyncInfo{src}",
