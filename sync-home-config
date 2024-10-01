@@ -91,9 +91,6 @@ my $FINAL_USER_CMD = "
 ";
 
 my $INITIAL_ROOT_CMD = "
-  if [ -L /root/bin ]; then rm -f /root/bin; fi && \
-  if [ -d /root/bin ]; then rmdir /root/bin; fi && \
-  ln -s /home/$USER/bin/ /root/bin && \
   echo ok
 ";
 my $FINAL_ROOT_CMD = "
