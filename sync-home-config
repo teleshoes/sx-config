@@ -84,8 +84,6 @@ my @SPECIAL_ROOT_RSYNCS = (
 );
 
 my $INITIAL_USER_CMD = "
-  mkdir -p /home/$USER/.config/qtemail && \
-  mkdir -p /home/$USER/.cache/workouts && \
   echo ok
 ";
 my $FINAL_USER_CMD = "
@@ -93,11 +91,9 @@ my $FINAL_USER_CMD = "
 ";
 
 my $INITIAL_ROOT_CMD = "
-  mkdir -p /root/.config/qtemail && \
   if [ -L /root/bin ]; then rm -f /root/bin; fi && \
   if [ -d /root/bin ]; then rmdir /root/bin; fi && \
   ln -s /home/$USER/bin/ /root/bin && \
-  mkdir -p /root/.cache/workouts && \
   echo ok
 ";
 my $FINAL_ROOT_CMD = "
