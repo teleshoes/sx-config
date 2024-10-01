@@ -65,7 +65,7 @@ my @HOMEBIN_EXCLUDES = qw(
   touchClick
 );
 
-my @SPECIAL_USER_RSYNCS = (
+my @SPECIAL_RSYNCS = (
   [$USER, "$ENV{HOME}/.cache/robinhood/", "/home/$USER/.cache/robinhood/", []],
   [$USER, "$ENV{HOME}/.klomp/config-$IPMAGIC_NAME", "/media/sdcard/phone/klomp/config", []],
   [$USER, "$ENV{HOME}/.klomp/lib-$IPMAGIC_NAME", "/media/sdcard/phone/klomp/lib", []],
@@ -78,8 +78,7 @@ my @SPECIAL_USER_RSYNCS = (
 
   #transform symlinks to referent file/dir
   [$USER, "$ENV{HOME}/.config/ipmagic/", "/home/$USER/.config/ipmagic/", ["-L"]],
-);
-my @SPECIAL_ROOT_RSYNCS = (
+
   ["root", "$COMM_TOOLS_DIR/sms_db_importer.py", "$USRLOCALBIN_REMOTE_DIR/", []],
 );
 
@@ -141,11 +140,7 @@ sub main(@){
   );
 
   print "\n\n===RSYNC SPECIAL FILES\n";
-  for my $rsync(@SPECIAL_USER_RSYNCS){
-    my ($remoteUser, $src, $dest, $extraRsyncArgs) = @$rsync;
-    rsync($IPMAGIC_NAME, $remoteUser, "-avP", @$extraRsyncArgs, $src, ":$dest");
-  }
-  for my $rsync(@SPECIAL_ROOT_RSYNCS){
+  for my $rsync(@SPECIAL_RSYNCS){
     my ($remoteUser, $src, $dest, $extraRsyncArgs) = @$rsync;
     rsync($IPMAGIC_NAME, $remoteUser, "-avP", @$extraRsyncArgs, $src, ":$dest");
   }
