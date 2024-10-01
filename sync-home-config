@@ -43,7 +43,7 @@ my @HOME_RSYNC_INCLUDE_PARENT_DIRS = sort(uniq(
 );
 
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
-my @USRLOCALBIN_EXECS = qw(
+my @USR_LOCAL_BIN_INCLUDES = qw(
   alarm
   gst-play
   ipmagic
@@ -177,7 +177,7 @@ sub main(@){
   print "\n\n===RSYNC /usr/local/bin FILES\n";
   rsync($IPMAGIC_NAME, "root",
     "-avP",
-    (map {"--include=$_"} @USRLOCALBIN_EXECS),
+    (map {"--include=$_"} @USR_LOCAL_BIN_INCLUDES),
     "--exclude=**",
     "$USRLOCALBIN_LOCAL_DIR/",
     ":/usr/local/bin/"
