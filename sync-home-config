@@ -184,16 +184,21 @@ my $USAGE = "USAGE:
     run all rsyncs
 
   OPTS
+    -n | -s | --dry-run | --simulate
+      pass '-n' to all rsync commands
 ";
 
 sub main(@){
   my $opts = {
+    simulate       => 0,
   };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
+      $$opts{simulate} = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -207,11 +212,13 @@ sub main(@){
   for my $rsyncName(@RSYNC_NAME_ORDER){
     print "\n=== $rsyncName\n";
     my $rsyncInfo = $RSYNCS{$rsyncName};
+    my @maybeSimulateArg = $$opts{simulate} ? ("-n") : ();
     rsync($IPMAGIC_NAME, $$rsyncInfo{user},
       "--chown=$$rsyncInfo{user}:$$rsyncInfo{user}",
       @{$$rsyncInfo{args}},
       "$$rsyncInfo{src}",
       ":$$rsyncInfo{dest}",
+      @maybeSimulateArg,
     );
   }
 }
