@@ -85,7 +85,6 @@ my @SPECIAL_ROOT_RSYNCS = (
 
 my $INITIAL_USER_CMD = "
   mkdir -p /home/$USER/.config/qtemail && \
-  mkdir -p /home/$USER/.klomp && \
   mkdir -p /home/$USER/.cache/workouts && \
   echo ok
 ";
