@@ -29,6 +29,8 @@ my @HOME_RSYNC_INCLUDES = qw(
   .config/tasmota.conf
   .config/wemo-devices.conf
 
+  .cache/robinhood/***
+
   .cache/workouts/viewfit-workouts-json/***
   .cache/workouts/hr-cache-amazfish/***
   .cache/workouts/hr-cache-hrmon/***
@@ -110,12 +112,6 @@ my $RSYNCS_ARR = [
     ],
   },
 
-  robinhood => {
-    user => $USER,
-    src  => "$ENV{HOME}/.cache/robinhood/",
-    dest => "/home/$USER/.cache/robinhood/",
-    args => ["-avP"],
-  },
   klomp_config => {
     user => $USER,
     src  => "$ENV{HOME}/.klomp/config-$IPMAGIC_NAME",
