@@ -93,7 +93,7 @@ my $RSYNCS_ARR = [
     src  => "$ENV{HOME}/install/root-files/usr/local/bin/",
     dest => "/usr/local/bin/",
     args => [
-      "-avP",
+      "-avP", "-O",
       (map {"--include=$_"} @USR_LOCAL_BIN_INCLUDES),
       "--exclude=**",
     ],
@@ -104,7 +104,7 @@ my $RSYNCS_ARR = [
     src  => "$ENV{HOME}/bin/",
     dest => "/home/$USER/bin/",
     args => [
-      "-avP",
+      "-avP", "-O",
       (map {"--exclude=$_"} @HOME_BIN_EXCLUDES)
     ],
   },
