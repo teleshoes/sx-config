@@ -56,9 +56,7 @@ my @USRLOCALBIN_EXECS = qw(
   vpn
 );
 
-my $HOMEBIN_LOCAL_DIR = "$ENV{HOME}/bin";
-my $HOMEBIN_REMOTE_DIR = "/home/$USER/bin";
-my @HOMEBIN_EXCLUDES = qw(
+my @HOME_BIN_EXCLUDES = qw(
   alert-email
   bat
   chromium
@@ -66,6 +64,16 @@ my @HOMEBIN_EXCLUDES = qw(
 );
 
 my $RSYNCS_ARR = [
+  home_bin => {
+    user => $USER,
+    src  => "$ENV{HOME}/bin/",
+    dest => "/home/$USER/bin/",
+    args => [
+      "-avP",
+      (map {"--exclude=$_"} @HOME_BIN_EXCLUDES)
+    ],
+  },
+
   robinhood => {
     user => $USER,
     src  => "$ENV{HOME}/.cache/robinhood/",
@@ -170,10 +178,6 @@ sub main(@){
   print "\n\n===RSYNC /usr/local/bin FILES\n";
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
   rsync($IPMAGIC_NAME, "root", "-avP", @usrlocalbinFiles, ":$USRLOCALBIN_REMOTE_DIR/");
-
-  print "\n\n===RSYNC ~/bin FILES\n";
-  rsync($IPMAGIC_NAME, $USER, "-avP", "$HOMEBIN_LOCAL_DIR/", ":$HOMEBIN_REMOTE_DIR/",
-    map{"--exclude=$_"} @HOMEBIN_EXCLUDES);
 
   print "\n\n===RSYNC HOME FILES\n";
   rsync($IPMAGIC_NAME, $USER,
