@@ -42,7 +42,6 @@ my @HOME_RSYNC_INCLUDE_PARENT_DIRS = sort(uniq(
   map {getAllParentDirs($_)} @HOME_RSYNC_INCLUDES)
 );
 
-my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
 my @USR_LOCAL_BIN_INCLUDES = qw(
   alarm
   gst-play
@@ -179,7 +178,7 @@ sub main(@){
     "-avP",
     (map {"--include=$_"} @USR_LOCAL_BIN_INCLUDES),
     "--exclude=**",
-    "$USRLOCALBIN_LOCAL_DIR/",
+    "$ENV{HOME}/install/root-files/usr/local/bin/",
     ":/usr/local/bin/"
   );
 
