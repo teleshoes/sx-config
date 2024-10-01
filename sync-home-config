@@ -183,20 +183,6 @@ my $RSYNCS_ARR = [
 my %RSYNCS = @$RSYNCS_ARR;
 my @RSYNC_NAME_ORDER = map {$$RSYNCS_ARR[$_]} grep {$_ % 2 == 0} (0..$#$RSYNCS_ARR);
 
-my $INITIAL_USER_CMD = "
-  echo ok
-";
-my $FINAL_USER_CMD = "
-  echo ok
-";
-
-my $INITIAL_ROOT_CMD = "
-  echo ok
-";
-my $FINAL_ROOT_CMD = "
-  echo ok
-";
-
 sub run(@);
 
 sub main(@){
@@ -205,10 +191,6 @@ sub main(@){
   print "making sure $IPMAGIC_NAME is ssh-able\n";
   ipmagic($IPMAGIC_NAME, $USER, "echo found $IPMAGIC_NAME!\n");
   die "failed" if $? != 0;
-
-  print "\n\n===INITIAL COMMANDS\n";
-  ipmagic($IPMAGIC_NAME, $USER, $INITIAL_USER_CMD);
-  ipmagic($IPMAGIC_NAME, "root", $INITIAL_ROOT_CMD);
 
   print "\n\n===RSYNC FILES\n";
   for my $rsyncName(@RSYNC_NAME_ORDER){
@@ -221,10 +203,6 @@ sub main(@){
       ":$$rsyncInfo{dest}",
     );
   }
-
-  print "\n\n===FINAL COMMANDS\n";
-  ipmagic($IPMAGIC_NAME, $USER, $FINAL_USER_CMD);
-  ipmagic($IPMAGIC_NAME, "root", $FINAL_ROOT_CMD);
 }
 
 sub ipmagic($$@){
