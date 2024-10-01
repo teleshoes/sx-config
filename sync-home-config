@@ -65,7 +65,7 @@ my @HOMEBIN_EXCLUDES = qw(
   touchClick
 );
 
-my @SPECIAL_RSYNCS = (
+my @RSYNCS = (
   {
     user => $USER,
     src  => "$ENV{HOME}/.cache/robinhood/",
@@ -194,8 +194,8 @@ sub main(@){
     "--exclude=**",
   );
 
-  print "\n\n===RSYNC SPECIAL FILES\n";
-  for my $rsyncInfo(@SPECIAL_RSYNCS){
+  print "\n\n===RSYNC FILES\n";
+  for my $rsyncInfo(@RSYNCS){
     rsync($IPMAGIC_NAME, $$rsyncInfo{user},
       @{$$rsyncInfo{args}},
       "$$rsyncInfo{src}",
