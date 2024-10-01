@@ -194,7 +194,7 @@ sub main(@){
 
   print "\n\n===RSYNC FILES\n";
   for my $rsyncName(@RSYNC_NAME_ORDER){
-    print "\n$rsyncName\n";
+    print "\n=== $rsyncName\n";
     my $rsyncInfo = $RSYNCS{$rsyncName};
     rsync($IPMAGIC_NAME, $$rsyncInfo{user},
       "--chown=$$rsyncInfo{user}:$$rsyncInfo{user}",
