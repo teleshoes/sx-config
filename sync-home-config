@@ -1,15 +1,17 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use List::Util qw(uniq);
 
 sub ipmagic($$@);
 sub rsync($$@);
+sub getAllParentDirs($);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 my $COMM_TOOLS_DIR = "$ENV{HOME}/Code/sx/comm-tools";
 
-my @HOME_RSYNC_FILES = qw(
+my @HOME_RSYNC_INCLUDES = qw(
   .bashrc
   .gitconfig
   .gpg
@@ -26,15 +28,18 @@ my @HOME_RSYNC_FILES = qw(
   .config/tasmota.conf
   .config/wemo-devices.conf
 
-  .cache/workouts/viewfit-workouts-json/
-  .cache/workouts/hr-cache-amazfish/
-  .cache/workouts/hr-cache-hrmon/
+  .cache/workouts/viewfit-workouts-json/***
+  .cache/workouts/hr-cache-amazfish/***
+  .cache/workouts/hr-cache-hrmon/***
   .cache/workouts/viewfit-workouts-combine
   .cache/workouts/viewfit-workouts-extra-info
 
-  .config/qtemail/
-  .vim/
-  resolv/
+  .config/qtemail/***
+  .vim/***
+  resolv/***
+);
+my @HOME_RSYNC_INCLUDE_PARENT_DIRS = sort(uniq(
+  map {getAllParentDirs($_)} @HOME_RSYNC_INCLUDES)
 );
 
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
@@ -122,10 +127,26 @@ sub main(@){
     map{"--exclude=$_"} @HOMEBIN_EXCLUDES);
 
   print "\n\n===RSYNC HOME FILES\n";
-  for my $file(@HOME_RSYNC_FILES){
-    rsync($IPMAGIC_NAME, $USER, "-avP", "$ENV{HOME}/$file", ":~/$file");
-    rsync($IPMAGIC_NAME, "root", "-avP", "$ENV{HOME}/$file", ":~/$file");
-  }
+  rsync($IPMAGIC_NAME, $USER,
+    "-avP",
+    "-O", "--no-perms", "--executability",
+    "--chown", "$USER:$USER",
+    "$ENV{HOME}/",
+    ":/home/$USER/",
+    (map {"--include=$_"} @HOME_RSYNC_INCLUDE_PARENT_DIRS),
+    (map {"--include=$_"} @HOME_RSYNC_INCLUDES),
+    "--exclude=**",
+  );
+  rsync($IPMAGIC_NAME, "root",
+    "-avP",
+    "-O", "--no-perms", "--executability",
+    "--chown", "root:root",
+    "$ENV{HOME}/",
+    ":/root/",
+    (map {"--include=$_"} @HOME_RSYNC_INCLUDE_PARENT_DIRS),
+    (map {"--include=$_"} @HOME_RSYNC_INCLUDES),
+    "--exclude=**",
+  );
 
   print "\n\n===RSYNC SPECIAL FILES\n";
   for my $rsync(@SPECIAL_USER_RSYNCS){
@@ -149,6 +170,27 @@ sub ipmagic($$@){
 sub rsync($$@){
   my ($ipmagicName, $user, @cmd) = @_;
   run "ipmagic", $ipmagicName, "-u", $user, "--sshc", "--rsync", @cmd;
+}
+
+# recursively list all parent dirs
+#   -list up to root for abspaths
+#   -list up to the first relative element for relpaths (do not add './' if not given)
+#   -all dirs end in a trailing slash
+#   -dirs do not need to exist and filesystem is not checked
+#
+# e.g.:   a/b/c    =>  a/b/, a/
+#         /a/b/c   =>  /a/b/, /a/, /
+#         /a/b/c/  =>  /a/b/, /a/, /
+#         ./a      =>  ./
+sub getAllParentDirs($){
+  my ($path) = @_;
+  my @dirs;
+  $path =~ s/\/+$//; #remove trailing slashes on last path element
+  while($path =~ /^(.+)\/[^\/]+$/){
+    $path = $1;
+    push @dirs, "$path/";
+  }
+  return @dirs;
 }
 
 sub run(@){
