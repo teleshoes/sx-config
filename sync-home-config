@@ -176,8 +176,28 @@ my $RSYNCS_ARR = [
 my %RSYNCS = @$RSYNCS_ARR;
 my @RSYNC_NAME_ORDER = map {$$RSYNCS_ARR[$_]} grep {$_ % 2 == 0} (0..$#$RSYNCS_ARR);
 
+my $USAGE = "USAGE:
+  $0 -h | --help
+    show this message
+
+  $0 [OPTS]
+    run all rsyncs
+
+  OPTS
+";
+
 sub main(@){
-  die "Usage: $0\n" if @_ > 0;
+  my $opts = {
+  };
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
 
   print "making sure $IPMAGIC_NAME is ssh-able\n";
   ipmagic($IPMAGIC_NAME, $USER, "echo found $IPMAGIC_NAME!\n");
