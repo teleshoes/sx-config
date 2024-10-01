@@ -43,7 +43,6 @@ my @HOME_RSYNC_INCLUDE_PARENT_DIRS = sort(uniq(
 );
 
 my $USRLOCALBIN_LOCAL_DIR = "$ENV{HOME}/install/root-files/usr/local/bin";
-my $USRLOCALBIN_REMOTE_DIR = "/usr/local/bin";
 my @USRLOCALBIN_EXECS = qw(
   alarm
   gst-play
@@ -140,7 +139,7 @@ my $RSYNCS_ARR = [
   sms_db_importer => {
     user => "root",
     src  => "$COMM_TOOLS_DIR/sms_db_importer.py",
-    dest => "$USRLOCALBIN_REMOTE_DIR/",
+    dest => "/usr/local/bin/",
     args => ["-avP"],
   },
 ];
@@ -177,7 +176,7 @@ sub main(@){
 
   print "\n\n===RSYNC /usr/local/bin FILES\n";
   my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
-  rsync($IPMAGIC_NAME, "root", "-avP", @usrlocalbinFiles, ":$USRLOCALBIN_REMOTE_DIR/");
+  rsync($IPMAGIC_NAME, "root", "-avP", @usrlocalbinFiles, ":/usr/local/bin/");
 
   print "\n\n===RSYNC HOME FILES\n";
   rsync($IPMAGIC_NAME, $USER,
