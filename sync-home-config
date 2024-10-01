@@ -62,6 +62,17 @@ my @HOME_BIN_EXCLUDES = qw(
 );
 
 my $RSYNCS_ARR = [
+  usr_local_bin => {
+    user => "root",
+    src  => "$ENV{HOME}/install/root-files/usr/local/bin/",
+    dest => "/usr/local/bin/",
+    args => [
+      "-avP",
+      (map {"--include=$_"} @USR_LOCAL_BIN_INCLUDES),
+      "--exclude=**",
+    ],
+  },
+
   home_bin => {
     user => $USER,
     src  => "$ENV{HOME}/bin/",
@@ -172,15 +183,6 @@ sub main(@){
   print "\n\n===INITIAL COMMANDS\n";
   ipmagic($IPMAGIC_NAME, $USER, $INITIAL_USER_CMD);
   ipmagic($IPMAGIC_NAME, "root", $INITIAL_ROOT_CMD);
-
-  print "\n\n===RSYNC /usr/local/bin FILES\n";
-  rsync($IPMAGIC_NAME, "root",
-    "-avP",
-    (map {"--include=$_"} @USR_LOCAL_BIN_INCLUDES),
-    "--exclude=**",
-    "$ENV{HOME}/install/root-files/usr/local/bin/",
-    ":/usr/local/bin/"
-  );
 
   print "\n\n===RSYNC HOME FILES\n";
   rsync($IPMAGIC_NAME, $USER,
