@@ -175,8 +175,13 @@ sub main(@){
   ipmagic($IPMAGIC_NAME, "root", $INITIAL_ROOT_CMD);
 
   print "\n\n===RSYNC /usr/local/bin FILES\n";
-  my @usrlocalbinFiles = map {"$USRLOCALBIN_LOCAL_DIR/$_"} @USRLOCALBIN_EXECS;
-  rsync($IPMAGIC_NAME, "root", "-avP", @usrlocalbinFiles, ":/usr/local/bin/");
+  rsync($IPMAGIC_NAME, "root",
+    "-avP",
+    (map {"--include=$_"} @USRLOCALBIN_EXECS),
+    "--exclude=**",
+    "$USRLOCALBIN_LOCAL_DIR/",
+    ":/usr/local/bin/"
+  );
 
   print "\n\n===RSYNC HOME FILES\n";
   rsync($IPMAGIC_NAME, $USER,
