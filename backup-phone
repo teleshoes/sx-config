@@ -2,17 +2,16 @@
 use strict;
 use warnings;
 
-my $ipmagicName = "sx";
-
 sub backup($);
 
-my $dir = "$ENV{HOME}/Code/sx";
+my $IPMAGIC_NAME = "sx";
+my $BASE_DIR = "$ENV{HOME}/Code/sx";
 
 sub main(@){
   die "Usage: $0\n" if @_ != 0;
 
-  print "making sure $ipmagicName is ssh-able\n";
-  system "ipmagic", $ipmagicName, "-s", "echo found sx!\n";
+  print "making sure $IPMAGIC_NAME is ssh-able\n";
+  system "ipmagic", $IPMAGIC_NAME, "-s", "echo found sx!\n";
   die "failed" if $? != 0;
 
   backup "cleanup-connman";
@@ -34,7 +33,7 @@ sub backup($){
   my $backupScript = shift;
 
   print "\n\n\n=========$backupScript\n";
-  system "$dir/$backupScript";
+  system "$BASE_DIR/$backupScript";
 
   die "$backupScript failed" if $? != 0;
 }
