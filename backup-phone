@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-sub backup($);
+sub backup($@);
 
 my $IPMAGIC_NAME = "sx";
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
@@ -49,11 +49,11 @@ sub main(@){
   backup "backup-comm";
 }
 
-sub backup($){
-  my $backupScript = shift;
+sub backup($@){
+  my ($backupScript, @args) = @_;
 
   print "\n\n\n=========$backupScript\n";
-  system "$BASE_DIR/$backupScript";
+  system "$BASE_DIR/$backupScript", @args;
 
   die "$backupScript failed" if $? != 0;
 }
