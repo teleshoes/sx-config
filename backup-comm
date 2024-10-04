@@ -73,7 +73,7 @@ my $USAGE = "Usage:
     copy by-contact symlinks to device
 
   OPTS
-    --quick|--no-rebuild
+    --no-rebuild
       skip clearing symlink dirs (pass --no-rebuild to $CMD_CONTACTS_SYMLINKS)
       (this is the default)
 
@@ -88,7 +88,7 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(--quick|--no-rebuild)$/){
+    }elsif($arg =~ /^(--no-rebuild)$/){
       $rebuildSymlinks = 0;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
       $rebuildSymlinks = 1;
