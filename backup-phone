@@ -15,16 +15,25 @@ my $USAGE = "Usage:
     run backups
 
   OPTS
+    -q | --quick | quick
+      skip maintenance backups and run backups only
+        -skip cleanup-connman
+        -skip check-missing in dcim-backup
+        -skip sync-pixmirror
+        -skip cleanup-backups
 ";
 
 sub main(@){
   my $opts = {
+    quick => 0,
   };
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-q|--quick|quick)$/){
+      $$opts{quick} = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -34,9 +43,9 @@ sub main(@){
   system "ipmagic", $IPMAGIC_NAME, "-s", "echo found sx!\n";
   die "failed" if $? != 0;
 
-  backup "cleanup-connman";
-  backup "dcim-backup";
-  backup "sync-pixmirror";
+  backup "cleanup-connman" unless $$opts{quick};
+  backup "dcim-backup", ($$opts{quick} ? ("--quick") : ());
+  backup "sync-pixmirror" unless $$opts{quick};
   #backup "sync-android-apps --backup"; WAYDROID
   backup "backup-lap";
   backup "backup-amazfish";
@@ -44,7 +53,7 @@ sub main(@){
   backup "backup-home";
   backup "backup-notes";
   backup "backup-klomp-lists";
-  backup "cleanup-backups";
+  backup "cleanup-backups" unless $$opts{quick};
   backup "backup-tmobile-digits";
   backup "backup-comm";
 }
