@@ -17,11 +17,11 @@ my $USAGE = "Usage:
   OPTS
     -q | --quick | quick
       skip maintenance backups and run backups only
+        -skip backup-comm apply (still include fetch)
         -skip cleanup-connman
         -skip check-missing in dcim-backup
         -skip sync-pixmirror
         -skip cleanup-backups
-        -skip backup-comm --apply (still include backup-comm --fetch)
 ";
 
 sub main(@){
