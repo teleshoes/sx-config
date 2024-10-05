@@ -17,7 +17,7 @@ my $USAGE = "Usage:
   OPTS
     -q | --quick | quick
       skip maintenance backups and run backups only
-        -skip backup-comm apply (still include fetch)
+        -skip backup-comm apply and cleanup (still include fetch)
         -skip cleanup-connman
         -skip check-missing in dcim-backup
         -skip sync-pixmirror
@@ -44,7 +44,7 @@ sub main(@){
   system "ipmagic", $IPMAGIC_NAME, "-s", "echo found sx!\n";
   die "failed" if $? != 0;
 
-  backup "backup-comm", "--cleanup-only";
+  backup "backup-comm", "--cleanup-only" unless $$opts{quick};
   backup "backup-comm", "--fetch-only";
   backup "cleanup-connman" unless $$opts{quick};
   backup "dcim-backup", ($$opts{quick} ? ("--quick") : ());
