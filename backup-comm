@@ -124,6 +124,7 @@ sub main(@){
     && test -f $tmpDir/commhistory.db \\
     && test -f $tmpDir/contacts.db \\
     && test -f $tmpDir/contacts-priv.db \\
+    && test -f $tmpDir/contacts.vcf \\
     && echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
