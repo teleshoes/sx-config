@@ -43,6 +43,7 @@ sub main(@){
   system "ipmagic", $IPMAGIC_NAME, "-s", "echo found sx!\n";
   die "failed" if $? != 0;
 
+  backup "backup-comm", "--fetch-only";
   backup "cleanup-connman" unless $$opts{quick};
   backup "dcim-backup", ($$opts{quick} ? ("--quick") : ());
   backup "sync-pixmirror" unless $$opts{quick};
@@ -55,7 +56,7 @@ sub main(@){
   backup "backup-klomp-lists";
   backup "cleanup-backups" unless $$opts{quick};
   backup "backup-tmobile-digits";
-  backup "backup-comm";
+  backup "backup-comm", "--apply-only";
 }
 
 sub backup($@){
