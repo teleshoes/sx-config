@@ -108,34 +108,36 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  my $performFetch = 1;
-  my $performApply = 1;
-  my $rebuildSymlinks = 0;
+  my $opts = {
+    performFetch    => 1,
+    performApply    => 1,
+    rebuildSymlinks => 0,
+  };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
     }elsif($arg =~ /^(-q|-f|--quick|--fetch|--fetch-only)$/){
-      $performFetch = 1;
-      $performApply = 0;
+      $$opts{performFetch} = 1;
+      $$opts{performApply} = 0;
     }elsif($arg =~ /^(-a|--apply|--apply-only)$/){
-      $performFetch = 0;
-      $performApply = 1;
+      $$opts{performFetch} = 0;
+      $$opts{performApply} = 1;
     }elsif($arg =~ /^(--full)$/){
-      $performFetch = 1;
-      $performApply = 1;
+      $$opts{performFetch} = 1;
+      $$opts{performApply} = 1;
     }elsif($arg =~ /^(--no-rebuild)$/){
-      $rebuildSymlinks = 0;
+      $$opts{rebuildSymlinks} = 0;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
-      $rebuildSymlinks = 1;
+      $$opts{rebuildSymlinks} = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
 
   my $backupName;
-  if($performFetch){
+  if($$opts{performFetch}){
     my $nowDateFmt = `date +'%Y-%m-%d_%s'`;
     chomp $nowDateFmt;
 
@@ -145,7 +147,7 @@ sub main(@){
     writeFile($LATEST_BACKUP_NAME_FILE, "$backupName\n");
   }
 
-  if($performApply){
+  if($$opts{performApply}){
     if(not defined $backupName){
       $backupName = readFile($LATEST_BACKUP_NAME_FILE);
       chomp $backupName;
@@ -163,7 +165,7 @@ sub main(@){
     parseContactsIntoRepo($backupName);
     parseSMSCallsMMSIntoRepo($backupName);
 
-    buildByContactSymlinks($rebuildSymlinks);
+    buildByContactSymlinks($$opts{rebuildSymlinks});
     syncByContactSymlinksToRemote();
 
     showGitRepoSummary($oldRepoHeads);
