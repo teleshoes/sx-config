@@ -138,7 +138,7 @@ sub main(@){
     ":$tmpDir/contacts.db", $contactsDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$tmpDir/contacts-priv.db", $contactsPrivDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP",
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$tmpDir/contacts.vcf", $localContactsVcf;
 
   print "\nfetching MMS parts dir\n";
