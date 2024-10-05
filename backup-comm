@@ -97,6 +97,9 @@ my $USAGE = "Usage:
       same as: --no-perform-fetch --perform-apply
         -do NOT fetch remote backups, apply the latest fetch
 
+    -c | --cleanup-only
+      same as: --no-perform-fetch --no-perform-apply --perform-cleanup
+
     --perform-fetch
       fetch commhistory-db + contacts-db + contacts-priv-db + contacts-vcf + MMS parts repo
       (this is the defaut)
@@ -116,6 +119,9 @@ my $USAGE = "Usage:
         -find backups in \"$RAW_FETCHED_DATA_DIR/*\"
           where all the files have been copied to the raw backup files
         -remove $LATEST_BACKUP_NAME_FILE if that backup dir was removed
+    --no-perform-cleanup
+      do not cleanup fetched backups
+      (this is the default)
 
     --rebuild|--slow
       clear+rebuild symlink dirs (pas --rebuild to $CMD_CONTACTS_SYMLINKS)
@@ -142,6 +148,10 @@ sub main(@){
     }elsif($arg =~ /^(-a|--apply-only)$/){
       $$opts{performFetch} = 0;
       $$opts{performApply} = 1;
+    }elsif($arg =~ /^(-c|--cleanup-only)$/){
+      $$opts{performFetch} = 0;
+      $$opts{performApply} = 0;
+      $$opts{performCleanup} = 1;
     }elsif($arg =~ /^(--perform-fetch)$/){
       $$opts{performFetch} = 1;
     }elsif($arg =~ /^(--no-perform-fetch)$/){
@@ -152,6 +162,8 @@ sub main(@){
       $$opts{performApply} = 0;
     }elsif($arg =~ /^(--perform-cleanup)$/){
       $$opts{performCleanup} = 1;
+    }elsif($arg =~ /^(--no-perform-cleanup)$/){
+      $$opts{performCleanup} = 0;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
       $$opts{rebuildSymlinks} = 1;
     }elsif($arg =~ /^(--no-rebuild)$/){
