@@ -106,7 +106,6 @@ sub main(@){
   my $commhistoryDb = "$DB_RAW_DIR/commhistory/commhistory-$backupName.db";
   my $contactsDb = "$DB_RAW_DIR/contacts/contacts-$backupName.db";
   my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv/contacts-priv-$backupName.db";
-  my $contactsTmpVcf = "/tmp/contacts-$backupName.vcf";
   my $localContactsVcf = "$CONTACTS_RAW_DIR/contacts-$backupName.vcf";
 
   #########################################################
@@ -140,9 +139,10 @@ sub main(@){
     ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
   print "\nfetching contacts vcf\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "vcardconverter-sudo -e $contactsTmpVcf";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root",
+    "vcardconverter-sudo -e $tmpDir/contacts.vcf";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP",
-    ":$contactsTmpVcf", $localContactsVcf;
+    ":$tmpDir/contacts.vcf", $localContactsVcf;
 
   #########################################################
   # prepare git repo summary
