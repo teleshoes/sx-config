@@ -139,7 +139,7 @@ sub main(@){
     ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
   print "\nfetching contacts vcf\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "vcardconverter-sudo -e $contactsTmpVcf";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP",
     ":$contactsTmpVcf", $localContactsVcf;
 
