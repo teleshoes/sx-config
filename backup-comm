@@ -8,6 +8,7 @@ use Cwd 'abs_path';
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
+sub getRawBackupFilePaths($);
 sub gitHead($);
 sub gitCommit($$$$);
 sub gitGetCommitsSince($$);
@@ -103,10 +104,8 @@ sub main(@){
   my $backupName = $nowDateFmt;
 
   my $tmpDir = "/tmp/backup-comm-$backupName";
-  my $commhistoryDb = "$DB_RAW_DIR/commhistory/commhistory-$backupName.db";
-  my $contactsDb = "$DB_RAW_DIR/contacts/contacts-$backupName.db";
-  my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv/contacts-priv-$backupName.db";
-  my $contactsVcf = "$CONTACTS_RAW_DIR/contacts-$backupName.vcf";
+
+  my $rawBackupFiles = getRawBackupFilePaths($backupName);
 
   #########################################################
   # copy raw data (dbs, mms files) phone => computer
@@ -135,10 +134,10 @@ sub main(@){
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$tmpDir/", "$tmpDir/";
 
-  run "cp", "-ar", "$tmpDir/commhistory.db", $commhistoryDb;
-  run "cp", "-ar", "$tmpDir/contacts.db", $contactsDb;
-  run "cp", "-ar", "$tmpDir/contacts-priv.db", $contactsPrivDb;
-  run "cp", "-ar", "$tmpDir/contacts.vcf", $contactsVcf;
+  run "cp", "-ar", "$tmpDir/commhistory.db", $$rawBackupFiles{commhistoryDb};
+  run "cp", "-ar", "$tmpDir/contacts.db", $$rawBackupFiles{contactsDb};
+  run "cp", "-ar", "$tmpDir/contacts-priv.db", $$rawBackupFiles{contactsPrivDb};
+  run "cp", "-ar", "$tmpDir/contacts.vcf", $$rawBackupFiles{contactsVcf};
 
   print "\nfetching MMS parts dir\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
@@ -162,15 +161,15 @@ sub main(@){
   #########################################################
   print "\n\n=====ADD RAW DATA TO REPOS\n";
   run "rm", "-f", "$DB_REPO/commhistory-db";
-  run "$CMD_SQLITE_DUMP", $commhistoryDb, "$DB_REPO/commhistory-db";
+  run "$CMD_SQLITE_DUMP", $$rawBackupFiles{commhistoryDb}, "$DB_REPO/commhistory-db";
   gitCommit $DB_REPO, "commhistory-db", "nodiff", "commhistory db automatic commit";
 
   run "rm", "-f", "$DB_REPO/contacts-db";
-  run "$CMD_SQLITE_DUMP", $contactsDb, "$DB_REPO/contacts-db";
+  run "$CMD_SQLITE_DUMP", $$rawBackupFiles{contactsDb}, "$DB_REPO/contacts-db";
   gitCommit $DB_REPO, "contacts-db", "nodiff", "contacts db automatic commit";
 
   run "rm", "-f", "$DB_REPO/contacts-priv-db";
-  run "$CMD_SQLITE_DUMP", $contactsPrivDb, "$DB_REPO/contacts-priv-db";
+  run "$CMD_SQLITE_DUMP", $$rawBackupFiles{contactsPrivDb}, "$DB_REPO/contacts-priv-db";
   gitCommit $DB_REPO, "contacts-priv-db", "nodiff", "contacts priv db automatic commit";
 
   gitCommit $MMS_PARTS_REPO, "-A", "nodiff", "automatic commit";
@@ -180,7 +179,7 @@ sub main(@){
   #########################################################
   print "\n\n=====PARSE CONTACTS\n";
   run "rm", "-f", "$CONTACTS_REPO/contacts.vcf";
-  run "$CMD_CONTACTS_SORT", $contactsVcf, "$CONTACTS_REPO/contacts.vcf";
+  run "$CMD_CONTACTS_SORT", $$rawBackupFiles{contactsVcf}, "$CONTACTS_REPO/contacts.vcf";
   gitCommit $CONTACTS_REPO, "contacts.vcf", "diff", "automatic commit";
 
   #########################################################
@@ -195,11 +194,11 @@ sub main(@){
   my $callFile = "$CALL_RAW_DIR/call-$backupName.call";
 
   run $CMD_SMS_DB_IMPORTER, "export-from-db-sms",
-    $commhistoryDb, $smsFile;
+    $$rawBackupFiles{commhistoryDb}, $smsFile;
   run $CMD_SMS_DB_IMPORTER, "export-from-db-calls",
-    $commhistoryDb, $callFile;
+    $$rawBackupFiles{commhistoryDb}, $callFile;
   run $CMD_SMS_DB_IMPORTER, "export-from-db-mms",
-    $commhistoryDb, $MMS_MSG_REPO, $MMS_PARTS_REPO, "--my-number", $myNumber;
+    $$rawBackupFiles{commhistoryDb}, $MMS_MSG_REPO, $MMS_PARTS_REPO, "--my-number", $myNumber;
 
   print "removing dupe sms/calls\n";
   run "$CMD_ADD_COMM_TO_REPO", "--remove-exact-dupes";
@@ -298,6 +297,16 @@ sub main(@){
       }
     }
   }
+}
+
+sub getRawBackupFilePaths($){
+  my ($backupName) = @_;
+  return {
+    commhistoryDb  => "$DB_RAW_DIR/commhistory/commhistory-$backupName.db",
+    contactsDb     => "$DB_RAW_DIR/contacts/contacts-$backupName.db",
+    contactsPrivDb => "$DB_RAW_DIR/contacts-priv/contacts-priv-$backupName.db",
+    contactsVcf    => "$CONTACTS_RAW_DIR/contacts-$backupName.vcf",
+  };
 }
 
 sub gitCommit($$$$){
