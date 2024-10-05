@@ -97,15 +97,17 @@ sub main(@){
     }
   }
 
-  my $now = `date +'%Y-%m-%d_%s'`;
-  chomp $now;
+  my $nowDateFmt = `date +'%Y-%m-%d_%s'`;
+  chomp $nowDateFmt;
 
-  my $tmpDir = "/tmp/comm-dbs-$now";
-  my $commhistoryDb = "$DB_RAW_DIR/commhistory/commhistory-$now.db";
-  my $contactsDb = "$DB_RAW_DIR/contacts/contacts-$now.db";
-  my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv/contacts-priv-$now.db";
-  my $contactsTmpVcf = "/tmp/contacts-$now.vcf";
-  my $localContactsVcf = "$CONTACTS_RAW_DIR/contacts-$now.vcf";
+  my $backupName = $nowDateFmt;
+
+  my $tmpDir = "/tmp/comm-dbs-$backupName";
+  my $commhistoryDb = "$DB_RAW_DIR/commhistory/commhistory-$backupName.db";
+  my $contactsDb = "$DB_RAW_DIR/contacts/contacts-$backupName.db";
+  my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv/contacts-priv-$backupName.db";
+  my $contactsTmpVcf = "/tmp/contacts-$backupName.vcf";
+  my $localContactsVcf = "$CONTACTS_RAW_DIR/contacts-$backupName.vcf";
 
   #########################################################
   # copy raw data (dbs, mms files) phone => computer
@@ -183,8 +185,8 @@ sub main(@){
   chomp $myNumber;
   die "\nERROR: missing/malformed $MY_NUMBER_FILE\n" if $myNumber !~ /^\+?\d+$/;
 
-  my $smsFile = "$SMS_RAW_DIR/sms-$now.sms";
-  my $callFile = "$CALL_RAW_DIR/call-$now.call";
+  my $smsFile = "$SMS_RAW_DIR/sms-$backupName.sms";
+  my $callFile = "$CALL_RAW_DIR/call-$backupName.call";
 
   run $CMD_SMS_DB_IMPORTER, "export-from-db-sms",
     $commhistoryDb, $smsFile;
