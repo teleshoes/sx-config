@@ -88,7 +88,7 @@ my $USAGE = "Usage:
     copy by-contact symlinks to device
 
   OPTS
-    -q | -f | --quick | --fetch | --fetch-only
+    -q | -f | --quick | --fetch-only
       fetch commhistory-db + contacts-db + contacts-priv-db + contacts-vcf + MMS parts repo
       do NOT process or apply them
 
@@ -117,7 +117,7 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(-q|-f|--quick|--fetch|--fetch-only)$/){
+    }elsif($arg =~ /^(-q|-f|--quick|--fetch-only)$/){
       $$opts{performFetch} = 1;
       $$opts{performApply} = 0;
     }elsif($arg =~ /^(-a|--apply|--apply-only)$/){
