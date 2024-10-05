@@ -89,11 +89,12 @@ my $USAGE = "Usage:
 
   OPTS
     -q | -f | --quick | --fetch-only
-      fetch commhistory-db + contacts-db + contacts-priv-db + contacts-vcf + MMS parts repo
-      do NOT process or apply them
+      same as: --perform-fetch --no-perform-apply
+        -fetch remote backups, but do NOT apply
 
     -a | --apply-only
-      apply, or re-apply, the latest fetched backup (either from --full or --fetch-only)
+      same as: --no-perform-fetch --perform-apply
+        -do NOT fetch remote backups, apply the latest fetch
 
     --perform-fetch
       fetch commhistory-db + contacts-db + contacts-priv-db + contacts-vcf + MMS parts repo
