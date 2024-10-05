@@ -63,6 +63,8 @@ my $REMOTE_BYCONTACT_DIR_CALL = "/media/sdcard/phone/comm-repos/call/by-contact"
 my $REMOTE_BYCONTACT_DIR_MMS = "/media/sdcard/phone/comm-repos/mms/msg-by-contact";
 my $REMOTE_BYCONTACT_DIR_MMSPIX = "/media/sdcard/phone/comm-repos/mms/pix-by-contact";
 
+my @ALL_REPOS = ($DB_REPO, $MMS_PARTS_REPO, $CONTACTS_REPO, $SMS_REPO, $MMS_MSG_REPO, $CALL_REPO);
+
 my $USAGE = "Usage:
   $0 -h|--help
     show this message
@@ -146,15 +148,13 @@ sub main(@){
   #########################################################
   # prepare git repo summary
   #########################################################
-  my @allRepos = ($DB_REPO, $MMS_PARTS_REPO, $CONTACTS_REPO,
-    $SMS_REPO, $MMS_MSG_REPO, $CALL_REPO);
-  for my $repo(@allRepos){
+  for my $repo(@ALL_REPOS){
     #mms-parts repo is rsync'd directly from phone
     if($repo ne $MMS_PARTS_REPO){
       gitAssertClean($repo);
     }
   }
-  my %oldRepoHeads = map {$_ => gitHead $_} @allRepos;
+  my %oldRepoHeads = map {$_ => gitHead $_} @ALL_REPOS;
 
   #########################################################
   # add raw data to repos
@@ -284,9 +284,9 @@ sub main(@){
   # show git repo summary
   #########################################################
   print "\n\n=====GIT REPO SUMMARY\n";
-  gitAssertClean($_) foreach @allRepos;
-  my %newRepoHeads = map {$_ => gitHead $_} @allRepos;
-  for my $repo(@allRepos){
+  gitAssertClean($_) foreach @ALL_REPOS;
+  my %newRepoHeads = map {$_ => gitHead $_} @ALL_REPOS;
+  for my $repo(@ALL_REPOS){
     my $oldHead = $oldRepoHeads{$repo};
     my $newHead = $newRepoHeads{$repo};
     if($oldHead ne $newHead){
