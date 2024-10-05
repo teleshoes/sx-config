@@ -127,16 +127,21 @@ sub main(@){
   ";
 
   print "\nfetching sqlite DBs\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$tmpDir/commhistory.db", $commhistoryDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$tmpDir/contacts.db", $contactsDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$tmpDir/contacts-priv.db", $contactsPrivDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
+    ":$tmpDir/commhistory.db", $commhistoryDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
+    ":$tmpDir/contacts.db", $contactsDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
+    ":$tmpDir/contacts-priv.db", $contactsPrivDb;
 
   print "\nfetching MMS parts dir\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
+    ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
   print "\nfetching contacts vcf\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "vcardconverter-sudo -e $contactsTmpVcf";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", ":$contactsTmpVcf", $localContactsVcf;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP",
+    ":$contactsTmpVcf", $localContactsVcf;
 
   #########################################################
   # prepare git repo summary
@@ -266,10 +271,14 @@ sub main(@){
   runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "--exclude=.git/",
     "$MMS_MSG_REPO/", ":$REMOTE_REPO_DIR_MMS/";
 
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$SMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_SMS/";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$CALL_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_CALL/";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMS/";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del", "$MMSPIX_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMSPIX/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+    "$SMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_SMS/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+    "$CALL_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_CALL/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+    "$MMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMS/";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+    "$MMSPIX_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMSPIX/";
 
   #########################################################
   # show git repo summary
