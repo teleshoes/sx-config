@@ -102,7 +102,7 @@ sub main(@){
 
   my $backupName = $nowDateFmt;
 
-  my $tmpDir = "/tmp/comm-dbs-$backupName";
+  my $tmpDir = "/tmp/backup-comm-$backupName";
   my $commhistoryDb = "$DB_RAW_DIR/commhistory/commhistory-$backupName.db";
   my $contactsDb = "$DB_RAW_DIR/contacts/contacts-$backupName.db";
   my $contactsPrivDb= "$DB_RAW_DIR/contacts-priv/contacts-priv-$backupName.db";
