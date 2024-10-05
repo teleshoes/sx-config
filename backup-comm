@@ -114,6 +114,7 @@ sub main(@){
   print "\n\n=====COPY RAW DATA\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "
     echo preparing sqlite DBs \\
+    && rm -rf $tmpDir \\
     && mkdir -p $tmpDir \\
     && chown $USER:$USER $tmpDir \\
     && sqlite3 $REMOTE_COMMHISTORY_DB 'vacuum into \"$tmpDir/commhistory.db\"' \\
