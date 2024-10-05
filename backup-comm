@@ -95,10 +95,6 @@ my $USAGE = "Usage:
     -a | --apply-only
       apply, or re-apply, the latest fetched backup (either from --full or --fetch-only)
 
-    --full
-      fetch raw data and apply the backup
-      (this is the default)
-
     --rebuild|--slow
       clear+rebuild symlink dirs (pas --rebuild to $CMD_CONTACTS_SYMLINKS)
     --no-rebuild
@@ -122,9 +118,6 @@ sub main(@){
       $$opts{performApply} = 0;
     }elsif($arg =~ /^(-a|--apply-only)$/){
       $$opts{performFetch} = 0;
-      $$opts{performApply} = 1;
-    }elsif($arg =~ /^(--full)$/){
-      $$opts{performFetch} = 1;
       $$opts{performApply} = 1;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
       $$opts{rebuildSymlinks} = 1;
