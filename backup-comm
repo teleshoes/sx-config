@@ -134,14 +134,14 @@ sub main(@){
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$tmpDir/", "$tmpDir/";
 
+  print "\nfetching MMS parts dir\n";
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
+    ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
+
   run "cp", "-ar", "$tmpDir/commhistory.db", $$rawBackupFiles{commhistoryDb};
   run "cp", "-ar", "$tmpDir/contacts.db", $$rawBackupFiles{contactsDb};
   run "cp", "-ar", "$tmpDir/contacts-priv.db", $$rawBackupFiles{contactsPrivDb};
   run "cp", "-ar", "$tmpDir/contacts.vcf", $$rawBackupFiles{contactsVcf};
-
-  print "\nfetching MMS parts dir\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
-    ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
 
   #########################################################
   # prepare git repo summary
