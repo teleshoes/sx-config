@@ -108,8 +108,8 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  my $isFetch = 1;
-  my $isApplyBackup = 1;
+  my $performFetch = 1;
+  my $performApply = 1;
   my $rebuildSymlinks = 0;
   while(@_ > 0){
     my $arg = shift;
@@ -117,14 +117,14 @@ sub main(@){
       print $USAGE;
       exit 0;
     }elsif($arg =~ /^(-q|-f|--quick|--fetch|--fetch-only)$/){
-      $isFetch = 1;
-      $isApplyBackup = 0;
+      $performFetch = 1;
+      $performApply = 0;
     }elsif($arg =~ /^(-a|--apply|--apply-only)$/){
-      $isFetch = 0;
-      $isApplyBackup = 1;
+      $performFetch = 0;
+      $performApply = 1;
     }elsif($arg =~ /^(--full)$/){
-      $isFetch = 1;
-      $isApplyBackup = 1;
+      $performFetch = 1;
+      $performApply = 1;
     }elsif($arg =~ /^(--no-rebuild)$/){
       $rebuildSymlinks = 0;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
@@ -135,7 +135,7 @@ sub main(@){
   }
 
   my $backupName;
-  if($isFetch){
+  if($performFetch){
     my $nowDateFmt = `date +'%Y-%m-%d_%s'`;
     chomp $nowDateFmt;
 
@@ -145,7 +145,7 @@ sub main(@){
     writeFile($LATEST_BACKUP_NAME_FILE, "$backupName\n");
   }
 
-  if($isApplyBackup){
+  if($performApply){
     if(not defined $backupName){
       $backupName = readFile($LATEST_BACKUP_NAME_FILE);
       chomp $backupName;
