@@ -131,21 +131,19 @@ sub main(@){
     && echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
-  print "\nfetching sqlite DBs\n";
+  print "\nfetching sqlite DBs + contacts vcf\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$tmpDir/commhistory.db", $commhistoryDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$tmpDir/contacts.db", $contactsDb;
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$tmpDir/contacts-priv.db", $contactsPrivDb;
+  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP",
+    ":$tmpDir/contacts.vcf", $localContactsVcf;
 
   print "\nfetching MMS parts dir\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
-
-  print "\nfetching contacts vcf\n";
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP",
-    ":$tmpDir/contacts.vcf", $localContactsVcf;
 
   #########################################################
   # prepare git repo summary
