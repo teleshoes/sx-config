@@ -92,7 +92,7 @@ my $USAGE = "Usage:
       fetch commhistory-db + contacts-db + contacts-priv-db + contacts-vcf + MMS parts repo
       do NOT process or apply them
 
-    -a | --apply | --apply-only
+    -a | --apply-only
       apply, or re-apply, the latest fetched backup (either from --full or --fetch-only)
 
     --full
@@ -120,7 +120,7 @@ sub main(@){
     }elsif($arg =~ /^(-q|-f|--quick|--fetch-only)$/){
       $$opts{performFetch} = 1;
       $$opts{performApply} = 0;
-    }elsif($arg =~ /^(-a|--apply|--apply-only)$/){
+    }elsif($arg =~ /^(-a|--apply-only)$/){
       $$opts{performFetch} = 0;
       $$opts{performApply} = 1;
     }elsif($arg =~ /^(--full)$/){
