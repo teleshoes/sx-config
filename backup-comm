@@ -88,6 +88,17 @@ my $USAGE = "Usage:
     copy by-contact symlinks to device
 
   OPTS
+    -q | -f | --quick | --fetch | --fetch-only
+      fetch commhistory-db + contacts-db + contacts-priv-db + contacts-vcf + MMS parts repo
+      do NOT process or apply them
+
+    -a | --apply | --apply-only
+      apply, or re-apply, the latest fetched backup (either from --full or --fetch-only)
+
+    --full
+      fetch raw data and apply the backup
+      (this is the default)
+
     --no-rebuild
       skip clearing symlink dirs (pass --no-rebuild to $CMD_CONTACTS_SYMLINKS)
       (this is the default)
@@ -105,6 +116,15 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-q|-f|--quick|--fetch|--fetch-only)$/){
+      $isFetch = 1;
+      $isApplyBackup = 0;
+    }elsif($arg =~ /^(-a|--apply|--apply-only)$/){
+      $isFetch = 0;
+      $isApplyBackup = 1;
+    }elsif($arg =~ /^(--full)$/){
+      $isFetch = 1;
+      $isApplyBackup = 1;
     }elsif($arg =~ /^(--no-rebuild)$/){
       $rebuildSymlinks = 0;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
