@@ -8,6 +8,15 @@ use Cwd 'abs_path';
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
+sub fetchRawData($);
+sub copyFetchedDataToRawBackupFiles($);
+sub prepareGitRepoSummary();
+sub addRawDataToRepos($);
+sub parseContactsIntoRepo($);
+sub parseSMSCallsMMSIntoRepo($);
+sub buildByContactSymlinks($);
+sub syncByContactSymlinksToRemote();
+sub showGitRepoSummary($);
 sub getRawBackupFilePaths($);
 sub gitHead($);
 sub gitCommit($$$$);
@@ -105,13 +114,26 @@ sub main(@){
 
   my $backupName = $nowDateFmt;
 
+  fetchRawData($backupName);
+  copyFetchedDataToRawBackupFiles($backupName);
+
+  my $oldRepoHeads = prepareGitRepoSummary();
+
+  addRawDataToRepos($backupName);
+  parseContactsIntoRepo($backupName);
+  parseSMSCallsMMSIntoRepo($backupName);
+
+  buildByContactSymlinks($rebuildSymlinks);
+  syncByContactSymlinksToRemote();
+
+  showGitRepoSummary($oldRepoHeads);
+}
+
+# copy raw data (dbs, mms files) phone => computer
+sub fetchRawData($){
+  my ($backupName) = @_;
   my $tmpDir = "/tmp/backup-comm-$backupName";
 
-  my $rawBackupFiles = getRawBackupFilePaths($backupName);
-
-  #########################################################
-  # copy raw data (dbs, mms files) phone => computer
-  #########################################################
   print "\n\n=====COPY RAW DATA\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "
     echo preparing sqlite DBs \\
@@ -139,26 +161,36 @@ sub main(@){
   print "\nfetching MMS parts dir\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
     ":$REMOTE_MMS_PARTS_DIR/", "$MMS_PARTS_REPO/";
+}
+
+sub copyFetchedDataToRawBackupFiles($){
+  my ($backupName) = @_;
+  my $tmpDir = "/tmp/backup-comm-$backupName";
+  my $rawBackupFiles = getRawBackupFilePaths($backupName);
 
   run "cp", "-ar", "$tmpDir/commhistory.db", $$rawBackupFiles{commhistoryDb};
   run "cp", "-ar", "$tmpDir/contacts.db", $$rawBackupFiles{contactsDb};
   run "cp", "-ar", "$tmpDir/contacts-priv.db", $$rawBackupFiles{contactsPrivDb};
   run "cp", "-ar", "$tmpDir/contacts.vcf", $$rawBackupFiles{contactsVcf};
+}
 
-  #########################################################
-  # prepare git repo summary
-  #########################################################
+sub prepareGitRepoSummary(){
   for my $repo(@ALL_REPOS){
     #mms-parts repo is rsync'd directly from phone
     if($repo ne $MMS_PARTS_REPO){
       gitAssertClean($repo);
     }
   }
+
   my $oldRepoHeads = { map {$_ => gitHead $_} @ALL_REPOS };
 
-  #########################################################
-  # add raw data to repos
-  #########################################################
+  return $oldRepoHeads;
+}
+
+sub addRawDataToRepos($){
+  my ($backupName) = @_;
+  my $rawBackupFiles = getRawBackupFilePaths($backupName);
+
   print "\n\n=====ADD RAW DATA TO REPOS\n";
   run "rm", "-f", "$DB_REPO/commhistory-db";
   run "$CMD_SQLITE_DUMP", $$rawBackupFiles{commhistoryDb}, "$DB_REPO/commhistory-db";
@@ -173,18 +205,22 @@ sub main(@){
   gitCommit $DB_REPO, "contacts-priv-db", "nodiff", "contacts priv db automatic commit";
 
   gitCommit $MMS_PARTS_REPO, "-A", "nodiff", "automatic commit";
+}
 
-  #########################################################
-  # parse contacts into repo
-  #########################################################
+sub parseContactsIntoRepo($){
+  my ($backupName) = @_;
+  my $rawBackupFiles = getRawBackupFilePaths($backupName);
+
   print "\n\n=====PARSE CONTACTS\n";
   run "rm", "-f", "$CONTACTS_REPO/contacts.vcf";
   run "$CMD_CONTACTS_SORT", $$rawBackupFiles{contactsVcf}, "$CONTACTS_REPO/contacts.vcf";
   gitCommit $CONTACTS_REPO, "contacts.vcf", "diff", "automatic commit";
+}
 
-  #########################################################
-  # parse SMS+CALLS+MMS into repo
-  #########################################################
+sub parseSMSCallsMMSIntoRepo($){
+  my ($backupName) = @_;
+  my $rawBackupFiles = getRawBackupFilePaths($backupName);
+
   print "\n\n=====PARSE SMS+CALLS+MMS\n";
   my $myNumber = readFile $MY_NUMBER_FILE;
   chomp $myNumber;
@@ -237,10 +273,11 @@ sub main(@){
       die "\nERROR: invalid MMS dir name '$dirName'\n";
     }
   }
+}
 
-  #########################################################
-  # by-contact symlinks
-  #########################################################
+sub buildByContactSymlinks($){
+  my ($rebuildSymlinks) = @_;
+
   print "\n\n=====SMS/CALL BY-CONTACT SYMLINKS\n";
   my $rebuildArg = $rebuildSymlinks ? "--rebuild" : "--no-rebuild";
 
@@ -252,7 +289,9 @@ sub main(@){
     "$CONTACTS_REPO/contacts.vcf", $MMS_MSG_REPO, $MMS_BY_CONTACT_DIR;
   run "$CMD_CONTACTS_SYMLINKS", $rebuildArg, "--mmspix",
     "$CONTACTS_REPO/contacts.vcf", $MMS_MSG_REPO, $MMSPIX_BY_CONTACT_DIR;
+}
 
+sub syncByContactSymlinksToRemote(){
   runRetry 5, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "
     mkdir -p $REMOTE_REPO_DIR_SMS;
     mkdir -p $REMOTE_REPO_DIR_CALL;
@@ -279,10 +318,11 @@ sub main(@){
     "$MMS_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMS/";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
     "$MMSPIX_BY_CONTACT_DIR/", ":$REMOTE_BYCONTACT_DIR_MMSPIX/";
+}
 
-  #########################################################
-  # show git repo summary
-  #########################################################
+sub showGitRepoSummary($){
+  my ($oldRepoHeads) = @_;
+
   print "\n\n=====GIT REPO SUMMARY\n";
   gitAssertClean($_) foreach @ALL_REPOS;
   my $newRepoHeads = { map {$_ => gitHead $_} @ALL_REPOS };
