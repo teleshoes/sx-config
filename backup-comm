@@ -97,6 +97,8 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
+  my $isFetch = 1;
+  my $isApplyBackup = 1;
   my $rebuildSymlinks = 0;
   while(@_ > 0){
     my $arg = shift;
@@ -112,25 +114,40 @@ sub main(@){
     }
   }
 
-  my $nowDateFmt = `date +'%Y-%m-%d_%s'`;
-  chomp $nowDateFmt;
+  my $backupName;
+  if($isFetch){
+    my $nowDateFmt = `date +'%Y-%m-%d_%s'`;
+    chomp $nowDateFmt;
 
-  my $backupName = $nowDateFmt;
+    $backupName = $nowDateFmt;
 
-  fetchRawData($backupName);
-  writeFile($LATEST_BACKUP_NAME, "$backupName\n");
-  copyFetchedDataToRawBackupFiles($backupName);
+    fetchRawData($backupName);
+    writeFile($LATEST_BACKUP_NAME, "$backupName\n");
+  }
 
-  my $oldRepoHeads = prepareGitRepoSummary();
+  if($isApplyBackup){
+    if(not defined $backupName){
+      $backupName = readFile($LATEST_BACKUP_NAME);
+      chomp $backupName;
+      print "\n\n=====APPLYING BACKUP_NAME $backupName\n";
+    }
+    if($backupName !~ /^\d\d\d\d-\d\d-\d\d_\d+$/){
+      die "ERROR: malformed BACKUP_NAME \"$backupName\"\n";
+    }
 
-  addRawDataToRepos($backupName);
-  parseContactsIntoRepo($backupName);
-  parseSMSCallsMMSIntoRepo($backupName);
+    copyFetchedDataToRawBackupFiles($backupName);
 
-  buildByContactSymlinks($rebuildSymlinks);
-  syncByContactSymlinksToRemote();
+    my $oldRepoHeads = prepareGitRepoSummary();
 
-  showGitRepoSummary($oldRepoHeads);
+    addRawDataToRepos($backupName);
+    parseContactsIntoRepo($backupName);
+    parseSMSCallsMMSIntoRepo($backupName);
+
+    buildByContactSymlinks($rebuildSymlinks);
+    syncByContactSymlinksToRemote();
+
+    showGitRepoSummary($oldRepoHeads);
+  }
 }
 
 # copy raw data (dbs, mms files) phone => computer
