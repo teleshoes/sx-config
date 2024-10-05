@@ -27,6 +27,7 @@ my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup";
 
 my $RAW_FETCHED_DATA_DIR = "$BACKUP_DIR/backup-comm";
+my $LATEST_BACKUP_NAME = "$BACKUP_DIR/backup-comm/latest-backup-name";
 
 my $MY_NUMBER_FILE = "$BACKUP_DIR/my_number";
 
@@ -117,6 +118,7 @@ sub main(@){
   my $backupName = $nowDateFmt;
 
   fetchRawData($backupName);
+  writeFile($LATEST_BACKUP_NAME, "$backupName\n");
   copyFetchedDataToRawBackupFiles($backupName);
 
   my $oldRepoHeads = prepareGitRepoSummary();
