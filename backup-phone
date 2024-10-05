@@ -61,7 +61,8 @@ sub main(@){
 sub backup($@){
   my ($backupScript, @args) = @_;
 
-  print "\n\n\n=========$backupScript\n";
+  my $argFmt = " @args" if @args > 0;
+  print "\n\n\n=========$backupScript$argFmt\n";
   system "$BASE_DIR/$backupScript", @args;
 
   die "$backupScript failed" if $? != 0;
