@@ -133,13 +133,12 @@ sub main(@){
 
   print "\nfetching sqlite DBs + contacts vcf\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
-    ":$tmpDir/commhistory.db", $commhistoryDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
-    ":$tmpDir/contacts.db", $contactsDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
-    ":$tmpDir/contacts-priv.db", $contactsPrivDb;
-  runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
-    ":$tmpDir/contacts.vcf", $localContactsVcf;
+    ":$tmpDir/", "$tmpDir/";
+
+  run "cp", "-ar", "$tmpDir/commhistory.db", $commhistoryDb;
+  run "cp", "-ar", "$tmpDir/contacts.db", $contactsDb;
+  run "cp", "-ar", "$tmpDir/contacts-priv.db", $contactsPrivDb;
+  run "cp", "-ar", "$tmpDir/contacts.vcf", $localContactsVcf;
 
   print "\nfetching MMS parts dir\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
