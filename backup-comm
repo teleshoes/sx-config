@@ -119,7 +119,9 @@ sub main(@){
     && sqlite3 $REMOTE_COMMHISTORY_DB 'vacuum into \"$tmpDir/commhistory.db\"' \\
     && sqlite3 $REMOTE_CONTACTS_DB 'vacuum into \"$tmpDir/contacts.db\"' \\
     && sqlite3 $REMOTE_CONTACTS_PRIV_DB 'vacuum into \"$tmpDir/contacts-priv.db\"' \\
+    && echo preparing contacts.vcf \\
     && vcardconverter-sudo -e \"$tmpDir/contacts.vcf\" \\
+    && echo verifying remote files \\
     && ls $tmpDir \\
     && test -f $tmpDir/commhistory.db \\
     && test -f $tmpDir/contacts.db \\
