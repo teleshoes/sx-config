@@ -154,7 +154,7 @@ sub main(@){
       gitAssertClean($repo);
     }
   }
-  my %oldRepoHeads = map {$_ => gitHead $_} @ALL_REPOS;
+  my $oldRepoHeads = { map {$_ => gitHead $_} @ALL_REPOS };
 
   #########################################################
   # add raw data to repos
@@ -285,10 +285,10 @@ sub main(@){
   #########################################################
   print "\n\n=====GIT REPO SUMMARY\n";
   gitAssertClean($_) foreach @ALL_REPOS;
-  my %newRepoHeads = map {$_ => gitHead $_} @ALL_REPOS;
+  my $newRepoHeads = { map {$_ => gitHead $_} @ALL_REPOS };
   for my $repo(@ALL_REPOS){
-    my $oldHead = $oldRepoHeads{$repo};
-    my $newHead = $newRepoHeads{$repo};
+    my $oldHead = $$oldRepoHeads{$repo};
+    my $newHead = $$newRepoHeads{$repo};
     if($oldHead ne $newHead){
       my @commits = gitGetCommitsSince $repo, $oldHead;
       die "\nERROR: failed listing commits since $oldHead\n" if @commits == 0;
