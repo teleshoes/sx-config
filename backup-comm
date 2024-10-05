@@ -95,6 +95,20 @@ my $USAGE = "Usage:
     -a | --apply-only
       apply, or re-apply, the latest fetched backup (either from --full or --fetch-only)
 
+    --perform-fetch
+      fetch commhistory-db + contacts-db + contacts-priv-db + contacts-vcf + MMS parts repo
+      (this is the defaut)
+    --no-perform-fetch
+      do not fetch remote backups
+
+    --perform-apply
+      process+apply the latest fetched backup
+        -use the backup just fetched with --perform-fetch, or the latest otherwise
+        -fail if --no-perform-fetch and there are no stored backups
+      (this is the default)
+    --no-perform-apply
+      do not apply any backups
+
     --rebuild|--slow
       clear+rebuild symlink dirs (pas --rebuild to $CMD_CONTACTS_SYMLINKS)
     --no-rebuild
@@ -119,6 +133,14 @@ sub main(@){
     }elsif($arg =~ /^(-a|--apply-only)$/){
       $$opts{performFetch} = 0;
       $$opts{performApply} = 1;
+    }elsif($arg =~ /^(--perform-fetch)$/){
+      $$opts{performFetch} = 1;
+    }elsif($arg =~ /^(--no-perform-fetch)$/){
+      $$opts{performFetch} = 0;
+    }elsif($arg =~ /^(--perform-apply)$/){
+      $$opts{performApply} = 1;
+    }elsif($arg =~ /^(--no-perform-apply)$/){
+      $$opts{performApply} = 0;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
       $$opts{rebuildSymlinks} = 1;
     }elsif($arg =~ /^(--no-rebuild)$/){
