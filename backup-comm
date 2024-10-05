@@ -212,6 +212,16 @@ sub copyFetchedDataToRawBackupFiles($){
   my $fetchedBackupDir = "$RAW_FETCHED_DATA_DIR/$backupName";
   my $rawBackupFiles = getRawBackupFilePaths($backupName);
 
+  if(not -f "$fetchedBackupDir/commhistory.db"){
+    die "ERROR: missing commhistoryDb from fetch $backupName\n";
+  }elsif(not -f "$fetchedBackupDir/contacts.db"){
+    die "ERROR: missing contactsDb from fetch $backupName\n";
+  }elsif(not -f "$fetchedBackupDir/contacts-priv.db"){
+    die "ERROR: missing contactsPrivDb from fetch $backupName\n";
+  }elsif(not -f "$fetchedBackupDir/contacts.vcf"){
+    die "ERROR: missing contactsVcf from fetch $backupName\n";
+  }
+
   run "cp", "-ar", "$fetchedBackupDir/commhistory.db", $$rawBackupFiles{commhistoryDb};
   run "cp", "-ar", "$fetchedBackupDir/contacts.db", $$rawBackupFiles{contactsDb};
   run "cp", "-ar", "$fetchedBackupDir/contacts-priv.db", $$rawBackupFiles{contactsPrivDb};
