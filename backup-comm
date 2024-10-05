@@ -18,6 +18,7 @@ sub buildByContactSymlinks($);
 sub syncByContactSymlinksToRemote();
 sub showGitRepoSummary($);
 sub getRawBackupFilePaths($);
+sub cleanupFetchedBackups();
 sub gitHead($);
 sub gitCommit($$$$);
 sub gitGetCommitsSince($$);
@@ -110,6 +111,12 @@ my $USAGE = "Usage:
     --no-perform-apply
       do not apply any backups
 
+    --perform-cleanup
+      remove fetched backups that appear to have been applied
+        -find backups in \"$RAW_FETCHED_DATA_DIR/*\"
+          where all the files have been copied to the raw backup files
+        -remove $LATEST_BACKUP_NAME_FILE if that backup dir was removed
+
     --rebuild|--slow
       clear+rebuild symlink dirs (pas --rebuild to $CMD_CONTACTS_SYMLINKS)
     --no-rebuild
@@ -121,6 +128,7 @@ sub main(@){
   my $opts = {
     performFetch    => 1,
     performApply    => 1,
+    performCleanup  => 0,
     rebuildSymlinks => 0,
   };
   while(@_ > 0){
@@ -142,6 +150,8 @@ sub main(@){
       $$opts{performApply} = 1;
     }elsif($arg =~ /^(--no-perform-apply)$/){
       $$opts{performApply} = 0;
+    }elsif($arg =~ /^(--perform-cleanup)$/){
+      $$opts{performCleanup} = 1;
     }elsif($arg =~ /^(--rebuild|--slow)$/){
       $$opts{rebuildSymlinks} = 1;
     }elsif($arg =~ /^(--no-rebuild)$/){
@@ -184,6 +194,10 @@ sub main(@){
     syncByContactSymlinksToRemote();
 
     showGitRepoSummary($oldRepoHeads);
+  }
+
+  if($$opts{performCleanup}){
+    cleanupFetchedBackups();
   }
 }
 
@@ -406,6 +420,41 @@ sub showGitRepoSummary($){
       for my $commit(reverse @commits){
         print gitStatCommit($repo, $commit);
       }
+    }
+  }
+}
+
+sub cleanupFetchedBackups(){
+  print "\n\n=====CLEANUP BACKUPS\n";
+
+  my $latestBackupName;
+  if(-f $LATEST_BACKUP_NAME_FILE){
+   $latestBackupName = readFile($LATEST_BACKUP_NAME_FILE);
+   chomp $latestBackupName;
+ }
+
+  my @backupDirs = grep {-d $_} glob "$RAW_FETCHED_DATA_DIR/*/";
+  for my $backupDir(@backupDirs){
+    my $backupName;
+    if($backupDir =~ /^(?:.*\/)?([^\/]+)\/*$/){
+      $backupName = $1;
+    }else{
+      die "ERROR: malformed backup dir $backupDir\n";
+    }
+    my $rawBackupFiles = getRawBackupFilePaths($backupName);
+    if(
+             (-f $$rawBackupFiles{commhistoryDb})
+         and (-f $$rawBackupFiles{contactsDb})
+         and (-f $$rawBackupFiles{contactsPrivDb})
+         and (-f $$rawBackupFiles{contactsVcf})
+    ){
+      print "\ndeleting $backupDir\n";
+      run "rm", "-r", $backupDir;
+    }
+
+    if(defined $latestBackupName and $backupName eq $latestBackupName){
+      print "\ndeleting $LATEST_BACKUP_NAME_FILE\n";
+      run "rm", $LATEST_BACKUP_NAME_FILE;
     }
   }
 }
