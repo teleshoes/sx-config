@@ -26,6 +26,8 @@ sub gitStatCommit($$);
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup";
 
+my $RAW_FETCHED_DATA_DIR = "$BACKUP_DIR/backup-comm";
+
 my $MY_NUMBER_FILE = "$BACKUP_DIR/my_number";
 
 my $DB_DIR = "$BACKUP_DIR/backup-dbs";
@@ -133,6 +135,7 @@ sub main(@){
 sub fetchRawData($){
   my ($backupName) = @_;
   my $tmpDir = "/tmp/backup-comm-$backupName";
+  my $fetchedBackupDir = "$RAW_FETCHED_DATA_DIR/$backupName";
 
   print "\n\n=====COPY RAW DATA\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root", "
@@ -154,9 +157,11 @@ sub fetchRawData($){
     && echo success || ( echo FAILED TO PROCESS SQLITE DBS && exit 1 )
   ";
 
+  run "mkdir", "-p", $fetchedBackupDir;
+
   print "\nfetching sqlite DBs + contacts vcf\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
-    ":$tmpDir/", "$tmpDir/";
+    ":$tmpDir/", "$fetchedBackupDir/";
 
   print "\nfetching MMS parts dir\n";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP",
@@ -165,13 +170,13 @@ sub fetchRawData($){
 
 sub copyFetchedDataToRawBackupFiles($){
   my ($backupName) = @_;
-  my $tmpDir = "/tmp/backup-comm-$backupName";
+  my $fetchedBackupDir = "$RAW_FETCHED_DATA_DIR/$backupName";
   my $rawBackupFiles = getRawBackupFilePaths($backupName);
 
-  run "cp", "-ar", "$tmpDir/commhistory.db", $$rawBackupFiles{commhistoryDb};
-  run "cp", "-ar", "$tmpDir/contacts.db", $$rawBackupFiles{contactsDb};
-  run "cp", "-ar", "$tmpDir/contacts-priv.db", $$rawBackupFiles{contactsPrivDb};
-  run "cp", "-ar", "$tmpDir/contacts.vcf", $$rawBackupFiles{contactsVcf};
+  run "cp", "-ar", "$fetchedBackupDir/commhistory.db", $$rawBackupFiles{commhistoryDb};
+  run "cp", "-ar", "$fetchedBackupDir/contacts.db", $$rawBackupFiles{contactsDb};
+  run "cp", "-ar", "$fetchedBackupDir/contacts-priv.db", $$rawBackupFiles{contactsPrivDb};
+  run "cp", "-ar", "$fetchedBackupDir/contacts.vcf", $$rawBackupFiles{contactsVcf};
 }
 
 sub prepareGitRepoSummary(){
