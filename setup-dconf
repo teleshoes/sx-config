@@ -2,17 +2,17 @@
 use strict;
 use warnings;
 
-my $ipmagicName = "sx";
-
-my $BASE_DIR = "$ENV{HOME}/Code/sx";
-my $BACKUP_DIR = "$BASE_DIR/backup/klomp";
-
 sub getTopmenuToggles();
 sub getTopmenuSliders();
 sub getTopmenuActions();
 sub getTopmenuShortcuts();
 sub gvariantList(@);
 sub run(@);
+
+my $ipmagicName = "sx";
+
+my $BASE_DIR = "$ENV{HOME}/Code/sx";
+my $BACKUP_DIR = "$BASE_DIR/backup/klomp";
 
 my $topmenuToggles = getTopmenuToggles();
 my $topmenuSliders = getTopmenuSliders();
