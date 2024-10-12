@@ -159,7 +159,7 @@ sub main(@){
   print FH $script;
   close FH;
 
-  run "scp", "/tmp/$scriptFile", "$user\@$host:/tmp/$scriptFile";
+  run "ipmagic", $ipmagicName, "--scp", "/tmp/$scriptFile", ":/tmp/$scriptFile";
   run "ipmagic", $ipmagicName, "bash", "/tmp/$scriptFile";
 }
 
