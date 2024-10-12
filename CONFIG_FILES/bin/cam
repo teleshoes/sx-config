@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+sub run(@);
+
+my @KILL_CAMERA_CMDS = (
+  [qw(sudo pkill -9 cameraserver)],
+);
+
+my $USAGE = "Usage:
+  $0 -h|--help
+    show this message
+
+  $0
+  $0 f | -f | fix | --fix
+  $0 k | -k | kill | --kill
+    run:\n" . join("\n", map {"      @$_"} @KILL_CAMERA_CMDS) . "
+";
+
+my $MODE_KILL = "kill";
+
+sub main(@){
+  my $mode = $MODE_KILL;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(f|-f|fix|--fix)$/){
+      $mode = $MODE_KILL;
+    }elsif($arg =~ /^(k|-k|kill|--kill)$/){
+      $mode = $MODE_KILL;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($mode eq $MODE_KILL){
+    run @$_ foreach @KILL_CAMERA_CMDS;
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+&main(@ARGV);
