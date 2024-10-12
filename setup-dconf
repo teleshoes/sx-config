@@ -40,7 +40,12 @@ my @selectedTopmenuItems = (
   $$topmenuToggles{volte},
 );
 
+my @notificationsAppNamesNoPreview = (
+);
+
 my $dconf = {
+  "/lipstick/notifications_app_names_no_preview" => gvariantList(@notificationsAppNamesNoPreview),
+
   "/apps/text_input/autocaps/enabled" => "false",
 
   #Disable Android App Support system package verification
