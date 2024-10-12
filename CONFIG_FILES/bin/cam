@@ -5,6 +5,9 @@ use warnings;
 sub run(@);
 
 my @KILL_CAMERA_CMDS = (
+  [qw(sudo pkill jolla-camera)],
+  [qw(sudo pkill -f ^/usr/bin/harbour-advanced-camera)],
+  [qw(sudo pkill -f ^net.sourceforge.opencamera)],
   [qw(sudo pkill -f -9 ^/vendor/bin/hw/android.hardware.camera.provider)],
   [qw(sudo pkill -9 cameraserver)],
 );
