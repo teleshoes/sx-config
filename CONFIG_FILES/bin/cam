@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 
+sub editCamOverridesFile($);
+sub readFile($);
+sub writeFileSudo($$);
 sub run(@);
 
 my @KILL_CAMERA_CMDS = (
@@ -12,6 +15,9 @@ my @KILL_CAMERA_CMDS = (
   [qw(sudo pkill -9 cameraserver)],
 );
 
+my $CAM_OVERRIDES_FILE = "/vendor/etc/camera/camxoverridesettings.txt";
+my $MULTI_ENABLE_KEY = "multiCameraEnable";
+
 my $USAGE = "Usage:
   $0 -h|--help
     show this message
@@ -20,12 +26,24 @@ my $USAGE = "Usage:
   $0 f | -f | fix | --fix
   $0 k | -k | kill | --kill
     run:\n" . join("\n", map {"      @$_"} @KILL_CAMERA_CMDS) . "
+  $0 --set-multi=MULTI_ENABLE_VALUE
+    -set $MULTI_ENABLE_KEY to MULTI_ENABLE_VALUE (TRUE or FALSE) in
+      $CAM_OVERRIDES_FILE
+    -kill cameraserver as in $0 --kill
+
+  MULTI_ENABLE_VALUE
+    TRUE | true | on | 1
+      set $MULTI_ENABLE_KEY=TRUE
+    FALSE | false | off | 0
+      set $MULTI_ENABLE_KEY=FALSE
 ";
 
 my $MODE_KILL = "kill";
+my $MODE_SET_MULTI = "set-multi";
 
 sub main(@){
   my $mode = $MODE_KILL;
+  my $multiVal = undef;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -35,6 +53,12 @@ sub main(@){
       $mode = $MODE_KILL;
     }elsif($arg =~ /^(k|-k|kill|--kill)$/){
       $mode = $MODE_KILL;
+    }elsif($arg =~ /^--set-multi=(TRUE|true|on|1)$/){
+      $mode = $MODE_SET_MULTI;
+      $multiVal = "TRUE";
+    }elsif($arg =~ /^--set-multi=(FALSE|false|off|0)$/){
+      $mode = $MODE_SET_MULTI;
+      $multiVal = "FALSE";
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -42,9 +66,62 @@ sub main(@){
 
   if($mode eq $MODE_KILL){
     run @$_ foreach @KILL_CAMERA_CMDS;
+  }elsif($mode eq $MODE_SET_MULTI){
+    editCamOverridesFile({$MULTI_ENABLE_KEY => $multiVal});
+    run @$_ foreach @KILL_CAMERA_CMDS;
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub editCamOverridesFile($){
+  my ($keyVals) = @_;
+  my @lines = readFile $CAM_OVERRIDES_FILE;
+  my $anyEdited = 0;
+  for my $key(sort keys %$keyVals){
+    my $val = $$keyVals{$key};
+    my $keyFound = 0;
+    for my $line(@lines){
+      if($line =~ /^$key=(.+)$/){
+        my $oldVal = $1;
+        if($oldVal ne $val){
+          $line =~ s/$key=(.+)/$key=$val/;
+          print "edit $key: $oldVal => $val\n";
+          $anyEdited = 1;
+        }
+        $keyFound = 1;
+        last;
+      }
+    }
+    if(not $keyFound){
+      print "add $key: $val\n";
+      push @lines, "$key=$val\n";
+      $anyEdited = 1;
+    }
+  }
+
+  if($anyEdited){
+    writeFileSudo($CAM_OVERRIDES_FILE, join '', @lines);
+  }
+}
+
+sub readFile($){
+  my ($file) = @_;
+  open my $fh, "<", $file or die "ERROR: could not read $file\n$!\n";
+  my @lines = <$fh>;
+  close $fh;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
+  }
+}
+sub writeFileSudo($$){
+  my ($file, $contents) = @_;
+  my @writeCmd = ("sudo", "dd", "status=none", "of=$file");
+  open my $fh, "|-", @writeCmd or die "ERROR: could not dd $file\n$!\n";
+  print $fh $contents;
+  close $fh;
 }
 
 sub run(@){
