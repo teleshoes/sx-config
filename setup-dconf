@@ -2,7 +2,6 @@
 use strict;
 use warnings;
 
-my $user = "nemo";
 my $ipmagicName = "sx";
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
@@ -133,9 +132,6 @@ my $dconf = {
 };
 
 sub main(@){
-  my $host = `ipmagic $ipmagicName`;
-  chomp $host;
-
   my $script = "";
   for my $key(sort keys %$dconf){
     my $val = $$dconf{$key};
