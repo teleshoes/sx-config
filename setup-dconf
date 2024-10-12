@@ -9,37 +9,37 @@ sub getTopmenuShortcuts();
 sub gvariantList(@);
 sub run(@);
 
-my $ipmagicName = "sx";
+my $IPMAGIC_NAME = "sx";
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup/klomp";
 
-my $topmenuToggles = getTopmenuToggles();
-my $topmenuSliders = getTopmenuSliders();
-my $topmenuActions = getTopmenuActions();
-my $topmenuShortcuts = getTopmenuShortcuts();
+my $TOPMENU_TOGGLES = getTopmenuToggles();
+my $TOPMENU_SLIDERS = getTopmenuSliders();
+my $TOPMENU_ACTIONS = getTopmenuActions();
+my $TOPMENU_SHORTCUTS = getTopmenuShortcuts();
 
-my @selectedTopmenuItems = (
-  $$topmenuSliders{brightness},
-  $$topmenuSliders{media_volume},
+my @SELECTED_TOP_MENU_ITEMS = (
+  $$TOPMENU_SLIDERS{brightness},
+  $$TOPMENU_SLIDERS{media_volume},
 
-  $$topmenuToggles{cellular_data},
-  $$topmenuToggles{wlan},
-  $$topmenuToggles{bluetooth},
-  $$topmenuToggles{flight},
+  $$TOPMENU_TOGGLES{cellular_data},
+  $$TOPMENU_TOGGLES{wlan},
+  $$TOPMENU_TOGGLES{bluetooth},
+  $$TOPMENU_TOGGLES{flight},
 
-  $$topmenuToggles{flashlight},
-  $$topmenuToggles{orientation_lock},
-  $$topmenuToggles{location},
-  $$topmenuToggles{hotspot},
+  $$TOPMENU_TOGGLES{flashlight},
+  $$TOPMENU_TOGGLES{orientation_lock},
+  $$TOPMENU_TOGGLES{location},
+  $$TOPMENU_TOGGLES{hotspot},
 
-  $$topmenuToggles{resolv},
-  $$topmenuActions{connect_to_internet},
-  $$topmenuActions{make_a_note},
-  $$topmenuToggles{volte},
+  $$TOPMENU_TOGGLES{resolv},
+  $$TOPMENU_ACTIONS{connect_to_internet},
+  $$TOPMENU_ACTIONS{make_a_note},
+  $$TOPMENU_TOGGLES{volte},
 );
 
-my @notificationsAppNamesNoPreview = (
+my @NOTIFICATIONS_APP_NAMES_NO_PREVIEW = (
   "Cool Reader",
   "Riot.im",
   "Tor Browser",
@@ -48,9 +48,9 @@ my @notificationsAppNamesNoPreview = (
   "backup",
 );
 
-my $dconf = {
+my $DCONF = {
   "/lipstick/notifications_app_names_no_preview" =>
-    gvariantList(@notificationsAppNamesNoPreview),
+    gvariantList(@NOTIFICATIONS_APP_NAMES_NO_PREVIEW),
 
   "/apps/text_input/autocaps/enabled" => "false",
 
@@ -69,7 +69,7 @@ my $dconf = {
   "/desktop/lipstick-jolla-home/lock_screen_camera" => "true",
 
   "/desktop/lipstick-jolla-home/topmenu_shortcuts" =>
-    gvariantList(@selectedTopMenuItems),
+    gvariantList(@SELECTED_TOP_MENU_ITEMS),
   "/desktop/lipstick-jolla-home/topmenu_shortcuts_enabled" => "true",
 
   "/desktop/jolla/reboot_action_enabled" => "true",
@@ -135,8 +135,8 @@ my $dconf = {
 
 sub main(@){
   my $script = "";
-  for my $key(sort keys %$dconf){
-    my $val = $$dconf{$key};
+  for my $key(sort keys %$DCONF){
+    my $val = $$DCONF{$key};
     $script .= "
       source /etc/bashrc
       echo -ne \"\\n$key\\n\"
@@ -152,13 +152,13 @@ sub main(@){
       fi
     ";
   }
-  my $scriptFile = "$ipmagicName-setup-dconf.sh";
+  my $scriptFile = "$IPMAGIC_NAME-setup-dconf.sh";
   open FH, "> /tmp/$scriptFile";
   print FH $script;
   close FH;
 
-  run "ipmagic", $ipmagicName, "--scp", "/tmp/$scriptFile", ":/tmp/$scriptFile";
-  run "ipmagic", $ipmagicName, "bash", "/tmp/$scriptFile";
+  run "ipmagic", $IPMAGIC_NAME, "--scp", "/tmp/$scriptFile", ":/tmp/$scriptFile";
+  run "ipmagic", $IPMAGIC_NAME, "bash", "/tmp/$scriptFile";
 }
 
 sub getTopmenuToggles(){
