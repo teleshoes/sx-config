@@ -41,6 +41,12 @@ my @selectedTopmenuItems = (
 );
 
 my @notificationsAppNamesNoPreview = (
+  "Cool Reader",
+  "Riot.im",
+  "Tor Browser",
+  "Lite", #Facebook Lite
+  "Maps", #google-maps
+  "backup",
 );
 
 my $dconf = {
