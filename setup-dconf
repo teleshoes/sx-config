@@ -154,7 +154,7 @@ sub main(@){
       fi
     ";
   }
-  my $scriptFile = "$host-setup-dconf.sh";
+  my $scriptFile = "$ipmagicName-setup-dconf.sh";
   open FH, "> /tmp/$scriptFile";
   print FH $script;
   close FH;
