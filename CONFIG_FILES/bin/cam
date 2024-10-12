@@ -26,6 +26,13 @@ my $USAGE = "Usage:
   $0 f | -f | fix | --fix
   $0 k | -k | kill | --kill
     run:\n" . join("\n", map {"      @$_"} @KILL_CAMERA_CMDS) . "
+
+  $0 m | -m | multi | --multi
+    same as: $0 --set-multi=TRUE
+
+  $0 s | -s | single | --single
+    same as: $0 --set-multi=TRUE
+
   $0 --set-multi=MULTI_ENABLE_VALUE
     -set $MULTI_ENABLE_KEY to MULTI_ENABLE_VALUE (TRUE or FALSE) in
       $CAM_OVERRIDES_FILE
@@ -53,6 +60,12 @@ sub main(@){
       $mode = $MODE_KILL;
     }elsif($arg =~ /^(k|-k|kill|--kill)$/){
       $mode = $MODE_KILL;
+    }elsif($arg =~ /^(m|-m|multi|--multi)$/){
+      $mode = $MODE_SET_MULTI;
+      $multiVal = "TRUE";
+    }elsif($arg =~ /^(s|-s|single|--single)$/){
+      $mode = $MODE_SET_MULTI;
+      $multiVal = "FALSE";
     }elsif($arg =~ /^--set-multi=(TRUE|true|on|1)$/){
       $mode = $MODE_SET_MULTI;
       $multiVal = "TRUE";
