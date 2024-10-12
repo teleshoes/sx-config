@@ -49,7 +49,8 @@ my @notificationsAppNamesNoPreview = (
 );
 
 my $dconf = {
-  "/lipstick/notifications_app_names_no_preview" => gvariantList(@notificationsAppNamesNoPreview),
+  "/lipstick/notifications_app_names_no_preview" =>
+    gvariantList(@notificationsAppNamesNoPreview),
 
   "/apps/text_input/autocaps/enabled" => "false",
 
@@ -67,7 +68,8 @@ my $dconf = {
   "/desktop/lipstick-jolla-home/left_peek_to_events" => "false",
   "/desktop/lipstick-jolla-home/lock_screen_camera" => "true",
 
-  "/desktop/lipstick-jolla-home/topmenu_shortcuts" => gvariantList(@selectedTopmenuItems),
+  "/desktop/lipstick-jolla-home/topmenu_shortcuts" =>
+    gvariantList(@selectedTopMenuItems),
   "/desktop/lipstick-jolla-home/topmenu_shortcuts_enabled" => "true",
 
   "/desktop/jolla/reboot_action_enabled" => "true",
