@@ -11,6 +11,7 @@ import Sailfish.Silica.private 1.0 as Private
 import Sailfish.Lipstick 1.0
 import com.jolla.lipstick 0.1
 import org.nemomobile.lipstick 0.1
+import Nemo.Configuration 1.0
 import Nemo.Thumbnailer 1.0
 import org.nemomobile.devicelock 1.0
 import "../systemwindow"
@@ -18,8 +19,11 @@ import "../systemwindow"
 SystemWindow {
     id: notificationWindow
 
-    property variant appNamesNoPreview: [
-    ]
+    ConfigurationValue {
+        id: appNamesNoPreview
+        key: "/lipstick/notifications_app_names_no_preview"
+        defaultValue: []
+    }
 
     property bool active
     property QtObject notification: notificationPreviewPresenter.notification
@@ -598,9 +602,10 @@ SystemWindow {
     onAppIconUrlChanged: refreshPeriod()
 
     function displayNotification() {
-        // do not display notifications with appName in appNamesNoPreview
-        for (var i = 0; i < notificationWindow.appNamesNoPreview.length; i++) {
-          var appName = notificationWindow.appNamesNoPreview[i]
+        // do not display notifications with appName in dconf:
+        //   /lipstick/notifications_app_names_no_preview
+        for (var i = 0; i < appNamesNoPreview.value.length; i++) {
+          var appName = appNamesNoPreview.value[i]
           if (appName === notificationWindow.appNameText) {
               state = "hidePopup"
               return
