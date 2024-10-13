@@ -44,6 +44,7 @@ my @NOTIFICATIONS_APP_NAMES_NO_PREVIEW = (
   "Element",
   "Riot.im",
   "Tor Browser",
+  "Facebook",
   "Lite", #Facebook Lite
   "Maps", #google-maps
   "backup",
