@@ -27,6 +27,13 @@ my $USAGE = "Usage:
   $0 k | -k | kill | --kill
     run:\n" . join("\n", map {"      @$_"} @KILL_CAMERA_CMDS) . "
 
+  $0 g | -g | get | --get
+    -read $MULTI_ENABLE_KEY from
+      $CAM_OVERRIDES_FILE
+    -print 'multi' if TRUE
+    -print 'single' if FALSE
+    -print 'unknown' otherwise
+
   $0 m | -m | multi | --multi
     same as: $0 --set-multi=TRUE
 
@@ -46,6 +53,7 @@ my $USAGE = "Usage:
 ";
 
 my $MODE_KILL = "kill";
+my $MODE_GET_MULTI = "get-multi";
 my $MODE_SET_MULTI = "set-multi";
 
 sub main(@){
@@ -60,6 +68,8 @@ sub main(@){
       $mode = $MODE_KILL;
     }elsif($arg =~ /^(k|-k|kill|--kill)$/){
       $mode = $MODE_KILL;
+    }elsif($arg =~ /^(g|-g|get|--get)$/){
+      $mode = $MODE_GET_MULTI;
     }elsif($arg =~ /^(m|-m|multi|--multi)$/){
       $mode = $MODE_SET_MULTI;
       $multiVal = "TRUE";
@@ -79,6 +89,19 @@ sub main(@){
 
   if($mode eq $MODE_KILL){
     run @$_ foreach @KILL_CAMERA_CMDS;
+  }elsif($mode eq $MODE_GET_MULTI){
+    if(-f $CAM_OVERRIDES_FILE){
+      my $contents = readFile $CAM_OVERRIDES_FILE;
+      if($contents =~ /^$MULTI_ENABLE_KEY\s*=\s*TRUE\s*$/m){
+        print "multi\n";
+      }elsif($contents =~ /^$MULTI_ENABLE_KEY\s*=\s*FALSE\s*$/m){
+        print "single\n";
+      }else{
+        print "unknown\n";
+      }
+    }else{
+      print "unknown\n";
+    }
   }elsif($mode eq $MODE_SET_MULTI){
     editCamOverridesFile({$MULTI_ENABLE_KEY => $multiVal});
     run @$_ foreach @KILL_CAMERA_CMDS;
