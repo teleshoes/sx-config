@@ -41,6 +41,7 @@ my @SELECTED_TOP_MENU_ITEMS = (
 
 my @NOTIFICATIONS_APP_NAMES_NO_PREVIEW = (
   "Cool Reader",
+  "Element",
   "Riot.im",
   "Tor Browser",
   "Lite", #Facebook Lite
