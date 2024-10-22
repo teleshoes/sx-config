@@ -20,9 +20,11 @@ sub main(@){
 
   my $pid = fork();
   if($pid){
+    system "udo", "notify", "-t", 2, "ad restart started";
     system "ad", "restart";
     kill 9, -$pid;
     waitpid $pid, 0;
+    system "udo", "notify", "-t", 2, "ad restart complete";
     print "\n\nRESTART COMPLETE\n";
   }else{
     setpgrp(0, 0);
