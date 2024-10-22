@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 my $FIX_ARR = [
+  [kb       => [qw(keyboard)]    => "systemctl --user restart maliit-server"],
 ];
 
 my @FIX_NAMES = map {$$_[0]} @$FIX_ARR;
