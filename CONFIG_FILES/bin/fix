@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 my $FIX_ARR = [
+  [lipstick => [qw(lip)]         => "systemctl --user restart lipstick"],
   [pulse    => [qw()]            => "systemctl --user restart pulseaudio"],
   [kb       => [qw(keyboard)]    => "systemctl --user restart maliit-server"],
 ];
