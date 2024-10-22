@@ -10,6 +10,7 @@ my $FIX_ARR = [
   [ofono    => [qw(net network)] => "network-fix --force"],
   [mms      => [qw(mms-engine)]  => "pkill mms-engine"],
   [ip6      => [qw(ipv6)]        => "fix-ip6"],
+  [cam      => [qw(camera)]      => "cam --kill"],
   [pulse    => [qw()]            => "systemctl --user restart pulseaudio"],
   [kb       => [qw(keyboard)]    => "systemctl --user restart maliit-server"],
 ];
