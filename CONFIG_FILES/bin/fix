@@ -9,6 +9,7 @@ my $FIX_ARR = [
   [bt       => [qw(bluetooth)]   => "bluetooth-fix"],
   [ofono    => [qw(net network)] => "network-fix --force"],
   [mms      => [qw(mms-engine)]  => "pkill mms-engine"],
+  [ip6      => [qw(ipv6)]        => "fix-ip6"],
   [pulse    => [qw()]            => "systemctl --user restart pulseaudio"],
   [kb       => [qw(keyboard)]    => "systemctl --user restart maliit-server"],
 ];
