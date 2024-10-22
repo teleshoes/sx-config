@@ -65,7 +65,6 @@ sub main(@){
     system "date";
     print "RESTARTING OFONO\n";
     system "sudo", "systemctl", "restart", "ofono";
-    system "update-status-led";
   }
 }
 
