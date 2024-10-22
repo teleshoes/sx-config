@@ -6,6 +6,7 @@ use File::Basename qw(basename);
 my $FIX_ARR = [
   [lipstick => [qw(lip)]         => "systemctl --user restart lipstick"],
   [led      => [qw()]            => "update-status-led"],
+  [bt       => [qw(bluetooth)]   => "bluetooth-fix"],
   [mms      => [qw(mms-engine)]  => "pkill mms-engine"],
   [pulse    => [qw()]            => "systemctl --user restart pulseaudio"],
   [kb       => [qw(keyboard)]    => "systemctl --user restart maliit-server"],
