@@ -1,0 +1,62 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $FIX_ARR = [
+];
+
+my @FIX_NAMES = map {$$_[0]} @$FIX_ARR;
+my %FIX_COMMANDS = map {$$_[0] => $$_[2]} @$FIX_ARR;
+my %FIX_ALIASES = map {$$_[0] => $$_[1]} @$FIX_ARR;
+
+my $FIX_USAGE_FORMAT = join '', map {
+  my $name = $_;
+  my @aliases = join ' | ', ($name, @{$FIX_ALIASES{$name}});
+  "\n    @aliases\n      run: `$FIX_COMMANDS{$name}`";
+} @FIX_NAMES;
+
+my $NOTIFY_TIMEOUT = 2;
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h | --help
+    show this message
+
+  $EXEC FIX_NAME [FIX_NAME FIX_NAME ..]
+    -send a notification with `notify -t $NOTIFY_TIMEOUT 'fix FIX_NAME FIX_NAME ...'`
+    -for each FIX_NAME:
+      run the command associated with that fix name
+
+  FIX_NAME" . $FIX_USAGE_FORMAT . "
+";
+
+sub main(@){
+  my @fixNames;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif(defined $FIX_COMMANDS{lc $arg}){
+      push @fixNames, lc $arg;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  die "$USAGE\nERROR: no FIX_NAME given\n" if @fixNames == 0;
+
+  my $msg = "fix: @fixNames";
+  print "$msg\n";
+  system "notify", "-t", $NOTIFY_TIMEOUT, $msg;
+
+  for my $fixName(@fixNames){
+    my $cmd = $FIX_COMMANDS{$fixName};
+    print "$cmd\n";
+    system $cmd;
+  }
+}
+
+&main(@ARGV);
