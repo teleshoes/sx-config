@@ -1,3 +1,0 @@
-#!/bin/sh
-echo RESTARTING MALIIT INPUT SERVER
-systemctl --user restart maliit-server
