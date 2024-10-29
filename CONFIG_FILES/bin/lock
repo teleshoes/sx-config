@@ -7,16 +7,20 @@ sub isLocked();
 sub setLocked($);
 sub run(@);
 
+my $CMD_GET = "get";
 my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
 my $CMD_TOGGLE = "toggle";
-my $CMD_GET = "get";
 
 my $EXEC = basename $0;
 
 my $usage = "Usage:
   $EXEC -h|--help
     show this message
+
+  $EXEC --get
+    -read locked status with dbus method: com.nokia.mce.request.get_display_status
+    -print either 'locked' or 'unlocked'
 
   $EXEC
   $EXEC --toggle
@@ -30,10 +34,6 @@ my $usage = "Usage:
 
   $EXEC --unlock
     use mcetool to set unlock screen and unblank display
-
-  $EXEC --get
-    -read locked status with dbus method: com.nokia.mce.request.get_display_status
-    -print either 'locked' or 'unlocked'
 ";
 
 sub main(@){
@@ -41,28 +41,28 @@ sub main(@){
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $usage;
     exit 0;
+  }elsif(@_ == 1 and $_[0] =~ /^(--get)$/){
+    $arg = $CMD_GET;
   }elsif(@_ == 1 and $_[0] =~ /^(--lock)$/){
     $arg = $CMD_LOCK;
   }elsif(@_ == 1 and $_[0] =~ /^(--unlock)$/){
     $arg = $CMD_UNLOCK;
-  }elsif(@_ == 1 and $_[0] =~ /^(--get)$/){
-    $arg = $CMD_GET;
   }elsif(@_ == 0 or ($_[0] == 1 and $_[0] =~ /^(--toggle)$/)){
     $arg = $CMD_TOGGLE;
   }else{
     die $usage;
   }
 
-  if($arg eq $CMD_LOCK){
-    setLocked 1;
-  }elsif($arg eq $CMD_UNLOCK){
-    setLocked 0;
-  }elsif($arg eq $CMD_GET){
+  if($arg eq $CMD_GET){
     if(isLocked()){
       print "locked\n";
     }else{
       print "unlocked\n";
     }
+  }elsif($arg eq $CMD_LOCK){
+    setLocked 1;
+  }elsif($arg eq $CMD_UNLOCK){
+    setLocked 0;
   }elsif($arg eq $CMD_TOGGLE){
     if(isLocked()){
       setLocked 0;
