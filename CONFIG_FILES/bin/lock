@@ -24,16 +24,14 @@ my $USAGE = "Usage:
 
   $EXEC
   $EXEC --toggle
-    -read locked status with dbus method: com.nokia.mce.request.get_display_status
-    -set locked/unlocked with mcetool
-      if display is off, same as $EXEC --unlock
-      if display is on, same as $EXEC --lock
+    -toggle locked/unlocked
+    -same as: if [ `$EXEC --get` == locked ]; then $EXEC --unlock; else $EXEC --lock; fi
 
   $EXEC --lock
-    use mcetool to set lock screen and blank display
+    -use mcetool to set lock screen and blank display
 
   $EXEC --unlock
-    use mcetool to set unlock screen and unblank display
+    -use mcetool to set unlock screen and unblank display
 ";
 
 sub main(@){
