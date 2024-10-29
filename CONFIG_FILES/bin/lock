@@ -6,6 +6,8 @@ use File::Basename qw(basename);
 sub isLocked();
 sub setLocked($);
 sub dimScreen();
+sub enableLPM();
+sub disableLPM();
 sub run(@);
 
 my $CMD_GET = "get";
@@ -13,6 +15,8 @@ my $CMD_TOGGLE = "toggle";
 my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
 my $CMD_DIM = "dim";
+my $CMD_LPM_ENABLE = "lpm-enable";
+my $CMD_LPM_DISABLE = "lpm-disable";
 
 my $EXEC = basename $0;
 
@@ -37,6 +41,11 @@ my $USAGE = "Usage:
 
   $EXEC -d | d | dim | --dim
     -use mcetool to unblank display and dim the screen
+
+  $EXEC --lpm-enable | --enable-lpm
+    -use mcetool to enable low power mode and associated settings
+  $EXEC --lpm-disable | --disable-lpm
+    -use mcetool to disable low power mode and associated settings
 ";
 
 sub main(@){
@@ -56,6 +65,10 @@ sub main(@){
       $cmd = $CMD_UNLOCK;
     }elsif($arg =~ /^(-d|d|dim|--dim)$/){
       $cmd = $CMD_DIM;
+    }elsif($arg =~ /^(--lpm-enable|--enable-lpm)$/){
+      $cmd = $CMD_LPM_ENABLE;
+    }elsif($arg =~ /^(--lpm-disable|--disable-lpm)$/){
+      $cmd = $CMD_LPM_DISABLE;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -71,6 +84,10 @@ sub main(@){
     setLocked 0;
   }elsif($cmd eq $CMD_DIM){
     dimScreen();
+  }elsif($cmd eq $CMD_LPM_ENABLE){
+    enableLPM();
+  }elsif($cmd eq $CMD_LPM_DISABLE){
+    disableLPM();
   }else{
     die "ERROR: unknown command $cmd\n";
   }
@@ -114,6 +131,22 @@ sub setLocked($){
 
 sub dimScreen(){
   run "mcetool", "--dim-screen";
+}
+
+sub enableLPM(){
+  run "mcetool", "--set-low-power-mode=enabled";
+  run "mcetool", "--set-blank-from-lpm-on-timeout=130";
+  run "mcetool", "--set-powerkey-blanking=lpm";
+
+  run "mcetool", "--set-doubletap-mode=disabled";
+}
+
+sub disableLPM(){
+  run "mcetool", "--set-low-power-mode=disabled";
+  run "mcetool", "--set-blank-from-lpm-on-timeout=0";
+  run "mcetool", "--set-powerkey-blanking=off";
+
+  run "mcetool", "--set-doubletap-mode=disabled";
 }
 
 sub run(@){
