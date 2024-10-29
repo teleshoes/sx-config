@@ -13,6 +13,7 @@ sub run(@);
 
 my $CMD_GET = "get";
 my $CMD_TOGGLE = "toggle";
+my $CMD_LPM_REFRESH = "lpm-refresh";
 my $CMD_LPM_LOCK = "lpm-lock";
 my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
@@ -34,6 +35,10 @@ my $USAGE = "Usage:
   $EXEC -t | t | toggle | --toggle
     -toggle locked/unlocked
     -same as: if [ `$EXEC --get` == locked ]; then $EXEC --unlock; else $EXEC --lock; fi
+
+  $EXEC -r | r | --lpm-refresh
+    -refresh LPM display if device is locked (do nothing if not locked)
+    -same as: if [ `$EXEC --get` == locked ]; then $EXEC --lpm-lock; fi
 
   $EXEC --lpm-lock
     -enter LPM mode, refreshing the LPM display if already locked
@@ -67,6 +72,8 @@ sub main(@){
       $cmd = $CMD_GET;
     }elsif($arg =~ /^(-t|t|toggle|--toggle)$/){
       $cmd = $CMD_TOGGLE;
+    }elsif($arg =~ /^(-r|r|--lpm-refresh)$/){
+      $cmd = $CMD_LPM_REFRESH;
     }elsif($arg =~ /^(--lpm-lock)$/){
       $cmd = $CMD_LPM_LOCK;
     }elsif($arg =~ /^(-l|l|lock|--lock)$/){
@@ -88,6 +95,10 @@ sub main(@){
     print isLocked() ? "locked\n" : "unlocked\n";
   }elsif($cmd eq $CMD_TOGGLE){
     setLocked(isLocked() ? 0 : 1);
+  }elsif($cmd eq $CMD_LPM_REFRESH){
+    if(isLocked()){
+      unblankAndBlankLPM();
+    }
   }elsif($cmd eq $CMD_LPM_LOCK){
     unblankAndBlankLPM();
   }elsif($cmd eq $CMD_LOCK){
