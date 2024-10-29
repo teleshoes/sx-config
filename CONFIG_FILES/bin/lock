@@ -37,40 +37,40 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  my $arg;
+  my $cmd;
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
     print $USAGE;
     exit 0;
   }elsif(@_ == 1 and $_[0] =~ /^(--get)$/){
-    $arg = $CMD_GET;
+    $cmd = $CMD_GET;
   }elsif(@_ == 0 or ($_[0] == 1 and $_[0] =~ /^(--toggle)$/)){
-    $arg = $CMD_TOGGLE;
+    $cmd = $CMD_TOGGLE;
   }elsif(@_ == 1 and $_[0] =~ /^(--lock)$/){
-    $arg = $CMD_LOCK;
+    $cmd = $CMD_LOCK;
   }elsif(@_ == 1 and $_[0] =~ /^(--unlock)$/){
-    $arg = $CMD_UNLOCK;
+    $cmd = $CMD_UNLOCK;
   }else{
     die $USAGE;
   }
 
-  if($arg eq $CMD_GET){
+  if($cmd eq $CMD_GET){
     if(isLocked()){
       print "locked\n";
     }else{
       print "unlocked\n";
     }
-  }elsif($arg eq $CMD_TOGGLE){
+  }elsif($cmd eq $CMD_TOGGLE){
     if(isLocked()){
       setLocked 0;
     }else{
       setLocked 1;
     }
-  }elsif($arg eq $CMD_LOCK){
+  }elsif($cmd eq $CMD_LOCK){
     setLocked 1;
-  }elsif($arg eq $CMD_UNLOCK){
+  }elsif($cmd eq $CMD_UNLOCK){
     setLocked 0;
   }else{
-    die "ERROR: unknown command $arg\n";
+    die "ERROR: unknown command $cmd\n";
   }
 }
 
