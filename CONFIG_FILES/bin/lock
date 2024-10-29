@@ -6,12 +6,14 @@ use File::Basename qw(basename);
 sub isLocked();
 sub setLocked($);
 sub dimScreen();
+sub unblankAndBlankLPM();
 sub enableLPM();
 sub disableLPM();
 sub run(@);
 
 my $CMD_GET = "get";
 my $CMD_TOGGLE = "toggle";
+my $CMD_LPM_LOCK = "lpm-lock";
 my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
 my $CMD_DIM = "dim";
@@ -32,6 +34,11 @@ my $USAGE = "Usage:
   $EXEC -t | t | toggle | --toggle
     -toggle locked/unlocked
     -same as: if [ `$EXEC --get` == locked ]; then $EXEC --unlock; else $EXEC --lock; fi
+
+  $EXEC --lpm-lock
+    -enter LPM mode, refreshing the LPM display if already locked
+      (unblank+dim the screen, then lock + blank the screen, entering LPM if enabled)
+    -same as: $EXEC --dim && $EXEC --lock
 
   $EXEC -l | l | lock | --lock
     -use mcetool to set lock screen and blank display
@@ -60,6 +67,8 @@ sub main(@){
       $cmd = $CMD_GET;
     }elsif($arg =~ /^(-t|t|toggle|--toggle)$/){
       $cmd = $CMD_TOGGLE;
+    }elsif($arg =~ /^(--lpm-lock)$/){
+      $cmd = $CMD_LPM_LOCK;
     }elsif($arg =~ /^(-l|l|lock|--lock)$/){
       $cmd = $CMD_LOCK;
     }elsif($arg =~ /^(-u|u|unlock|--unlock)$/){
@@ -79,6 +88,8 @@ sub main(@){
     print isLocked() ? "locked\n" : "unlocked\n";
   }elsif($cmd eq $CMD_TOGGLE){
     setLocked(isLocked() ? 0 : 1);
+  }elsif($cmd eq $CMD_LPM_LOCK){
+    unblankAndBlankLPM();
   }elsif($cmd eq $CMD_LOCK){
     setLocked 1;
   }elsif($cmd eq $CMD_UNLOCK){
@@ -132,6 +143,10 @@ sub setLocked($){
 
 sub dimScreen(){
   run "mcetool", "--dim-screen";
+}
+
+sub unblankAndBlankLPM(){
+  run "mcetool", "--dim-screen", "--blank-screen-lpm";
 }
 
 sub enableLPM(){
