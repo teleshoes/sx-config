@@ -14,7 +14,7 @@ my $CMD_UNLOCK = "unlock";
 
 my $EXEC = basename $0;
 
-my $usage = "Usage:
+my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
@@ -39,7 +39,7 @@ my $usage = "Usage:
 sub main(@){
   my $arg;
   if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print $usage;
+    print $USAGE;
     exit 0;
   }elsif(@_ == 1 and $_[0] =~ /^(--get)$/){
     $arg = $CMD_GET;
@@ -50,7 +50,7 @@ sub main(@){
   }elsif(@_ == 1 and $_[0] =~ /^(--unlock)$/){
     $arg = $CMD_UNLOCK;
   }else{
-    die $usage;
+    die $USAGE;
   }
 
   if($arg eq $CMD_GET){
