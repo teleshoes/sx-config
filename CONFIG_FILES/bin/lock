@@ -77,7 +77,6 @@ sub isLocked(){
       /com/nokia/mce/request
       com.nokia.mce.request.get_display_status
   );
-  print "@cmd\n";
   open CMD, "-|", @cmd or die "could not run @cmd\n$!\n";
   my $out = join '', <CMD>;
   close CMD;
