@@ -18,19 +18,19 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC --get
+  $EXEC -g | g | get | --get
     -read locked status with dbus method: com.nokia.mce.request.get_display_status
     -print either 'locked' or 'unlocked'
 
   $EXEC
-  $EXEC --toggle
+  $EXEC -t | t | toggle | --toggle
     -toggle locked/unlocked
     -same as: if [ `$EXEC --get` == locked ]; then $EXEC --unlock; else $EXEC --lock; fi
 
-  $EXEC --lock
+  $EXEC -l | l | lock | --lock
     -use mcetool to set lock screen and blank display
 
-  $EXEC --unlock
+  $EXEC -u | u | unlock | --unlock
     -use mcetool to set unlock screen and unblank display
 ";
 
@@ -41,13 +41,13 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(--get)$/){
+    }elsif($arg =~ /^(-g|g|get|--get)$/){
       $cmd = $CMD_GET;
-    }elsif($arg =~ /^(--toggle)$/){
+    }elsif($arg =~ /^(-t|t|toggle|--toggle)$/){
       $cmd = $CMD_TOGGLE;
-    }elsif($arg =~ /^(--lock)$/){
+    }elsif($arg =~ /^(-l|l|lock|--lock)$/){
       $cmd = $CMD_LOCK;
-    }elsif($arg =~ /^(--unlock)$/){
+    }elsif($arg =~ /^(-u|u|unlock|--unlock)$/){
       $cmd = $CMD_UNLOCK;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
