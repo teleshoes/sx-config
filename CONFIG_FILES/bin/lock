@@ -54,17 +54,9 @@ sub main(@){
   }
 
   if($cmd eq $CMD_GET){
-    if(isLocked()){
-      print "locked\n";
-    }else{
-      print "unlocked\n";
-    }
+    print isLocked() ? "locked\n" : "unlocked\n";
   }elsif($cmd eq $CMD_TOGGLE){
-    if(isLocked()){
-      setLocked 0;
-    }else{
-      setLocked 1;
-    }
+    setLocked(isLocked() ? 0 : 1);
   }elsif($cmd eq $CMD_LOCK){
     setLocked 1;
   }elsif($cmd eq $CMD_UNLOCK){
