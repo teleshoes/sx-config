@@ -5,12 +5,14 @@ use File::Basename qw(basename);
 
 sub isLocked();
 sub setLocked($);
+sub dimScreen();
 sub run(@);
 
 my $CMD_GET = "get";
 my $CMD_TOGGLE = "toggle";
 my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
+my $CMD_DIM = "dim";
 
 my $EXEC = basename $0;
 
@@ -32,6 +34,9 @@ my $USAGE = "Usage:
 
   $EXEC -u | u | unlock | --unlock
     -use mcetool to set unlock screen and unblank display
+
+  $EXEC -d | d | dim | --dim
+    -use mcetool to unblank display and dim the screen
 ";
 
 sub main(@){
@@ -49,6 +54,8 @@ sub main(@){
       $cmd = $CMD_LOCK;
     }elsif($arg =~ /^(-u|u|unlock|--unlock)$/){
       $cmd = $CMD_UNLOCK;
+    }elsif($arg =~ /^(-d|d|dim|--dim)$/){
+      $cmd = $CMD_DIM;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -62,6 +69,8 @@ sub main(@){
     setLocked 1;
   }elsif($cmd eq $CMD_UNLOCK){
     setLocked 0;
+  }elsif($cmd eq $CMD_DIM){
+    dimScreen();
   }else{
     die "ERROR: unknown command $cmd\n";
   }
@@ -101,6 +110,10 @@ sub setLocked($){
   }else{
     run "mcetool", "--tklock-close", "--unblank-screen";
   }
+}
+
+sub dimScreen(){
+  run "mcetool", "--dim-screen";
 }
 
 sub run(@){
