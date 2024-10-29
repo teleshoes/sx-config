@@ -35,6 +35,7 @@ my $USAGE = "Usage:
 
   $EXEC -l | l | lock | --lock
     -use mcetool to set lock screen and blank display
+      (note: enters LPM if enabled, but does not refresh LPM display)
 
   $EXEC -u | u | unlock | --unlock
     -use mcetool to set unlock screen and unblank display
@@ -123,7 +124,7 @@ sub isLocked(){
 
 sub setLocked($){
   if($_[0]){
-    run "mcetool", "--set-tklock-mode=locked", "--blank-screen";
+    run "mcetool", "--set-tklock-mode=locked", "--blank-screen-lpm";
   }else{
     run "mcetool", "--tklock-close", "--unblank-screen";
   }
