@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
 
 sub isLocked();
 sub setLocked($);
@@ -11,24 +12,26 @@ my $CMD_UNLOCK = "unlock";
 my $CMD_TOGGLE = "toggle";
 my $CMD_GET = "get";
 
+my $EXEC = basename $0;
+
 my $usage = "Usage:
-  $0 -h|--help
+  $EXEC -h|--help
     show this message
 
-  $0
-  $0 --toggle
+  $EXEC
+  $EXEC --toggle
     -read locked status with dbus method: com.nokia.mce.request.get_display_status
     -set locked/unlocked with mcetool
-      if display is off, same as $0 --unlock
-      if display is on, same as $0 --lock
+      if display is off, same as $EXEC --unlock
+      if display is on, same as $EXEC --lock
 
-  $0 --lock
+  $EXEC --lock
     use mcetool to set lock screen and blank display
 
-  $0 --unlock
+  $EXEC --unlock
     use mcetool to set unlock screen and unblank display
 
-  $0 --get
+  $EXEC --get
     -read locked status with dbus method: com.nokia.mce.request.get_display_status
     -print either 'locked' or 'unlocked'
 ";
