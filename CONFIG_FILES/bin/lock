@@ -37,20 +37,23 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  my $cmd;
-  if(@_ == 1 and $_[0] =~ /^(-h|--help)$/){
-    print $USAGE;
-    exit 0;
-  }elsif(@_ == 1 and $_[0] =~ /^(--get)$/){
-    $cmd = $CMD_GET;
-  }elsif(@_ == 0 or ($_[0] == 1 and $_[0] =~ /^(--toggle)$/)){
-    $cmd = $CMD_TOGGLE;
-  }elsif(@_ == 1 and $_[0] =~ /^(--lock)$/){
-    $cmd = $CMD_LOCK;
-  }elsif(@_ == 1 and $_[0] =~ /^(--unlock)$/){
-    $cmd = $CMD_UNLOCK;
-  }else{
-    die $USAGE;
+  my $cmd = $CMD_TOGGLE;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(--get)$/){
+      $cmd = $CMD_GET;
+    }elsif($arg =~ /^(--toggle)$/){
+      $cmd = $CMD_TOGGLE;
+    }elsif($arg =~ /^(--lock)$/){
+      $cmd = $CMD_LOCK;
+    }elsif($arg =~ /^(--unlock)$/){
+      $cmd = $CMD_UNLOCK;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
   }
 
   if($cmd eq $CMD_GET){
