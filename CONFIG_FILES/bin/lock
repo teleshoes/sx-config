@@ -7,6 +7,7 @@ sub isLocked();
 sub setLocked($);
 sub dimScreen();
 sub unblankAndBlankLPM();
+sub isLPMEnabled();
 sub enableLPM();
 sub disableLPM();
 sub run(@);
@@ -18,6 +19,7 @@ my $CMD_LPM_LOCK = "lpm-lock";
 my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
 my $CMD_DIM = "dim";
+my $CMD_IS_LPM_ENABLED = "is-lpm-enabled";
 my $CMD_LPM_ENABLE = "lpm-enable";
 my $CMD_LPM_DISABLE = "lpm-disable";
 
@@ -55,6 +57,11 @@ my $USAGE = "Usage:
   $EXEC -d | d | dim | --dim
     -use mcetool to unblank display and dim the screen
 
+  $EXEC --is-lpm-enabled
+    -extract 'Use low power mode' from mcetool
+    -if 'enabled':  print enabled
+    -if 'disabled': print disabled
+
   $EXEC --lpm-enable | --enable-lpm
     -use mcetool to enable low power mode and associated settings
     -also does --lpm-refresh to switch from lockscreen to LPM
@@ -83,6 +90,8 @@ sub main(@){
       $cmd = $CMD_UNLOCK;
     }elsif($arg =~ /^(-d|d|dim|--dim)$/){
       $cmd = $CMD_DIM;
+    }elsif($arg =~ /^(--is-lpm-enabled)$/){
+      $cmd = $CMD_IS_LPM_ENABLED;
     }elsif($arg =~ /^(--lpm-enable|--enable-lpm)$/){
       $cmd = $CMD_LPM_ENABLE;
     }elsif($arg =~ /^(--lpm-disable|--disable-lpm)$/){
@@ -108,6 +117,8 @@ sub main(@){
     setLocked 0;
   }elsif($cmd eq $CMD_DIM){
     dimScreen();
+  }elsif($cmd eq $CMD_IS_LPM_ENABLED){
+    print isLPMEnabled() ? "enabled\n" : "disabled\n";
   }elsif($cmd eq $CMD_LPM_ENABLE){
     enableLPM();
   }elsif($cmd eq $CMD_LPM_DISABLE){
@@ -159,6 +170,19 @@ sub dimScreen(){
 
 sub unblankAndBlankLPM(){
   run "mcetool", "--dim-screen", "--blank-screen-lpm";
+}
+
+sub isLPMEnabled(){
+  my $out = `mcetool`;
+  my $state = "";
+  $state = $1 if $out =~ /^Use low power mode:\s*(enabled|disabled)/m;
+  if($state eq "enabled"){
+    return 1;
+  }elsif($state eq "disabled"){
+    return 0;
+  }else{
+    die "ERROR: could not read LPM mode with mcetool\n";
+  }
 }
 
 sub enableLPM(){
