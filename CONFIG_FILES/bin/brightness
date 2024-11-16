@@ -1,1 +1,80 @@
-mcetool -b$@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+sub getBrightness();
+sub setBrightness($);
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC
+  $EXEC -g | g | --get | get
+    print brightness percent as an integer between 1 and 100
+    similar to: `mcetool | grep -P -o '^Brightness:\\s*\\K(\\d+)'`
+
+  $EXEC PERCENT
+  $EXEC -s | s | --set | set PERCENT
+  $EXEC --set=PERCENT
+    set brightness to PERCENT, and print 'OLD => NEW'
+    similar to: `mcetool -b PERCENT`
+
+    PERCENT
+      an integer between 1 and 100 inclusive,
+      optionally followed by a '%' sign which is ignored
+";
+
+my $CMD_GET = "get";
+my $CMD_SET = "set";
+
+sub main(@){
+  my $cmd = $CMD_GET;
+  my $targetBrightness = undef;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|g|--get|get)$/){
+      $cmd = $CMD_GET;
+    }elsif($arg =~ /^(-s|s|--set|set)$/){
+      $cmd = $CMD_SET;
+    }elsif($arg =~ /^--set=(\d+)%?$/){
+      $cmd = $CMD_SET;
+      $targetBrightness = $1;
+    }elsif($arg =~ /^(\d+)%?$/){
+      $cmd = $CMD_SET;
+      $targetBrightness = $1;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($cmd eq $CMD_GET){
+    print getBrightness() . "\n";
+  }elsif($cmd eq $CMD_SET){
+    die "$USAGE\nERROR: missing PERCENT\n" if not defined $targetBrightness;
+    my $old = getBrightness();
+    setBrightness($targetBrightness);
+    my $new = getBrightness();
+    print "$old => $new\n";
+  }else{
+    die $USAGE;
+  }
+}
+
+sub getBrightness(){
+  my $out = `mcetool`;
+  if($out =~ /^Brightness:\s*(\d+)/m){
+    return $1;
+  }else{
+    return undef;
+  }
+}
+
+sub setBrightness($){
+  system "mcetool", "-b", $_[0];
+}
+
+&main(@ARGV);
