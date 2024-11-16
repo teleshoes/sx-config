@@ -29,6 +29,8 @@ my @HOME_RSYNC_INCLUDES = qw(
   .config/tasmota.conf
   .config/wemo-devices.conf
 
+  .cache/coinbase/btc-balance
+  .cache/coinbase/transactions.json
   .cache/robinhood/***
 
   .cache/workouts/viewfit-workouts-json/***
