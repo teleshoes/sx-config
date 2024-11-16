@@ -47,6 +47,7 @@ my @HOME_RSYNC_INCLUDE_PARENT_DIRS = sort(uniq(
 
 my @USR_LOCAL_BIN_INCLUDES = qw(
   alarm
+  brightness
   gst-play
   ipmagic
   off-cmd
