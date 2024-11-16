@@ -57,6 +57,7 @@ my $USAGE = "Usage:
 
   $EXEC --lpm-enable | --enable-lpm
     -use mcetool to enable low power mode and associated settings
+    -also does --lpm-refresh to switch from lockscreen to LPM
   $EXEC --lpm-disable | --disable-lpm
     -use mcetool to disable low power mode and associated settings
 ";
@@ -166,6 +167,10 @@ sub enableLPM(){
   run "mcetool", "--set-powerkey-blanking=lpm";
 
   run "mcetool", "--set-doubletap-mode=disabled";
+
+  if(isLocked()){
+    unblankAndBlankLPM();
+  }
 }
 
 sub disableLPM(){
