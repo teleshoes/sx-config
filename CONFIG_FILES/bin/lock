@@ -22,6 +22,7 @@ my $CMD_DIM = "dim";
 my $CMD_IS_LPM_ENABLED = "is-lpm-enabled";
 my $CMD_LPM_ENABLE = "lpm-enable";
 my $CMD_LPM_DISABLE = "lpm-disable";
+my $CMD_LPM_TOGGLE = "lpm-toggle";
 
 my $EXEC = basename $0;
 
@@ -67,6 +68,12 @@ my $USAGE = "Usage:
     -also does --lpm-refresh to switch from lockscreen to LPM
   $EXEC --lpm-disable | --disable-lpm
     -use mcetool to disable low power mode and associated settings
+  $EXEC --lpm-toggle | --toggle-lpm
+    -toggle lpm enabled state
+    -same as: if [ `$EXEC --is-lpm-enabled` == enabled ]
+              then $EXEC --lpm-disabledunlock
+              else $EXEC --lock
+              fi
 ";
 
 sub main(@){
@@ -96,6 +103,8 @@ sub main(@){
       $cmd = $CMD_LPM_ENABLE;
     }elsif($arg =~ /^(--lpm-disable|--disable-lpm)$/){
       $cmd = $CMD_LPM_DISABLE;
+    }elsif($arg =~ /^(--lpm-toggle|--disable-toggle)$/){
+      $cmd = $CMD_LPM_TOGGLE;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -123,6 +132,8 @@ sub main(@){
     enableLPM();
   }elsif($cmd eq $CMD_LPM_DISABLE){
     disableLPM();
+  }elsif($cmd eq $CMD_LPM_TOGGLE){
+    isLPMEnabled() ? disableLPM() : enableLPM();
   }else{
     die "ERROR: unknown command $cmd\n";
   }
