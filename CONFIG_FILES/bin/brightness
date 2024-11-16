@@ -54,6 +54,9 @@ sub main(@){
 
   if(defined $targetBrightness){
     $targetBrightness = 1 if $targetBrightness == 0;
+    if($targetBrightness < 1 or $targetBrightness > 100){
+      die "ERROR: PERCENT must be between 1 and 100\n";
+    }
   }
 
   if($cmd eq $CMD_GET){
