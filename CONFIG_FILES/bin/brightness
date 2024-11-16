@@ -110,7 +110,7 @@ sub fixColor(){
 }
 
 sub writeHBM($){
-  open my $cmdH, "|-", "sudo", "tee", $HBM_MODE_DEV;
+  open my $cmdH, "|-", "sudo", "dd", "status=none", "of=$HBM_MODE_DEV";
   print $cmdH "$_[0]\n";
   close $cmdH;
 }
