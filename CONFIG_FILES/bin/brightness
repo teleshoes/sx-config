@@ -2,9 +2,14 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
+use Time::HiRes qw(sleep);
 
 sub getBrightness();
 sub setBrightness($);
+sub fixColor();
+sub writeHBM($);
+
+my $HBM_MODE_DEV = "/sys/devices/dsi_panel_driver/hbm_mode";
 
 my $EXEC = basename $0;
 
@@ -24,10 +29,19 @@ my $USAGE = "Usage:
       -an integer between 1 and 100 inclusive,
         optionally followed by a '%' sign which is ignored
       -if '0' is passed in, '1' is used instead
+
+  $EXEC -f | f | --fix | fix | --fix-color
+    fix broken color calibration in certain sony devices
+      by briefly toggling max brightness
+    lasts until next screen is turned off
+    similar to: echo 1 | sudo tee $HBM_MODE_DEV
+                sleep 0.1
+                echo 0 | sudo tee $HBM_MODE_DEV
 ";
 
 my $CMD_GET = "get";
 my $CMD_SET = "set";
+my $CMD_FIX_COLOR = "fix-color";
 
 sub main(@){
   my $cmd = $CMD_GET;
@@ -47,6 +61,8 @@ sub main(@){
     }elsif($arg =~ /^(\d+)%?$/){
       $cmd = $CMD_SET;
       $targetBrightness = $1;
+    }elsif($arg =~ /^(-f|f|--fix|fix|--fix-color)$/){
+      $cmd = $CMD_FIX_COLOR
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -67,6 +83,8 @@ sub main(@){
     setBrightness($targetBrightness);
     my $new = getBrightness();
     print "$old => $new\n";
+  }elsif($cmd eq $CMD_FIX_COLOR){
+    fixColor();
   }else{
     die $USAGE;
   }
@@ -83,6 +101,18 @@ sub getBrightness(){
 
 sub setBrightness($){
   system "mcetool", "-b", $_[0];
+}
+
+sub fixColor(){
+  writeHBM(1);
+  sleep 0.1;
+  writeHBM(0);
+}
+
+sub writeHBM($){
+  open my $cmdH, "|-", "sudo", "tee", $HBM_MODE_DEV;
+  print $cmdH "$_[0]\n";
+  close $cmdH;
 }
 
 &main(@ARGV);
