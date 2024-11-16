@@ -21,8 +21,9 @@ my $USAGE = "Usage:
     similar to: `mcetool -b PERCENT`
 
     PERCENT
-      an integer between 1 and 100 inclusive,
-      optionally followed by a '%' sign which is ignored
+      -an integer between 1 and 100 inclusive,
+        optionally followed by a '%' sign which is ignored
+      -if '0' is passed in, '1' is used instead
 ";
 
 my $CMD_GET = "get";
@@ -49,6 +50,10 @@ sub main(@){
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
+  }
+
+  if(defined $targetBrightness){
+    $targetBrightness = 1 if $targetBrightness == 0;
   }
 
   if($cmd eq $CMD_GET){
