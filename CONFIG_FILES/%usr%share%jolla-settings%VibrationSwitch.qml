@@ -3,9 +3,12 @@ import Sailfish.Silica 1.0
 import Nemo.DBus 2.0
 import com.jolla.settings.system 1.0
 import com.jolla.settings 1.0
+import org.nemomobile.systemsettings 1.0
 import Mer.Cutes 1.1
 
 SettingsToggle {
+    ProfileControl { id: soundSettings }
+
     property var ngfdActive: false
 
     name: "Vibration"
@@ -45,8 +48,10 @@ SettingsToggle {
       busy = true;
       if(isActive){
         readProc(["sh", "-c", "systemctl --user restart ngfd"]);
+        soundSettings.touchscreenToneLevel = 1
       }else{
         readProc(["sh", "-c", "systemctl --user stop ngfd"]);
+        soundSettings.touchscreenToneLevel = 0
       }
       retrieveNgfdStatus()
       busy = false;
