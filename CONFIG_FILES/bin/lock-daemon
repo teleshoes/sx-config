@@ -51,7 +51,12 @@ sub main(@){
         run "brightness", "--fix-color";
       }elsif($state eq "off"){
         if(not -f $PREV_BRIGHTNESS_STATE_FILE){
-          run "brightness -g > $PREV_BRIGHTNESS_STATE_FILE";
+          run "sh -c '
+            curBrightness=`brightness -g`
+            if [ \"\$b\" != $BRIGHTNESS_LPM ]; then
+              echo \$curBrightness > $PREV_BRIGHTNESS_STATE_FILE
+            fi
+          '";
           run "brightness", $BRIGHTNESS_LPM;
         }
         run "brightness", "--fix-color";
