@@ -45,10 +45,12 @@ sub main(@){
       }elsif($state eq "on"){
         #restore previous brightness
         if(-f $PREV_BRIGHTNESS_STATE_FILE){
-          run "brightness", `cat $PREV_BRIGHTNESS_STATE_FILE`;
+          my $prevBrightness = `cat $PREV_BRIGHTNESS_STATE_FILE`;
+          chomp $prevBrightness;
+          run "brightness $prevBrightness &";
           run "rm", "-f", $PREV_BRIGHTNESS_STATE_FILE;
         }
-        run "brightness", "--fix-color";
+        run "brightness --fix-color &";
       }elsif($state eq "off"){
         my $isLpmEnabled = `lock --is-lpm-enabled`;
         if($isLpmEnabled =~ /enabled/){
@@ -58,10 +60,10 @@ sub main(@){
               if [ \"\$b\" != $BRIGHTNESS_LPM ]; then
                 echo \$curBrightness > $PREV_BRIGHTNESS_STATE_FILE
               fi
-            '";
+            ' &";
           }
-          run "brightness --set $BRIGHTNESS_LPM";
-          run "brightness --fix-color";
+          run "brightness --set $BRIGHTNESS_LPM &";
+          run "brightness --fix-color &";
         }
       }
 
