@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Time::HiRes qw(time);
+
+sub run(@);
+sub nowMillis();
+
+my $BRIGHTNESS_LPM = 5;
+
+my $DIM_LOCK_MILLIS = 350;
+my $PREV_BRIGHTNESS_STATE_FILE = "/tmp/brightness-unlocked";
+
+sub main(@){
+  my @dbusMonitorCmd = (
+    "sudo",
+    "dbus-monitor",
+    "--system",
+    join(",",
+      "sender=com.nokia.mce",
+      "interface=com.nokia.mce.signal",
+      "member=display_status_ind",
+    ),
+  );
+
+  system "rm", "-f", $PREV_BRIGHTNESS_STATE_FILE;
+
+  #assume screen has been on since epoch
+  my $prevState = "on";
+  my $prevEventMillis = 0;
+
+  open my $dbusH, "-|", @dbusMonitorCmd
+    or die "ERROR: cmd failed \"@dbusMonitorCmd\"\n";
+
+  while(my $line = <$dbusH>){
+    if($line =~ /^\s*string "(on|off|dimmed)"\s*$/){
+      my $state = $1;
+      my $eventMillis = nowMillis();
+      my $elapsedMillis = $eventMillis - $prevEventMillis;
+
+      if($state eq "dimmed"){
+        #ignore dimmed event
+      }elsif($state eq "off" and $prevState eq "dimmed" and $elapsedMillis < $DIM_LOCK_MILLIS){
+        #also gnore lock immediately after dimmed
+      }elsif($state eq "on"){
+        #restore previous brightness
+        if(-f $PREV_BRIGHTNESS_STATE_FILE){
+          run "brightness", `cat $PREV_BRIGHTNESS_STATE_FILE`;
+          run "rm", "-f", $PREV_BRIGHTNESS_STATE_FILE;
+        }
+        run "brightness", "--fix-color";
+      }elsif($state eq "off"){
+        if(not -f $PREV_BRIGHTNESS_STATE_FILE){
+          run "brightness -g > $PREV_BRIGHTNESS_STATE_FILE";
+          run "brightness", $BRIGHTNESS_LPM;
+        }
+        run "brightness", "--fix-color";
+      }
+
+      $prevState = $state;
+      $prevEventMillis = $eventMillis;
+    }
+  }
+
+  close $dbusH;
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+}
+
+sub nowMillis(){
+  return int(time() * 1000.0 + 0.5);
+}
+
+&main(@ARGV);
