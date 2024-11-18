@@ -11,7 +11,7 @@ SettingsToggle {
 
     property var ngfdActive: false
 
-    name: "Vibration"
+    name: "Tap+Vibe"
     icon.source: "image://theme/icon-m-vibration"
     showOnOffLabel: true
 
