@@ -23,6 +23,7 @@ sudo ln -s \$SD_DROID_MNT /media/sdcard/droid
 /home/nemo/bin/screen-daemon button-monitor --start
 /home/nemo/bin/screen-daemon keepalive --start
 /home/nemo/bin/screen-daemon mpris-fakeplayer --start
+/home/nemo/bin/screen-daemon lock-daemon --start
 
 sudo cpu-enable fast
 
