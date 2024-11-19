@@ -4,6 +4,8 @@ use warnings;
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
+my $CONF_FILE = "$ENV{HOME}/.config/timed-cmd.conf";
+
 my $EXEC = basename $0;
 my $DEFAULT_APPLICATION = do{$_=$EXEC; s/\W+/_/g; $_};
 my $ALARM_APPLICATION = "nemoalarms";
@@ -22,6 +24,7 @@ my $SCHED_ALL = {
   $ATT_MINUTES       => [0..59],
 };
 
+sub readConf($);
 sub getTimedCmdEventCookies($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
@@ -79,6 +82,25 @@ my $usage = "Usage:
       --event-arg=\"keepAlive\" \\
       --event-arg=\"alignedSnooze\" \\
     ;
+
+  $EXEC [OPTS] --apply-config
+    -clear all $DEFAULT_APPLICATION events as in:
+      `$EXEC --clear`
+    -parse commands and alarms in $CONF_FILE
+      alarm = TITLE TIME_HHMM DAYS_OF_WEEK_LETTERS
+      cmd = TITLE | SCHED | DAEMON_RUN_TIMEOUT | DAEMON_RUN_ENABLED | SHELL_CMD
+    -if TITLE_PATTERN is given, ignore any alarm or cmd that does not match TITLE_PATTERN
+    -for each cmd:
+      -get FULL_CMD
+        -if DAEMON_RUN_TIMEOUT is given and DAEMON_RUN_ENABLED is true:
+          -use FULL_CMD = udo daemon-run --name=TITLE --timeout=DAEMON_RUN_TIMEOUT -v SHELL_CMD
+        -otherwise:
+          -use FULL_CMD = SHELL_CMD
+      -add cmd as in:
+        `$EXEC --add SCHED --title=TITLE --cmd='FULL_CMD'
+    -for each alarm:
+      -add alarm as in:
+        `$EXEC --add-alarm TITLE_TIME_HH_MM DAYS_OF_WEEK_LETTERS`
 
   TITLE:
     name of event
@@ -196,6 +218,7 @@ my $usage = "Usage:
 my $ACTION_GET = "get";
 my $ACTION_CLEAR = "clear";
 my $ACTION_ADD = "add";
+my $ACTION_APPLY_CONFIG = "apply-config";
 
 sub main(@){
   my $action = $ACTION_GET;
@@ -226,6 +249,8 @@ sub main(@){
       $application = $ALARM_APPLICATION;
     }elsif($arg =~ /^(-a|--add)$/){
       $action = $ACTION_ADD;
+    }elsif($arg =~ /^(--apply-config)$/){
+      $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--add-alarm)$/){
       if(@_ != 3){
         die "$usage\nERROR: --add-alarm requires 3 arguments\n";
@@ -405,9 +430,114 @@ sub main(@){
     @cmd = (@cmd, "-e", join(";", @eventArgs)) if @eventArgs > 0;
 
     run @cmd;
+  }elsif($action eq $ACTION_APPLY_CONFIG){
+    my $conf = readConf($CONF_FILE);
+
+    print "\nclearing commands\n";
+    run $EXEC, "--clear";
+    print "\n\n\n";
+
+    print "\nadding commands\n";
+    for my $cmdEntry(@{$$conf{commands}}){
+      my $name = $$cmdEntry{name};
+      my $sched = $$cmdEntry{sched};
+      my $timeout = $$cmdEntry{timeout};
+      my $useDaemon = $$cmdEntry{useDaemon};
+      my $shellCmd = $$cmdEntry{cmd};
+
+      my @fullCmd;
+      if($useDaemon =~ /true/){
+        @fullCmd = (
+          "udo", "daemon-run",
+          "--name=$name", "--timeout=$timeout",
+          "--verbose",
+          $shellCmd,
+        );
+      }else{
+        @fullCmd = ($shellCmd);
+      }
+
+      print "\n";
+      run $EXEC, "--add", "$sched", "--title=$name", "--cmd=@fullCmd";
+    }
+
+    print "\n";
+
+    print "\nclearing alarms\n";
+    system $EXEC, "--clear-alarms";
+
+    print "\nadding alarms\n";
+    for my $alarmEntry(@{$$conf{alarms}}){
+      my $name = $$alarmEntry{name};
+      my $timeHHMM = $$alarmEntry{timeHHMM};
+      my $dayOfWeekLetters = $$alarmEntry{dayOfWeekLetters};
+      run $EXEC, "--add-alarm", $name, $timeHHMM, $dayOfWeekLetters;
+    }
+
+    print "\n";
+
+    print "\n\ncommands:\n";
+    run $EXEC, "--get";
+
+    print "\n\nalarms:\n";
+    run $EXEC, "--get-alarms";
   }else{
     die "ERROR: unknown action $action\n";
   }
+}
+
+sub readConf($){
+  my ($file) = @_;
+  my $conf = {
+    commands => [],
+    alarms   => [],
+  };
+  if(not -e $file){
+    return $conf;
+  }
+
+  open my $fh, "<", $file or die "ERROR: could not read $file\n$!\n";
+  my @lines = <$fh>;
+  close $fh;
+
+  for my $line(@lines){
+    next if $line =~ /^\s*(#.*)?$/;
+    if($line =~ /^
+      \s* alarm \s* =
+      \s* (\w+) \s* \|
+      \s* (\d+:\d+) \s* \|
+      \s* ([mtwTfsS]+) \s*
+      $
+    /xi){
+      push @{$$conf{alarms}}, {
+        name             => $1,
+        timeHHMM         => $2,
+        dayOfWeekLetters => $3,
+      };
+    }elsif($line =~ /
+      ^
+      \s* cmd \s* =
+      \s* ([a-zA-Z0-9_\-]+) \s* \|
+      \s* (\w+) \s* \|
+      \s* (\w+) \s* \|
+      \s* (true|false) \s* \|
+      \s* (\S.*\S)
+      \s*
+      $
+    /xi){
+      push @{$$conf{commands}}, {
+        name      => $1,
+        sched     => $2,
+        timeout   => $3,
+        useDaemon => $4,
+        cmd       => $5,
+      };
+    }else{
+      die "ERROR: malformed entry in $CONF_FILE\n$line";
+    }
+  }
+
+  return $conf;
 }
 
 sub getTimedCmdEventCookies($){
