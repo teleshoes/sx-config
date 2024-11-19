@@ -4,6 +4,7 @@ use warnings;
 use Time::HiRes qw(time);
 
 sub run(@);
+sub runQuiet(@);
 sub nowMillis();
 
 my $BRIGHTNESS_LPM = 5;
@@ -47,23 +48,23 @@ sub main(@){
         if(-f $PREV_BRIGHTNESS_STATE_FILE){
           my $prevBrightness = `cat $PREV_BRIGHTNESS_STATE_FILE`;
           chomp $prevBrightness;
-          run "brightness $prevBrightness &";
-          run "rm", "-f", $PREV_BRIGHTNESS_STATE_FILE;
+          runQuiet "brightness $prevBrightness &";
+          runQuiet "rm", "-f", $PREV_BRIGHTNESS_STATE_FILE;
         }
-        run "brightness --fix-color &";
+        runQuiet "brightness --fix-color &";
       }elsif($state eq "off"){
         my $isLpmEnabled = `lock --is-lpm-enabled`;
         if($isLpmEnabled =~ /enabled/){
           if(not -f $PREV_BRIGHTNESS_STATE_FILE){
-            run "sh -c '
+            runQuiet "sh -c '
               curBrightness=`brightness -g`
               if [ \"\$b\" != $BRIGHTNESS_LPM ]; then
                 echo \$curBrightness > $PREV_BRIGHTNESS_STATE_FILE
               fi
             ' &";
           }
-          run "brightness --set $BRIGHTNESS_LPM &";
-          run "brightness --fix-color &";
+          runQuiet "brightness --set $BRIGHTNESS_LPM &";
+          runQuiet "brightness --fix-color &";
         }
       }
 
@@ -77,6 +78,9 @@ sub main(@){
 
 sub run(@){
   print "@_\n";
+  runQuiet();
+}
+sub runQuiet(@){
   system @_;
 }
 
