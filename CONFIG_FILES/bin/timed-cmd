@@ -375,15 +375,8 @@ sub main(@){
     my @cookies = getTimedCmdEventCookies($application);
     for my $cookie(@cookies){
       my $event = getTimedCmdEventInfo $cookie;
-      my $timingFmt;
-      if(defined $$event{schedule}){
-        $timingFmt = parseSchedule $$event{schedule};
-      }elsif(defined $$event{tick}){
-        $timingFmt = "$$event{tick} ($$event{tickFmt})";
-      }
-      my $command = $$event{COMMAND};
-      $command = "" if not defined $command;
-      print "$cookie: $timingFmt $$event{TITLE} '$command'\n";
+      my $cmd = defined $$event{COMMAND} ? $$event{COMMAND} : "";
+      print "$cookie: $$event{timingFmt} $$event{TITLE} '$cmd'\n";
     }
   }elsif($action eq $ACTION_CLEAR){
     die "$usage\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
@@ -554,7 +547,13 @@ sub getTimedCmdEventInfo($){
     $ATT_DAYS_OF_WEEK, $ATT_MONTHS, $ATT_DAYS_OF_MONTH, $ATT_HOURS, $ATT_MINUTES,
   );
 
-  my $event = {schedule => undef, tick => undef, tickFmt => undef};
+  my $event = {
+    schedule => undef,
+    scheduleFmt => undef,
+    tick => undef,
+    tickFmt => undef,
+    timingFmt => undef,
+  };
   for my $line(@lines){
     if($line =~ /^\s*($okAtts)\s*=\s*'(.+)'$/){
       $$event{$1} = $2;
@@ -568,6 +567,16 @@ sub getTimedCmdEventInfo($){
       $$event{tickFmt} = $2;
     }
   }
+  if(defined $$event{schedule}){
+    $$event{scheduleFmt} = parseSchedule($$event{schedule});
+  }
+
+  if(defined $$event{schedule}){
+    $$event{timingFmt} = $$event{scheduleFmt};
+  }elsif(defined $$event{tick}){
+    $$event{timingFmt} = "$$event{tick} ($$event{tickFmt})";
+  }
+
   return $event;
 }
 
