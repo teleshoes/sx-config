@@ -373,8 +373,9 @@ sub main(@){
     die "$usage\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
 
     my @cookies = getTimedCmdEventCookies($application);
+    my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @cookies;
     for my $cookie(@cookies){
-      my $event = getTimedCmdEventInfo $cookie;
+      my $event = $eventsByCookie{$cookie};
       my $cmd = defined $$event{COMMAND} ? $$event{COMMAND} : "";
       print "$cookie: $$event{timingFmt} $$event{TITLE} '$cmd'\n";
     }
