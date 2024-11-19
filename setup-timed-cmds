@@ -5,7 +5,7 @@ use warnings;
 my $IPMAGIC_NAME = "sx";
 
 my $CMDS = {
-  "lpm-refresh" => {sched=>"1m", timeout=>"1min", cmd=>"lock --lpm-refresh"},
+  "lpm-refresh" => {sched=>"1m", timeout=>"1min", cmd=>"lock --lpm-refresh", skipDaemon=>1},
   "backup-daemon" => {sched=>"2h", timeout=>"30min", cmd=>"backup-remote"},
   "amazfish-sync-daemon" => {sched=>"4h", timeout=>"30min", cmd=>"amazfish-sync"},
   "email-daemon" => {sched=>"30m", timeout=>"15min", cmd=>"/opt/qtemail/bin/email.pl --update --folder=inbox"},
