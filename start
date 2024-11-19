@@ -148,7 +148,7 @@ ipmagic sx okboard-toggle --init-default
 ./launcher-buttons
 
 #commands and alarms
-./setup-timed-cmds
+ipmagic sx timed-cmd --apply-config
 
 ./sync-games --restore
 
