@@ -28,16 +28,21 @@ sub main(@){
     my $timeout = $$CMDS{$title}{timeout};
     my $cmd = $$CMDS{$title}{cmd};
 
-    my @daemonRunCmd = (
-      "udo", "daemon-run",
-      "--name=$title", "--timeout=$timeout",
-      "--verbose",
-      $cmd,
-    );
+    my @fullCmd;
+    if($$CMDS{$title}{skipDaemon}){
+      @fullCmd = ($cmd);
+    }else{
+      @fullCmd = (
+        "udo", "daemon-run",
+        "--name=$title", "--timeout=$timeout",
+        "--verbose",
+        $cmd,
+      );
+    }
 
     print "\n";
     system "ipmagic", $IPMAGIC_NAME,
-      "timed-cmd --add $sched --title=$title --cmd='@daemonRunCmd'";
+      "timed-cmd --add $sched --title=$title --cmd='@fullCmd'";
   }
 
   print "\n";
