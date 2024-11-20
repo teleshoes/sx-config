@@ -53,6 +53,9 @@ my $USAGE = "Usage:
     -print one per line:
       cookie,title,human-readable-schedule,command
 
+  $EXEC [OPTS] --get-alarms
+    same as: $EXEC OPTS --application=$APPLICATION_ALARM --get
+
   $EXEC [OPTS] --clear
     -fetch timed event cookies with APPLICATION=$APPLICATION_TIMED_CMD
     -run --cancel-event for each cookie
@@ -61,9 +64,6 @@ my $USAGE = "Usage:
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
-
-  $EXEC [OPTS] --get-alarms
-    same as: $EXEC OPTS --application=$APPLICATION_ALARM --get
 
   $EXEC [OPTS] --clear-alarms
     same as: $EXEC OPTS --application=$APPLICATION_ALARM --clear
