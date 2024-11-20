@@ -194,7 +194,7 @@ my $USAGE = "Usage:
   TIME_HHMM
     clock time, 24-hour, formatted 'HH:MM'
 
-  DAY_OF_WEEK_LETTERS
+  DAYS_OF_WEEK_LETTERS
     case-sensitive string of up to 7 characters, one for each day of the week to include
       e.g.:   mtwTfsS = every day
               mtwTf   = weekdays
@@ -464,8 +464,8 @@ sub main(@){
     for my $alarmEntry(@{$$conf{alarms}}){
       my $name = $$alarmEntry{name};
       my $timeHHMM = $$alarmEntry{timeHHMM};
-      my $dayOfWeekLetters = $$alarmEntry{dayOfWeekLetters};
-      run $EXEC, "--add-alarm", $name, $timeHHMM, $dayOfWeekLetters;
+      my $daysOfWeekLetters = $$alarmEntry{daysOfWeekLetters};
+      run $EXEC, "--add-alarm", $name, $timeHHMM, $daysOfWeekLetters;
     }
 
     print "\n";
@@ -504,9 +504,9 @@ sub readConf($){
       $
     /xi){
       push @{$$conf{alarms}}, {
-        name             => $1,
-        timeHHMM         => $2,
-        dayOfWeekLetters => $3,
+        name              => $1,
+        timeHHMM          => $2,
+        daysOfWeekLetters => $3,
       };
     }elsif($line =~ /
       ^
