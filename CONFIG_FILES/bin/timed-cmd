@@ -37,6 +37,11 @@ my $SCHED_ALL = {
   $ATT_MINUTES       => [0..59],
 };
 
+my $ACTION_GET = "get";
+my $ACTION_CLEAR = "clear";
+my $ACTION_ADD = "add";
+my $ACTION_APPLY_CONFIG = "apply-config";
+
 my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
@@ -214,11 +219,6 @@ my $USAGE = "Usage:
       when adding events, append EXTRA_EVENT_ARG to semicolon-separated list
         in 'timedclient-t5 -e'
 ";
-
-my $ACTION_GET = "get";
-my $ACTION_CLEAR = "clear";
-my $ACTION_ADD = "add";
-my $ACTION_APPLY_CONFIG = "apply-config";
 
 sub main(@){
   my $action = $ACTION_GET;
