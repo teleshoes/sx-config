@@ -18,6 +18,8 @@ sub readProcLines(@);
 sub nowMillis();
 
 my $CONF_FILE = "$ENV{HOME}/.config/timed-cmd.conf";
+my $CONF_TYPE_CMD = "command";
+my $CONF_TYPE_ALARM = "alarm";
 
 my $EXEC = basename $0;
 my $APPLICATION_TIMED_CMD = do{$_=$EXEC; s/\W+/_/g; $_};
@@ -506,6 +508,7 @@ sub readConf($){
       $
     /xi){
       push @{$$conf{alarms}}, {
+        type              => $CONF_TYPE_ALARM,
         title             => $1,
         timeHHMM          => $2,
         daysOfWeekLetters => $3,
@@ -522,6 +525,7 @@ sub readConf($){
       $
     /xi){
       push @{$$conf{commands}}, {
+        type      => $CONF_TYPE_CMD,
         title     => $1,
         sched     => $2,
         timeout   => $3,
