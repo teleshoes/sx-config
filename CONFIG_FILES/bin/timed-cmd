@@ -435,7 +435,7 @@ sub main(@){
 
     print "\nadding commands\n";
     for my $cmdEntry(@{$$conf{commands}}){
-      my $name = $$cmdEntry{name};
+      my $title = $$cmdEntry{title};
       my $sched = $$cmdEntry{sched};
       my $timeout = $$cmdEntry{timeout};
       my $useDaemon = $$cmdEntry{useDaemon};
@@ -445,7 +445,7 @@ sub main(@){
       if($useDaemon =~ /true/){
         @fullCmd = (
           "udo", "daemon-run",
-          "--name=$name", "--timeout=$timeout",
+          "--name=$title", "--timeout=$timeout",
           "--verbose",
           $shellCmd,
         );
@@ -454,7 +454,7 @@ sub main(@){
       }
 
       print "\n";
-      run $EXEC, "--add", "$sched", "--title=$name", "--cmd=@fullCmd";
+      run $EXEC, "--add", "$sched", "--title=$title", "--cmd=@fullCmd";
     }
 
     print "\n";
@@ -464,10 +464,10 @@ sub main(@){
 
     print "\nadding alarms\n";
     for my $alarmEntry(@{$$conf{alarms}}){
-      my $name = $$alarmEntry{name};
+      my $title = $$alarmEntry{title};
       my $timeHHMM = $$alarmEntry{timeHHMM};
       my $daysOfWeekLetters = $$alarmEntry{daysOfWeekLetters};
-      run $EXEC, "--add-alarm", $name, $timeHHMM, $daysOfWeekLetters;
+      run $EXEC, "--add-alarm", $title, $timeHHMM, $daysOfWeekLetters;
     }
 
     print "\n";
@@ -506,7 +506,7 @@ sub readConf($){
       $
     /xi){
       push @{$$conf{alarms}}, {
-        name              => $1,
+        title             => $1,
         timeHHMM          => $2,
         daysOfWeekLetters => $3,
       };
@@ -522,7 +522,7 @@ sub readConf($){
       $
     /xi){
       push @{$$conf{commands}}, {
-        name      => $1,
+        title     => $1,
         sched     => $2,
         timeout   => $3,
         useDaemon => $4,
