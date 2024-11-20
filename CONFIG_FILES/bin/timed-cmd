@@ -44,7 +44,7 @@ my $SCHED_ALL = {
 my @DAYS_OF_WEEK_WEEKDAYS = qw(Mon Tue Wed Thu Fri);
 my @DAYS_OF_WEEK_WEEKENDS = qw(Sat Sun);
 
-my $ACTION_GET = "get";
+my $ACTION_GET_EVENTS = "get-events";
 my $ACTION_CLEAR = "clear";
 my $ACTION_ADD = "add";
 my $ACTION_GET_CONFIGS = "get-configs";
@@ -265,7 +265,7 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  my $action = $ACTION_GET;
+  my $action = $ACTION_GET_EVENTS;
   my $title = undef;
   my $shellCmd = undef;
   my $onceTick = undef;
@@ -282,9 +282,9 @@ sub main(@){
     }elsif($arg =~ /^--event-arg=(.+)$/){
       push @extraEventArgs, $1;
     }elsif($arg =~ /^(-g|--get)$/){
-      $action = $ACTION_GET;
+      $action = $ACTION_GET_EVENTS;
     }elsif($arg =~ /^--get-alarms$/){
-      $action = $ACTION_GET;
+      $action = $ACTION_GET_EVENTS;
       $application = $APPLICATION_ALARM;
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR;
@@ -419,7 +419,7 @@ sub main(@){
     }
   }
 
-  if($action eq $ACTION_GET){
+  if($action eq $ACTION_GET_EVENTS){
     die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
