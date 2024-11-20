@@ -37,7 +37,7 @@ my $SCHED_ALL = {
   $ATT_MINUTES       => [0..59],
 };
 
-my $usage = "Usage:
+my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
 
@@ -231,7 +231,7 @@ sub main(@){
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
-      print "$usage\n";
+      print "$USAGE\n";
       exit 0;
     }elsif($arg =~ /^(?:--app|--application)=(.+)$/){
       $application = $1;
@@ -253,7 +253,7 @@ sub main(@){
       $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--add-alarm)$/){
       if(@_ != 3){
-        die "$usage\nERROR: --add-alarm requires 3 arguments\n";
+        die "$USAGE\nERROR: --add-alarm requires 3 arguments\n";
       }
       my ($titleArg, $hhmmArg, $daysOfTheWeekLettersArg) = @_;
       @_ = ();
@@ -363,14 +363,14 @@ sub main(@){
     }elsif($arg =~ /^(--weekends)$/){
       $$schedArgs{$ATT_DAYS_OF_WEEK} = [qw(Sat Sun)];
     }else{
-      die "$usage\nERROR: unknown arg '$arg'\n";
+      die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
   }
 
   if($action eq $ACTION_GET){
-    die "$usage\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
-    die "$usage\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
-    die "$usage\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
+    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
 
     my @cookies = getTimedCmdEventCookies($application);
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @cookies;
@@ -380,17 +380,17 @@ sub main(@){
       print "$cookie: $$event{timingFmt} $$event{TITLE} '$cmd'\n";
     }
   }elsif($action eq $ACTION_CLEAR){
-    die "$usage\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
-    die "$usage\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
-    die "$usage\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
+    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
 
     my @cookies = getTimedCmdEventCookies($application);
     for my $cookie(@cookies){
       run "timedclient-qt5", "--cancel-event", $cookie;
     }
   }elsif($action eq $ACTION_ADD){
-    die "$usage\nERROR: must specify TITLE for action=$action\n" if not defined $title;
-    die "$usage\nERROR: must specify COMMAND for action=$action\n" if not defined $shellCmd;
+    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $title;
+    die "$USAGE\nERROR: must specify COMMAND for action=$action\n" if not defined $shellCmd;
 
     if(defined $onceTick and %$schedArgs > 0){
       die "ERROR: cannot specify both SCHED and ONCE\n";
