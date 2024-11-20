@@ -20,7 +20,7 @@ sub nowMillis();
 my $CONF_FILE = "$ENV{HOME}/.config/timed-cmd.conf";
 
 my $EXEC = basename $0;
-my $DEFAULT_APPLICATION = do{$_=$EXEC; s/\W+/_/g; $_};
+my $APPLICATION_TIMED_CMD = do{$_=$EXEC; s/\W+/_/g; $_};
 my $ALARM_APPLICATION = "nemoalarms";
 
 my $ATT_DAYS_OF_WEEK = "Days of week";
@@ -43,13 +43,13 @@ my $USAGE = "Usage:
 
   $EXEC [OPTS]
   $EXEC [OPTS] -g | --get
-    -fetch timed event cookies with APPLICATION=$DEFAULT_APPLICATION
+    -fetch timed event cookies with APPLICATION=$APPLICATION_TIMED_CMD
     -extract schedule/command info for each cookie
     -print one per line:
       cookie,title,human-readable-schedule,command
 
   $EXEC [OPTS] --clear
-    -fetch timed event cookies with APPLICATION=$DEFAULT_APPLICATION
+    -fetch timed event cookies with APPLICATION=$APPLICATION_TIMED_CMD
     -run --cancel-event for each cookie
 
   $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --cmd=COMMAND
@@ -84,7 +84,7 @@ my $USAGE = "Usage:
     ;
 
   $EXEC [OPTS] --apply-config
-    -clear all $DEFAULT_APPLICATION events as in:
+    -clear all $APPLICATION_TIMED_CMD events as in:
       `$EXEC --clear`
     -parse commands and alarms in $CONF_FILE
       alarm = TITLE TIME_HHMM DAYS_OF_WEEK_LETTERS
@@ -203,7 +203,7 @@ my $USAGE = "Usage:
 
   OPTS
     --application=APPLICATION | --app=APPLICATION
-      use APPLICATION instead of $DEFAULT_APPLICATION
+      use APPLICATION instead of $APPLICATION_TIMED_CMD
 
     --no-cmd
       same as: --cmd=''
@@ -226,7 +226,7 @@ sub main(@){
   my $shellCmd = undef;
   my $onceTick = undef;
   my $schedArgs = {};
-  my $application = $DEFAULT_APPLICATION;
+  my $application = $APPLICATION_TIMED_CMD;
   my @extraEventArgs;
   while(@_ > 0){
     my $arg = shift @_;
