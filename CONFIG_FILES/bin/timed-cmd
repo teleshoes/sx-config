@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
+use List::Util qw(max);
 use Time::HiRes qw(time);
 
 sub readConf($);
@@ -53,10 +54,16 @@ my $USAGE = "Usage:
 
   $EXEC [OPTS]
   $EXEC [OPTS] -g | --get
-    -fetch timed event cookies with APPLICATION=$APPLICATION_TIMED_CMD
-    -extract schedule/command info for each cookie
-    -print one per line:
-      cookie,title,human-readable-schedule,command
+    -fetch all timed event <COOKIE>s for APPLICATION=$APPLICATION_TIMED_CMD
+    -extract event attributes and parse TITLE + COMMAND + SCHED_ARGS
+      TITLE is the event attribute TITLE
+      COMMAND is the event attribute Action0.COMMAND
+      SCHED_ARGS is the set of <SCHED> args that will reproduce the sheduling info
+    -for each event:
+      -if COMMAND is defined, format as:
+        <COOKIE> | <TITLE> | <SCHED_ARGS> | <COMMAND>
+      -otherwise, format as:
+        <COOKIE> | <TITLE> | <SCHED_ARGS>
 
   $EXEC [OPTS] --get-alarms
     same as: $EXEC OPTS --application=$APPLICATION_ALARM --get
@@ -379,10 +386,25 @@ sub main(@){
 
     my @cookies = getTimedCmdEventCookies($application);
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @cookies;
+    my $maxTitleLen = max(map {length $$_{TITLE}} values %eventsByCookie);
     for my $cookie(@cookies){
       my $event = $eventsByCookie{$cookie};
-      my $cmd = defined $$event{COMMAND} ? $$event{COMMAND} : "";
-      print "$cookie: $$event{timingFmt} $$event{TITLE} '$cmd'\n";
+      my $eventFmt;
+      if(defined $$event{COMMAND}){
+        $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %3s | %s",
+          $cookie,
+          $$event{TITLE},
+          $$event{timingFmt},
+          $$event{COMMAND},
+        ;
+      }else{
+        $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %s",
+          $cookie,
+          $$event{TITLE},
+          $$event{timingFmt},
+        ;
+      }
+      print "$eventFmt\n";
     }
   }elsif($action eq $ACTION_CLEAR){
     die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
