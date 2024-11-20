@@ -36,6 +36,8 @@ my $SCHED_ALL = {
   $ATT_HOURS         => [0..23],
   $ATT_MINUTES       => [0..59],
 };
+my @DAYS_OF_WEEK_WEEKDAYS = qw(Mon Tue Wed Thu Fri);
+my @DAYS_OF_WEEK_WEEKENDS = qw(Sat Sun);
 
 my $ACTION_GET = "get";
 my $ACTION_CLEAR = "clear";
@@ -359,9 +361,9 @@ sub main(@){
       $$schedArgs{$ATT_HOURS} = filterByDivisible 24, $$SCHED_ALL{$ATT_HOURS};
       $$schedArgs{$ATT_MINUTES} = [0];
     }elsif($arg =~ /^(--weekdays)$/){
-      $$schedArgs{$ATT_DAYS_OF_WEEK} = [qw(Mon Tue Wed Thu Fri)];
+      $$schedArgs{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKDAYS];
     }elsif($arg =~ /^(--weekends)$/){
-      $$schedArgs{$ATT_DAYS_OF_WEEK} = [qw(Sat Sun)];
+      $$schedArgs{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKENDS];
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
