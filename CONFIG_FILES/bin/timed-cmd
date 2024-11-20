@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
 sub readConf($);
+sub addConfEntry($);
 sub getTimedCmdEventCookies($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
@@ -437,26 +438,8 @@ sub main(@){
 
     print "\nadding commands\n";
     for my $cmdEntry(@{$$conf{commands}}){
-      my $title = $$cmdEntry{title};
-      my $sched = $$cmdEntry{sched};
-      my $timeout = $$cmdEntry{timeout};
-      my $useDaemon = $$cmdEntry{useDaemon};
-      my $shellCmd = $$cmdEntry{cmd};
-
-      my @fullCmd;
-      if($useDaemon =~ /true/){
-        @fullCmd = (
-          "udo", "daemon-run",
-          "--name=$title", "--timeout=$timeout",
-          "--verbose",
-          $shellCmd,
-        );
-      }else{
-        @fullCmd = ($shellCmd);
-      }
-
       print "\n";
-      run $EXEC, "--add", "$sched", "--title=$title", "--cmd=@fullCmd";
+      addConfEntry($cmdEntry);
     }
 
     print "\n";
@@ -466,10 +449,8 @@ sub main(@){
 
     print "\nadding alarms\n";
     for my $alarmEntry(@{$$conf{alarms}}){
-      my $title = $$alarmEntry{title};
-      my $timeHHMM = $$alarmEntry{timeHHMM};
-      my $daysOfWeekLetters = $$alarmEntry{daysOfWeekLetters};
-      run $EXEC, "--add-alarm", $title, $timeHHMM, $daysOfWeekLetters;
+      print "\n";
+      addConfEntry($alarmEntry);
     }
 
     print "\n";
@@ -538,6 +519,38 @@ sub readConf($){
   }
 
   return $conf;
+}
+
+sub addConfEntry($){
+  my ($confEntry) = @_;
+  if($$confEntry{type} eq $CONF_TYPE_CMD){
+    my $title = $$confEntry{title};
+    my $sched = $$confEntry{sched};
+    my $timeout = $$confEntry{timeout};
+    my $useDaemon = $$confEntry{useDaemon};
+    my $shellCmd = $$confEntry{cmd};
+
+    my @fullCmd;
+    if($useDaemon =~ /true/){
+      @fullCmd = (
+        "udo", "daemon-run",
+        "--name=$title", "--timeout=$timeout",
+        "--verbose",
+        $shellCmd,
+      );
+    }else{
+      @fullCmd = ($shellCmd);
+    }
+
+    run $EXEC, "--add", "$sched", "--title=$title", "--cmd=@fullCmd";
+  }elsif($$confEntry{type} eq $CONF_TYPE_ALARM){
+    my $title = $$confEntry{title};
+    my $timeHHMM = $$confEntry{timeHHMM};
+    my $daysOfWeekLetters = $$confEntry{daysOfWeekLetters};
+    run $EXEC, "--add-alarm", $title, $timeHHMM, $daysOfWeekLetters;
+  }else{
+    die "ERROR: unknown conf type $$confEntry{type}\n";
+  }
 }
 
 sub getTimedCmdEventCookies($){
