@@ -56,6 +56,8 @@ my $USAGE = "Usage:
     show this message
 
   $EXEC [OPTS]
+    same as: $EXEC OPTS --get-configs
+
   $EXEC [OPTS] -g | --get
   $EXEC [OPTS] --get-events
     -fetch all timed event <COOKIE>s for APPLICATION=$APPLICATION_TIMED_CMD
@@ -266,7 +268,7 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  my $action = $ACTION_GET_EVENTS;
+  my $action = $ACTION_GET_CONFIGS;
   my $title = undef;
   my $shellCmd = undef;
   my $onceTick = undef;
