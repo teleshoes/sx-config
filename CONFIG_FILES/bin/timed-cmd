@@ -671,8 +671,12 @@ sub parseSchedule($){
   }
 
   if(@schedArgs == 0){
-    push @schedArgs, "--hours='@$hr'" if not $isAllHr;
-    push @schedArgs, "--minutes='@$min'" if not $isAllMin;
+    if(@$hr == 1 and @$min == 1){
+      push @schedArgs, sprintf("--time=%02d:%02d", $$hr[0], $$min[0]);
+    }else{
+      push @schedArgs, "--hours='@$hr'" if not $isAllHr;
+      push @schedArgs, "--minutes='@$min'" if not $isAllMin;
+    }
   }
 
   if(not arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
