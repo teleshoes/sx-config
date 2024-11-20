@@ -578,6 +578,9 @@ sub main(@){
       addConfEntry($targetConfEntry);
     }
   }elsif($action eq $ACTION_APPLY_CONFIG){
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
+    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
     my $conf = readConf($CONF_FILE);
 
     print "\nclearing commands\n";
