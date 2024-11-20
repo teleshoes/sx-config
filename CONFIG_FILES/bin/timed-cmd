@@ -269,43 +269,45 @@ my $USAGE = "Usage:
 
 sub main(@){
   my $action = $ACTION_GET_CONFIGS;
-  my $title = undef;
-  my $shellCmd = undef;
-  my $onceTick = undef;
-  my $schedArgs = {};
-  my $application = $APPLICATION_TIMED_CMD;
-  my @extraEventArgs;
+  my $opts = {
+    application    => $APPLICATION_TIMED_CMD,
+    title          => undef,
+    shellCmd       => undef,
+    onceTick       => undef,
+    schedArgs      => {},
+    extraEventArgs => [],
+  };
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print "$USAGE\n";
       exit 0;
     }elsif($arg =~ /^(?:--app|--application)=(.+)$/){
-      $application = $1;
+      $$opts{application} = $1;
     }elsif($arg =~ /^--event-arg=(.+)$/){
-      push @extraEventArgs, $1;
+      push @{$$opts{extraEventArgs}}, $1;
     }elsif($arg =~ /^(-g|--get)$/){
       $action = $ACTION_GET_CONFIGS;
     }elsif($arg =~ /^(--get-events)$/){
       $action = $ACTION_GET_EVENTS;
     }elsif($arg =~ /^--get-alarms$/){
       $action = $ACTION_GET_EVENTS;
-      $application = $APPLICATION_ALARM;
+      $$opts{application} = $APPLICATION_ALARM;
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR;
     }elsif($arg =~ /^(--clear-alarms)$/){
       $action = $ACTION_CLEAR;
-      $application = $APPLICATION_ALARM;
+      $$opts{application} = $APPLICATION_ALARM;
     }elsif($arg =~ /^(-a|--add)$/){
       $action = $ACTION_ADD;
     }elsif($arg =~ /^--get-configs$/){
       $action = $ACTION_GET_CONFIGS;
     }elsif($arg =~ /^(-t|--toggle)$/ and @_ > 0){
       $action = $ACTION_TOGGLE_CONFIG;
-      $title = shift @_;
+      $$opts{title} = shift @_;
     }elsif($arg =~ /^--toggle=(.+)$/){
       $action = $ACTION_TOGGLE_CONFIG;
-      $title = $1;
+      $$opts{title} = $1;
     }elsif($arg =~ /^(--apply-config)$/){
       $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--add-alarm)$/){
@@ -325,30 +327,30 @@ sub main(@){
       die "ERROR: malformed HH:MM $hhmmArg\n" if $m >= 60;
 
       $action = $ACTION_ADD;
-      $application = $APPLICATION_ALARM;
-      $title = $titleArg;
-      $shellCmd = '';
-      $$schedArgs{$ATT_HOURS} = [0+$h];
-      $$schedArgs{$ATT_MINUTES} = [0+$m];
-      $$schedArgs{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($daysOfTheWeekLettersArg);
-      push @extraEventArgs, "createdDate=" . nowMillis();
-      push @extraEventArgs, "daysOfWeek=$daysOfTheWeekLettersArg";
-      push @extraEventArgs, "timeOfDayWithSeconds=" . ($h*60*60 + $m*60);
-      push @extraEventArgs, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
-      push @extraEventArgs, "type=clock";
-      push @extraEventArgs, "alarm";
-      push @extraEventArgs, "reminder";
-      push @extraEventArgs, "boot";
-      push @extraEventArgs, "keepAlive";
-      push @extraEventArgs, "alignedSnooze";
+      $$opts{application} = $APPLICATION_ALARM;
+      $$opts{title} = $titleArg;
+      $$opts{shellCmd} = '';
+      $$opts{schedArgs}{$ATT_HOURS} = [0+$h];
+      $$opts{schedArgs}{$ATT_MINUTES} = [0+$m];
+      $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($daysOfTheWeekLettersArg);
+      push @{$$opts{extraEventArgs}}, "createdDate=" . nowMillis();
+      push @{$$opts{extraEventArgs}}, "daysOfWeek=$daysOfTheWeekLettersArg";
+      push @{$$opts{extraEventArgs}}, "timeOfDayWithSeconds=" . ($h*60*60 + $m*60);
+      push @{$$opts{extraEventArgs}}, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
+      push @{$$opts{extraEventArgs}}, "type=clock";
+      push @{$$opts{extraEventArgs}}, "alarm";
+      push @{$$opts{extraEventArgs}}, "reminder";
+      push @{$$opts{extraEventArgs}}, "boot";
+      push @{$$opts{extraEventArgs}}, "keepAlive";
+      push @{$$opts{extraEventArgs}}, "alignedSnooze";
     }elsif($arg =~ /^--title=(.+)$/){
-      $title = $1;
+      $$opts{title} = $1;
     }elsif($arg =~ /^--cmd=(.*)$/){
-      $shellCmd = $1;
+      $$opts{shellCmd} = $1;
     }elsif($arg =~ /^--no-cmd$/){
-      $shellCmd = ""; #empty command omits '-a'
+      $$opts{shellCmd} = ""; #empty command omits '-a'
     }elsif($arg =~ /^(?:--once|--tick)=(\d+)$/){
-      $onceTick = $1;
+      $$opts{onceTick} = $1;
     }elsif($arg =~ /^(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes|--time)=(.+)$/){
       my ($field, $valStr) = ($1, $2);
       my $vals = [split /[ ,]+/, $valStr];
@@ -357,37 +359,37 @@ sub main(@){
           die "ERROR: malformed day-of-week: $dayOfWeek\n"
             if $dayOfWeek !~ /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/;
         }
-        $$schedArgs{$ATT_DAYS_OF_WEEK} = $vals;
+        $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = $vals;
       }elsif($field =~ /^(--days-of-week-letters)$/){
-        $$schedArgs{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($valStr);
+        $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($valStr);
       }elsif($field =~ /^(--months)$/){
         for my $month(@$vals){
           die "ERROR: malformed month: $month\n"
             if $month !~ /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/;
         }
-        $$schedArgs{$ATT_MONTHS} = $vals;
+        $$opts{schedArgs}{$ATT_MONTHS} = $vals;
       }elsif($field =~ /^(--days-of-month)$/){
         for my $dayOfMonth(@$vals){
           die "ERROR: malformed day-of-month: $dayOfMonth\n"
             if $dayOfMonth !~ /^\d+$/ or $dayOfMonth > 31;
         }
-        $$schedArgs{$ATT_DAYS_OF_MONTH} = [map {0+$_} @$vals];
+        $$opts{schedArgs}{$ATT_DAYS_OF_MONTH} = [map {0+$_} @$vals];
       }elsif($field =~ /^(--hours)$/){
         for my $hour(@$vals){
           die "ERROR: malformed hour: $hour\n" if $hour !~ /^\d+$/ or $hour >= 24;
         }
-        $$schedArgs{$ATT_HOURS} = [map {0+$_} @$vals];
+        $$opts{schedArgs}{$ATT_HOURS} = [map {0+$_} @$vals];
       }elsif($field =~ /^(--minutes)$/){
         for my $min(@$vals){
           die "ERROR: malformed min: $min\n" if $min !~ /^\d+$/ or $min >=60;
         }
-        $$schedArgs{$ATT_MINUTES} = [map {0+$_} @$vals];
+        $$opts{schedArgs}{$ATT_MINUTES} = [map {0+$_} @$vals];
       }elsif($field =~ /^(--time)$/){
         for my $time(@$vals){
           if($time =~ /^(\d|\d\d):(\d\d)$/){
             my ($h, $m) = ($1, $2);
-            push @{$$schedArgs{$ATT_HOURS}}, 0+$h;
-            push @{$$schedArgs{$ATT_MINUTES}}, 0+$m;
+            push @{$$opts{schedArgs}{$ATT_HOURS}}, 0+$h;
+            push @{$$opts{schedArgs}{$ATT_MINUTES}}, 0+$m;
           }else{
             die "ERROR: malformed time $time\n";
           }
@@ -400,36 +402,36 @@ sub main(@){
       if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30|60)$/){
         die "ERROR: --every-n-minute can only accept divisors of 60\n";
       }
-      $$schedArgs{$ATT_MINUTES} = filterByDivisible $factor, $$SCHED_ALL{$ATT_MINUTES};
+      $$opts{schedArgs}{$ATT_MINUTES} = filterByDivisible $factor, $$SCHED_ALL{$ATT_MINUTES};
     }elsif($arg =~ /^(\d+h|--every-n-hours=\d+|--every-\d+-hours)$/){
       my $factor = 0+$1 if $arg =~ /(\d+)/;
       if(not defined $factor or $factor !~ /^(1|2|3|4|6|8|12)$/){
         die "ERROR: --every-n-hours can only accept divisors of 24\n";
       }
-      $$schedArgs{$ATT_HOURS} = filterByDivisible $factor, $$SCHED_ALL{$ATT_HOURS};
-      $$schedArgs{$ATT_MINUTES} = [0];
+      $$opts{schedArgs}{$ATT_HOURS} = filterByDivisible $factor, $$SCHED_ALL{$ATT_HOURS};
+      $$opts{schedArgs}{$ATT_MINUTES} = [0];
     }elsif($arg =~ /^(--every-min)$/){
-      $$schedArgs{$ATT_MINUTES} = filterByDivisible 1, $$SCHED_ALL{$ATT_MINUTES};
+      $$opts{schedArgs}{$ATT_MINUTES} = filterByDivisible 1, $$SCHED_ALL{$ATT_MINUTES};
     }elsif($arg =~ /^(--hourly)$/){
-      $$schedArgs{$ATT_MINUTES} = filterByDivisible 60, $$SCHED_ALL{$ATT_MINUTES};
+      $$opts{schedArgs}{$ATT_MINUTES} = filterByDivisible 60, $$SCHED_ALL{$ATT_MINUTES};
     }elsif($arg =~ /^(--daily)$/){
-      $$schedArgs{$ATT_HOURS} = filterByDivisible 24, $$SCHED_ALL{$ATT_HOURS};
-      $$schedArgs{$ATT_MINUTES} = [0];
+      $$opts{schedArgs}{$ATT_HOURS} = filterByDivisible 24, $$SCHED_ALL{$ATT_HOURS};
+      $$opts{schedArgs}{$ATT_MINUTES} = [0];
     }elsif($arg =~ /^(--weekdays)$/){
-      $$schedArgs{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKDAYS];
+      $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKDAYS];
     }elsif($arg =~ /^(--weekends)$/){
-      $$schedArgs{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKENDS];
+      $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKENDS];
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
   }
 
   if($action eq $ACTION_GET_EVENTS){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
-    my @cookies = getTimedCmdEventCookies($application);
+    my @cookies = getTimedCmdEventCookies($$opts{application});
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @cookies;
     my $maxTitleLen = max(map {length $$_{TITLE}} values %eventsByCookie);
     for my $cookie(@cookies){
@@ -452,39 +454,43 @@ sub main(@){
       print "$eventFmt\n";
     }
   }elsif($action eq $ACTION_CLEAR){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
-    my @cookies = getTimedCmdEventCookies($application);
+    my @cookies = getTimedCmdEventCookies($$opts{application});
     for my $cookie(@cookies){
       run "timedclient-qt5", "--cancel-event", $cookie;
     }
   }elsif($action eq $ACTION_ADD){
-    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $title;
-    die "$USAGE\nERROR: must specify COMMAND for action=$action\n" if not defined $shellCmd;
+    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
+    die "$USAGE\nERROR: must specify COMMAND for action=$action\n" if not defined $$opts{shellCmd};
 
-    if(defined $onceTick and %$schedArgs > 0){
+    if(defined $$opts{onceTick} and %{$$opts{schedArgs}} > 0){
       die "ERROR: cannot specify both SCHED and ONCE\n";
     }
 
-    if($title !~ /^[a-zA-Z0-9_\-]+$/){
+    if($$opts{title} !~ /^[a-zA-Z0-9_\-]+$/){
       die "ERROR: TITLE can only contain letters/numbers/underscores/dashes\n";
     }
-    if($shellCmd =~ /'/){
+    if($$opts{shellCmd} =~ /'/){
       die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
     }
 
-    my @actionArgs = length $shellCmd > 0 ? ("whenDue", "runCommand=$shellCmd") : ();
-    my @eventArgs = ("APPLICATION=$application", "TITLE=$title", @extraEventArgs);
+    my @actionArgs = length $$opts{shellCmd} > 0 ? ("whenDue", "runCommand=$$opts{shellCmd}") : ();
+    my @eventArgs = (
+      "APPLICATION=$$opts{application}",
+      "TITLE=$$opts{title}",
+      @{$$opts{extraEventArgs}},
+    );
 
     my @recurrenceArgs;
-    if(defined $onceTick){
-      print "adding command with ticker=$onceTick\n";
-      push @eventArgs, "ticker=$onceTick";
+    if(defined $$opts{onceTick}){
+      print "adding command with ticker=$$opts{onceTick}\n";
+      push @eventArgs, "ticker=$$opts{onceTick}";
       @recurrenceArgs = ();
     }else{
-      my $sched = {%$SCHED_ALL, %$schedArgs};
+      my $sched = {%$SCHED_ALL, %{$$opts{schedArgs}}};
 
       print "adding command with schedule: " . parseSchedule($sched) . "\n";
       @recurrenceArgs = getScheduleRecurrenceArgs($sched);
@@ -497,9 +503,9 @@ sub main(@){
 
     run @cmd;
   }elsif($action eq $ACTION_GET_CONFIGS){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
     my $conf = readConf($CONF_FILE);
 
@@ -552,35 +558,35 @@ sub main(@){
       ;
     }
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
-    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $title;
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
+    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
 
     my $conf = readConf($CONF_FILE);
     my $targetConfEntry = undef;
     for my $confEntry(@{$$conf{commands}}, @{$$conf{alarms}}){
-      if($$confEntry{title} eq $title){
+      if($$confEntry{title} eq $$opts{title}){
         $targetConfEntry = $confEntry;
         last;
       }
     }
     if(not defined $targetConfEntry){
-      die "ERROR: unknown conf entry title '$title'\n";
+      die "ERROR: unknown conf entry title '$$opts{title}'\n";
     }
 
     my @allCookies = getAllEventCookies();
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @allCookies;
     my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
 
-    if(defined $cookiesByTitle{$title}){
-      run "timedclient-qt5", "--cancel-event", $cookiesByTitle{$title};
+    if(defined $cookiesByTitle{$$opts{title}}){
+      run "timedclient-qt5", "--cancel-event", $cookiesByTitle{$$opts{title}};
     }else{
       addConfEntry($targetConfEntry);
     }
   }elsif($action eq $ACTION_APPLY_CONFIG){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $title;
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     my $conf = readConf($CONF_FILE);
 
     print "\nclearing commands\n";
