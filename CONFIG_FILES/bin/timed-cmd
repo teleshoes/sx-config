@@ -4,6 +4,19 @@ use warnings;
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
+sub readConf($);
+sub getTimedCmdEventCookies($);
+sub getTimedCmdEventInfo($);
+sub getScheduleRecurrenceArgs($);
+sub parseSchedule($);
+sub parseDaysOfTheWeekLetters($);
+sub filterByDivisible($$);
+sub arrSameElems($$);
+sub run(@);
+sub readProc(@);
+sub readProcLines(@);
+sub nowMillis();
+
 my $CONF_FILE = "$ENV{HOME}/.config/timed-cmd.conf";
 
 my $EXEC = basename $0;
@@ -23,19 +36,6 @@ my $SCHED_ALL = {
   $ATT_HOURS         => [0..23],
   $ATT_MINUTES       => [0..59],
 };
-
-sub readConf($);
-sub getTimedCmdEventCookies($);
-sub getTimedCmdEventInfo($);
-sub getScheduleRecurrenceArgs($);
-sub parseSchedule($);
-sub parseDaysOfTheWeekLetters($);
-sub filterByDivisible($$);
-sub arrSameElems($$);
-sub run(@);
-sub readProc(@);
-sub readProcLines(@);
-sub nowMillis();
 
 my $usage = "Usage:
   $EXEC -h | --help
