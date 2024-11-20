@@ -56,9 +56,9 @@ my $USAGE = "Usage:
     show this message
 
   $EXEC [OPTS]
+  $EXEC [OPTS] -g | --get
     same as: $EXEC OPTS --get-configs
 
-  $EXEC [OPTS] -g | --get
   $EXEC [OPTS] --get-events
     -fetch all timed event <COOKIE>s for APPLICATION=$APPLICATION_TIMED_CMD
     -extract event attributes and parse TITLE + COMMAND + SCHED_ARGS
@@ -285,7 +285,7 @@ sub main(@){
     }elsif($arg =~ /^--event-arg=(.+)$/){
       push @extraEventArgs, $1;
     }elsif($arg =~ /^(-g|--get)$/){
-      $action = $ACTION_GET_EVENTS;
+      $action = $ACTION_GET_CONFIGS;
     }elsif($arg =~ /^(--get-events)$/){
       $action = $ACTION_GET_EVENTS;
     }elsif($arg =~ /^--get-alarms$/){
