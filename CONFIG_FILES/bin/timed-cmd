@@ -48,6 +48,7 @@ my $ACTION_GET = "get";
 my $ACTION_CLEAR = "clear";
 my $ACTION_ADD = "add";
 my $ACTION_GET_CONFIGS = "get-configs";
+my $ACTION_TOGGLE_CONFIG = "toggle-config";
 my $ACTION_APPLY_CONFIG = "apply-config";
 
 my $USAGE = "Usage:
@@ -120,6 +121,16 @@ my $USAGE = "Usage:
       <ON_OFF_STATUS> | <TITLE> | <COOKIE_FMT> | <TIMEOUT> | <COMMAND>
     -print header for alerts, and print each alert formatted:
       <ON_OFF_STATUS> | <TITLE> | <COOKIE_FMT> | <TIME_HHMM> | <DAYS_OF_WEEK_LETTERS>
+
+  $EXEC [OPTS] -t CONFIG_TITLE
+  $EXEC [OPTS] --toggle CONFIG_TITLE
+  $EXEC [OPTS] --toggle=CONFIG_TITLE
+    -fetch all timed event <COOKIE>s and extract <TITLE> attribute for each <COOKIE>
+    -find matching event where <CONFIG_TITLE> = <TITLE>
+      -if found:
+        -remove event <COOKIE>
+      -otherwise:
+        -add this event or alarm as in --apply-cookies
 
   $EXEC [OPTS] --apply-config
     -clear all $APPLICATION_TIMED_CMD events as in:
@@ -284,6 +295,12 @@ sub main(@){
       $action = $ACTION_ADD;
     }elsif($arg =~ /^--get-configs$/){
       $action = $ACTION_GET_CONFIGS;
+    }elsif($arg =~ /^(-t|--toggle)$/ and @_ > 0){
+      $action = $ACTION_TOGGLE_CONFIG;
+      $title = shift @_;
+    }elsif($arg =~ /^--toggle=(.+)$/){
+      $action = $ACTION_TOGGLE_CONFIG;
+      $title = $1;
     }elsif($arg =~ /^(--apply-config)$/){
       $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--add-alarm)$/){
@@ -528,6 +545,32 @@ sub main(@){
         $$cmd{timeHHMM},
         $$cmd{daysOfWeekLetters},
       ;
+    }
+ }elsif($action eq $ACTION_TOGGLE_CONFIG){
+    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %$schedArgs > 0;
+    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $shellCmd;
+    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $title;
+
+    my $conf = readConf($CONF_FILE);
+    my $targetConfEntry = undef;
+    for my $confEntry(@{$$conf{commands}}, @{$$conf{alarms}}){
+      if($$confEntry{title} eq $title){
+        $targetConfEntry = $confEntry;
+        last;
+      }
+    }
+    if(not defined $targetConfEntry){
+      die "ERROR: unknown conf entry title '$title'\n";
+    }
+
+    my @allCookies = getAllEventCookies();
+    my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @allCookies;
+    my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
+
+    if(defined $cookiesByTitle{$title}){
+      run "timedclient-qt5", "--cancel-event", $cookiesByTitle{$title};
+    }else{
+      addConfEntry($targetConfEntry);
     }
   }elsif($action eq $ACTION_APPLY_CONFIG){
     my $conf = readConf($CONF_FILE);
