@@ -12,7 +12,8 @@ sub getTimedCmdEventCookies($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
 sub parseSchedule($);
-sub parseDaysOfTheWeekLetters($);
+sub dowLettersToArr($);
+sub dowArrToLetters($);
 sub filterByDivisible($$);
 sub arrSameElems($$);
 sub run(@);
@@ -43,6 +44,13 @@ my $SCHED_ALL = {
 };
 my @DAYS_OF_WEEK_WEEKDAYS = qw(Mon Tue Wed Thu Fri);
 my @DAYS_OF_WEEK_WEEKENDS = qw(Sat Sun);
+
+my @DOW_NAME_ORDER = @{$$SCHED_ALL{$ATT_DAYS_OF_WEEK}};
+my %DOW_NAME_TO_LETTER = (
+  Mon=>"m", Tue=>"t", Wed=>"w", Thu=>"T", Fri=>"f", Sat=>"s", Sun=>"S",
+);
+my @DOW_LETTER_ORDER = map {$DOW_NAME_TO_LETTER{$_}} @DOW_NAME_ORDER;
+my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 
 my $ACTION_GET_EVENTS = "get-events";
 my $ACTION_CLEAR = "clear";
@@ -332,7 +340,7 @@ sub main(@){
       $$opts{shellCmd} = '';
       $$opts{schedArgs}{$ATT_HOURS} = [0+$h];
       $$opts{schedArgs}{$ATT_MINUTES} = [0+$m];
-      $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($daysOfTheWeekLettersArg);
+      $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($daysOfTheWeekLettersArg)];
       push @{$$opts{extraEventArgs}}, "createdDate=" . nowMillis();
       push @{$$opts{extraEventArgs}}, "daysOfWeek=$daysOfTheWeekLettersArg";
       push @{$$opts{extraEventArgs}}, "timeOfDayWithSeconds=" . ($h*60*60 + $m*60);
@@ -361,7 +369,7 @@ sub main(@){
         }
         $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = $vals;
       }elsif($field =~ /^(--days-of-week-letters)$/){
-        $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = parseDaysOfTheWeekLetters($valStr);
+        $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($valStr)];
       }elsif($field =~ /^(--months)$/){
         for my $month(@$vals){
           die "ERROR: malformed month: $month\n"
@@ -877,32 +885,21 @@ sub parseSchedule($){
   return "@schedArgs";
 }
 
-sub parseDaysOfTheWeekLetters($){
-  my ($daysOfTheWeekLetters) = @_;
-  my @letters = split //, $daysOfTheWeekLetters;
-  my $daysOfTheWeek = [];
-
-  for my $letter(@letters){
-    if($letter eq "m"){
-      push @$daysOfTheWeek, "Mon";
-    }elsif($letter eq "t"){
-      push @$daysOfTheWeek, "Tue";
-    }elsif($letter eq "w"){
-      push @$daysOfTheWeek, "Wed";
-    }elsif($letter eq "T"){
-      push @$daysOfTheWeek, "Thu";
-    }elsif($letter eq "f"){
-      push @$daysOfTheWeek, "Fri";
-    }elsif($letter eq "s"){
-      push @$daysOfTheWeek, "Sat";
-    }elsif($letter eq "S"){
-      push @$daysOfTheWeek, "Sun";
-    }else{
-      die "ERROR: malformed day-of-week letter $letter\n";
-    }
+sub dowLettersStrToNamesArr($){
+  my ($dowLettersStr) = @_;
+  my %okLetters = map {$_ => 1} split //, $dowLettersStr;
+  for my $letter(sort keys %okLetters){
+    die "ERROR: unknown DOW letter $letter\n" if not defined $DOW_LETTER_TO_NAME{$letter};
   }
-
-  return $daysOfTheWeek;
+  return map {$DOW_LETTER_TO_NAME{$_}} grep {defined $okLetters{$_}} @DOW_LETTER_ORDER
+}
+sub dowNamesArrToLettersStr(@){
+  my (@dowNamesArr) = @_;
+  my %okNames = map {$_ => 1} @dowNamesArr;
+  for my $name(sort keys %okNames){
+    die "ERROR: unknown DOW name $name\n" if not defined $DOW_NAME_TO_LETTER{$name};
+  }
+  return map {$DOW_NAME_TO_LETTER{$_}} grep {defined $okNames{$_}} @DOW_NAME_ORDER
 }
 
 sub filterByDivisible($$){
