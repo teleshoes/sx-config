@@ -35,7 +35,7 @@ my $ATT_HOURS = "Hours";
 my $ATT_MINUTES = "Minutes";
 
 my $SCHED_ALL = {
-  $ATT_DAYS_OF_WEEK  => [qw(Sun Mon Tue Wed Thu Fri Sat)],
+  $ATT_DAYS_OF_WEEK  => [qw(Mon Tue Wed Thu Fri Sat Sun)],
   $ATT_MONTHS        => [qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)],
   $ATT_DAYS_OF_MONTH => [0..31], #why 0, i couldnt say
   $ATT_HOURS         => [0..23],
