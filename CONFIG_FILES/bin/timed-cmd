@@ -241,7 +241,6 @@ my $USAGE = "Usage:
       -ensure that exactly one value is set for hours and minutes, as in '<HH>:<MM>'
       -extract daysOfWeek, if any, as in 'dow=<DAYS_OF_WEEK_LETTERS>'
       -same as:
-        --no-cmd \\
         --application=$APPLICATION_ALARM \\
         --event-arg=\"createdDate=`date +%s%3N`\" \\
         --event-arg=\"daysOfWeek=<DAYS_OF_WEEK_LETTERS>\" \\
@@ -253,10 +252,6 @@ my $USAGE = "Usage:
         --event-arg=\"boot\" \\
         --event-arg=\"keepAlive\" \\
         --event-arg=\"alignedSnooze\" \\
-
-    --no-cmd
-      same as: --cmd=''
-      do not include a 'whenDue runComand' action
 
     --event-arg=EXTRA_EVENT_ARG
       (can be given multiple times)
@@ -310,13 +305,10 @@ sub main(@){
       $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--alarm)$/){
       $$opts{isAlarm} = 1;
-      $$opts{shellCmd} = '';
     }elsif($arg =~ /^--title=(.+)$/){
       $$opts{title} = $1;
     }elsif($arg =~ /^--cmd=(.*)$/){
       $$opts{shellCmd} = $1;
-    }elsif($arg =~ /^--no-cmd$/){
-      $$opts{shellCmd} = ""; #empty command omits '-a'
     }elsif($arg =~ /^(?:--once|--tick)=(\d+)$/){
       $$opts{onceTick} = $1;
     }elsif($arg =~ /^($SCHED_ARG_REGEX)$/){
@@ -364,9 +356,12 @@ sub main(@){
     }
   }elsif($action eq $ACTION_ADD){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
-    die "$USAGE\nERROR: must specify COMMAND for action=$action\n" if not defined $$opts{shellCmd};
+    my $shellCmd = $$opts{shellCmd};
 
     if($$opts{isAlarm}){
+      if(defined $shellCmd){
+        die "$USAGE\nERROR: cannot specify COMMAND for --alarm\n";
+      }
       my $hours = $$opts{schedArgs}{$ATT_HOURS} if defined $$opts{schedArgs};
       my $minutes = $$opts{schedArgs}{$ATT_MINUTES} if defined $$opts{schedArgs};
       my $daysOfWeek = $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} if defined $$opts{schedArgs};
@@ -388,6 +383,10 @@ sub main(@){
       push @{$$opts{extraEventArgs}}, "boot";
       push @{$$opts{extraEventArgs}}, "keepAlive";
       push @{$$opts{extraEventArgs}}, "alignedSnooze";
+    }else{
+      if(not defined $shellCmd){
+        die "$USAGE\nERROR: must specify COMMAND if --alarm is not given\n";
+      }
     }
 
     if(defined $$opts{onceTick} and %{$$opts{schedArgs}} > 0){
@@ -397,11 +396,11 @@ sub main(@){
     if($$opts{title} !~ /^[a-zA-Z0-9_\-]+$/){
       die "ERROR: TITLE can only contain letters/numbers/underscores/dashes\n";
     }
-    if($$opts{shellCmd} =~ /'/){
+    if(defined $shellCmd and $shellCmd =~ /'/){
       die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
     }
 
-    my @actionArgs = length $$opts{shellCmd} > 0 ? ("whenDue", "runCommand=$$opts{shellCmd}") : ();
+    my @actionArgs = defined $shellCmd ? ("whenDue", "runCommand=$shellCmd") : ();
     my @eventArgs = (
       "APPLICATION=$$opts{application}",
       "TITLE=$$opts{title}",
