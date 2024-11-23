@@ -437,14 +437,11 @@ sub main(@){
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @allCookies;
     my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
 
-    my $maxTitleLen = max(
-      map {length $$_{title}} (@{$$conf{commands}}, @{$$conf{alarms}})
-    );
+    my @events = @{$$conf{events}};
 
-    printf "%s|---COMMAND%s|%s|%s|%s|%s\n",
-      "-"x(3+1), "-"x($maxTitleLen-10+2), "-"x(4+2), "-"x(5+2), "-"x(5+2), "-"x5;
-    for my $cmd(@{$$conf{commands}}){
-      my $cookie = $cookiesByTitle{$$cmd{title}};
+    my $maxTitleLen = max(map {length $$_{title}} @events);
+    for my $event(@{$$conf{events}}){
+      my $cookie = $cookiesByTitle{$$event{title}};
       my $status;
       if(defined $cookie){
         $status = "on";
@@ -452,32 +449,13 @@ sub main(@){
         $status = "off";
         $cookie = "none";
       }
-      printf "%-3s | %-${maxTitleLen}s | %4s | %5s | %5s | %s\n",
+      printf "%-3s | %-${maxTitleLen}s | %4s | %-15s | %5s | %s\n",
         $status,
-        $$cmd{title},
+        $$event{title},
         $cookie,
-        $$cmd{schedArgs},
-        $$cmd{timeout},
-        $$cmd{cmd},
-      ;
-    }
-
-    printf "%s|---ALARM%s|%s|%s\n",
-      "-"x(3+1), "-"x($maxTitleLen-8+2), "-"x(4+2), "-"x(5+2), "-"x5;
-    for my $alarm(@{$$conf{alarms}}){
-      my $cookie = $cookiesByTitle{$$alarm{title}};
-      my $status;
-      if(defined $cookie){
-        $status = "on";
-      }else{
-        $status = "off";
-        $cookie = "none";
-      }
-      printf "%-3s | %-${maxTitleLen}s | %4s | %s\n",
-        $status,
-        $$alarm{title},
-        $cookie,
-        $$alarm{schedArgs},
+        $$event{schedArgs},
+        ($$event{timeout} ? $$event{timeout} : "-"x5),
+        ($$event{type} eq $CONF_TYPE_ALARM ? "<ALARM>" : $$event{cmd}),
       ;
     }
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
@@ -486,14 +464,14 @@ sub main(@){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
 
     my $conf = readConf($CONF_FILE);
-    my $targetConfEntry = undef;
-    for my $confEntry(@{$$conf{commands}}, @{$$conf{alarms}}){
-      if($$confEntry{title} eq $$opts{title}){
-        $targetConfEntry = $confEntry;
+    my $targetConfEvent = undef;
+    for my $event(@{$$conf{events}}){
+      if($$event{title} eq $$opts{title}){
+        $targetConfEvent = $event;
         last;
       }
     }
-    if(not defined $targetConfEntry){
+    if(not defined $targetConfEvent){
       die "ERROR: unknown conf entry title '$$opts{title}'\n";
     }
 
@@ -504,7 +482,7 @@ sub main(@){
     if(defined $cookiesByTitle{$$opts{title}}){
       run "timedclient-qt5", "--cancel-event", $cookiesByTitle{$$opts{title}};
     }else{
-      addEventFromConfEntry($targetConfEntry);
+      addEventFromConfEntry($targetConfEvent);
     }
   }elsif($action eq $ACTION_APPLY_CONFIG){
     die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
@@ -512,28 +490,16 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     my $conf = readConf($CONF_FILE);
 
-    print "\nclearing commands\n";
+    print "\nclearing commands+alarms\n";
     run $EXEC, "--clear";
+    run $EXEC, "--clear-alarms";
     print "\n\n\n";
 
-    print "\nadding commands\n";
-    for my $cmdEntry(@{$$conf{commands}}){
+    print "\nadding conf events\n";
+    for my $event(@{$$conf{events}}){
       print "\n";
-      addEventFromConfEntry($cmdEntry);
+      addEventFromConfEntry($event);
     }
-
-    print "\n";
-
-    print "\nclearing alarms\n";
-    system $EXEC, "--clear-alarms";
-
-    print "\nadding alarms\n";
-    for my $alarmEntry(@{$$conf{alarms}}){
-      print "\n";
-      addEventFromConfEntry($alarmEntry);
-    }
-
-    print "\n";
 
     print "\n\ncommands:\n";
     run $EXEC, "--get-events";
@@ -548,8 +514,7 @@ sub main(@){
 sub readConf($){
   my ($file) = @_;
   my $conf = {
-    commands => [],
-    alarms   => [],
+    events => [],
   };
   if(not -e $file){
     return $conf;
@@ -568,10 +533,13 @@ sub readConf($){
       \s* ($schedArgsRegex)
       $
     /xi){
-      push @{$$conf{alarms}}, {
-        type              => $CONF_TYPE_ALARM,
-        title             => $1,
-        schedArgs         => $2,
+      push @{$$conf{events}}, {
+        type      => $CONF_TYPE_ALARM,
+        title     => $1,
+        schedArgs => $2,
+        timeout   => undef,
+        useDaemon => undef,
+        cmd       => undef,
       };
     }elsif($line =~ /
       ^
@@ -584,7 +552,7 @@ sub readConf($){
       \s*
       $
     /xi){
-      push @{$$conf{commands}}, {
+      push @{$$conf{events}}, {
         type      => $CONF_TYPE_CMD,
         title     => $1,
         schedArgs => $2,
