@@ -55,8 +55,8 @@ my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 
 my $SCHED_ARG_REGEX = join("|",
   '(days-of-week|days-of-week-letters|months|days-of-month|hours|minutes|time)=(.+)',
-  '(\d+m)',
-  '(\d+h)',
+  '(@\d+m)',
+  '(@\d+h)',
 );
 
 my $ACTION_GET_EVENTS = "get-events";
@@ -170,36 +170,36 @@ my $USAGE = "Usage:
       (default is every minute of any hour of any day)
     effects are cumulative, and the order matters (applied left to right)
       e.g.:
-        1h
+        \@1h
           => every hour, on the hour
-        3h minutes=15
+        \@3h minutes=15
           => every 3 hours, at a quarter past the hour
-        minutes=15 3h
+        minutes=15 \@3h
           => every 3 hours, on the hour
-        5m days-of-week-letters=mtwTf
+        \@5m days-of-week-letters=mtwTf
           => every 5 minutes, EXCEPT on Sat or Sun
         hours=9 minutes=0 days-of-week-letters=tT months=Nov
           => 09:00am on tuesdays and thursdays in november
         hours=0 day-of-month=25 months=Dec
           => midnight on Newton's birthday
 
-    <MIN>m
+    \@<MIN>m
       set minutes = every minute evenly divisible by <MIN>
       MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60
       (if this is the only <SCHED>, this means run job every <MIN> minutes)
         e.g.:
-          30m  =>  minutes=0,30
-          5m   =>  minutes=0,5,10,15,20,25,30,35,40,45,50,55
-          15m  =>  minutes=0,15,30,45
+          \@30m  =>  minutes=0,30
+          \@5m   =>  minutes=0,5,10,15,20,25,30,35,40,45,50,55
+          \@15m  =>  minutes=0,15,30,45
 
-    <HOUR>h
+    \@<HOUR>h
       set hours = every hour divisible by <HOUR>, AND set minutes = 0
       HOUR = 1 | 2 | 3 | 4 | 6 | 8 | 12 | 24
       (if this is the only <SCHED>, this means run job every <HOUR> hours)
         e.g.:
-          4h  =>  hours=0,4,8,12,16,20 minutes=0
-          6h  =>  hours=0,6,12,18      minutes=0
-          8h  =>  hours=0,8,16         minutes=0
+          \@4h  =>  hours=0,4,8,12,16,20 minutes=0
+          \@6h  =>  hours=0,6,12,18      minutes=0
+          \@8h  =>  hours=0,8,16         minutes=0
 
     time=TIME_HHMM
       clock time, 24-hour, formatted 'HH:MM'
@@ -578,7 +578,7 @@ sub readConf($){
       ^
       \s* cmd \s* =
       \s* ([a-zA-Z0-9_\-]+) \s* \|
-      \s* (\w+) \s* \|
+      \s* ([a-zA-Z0-9_\@]+) \s* \|
       \s* (\w+) \s* \|
       \s* (true|false) \s* \|
       \s* (\S.*\S)
@@ -627,8 +627,8 @@ sub addConfEntry($){
     my $title = $$confEntry{title};
     my $timeHHMM = $$confEntry{timeHHMM};
     my $daysOfWeekLetters = $$confEntry{daysOfWeekLetters};
-    run $EXEC, "--add", "--alarm", "--title=$title", "--time=$timeHHMM",
-      "--days-of-week-letters=$daysOfWeekLetters";
+    run $EXEC, "--add", "--alarm", "--title=$title", "time=$timeHHMM",
+      "days-of-week-letters=$daysOfWeekLetters";
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
   }
@@ -793,13 +793,13 @@ sub applySchedArg($$){
     }else{
       die "ERROR: malformed sched arg: $arg\n";
     }
-  }elsif($arg =~ /^(\d+m)$/){
+  }elsif($arg =~ /^@(\d+m)$/){
     my $factor = 0+$1 if $arg =~ /(\d+)/;
     if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30|60)$/){
       die "ERROR: <MIN>m can only accept divisors of 60\n";
     }
     $$schedArgs{$ATT_MINUTES} = filterByDivisible $factor, $$SCHED_ALL{$ATT_MINUTES};
-  }elsif($arg =~ /^(\d+h)$/){
+  }elsif($arg =~ /^@(\d+h)$/){
     my $factor = 0+$1 if $arg =~ /(\d+)/;
     if(not defined $factor or $factor !~ /^(1|2|3|4|6|8|12)$/){
       die "ERROR: <HOUR>h can only accept divisors of 24\n";
