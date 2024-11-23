@@ -817,7 +817,7 @@ sub parseSchedule($){
   }
 
   if(not arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
-    push @schedArgs, sprintf("days-of-week=%s", join(",", @{$$schedule{$ATT_DAYS_OF_WEEK}}));
+    push @schedArgs, sprintf("dow=%s", dowNamesArrToLettersStr(@{$$schedule{$ATT_DAYS_OF_WEEK}}));
   }
   if(not arrSameElems($$schedule{$ATT_MONTHS}, $$SCHED_ALL{$ATT_MONTHS})){
     push @schedArgs, sprintf("months=%s", join(",", @{$$schedule{$ATT_MONTHS}}));
