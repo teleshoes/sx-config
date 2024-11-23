@@ -188,26 +188,26 @@ my $USAGE = "Usage:
       MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60
       (if this is the only <SCHED>, this means run job every <MIN> minutes)
         e.g.:
-          30m  =>  --minutes='0 30'
-          5m   =>  --minutes='0 5 10 15 20 25 30 35 40 45 50 55'
-          15m  =>  --minutes='0 15 30 45'
+          30m  =>  --minutes=0,30
+          5m   =>  --minutes=0,5,10,15,20,25,30,35,40,45,50,55
+          15m  =>  --minutes=0,15,30,45
 
     <HOUR>h
       set hours = every hour divisible by <HOUR>, AND set minutes = 0
       HOUR = 1 | 2 | 3 | 4 | 6 | 8 | 12 | 24
       (if this is the only <SCHED>, this means run job every <HOUR> hours)
         e.g.:
-          4h  =>  --hours='0 4 8 12 16 20' --minutes=0
-          6h  =>  --hours='0 6 12 18'      --minutes=0
-          8h  =>  --hours='0 8 16'         --minutes=0
+          4h  =>  --hours=0,4,8,12,16,20 --minutes=0
+          6h  =>  --hours=0,6,12,18      --minutes=0
+          8h  =>  --hours=0,8,16         --minutes=0
 
     --time=TIME_HHMM
       clock time, 24-hour, formatted 'HH:MM'
       same as: --hours=HH --minutes=MM
 
     --days-of-week-leters=DAYS_OF_WEEK_LETTERS
-      parse DAYS_OF_WEEK_LETERS into \"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
-      same as: --days-of-week=\"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
+      parse DAYS_OF_WEEK_LETERS into <DAY_OF_WEEK>,<DAY_OF_WEEK>...
+      same as: --days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
         DAYS_OF_WEEK_LETTERS
           case-sensitive string of up to 7 characters,
             one for each day of the week to include
@@ -221,15 +221,15 @@ my $USAGE = "Usage:
             s = saturday
             S = sunday
 
-    --hours=\"<HOUR> <HOUR> ...\"
+    --hours=<HOUR>,<HOUR>...
       set hours
-    --minutes=\"<MIN> <MIN> ...\"
+    --minutes=<MIN>,<MIN> ...
       set minutes
-    --months=\"<MONTH> <MONTH> ...\"
+    --months=<MONTH>,<MONTH>...
       set months
-    --days-of-week=\"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
+    --days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
       set days-of-week
-    --days-of-month=\"<DAY_OF_MONTH> <DAY_OF_MONTH> ...\"
+    --days-of-month=<DAY_OF_MONTH>,<DAY_OF_MONTH>...
       set days-of-month
 
   OPTS
@@ -749,7 +749,7 @@ sub applySchedArg($$){
 
   if($arg =~ /^(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes|--time)=(.+)$/){
     my ($field, $valStr) = ($1, $2);
-    my $vals = [split /[ ,]+/, $valStr];
+    my $vals = [split /,/, $valStr];
     if($field =~ /^(--days-of-week)$/){
       for my $dayOfWeek(@$vals){
         die "ERROR: malformed day-of-week: $dayOfWeek\n"
@@ -844,19 +844,19 @@ sub parseSchedule($){
     if(@$hr == 1 and @$min == 1){
       push @schedArgs, sprintf("--time=%02d:%02d", $$hr[0], $$min[0]);
     }else{
-      push @schedArgs, "--hours='@$hr'" if not $isAllHr;
-      push @schedArgs, "--minutes='@$min'" if not $isAllMin;
+      push @schedArgs, sprintf("--hours=%s", join(",", @$hr)) if not $isAllHr;
+      push @schedArgs, sprintf("--minutes=%s", join(",", @$min)) if not $isAllMin;
     }
   }
 
   if(not arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
-    push @schedArgs, "--days-of-week='@{$$schedule{$ATT_DAYS_OF_WEEK}}'";
+    push @schedArgs, sprintf("--days-of-week=%s", join(",", @{$$schedule{$ATT_DAYS_OF_WEEK}}));
   }
   if(not arrSameElems($$schedule{$ATT_MONTHS}, $$SCHED_ALL{$ATT_MONTHS})){
-    push @schedArgs, "--months='{$$schedule{$ATT_MONTHS}}'";
+    push @schedArgs, sprintf("--months=%s", join(",", @{$$schedule{$ATT_MONTHS}}));
   }
   if(not arrSameElems($$schedule{$ATT_DAYS_OF_MONTH}, $$SCHED_ALL{$ATT_DAYS_OF_MONTH})){
-    push @schedArgs, "--days-of-month='{$$schedule{$ATT_DAYS_OF_MONTH}}'";
+    push @schedArgs, sprintf("--days-of-month=%s", join(",", @{$$schedule{$ATT_DAYS_OF_MONTH}}));
   }
 
   return "@schedArgs";
