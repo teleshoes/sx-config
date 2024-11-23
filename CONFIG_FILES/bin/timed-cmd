@@ -43,8 +43,6 @@ my $SCHED_ALL = {
   $ATT_DAYS_OF_WEEK  => [qw(Mon Tue Wed Thu Fri Sat Sun)],
   $ATT_DAYS_OF_MONTH => [0..31], #why 0, i couldnt say
 };
-my @DAYS_OF_WEEK_WEEKDAYS = qw(Mon Tue Wed Thu Fri);
-my @DAYS_OF_WEEK_WEEKENDS = qw(Sat Sun);
 
 my @DOW_NAME_ORDER = @{$$SCHED_ALL{$ATT_DAYS_OF_WEEK}};
 my %DOW_NAME_TO_LETTER = (
