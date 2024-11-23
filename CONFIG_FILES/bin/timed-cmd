@@ -54,10 +54,10 @@ my @DOW_LETTER_ORDER = map {$DOW_NAME_TO_LETTER{$_}} @DOW_NAME_ORDER;
 my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 
 my $SCHED_ARG_REGEX = join("|",
-  '(days-of-week|dow|months|days-of-month|hours|minutes)=(.+)',
-  '((\d|\d\d):(\d\d))',
-  '(@\d+m)',
-  '(@\d+h)',
+  '(?:days-of-week|dow|months|days-of-month|hours|minutes)=(?:.+)',
+  '(?:(?:\d|\d\d):(?:\d\d))',
+  '(?:@\d+m)',
+  '(?:@\d+h)',
 );
 
 my $ACTION_GET_EVENTS = "get-events";
