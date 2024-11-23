@@ -203,7 +203,7 @@ my $USAGE = "Usage:
           --every-n-hours=8  => --hours='0 8 16'         --minutes=0
 
     --time=TIME_HHMM
-      clock time formatted as HH:MM
+      clock time, 24-hour, formatted 'HH:MM'
       same as: --hours=HH --minutes=MM
 
     --every-min
@@ -223,6 +223,18 @@ my $USAGE = "Usage:
     --days-of-week-leters=DAYS_OF_WEEK_LETTERS
       parse DAYS_OF_WEEK_LETERS into \"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
       same as: --days-of-week=\"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
+        DAYS_OF_WEEK_LETTERS
+          case-sensitive string of up to 7 characters,
+            one for each day of the week to include
+          e.g.:   mtwTfsS = every day
+                  mtwTf   = weekdays
+            m = monday
+            t = tuesday
+            w = wednesday
+            T = thursday
+            f = friday
+            s = saturday
+            S = sunday
 
     --hours=\"<HOUR> <HOUR> ...\"
       set hours
@@ -234,21 +246,6 @@ my $USAGE = "Usage:
       set days-of-week
     --days-of-month=\"<DAY_OF_MONTH> <DAY_OF_MONTH> ...\"
       set days-of-month
-
-  TIME_HHMM
-    clock time, 24-hour, formatted 'HH:MM'
-
-  DAYS_OF_WEEK_LETTERS
-    case-sensitive string of up to 7 characters, one for each day of the week to include
-      e.g.:   mtwTfsS = every day
-              mtwTf   = weekdays
-    m = monday
-    t = tuesday
-    w = wednesday
-    T = thursday
-    f = friday
-    s = saturday
-    S = sunday
 
   OPTS
     --application=APPLICATION | --app=APPLICATION
