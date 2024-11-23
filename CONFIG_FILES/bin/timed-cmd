@@ -57,7 +57,6 @@ my $SCHED_ARG_REGEX = join("|",
   '(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes|--time)=(.+)',
   '(\d+m|\d+min|--every-n-min=\d+|--every-\d+-min)',
   '(\d+h|--every-n-hours=\d+|--every-\d+-hours)',
-  '(--every-min|--hourly|--daily)',
 );
 
 my $ACTION_GET_EVENTS = "get-events";
@@ -205,15 +204,6 @@ my $USAGE = "Usage:
     --time=TIME_HHMM
       clock time, 24-hour, formatted 'HH:MM'
       same as: --hours=HH --minutes=MM
-
-    --every-min
-      same as: 1m   (this is the default)
-
-    --hourly
-      same as: 60m
-
-    --daily
-      same as: 24h
 
     --days-of-week-leters=DAYS_OF_WEEK_LETTERS
       parse DAYS_OF_WEEK_LETERS into \"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
@@ -815,13 +805,6 @@ sub applySchedArg($$){
       die "ERROR: --every-n-hours can only accept divisors of 24\n";
     }
     $$schedArgs{$ATT_HOURS} = filterByDivisible $factor, $$SCHED_ALL{$ATT_HOURS};
-    $$schedArgs{$ATT_MINUTES} = [0];
-  }elsif($arg =~ /^(--every-min)$/){
-    $$schedArgs{$ATT_MINUTES} = filterByDivisible 1, $$SCHED_ALL{$ATT_MINUTES};
-  }elsif($arg =~ /^(--hourly)$/){
-    $$schedArgs{$ATT_MINUTES} = filterByDivisible 60, $$SCHED_ALL{$ATT_MINUTES};
-  }elsif($arg =~ /^(--daily)$/){
-    $$schedArgs{$ATT_HOURS} = filterByDivisible 24, $$SCHED_ALL{$ATT_HOURS};
     $$schedArgs{$ATT_MINUTES} = [0];
   }else{
     die "ERROR: unknown SCHED arg $arg\n";
