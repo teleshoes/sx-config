@@ -54,7 +54,7 @@ my @DOW_LETTER_ORDER = map {$DOW_NAME_TO_LETTER{$_}} @DOW_NAME_ORDER;
 my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 
 my $SCHED_ARG_REGEX = join("|",
-  '(days-of-week|days-of-week-letters|months|days-of-month|hours|minutes|time)=(.+)',
+  '(days-of-week|dow|months|days-of-month|hours|minutes|time)=(.+)',
   '(@\d+m)',
   '(@\d+h)',
 );
@@ -148,7 +148,7 @@ my $USAGE = "Usage:
         `$EXEC --add SCHED --title=TITLE --cmd='FULL_CMD'
     -for each alarm:
       -add alarm as in:
-        `$EXEC --add --alarm --title=TITLE time=TIME_HH_MM days-of-week-letters=DAYS_OF_WEEK_LETTERS`
+        `$EXEC --add --alarm --title=TITLE time=TIME_HH_MM dow=DAYS_OF_WEEK_LETTERS`
 
   TITLE:
     name of event
@@ -176,9 +176,9 @@ my $USAGE = "Usage:
           => every 3 hours, at a quarter past the hour
         minutes=15 \@3h
           => every 3 hours, on the hour
-        \@5m days-of-week-letters=mtwTf
+        \@5m dow=mtwTf
           => every 5 minutes, EXCEPT on Sat or Sun
-        hours=9 minutes=0 days-of-week-letters=tT months=Nov
+        hours=9 minutes=0 dow=tT months=Nov
           => 09:00am on tuesdays and thursdays in november
         hours=0 day-of-month=25 months=Dec
           => midnight on Newton's birthday
@@ -205,7 +205,7 @@ my $USAGE = "Usage:
       clock time, 24-hour, formatted 'HH:MM'
       same as: hours=HH minutes=MM
 
-    days-of-week-leters=DAYS_OF_WEEK_LETTERS
+    dow=DAYS_OF_WEEK_LETTERS
       parse DAYS_OF_WEEK_LETERS into <DAY_OF_WEEK>,<DAY_OF_WEEK>...
       same as: days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
         DAYS_OF_WEEK_LETTERS
@@ -238,7 +238,7 @@ my $USAGE = "Usage:
 
     --alarm
       -ensure that exactly one value is set for hours and minutes, as in time=HH:MM
-      -extract daysOfWeek, if any, as in days-of-week-letters=DAYS_OF_WEEK_LETTERS
+      -extract daysOfWeek, if any, as in 'dow=<DAYS_OF_WEEK_LETTERS>'
       -same as:
         --no-cmd \\
         --application=$APPLICATION_ALARM \\
@@ -627,8 +627,7 @@ sub addConfEntry($){
     my $title = $$confEntry{title};
     my $timeHHMM = $$confEntry{timeHHMM};
     my $daysOfWeekLetters = $$confEntry{daysOfWeekLetters};
-    run $EXEC, "--add", "--alarm", "--title=$title", "time=$timeHHMM",
-      "days-of-week-letters=$daysOfWeekLetters";
+    run $EXEC, "--add", "--alarm", "--title=$title", "time=$timeHHMM", "dow=$daysOfWeekLetters";
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
   }
@@ -747,7 +746,7 @@ sub getScheduleRecurrenceArgs($){
 sub applySchedArg($$){
   my ($schedArgs, $arg) = @_;
 
-  if($arg =~ /^(days-of-week|days-of-week-letters|months|days-of-month|hours|minutes|time)=(.+)$/){
+  if($arg =~ /^(days-of-week|dow|months|days-of-month|hours|minutes|time)=(.+)$/){
     my ($field, $valStr) = ($1, $2);
     my $vals = [split /,/, $valStr];
     if($field =~ /^(days-of-week)$/){
@@ -756,7 +755,7 @@ sub applySchedArg($$){
           if $dayOfWeek !~ /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/;
       }
       $$schedArgs{$ATT_DAYS_OF_WEEK} = $vals;
-    }elsif($field =~ /^(days-of-week-letters)$/){
+    }elsif($field =~ /^(dow)$/){
       $$schedArgs{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($valStr)];
     }elsif($field =~ /^(months)$/){
       for my $month(@$vals){
