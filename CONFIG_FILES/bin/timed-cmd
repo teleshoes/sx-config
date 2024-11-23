@@ -560,6 +560,7 @@ sub readConf($){
   my @lines = <$fh>;
   close $fh;
 
+  my $schedArgsRegex = "(?:(?:(?:$SCHED_ARG_REGEX)\\s+)*(?:$SCHED_ARG_REGEX))";
   for my $line(@lines){
     next if $line =~ /^\s*(#.*)?$/;
     if($line =~ /^
@@ -579,7 +580,7 @@ sub readConf($){
       ^
       \s* cmd \s* =
       \s* ([a-zA-Z0-9_\-]+) \s* \|
-      \s* ([^\|]+) \s* \|
+      \s* ($schedArgsRegex) \s* \|
       \s* (\w+) \s* \|
       \s* (true|false) \s* \|
       \s* (\S.*\S)
