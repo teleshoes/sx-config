@@ -464,8 +464,8 @@ sub main(@){
 
     printf "%s|---ALARM%s|%s|%s|%s|%s\n",
       "-"x(3+1), "-"x($maxTitleLen-8+2), "-"x(4+2), "-"x(5+2), "-"x(5+2), "-"x5;
-    for my $cmd(@{$$conf{alarms}}){
-      my $cookie = $cookiesByTitle{$$cmd{title}};
+    for my $alarm(@{$$conf{alarms}}){
+      my $cookie = $cookiesByTitle{$$alarm{title}};
       my $status;
       if(defined $cookie){
         $status = "on";
@@ -475,10 +475,10 @@ sub main(@){
       }
       printf "%-3s | %-${maxTitleLen}s | %4s | %5s | %s\n",
         $status,
-        $$cmd{title},
+        $$alarm{title},
         $cookie,
-        $$cmd{timeHHMM},
-        $$cmd{daysOfWeekLetters},
+        $$alarm{timeHHMM},
+        $$alarm{daysOfWeekLetters},
       ;
     }
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
