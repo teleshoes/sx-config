@@ -456,7 +456,7 @@ sub main(@){
         $status,
         $$cmd{title},
         $cookie,
-        $$cmd{sched},
+        $$cmd{schedArgs},
         $$cmd{timeout},
         $$cmd{cmd},
       ;
@@ -579,7 +579,7 @@ sub readConf($){
       ^
       \s* cmd \s* =
       \s* ([a-zA-Z0-9_\-]+) \s* \|
-      \s* ([a-zA-Z0-9_\@]+) \s* \|
+      \s* ([^\|]+) \s* \|
       \s* (\w+) \s* \|
       \s* (true|false) \s* \|
       \s* (\S.*\S)
@@ -589,7 +589,7 @@ sub readConf($){
       push @{$$conf{commands}}, {
         type      => $CONF_TYPE_CMD,
         title     => $1,
-        sched     => $2,
+        schedArgs => $2,
         timeout   => $3,
         useDaemon => $4,
         cmd       => $5,
@@ -606,7 +606,7 @@ sub addConfEntry($){
   my ($confEntry) = @_;
   if($$confEntry{type} eq $CONF_TYPE_CMD){
     my $title = $$confEntry{title};
-    my $sched = $$confEntry{sched};
+    my @schedArgs = split /\s+/, $$confEntry{schedArgs};
     my $timeout = $$confEntry{timeout};
     my $useDaemon = $$confEntry{useDaemon};
     my $shellCmd = $$confEntry{cmd};
@@ -623,7 +623,7 @@ sub addConfEntry($){
       @fullCmd = ($shellCmd);
     }
 
-    run $EXEC, "--add", "$sched", "--title=$title", "--cmd=@fullCmd";
+    run $EXEC, "--add", "--title=$title", "--cmd=@fullCmd", @schedArgs;
   }elsif($$confEntry{type} eq $CONF_TYPE_ALARM){
     my $title = $$confEntry{title};
     my $timeHHMM = $$confEntry{timeHHMM};
