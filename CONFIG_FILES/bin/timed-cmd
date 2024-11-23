@@ -106,7 +106,7 @@ my $USAGE = "Usage:
     -for commands:
       -parse <TITLE> + <SCHEDULE> + <COMMAND> + <TIMEOUT>
     -for alarms:
-      -parse <TITLE> + <TIME_HHMM> + <DAYS_OF_WEEK_LETTERS>
+      -parse <TITLE> + <SCHEDULE>
     -fetch all timed event <COOKIE>s and extract <TITLE> attribute for each <COOKIE>
     -for all commands + alarms, extract <ON_OFF_STATUS> + <COOKIE>
       -if TITLE is the same as for any event <COOKIE>:
