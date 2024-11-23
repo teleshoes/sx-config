@@ -578,7 +578,7 @@ sub readConf($){
       \s* cmd \s* =
       \s* ([a-zA-Z0-9_\-]+) \s* \|
       \s* ($schedArgsRegex) \s* \|
-      \s* (\w+) \s* \|
+      \s* ((?:0|\d+(?:ms|s|m|min|h|d))?) \s* \|
       \s* (true|false) \s* \|
       \s* (\S.*\S)
       \s*
@@ -609,8 +609,13 @@ sub addEventFromConfEntry($){
     my $useDaemon = $$confEntry{useDaemon};
     my $shellCmd = $$confEntry{cmd};
 
+    $timeout = "" if not defined $timeout;
+
     my @fullCmd;
     if($useDaemon =~ /true/){
+      if($timeout !~ /^(0|\d+(ms|s|m|min|h|d))$/){
+        die "ERROR: invalid timeout for '$title' conf\n";
+      }
       @fullCmd = (
         "udo", "daemon-run",
         "--name=$title", "--timeout=$timeout",
@@ -618,6 +623,9 @@ sub addEventFromConfEntry($){
         $shellCmd,
       );
     }else{
+      if($timeout ne ""){
+        die "ERROR: cannot specify timeout with daemon=false for '$title' conf\n";
+      }
       @fullCmd = ($shellCmd);
     }
 
