@@ -57,7 +57,7 @@ my $SCHED_ARG_REGEX = join("|",
   '(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes|--time)=(.+)',
   '(\d+m|\d+min|--every-n-min=\d+|--every-\d+-min)',
   '(\d+h|--every-n-hours=\d+|--every-\d+-hours)',
-  '(--every-min|--hourly|--daily|--weekdays|--weekends)',
+  '(--every-min|--hourly|--daily)',
 );
 
 my $ACTION_GET_EVENTS = "get-events";
@@ -177,9 +177,9 @@ my $USAGE = "Usage:
           => every 3 hours, at a quarter past the hour
         --minutes=15 3h
           => every 3 hours, on the hour
-        5m --weekdays
+        5m --days-of-week-letters=mtwTf
           => every 5 minutes, EXCEPT on Sat or Sun
-        --hours=9 --minutes=0 --weekdays='Tue Thu' --months=Nov
+        --hours=9 --minutes=0 --days-of-week-letters=tT --months=Nov
           => 09:00am on tuesdays and thursdays in november
         --hours=0 --day-of-month=25 --months=Dec
           => midnight on Newton's birthday
@@ -214,11 +214,6 @@ my $USAGE = "Usage:
 
     --daily
       same as: 24h
-
-    --weekdays
-      same as: --days-of-week=\"Mon Tue Wed Thu Fri\"
-    --weekends
-      same as: --days-of-week=\"Sat Sun\"
 
     --days-of-week-leters=DAYS_OF_WEEK_LETTERS
       parse DAYS_OF_WEEK_LETERS into \"<DAY_OF_WEEK> <DAY_OF_WEEK> ...\"
@@ -828,10 +823,6 @@ sub applySchedArg($$){
   }elsif($arg =~ /^(--daily)$/){
     $$schedArgs{$ATT_HOURS} = filterByDivisible 24, $$SCHED_ALL{$ATT_HOURS};
     $$schedArgs{$ATT_MINUTES} = [0];
-  }elsif($arg =~ /^(--weekdays)$/){
-    $$schedArgs{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKDAYS];
-  }elsif($arg =~ /^(--weekends)$/){
-    $$schedArgs{$ATT_DAYS_OF_WEEK} = [@DAYS_OF_WEEK_WEEKENDS];
   }else{
     die "ERROR: unknown SCHED arg $arg\n";
   }
@@ -876,13 +867,7 @@ sub parseSchedule($){
   }
 
   if(not arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
-    if(arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, [@DAYS_OF_WEEK_WEEKDAYS])){
-      push @schedArgs, "--weekdays";
-    }elsif(arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, [@DAYS_OF_WEEK_WEEKENDS])){
-      push @schedArgs, "--weekends";
-    }else{
-      push @schedArgs, "--days-of-week='@{$$schedule{$ATT_DAYS_OF_WEEK}}'";
-    }
+    push @schedArgs, "--days-of-week='@{$$schedule{$ATT_DAYS_OF_WEEK}}'";
   }
   if(not arrSameElems($$schedule{$ATT_MONTHS}, $$SCHED_ALL{$ATT_MONTHS})){
     push @schedArgs, "--months='{$$schedule{$ATT_MONTHS}}'";
