@@ -94,26 +94,6 @@ my $USAGE = "Usage:
   $EXEC [OPTS] --clear-alarms
     same as: $EXEC OPTS --application=$APPLICATION_ALARM --clear
 
-  $EXEC [OPTS] --add-alarm TITLE TIME_HHMM DAYS_OF_WEEK_LETTERS
-    same as: $EXEC OPTS \\
-      --add \\
-      --application=$APPLICATION_ALARM \\
-      --title=TITLE \\
-      --no-cmd \\
-      --time=TIME_HHMM \\
-      --days-of-week-letters=DAYS_OF_WEEK_LETTERS \\
-      --event-arg=\"createdDate=`date +%s%3N`\" \\
-      --event-arg=\"daysOfWeek=DAYS_OF_WEEK_LETTERS\" \\
-      --event-arg=\"timeOfDayWithSeconds=\$((HH*60*60 + MM*60))\" \\
-      --event-arg=\"maximalTimeoutSnoozeCounter=2\" \\
-      --event-arg=\"type=clock\" \\
-      --event-arg=\"alarm\" \\
-      --event-arg=\"reminder\" \\
-      --event-arg=\"boot\" \\
-      --event-arg=\"keepAlive\" \\
-      --event-arg=\"alignedSnooze\" \\
-    ;
-
   $EXEC [OPTS] --get-configs
     -fetch the commands + alarms in: $CONF_FILE
     -for commands:
@@ -160,7 +140,7 @@ my $USAGE = "Usage:
         `$EXEC --add SCHED --title=TITLE --cmd='FULL_CMD'
     -for each alarm:
       -add alarm as in:
-        `$EXEC --add-alarm TITLE_TIME_HH_MM DAYS_OF_WEEK_LETTERS`
+        `$EXEC --add --alarm --title=TITLE --time=TIME_HH_MM --days-of-week-letters=DAYS_OF_WEEK_LETTERS`
 
   TITLE:
     name of event
@@ -265,6 +245,23 @@ my $USAGE = "Usage:
     --application=APPLICATION | --app=APPLICATION
       use APPLICATION instead of $APPLICATION_TIMED_CMD
 
+    --alarm
+      -ensure that exactly one value is set for hours and minutes, as in --time=HH:MM
+      -extract daysOfWeek, if any, as in --days-of-week-letters=DAYS_OF_WEEK_LETTERS
+      -same as:
+        --no-cmd \\
+        --application=$APPLICATION_ALARM \\
+        --event-arg=\"createdDate=`date +%s%3N`\" \\
+        --event-arg=\"daysOfWeek=<DAYS_OF_WEEK_LETTERS>\" \\
+        --event-arg=\"timeOfDayWithSeconds=\$((<HH>*60*60 + <MM>*60))\" \\
+        --event-arg=\"maximalTimeoutSnoozeCounter=2\" \\
+        --event-arg=\"type=clock\" \\
+        --event-arg=\"alarm\" \\
+        --event-arg=\"reminder\" \\
+        --event-arg=\"boot\" \\
+        --event-arg=\"keepAlive\" \\
+        --event-arg=\"alignedSnooze\" \\
+
     --no-cmd
       same as: --cmd=''
       do not include a 'whenDue runComand' action
@@ -279,6 +276,7 @@ sub main(@){
   my $action = $ACTION_GET_CONFIGS;
   my $opts = {
     application    => $APPLICATION_TIMED_CMD,
+    isAlarm        => 0,
     title          => undef,
     shellCmd       => undef,
     onceTick       => undef,
@@ -318,39 +316,9 @@ sub main(@){
       $$opts{title} = $1;
     }elsif($arg =~ /^(--apply-config)$/){
       $action = $ACTION_APPLY_CONFIG;
-    }elsif($arg =~ /^(--add-alarm)$/){
-      if(@_ != 3){
-        die "$USAGE\nERROR: --add-alarm requires 3 arguments\n";
-      }
-      my ($titleArg, $hhmmArg, $daysOfTheWeekLettersArg) = @_;
-      @_ = ();
-
-      my ($h, $m);
-      if($hhmmArg =~ /^(\d|\d\d):(\d\d)$/){
-        ($h, $m) = ($1, $2);
-      }else{
-        die "ERROR: malformed HH:MM $hhmmArg\n";
-      }
-      die "ERROR: malformed HH:MM $hhmmArg\n" if $h >= 24;
-      die "ERROR: malformed HH:MM $hhmmArg\n" if $m >= 60;
-
-      $action = $ACTION_ADD;
-      $$opts{application} = $APPLICATION_ALARM;
-      $$opts{title} = $titleArg;
+    }elsif($arg =~ /^(--alarm)$/){
+      $$opts{isAlarm} = 1;
       $$opts{shellCmd} = '';
-      $$opts{schedArgs}{$ATT_HOURS} = [0+$h];
-      $$opts{schedArgs}{$ATT_MINUTES} = [0+$m];
-      $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($daysOfTheWeekLettersArg)];
-      push @{$$opts{extraEventArgs}}, "createdDate=" . nowMillis();
-      push @{$$opts{extraEventArgs}}, "daysOfWeek=$daysOfTheWeekLettersArg";
-      push @{$$opts{extraEventArgs}}, "timeOfDayWithSeconds=" . ($h*60*60 + $m*60);
-      push @{$$opts{extraEventArgs}}, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
-      push @{$$opts{extraEventArgs}}, "type=clock";
-      push @{$$opts{extraEventArgs}}, "alarm";
-      push @{$$opts{extraEventArgs}}, "reminder";
-      push @{$$opts{extraEventArgs}}, "boot";
-      push @{$$opts{extraEventArgs}}, "keepAlive";
-      push @{$$opts{extraEventArgs}}, "alignedSnooze";
     }elsif($arg =~ /^--title=(.+)$/){
       $$opts{title} = $1;
     }elsif($arg =~ /^--cmd=(.*)$/){
@@ -473,6 +441,30 @@ sub main(@){
   }elsif($action eq $ACTION_ADD){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     die "$USAGE\nERROR: must specify COMMAND for action=$action\n" if not defined $$opts{shellCmd};
+
+    if($$opts{isAlarm}){
+      my $hours = $$opts{schedArgs}{$ATT_HOURS} if defined $$opts{schedArgs};
+      my $minutes = $$opts{schedArgs}{$ATT_MINUTES} if defined $$opts{schedArgs};
+      my $daysOfWeek = $$opts{schedArgs}{$ATT_DAYS_OF_WEEK} if defined $$opts{schedArgs};
+      if(not defined $hours or not defined $minutes or @$hours != 1 or @$minutes != 1){
+        die "ERROR: must specify exactly one hour and one minute value for --alarm\n";
+      }
+      my $timeOfDayS = $$hours[0]*60*60 + $$minutes[0]*60;
+      my $dowLettersStr = dowNamesArrToLettersStr(@$daysOfWeek) if defined $daysOfWeek;
+
+      $$opts{application} = $APPLICATION_ALARM;
+
+      push @{$$opts{extraEventArgs}}, "createdDate=" . nowMillis();
+      push @{$$opts{extraEventArgs}}, "timeOfDayWithSeconds=$timeOfDayS";
+      push @{$$opts{extraEventArgs}}, "daysOfWeek=$dowLettersStr";
+      push @{$$opts{extraEventArgs}}, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
+      push @{$$opts{extraEventArgs}}, "type=clock";
+      push @{$$opts{extraEventArgs}}, "alarm";
+      push @{$$opts{extraEventArgs}}, "reminder";
+      push @{$$opts{extraEventArgs}}, "boot";
+      push @{$$opts{extraEventArgs}}, "keepAlive";
+      push @{$$opts{extraEventArgs}}, "alignedSnooze";
+    }
 
     if(defined $$opts{onceTick} and %{$$opts{schedArgs}} > 0){
       die "ERROR: cannot specify both SCHED and ONCE\n";
@@ -712,7 +704,8 @@ sub addConfEntry($){
     my $title = $$confEntry{title};
     my $timeHHMM = $$confEntry{timeHHMM};
     my $daysOfWeekLetters = $$confEntry{daysOfWeekLetters};
-    run $EXEC, "--add-alarm", $title, $timeHHMM, $daysOfWeekLetters;
+    run $EXEC, "--add", "--alarm", "--title=$title", "--time=$timeHHMM",
+      "--days-of-week-letters=$daysOfWeekLetters";
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
   }
