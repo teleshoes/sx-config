@@ -6,7 +6,7 @@ use List::Util qw(max);
 use Time::HiRes qw(time);
 
 sub readConf($);
-sub addConfEntry($);
+sub addEventFromConfEntry($);
 sub getAllEventCookies();
 sub getTimedCmdEventCookies($);
 sub getTimedCmdEventInfo($);
@@ -504,7 +504,7 @@ sub main(@){
     if(defined $cookiesByTitle{$$opts{title}}){
       run "timedclient-qt5", "--cancel-event", $cookiesByTitle{$$opts{title}};
     }else{
-      addConfEntry($targetConfEntry);
+      addEventFromConfEntry($targetConfEntry);
     }
   }elsif($action eq $ACTION_APPLY_CONFIG){
     die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
@@ -519,7 +519,7 @@ sub main(@){
     print "\nadding commands\n";
     for my $cmdEntry(@{$$conf{commands}}){
       print "\n";
-      addConfEntry($cmdEntry);
+      addEventFromConfEntry($cmdEntry);
     }
 
     print "\n";
@@ -530,7 +530,7 @@ sub main(@){
     print "\nadding alarms\n";
     for my $alarmEntry(@{$$conf{alarms}}){
       print "\n";
-      addConfEntry($alarmEntry);
+      addEventFromConfEntry($alarmEntry);
     }
 
     print "\n";
@@ -600,7 +600,7 @@ sub readConf($){
   return $conf;
 }
 
-sub addConfEntry($){
+sub addEventFromConfEntry($){
   my ($confEntry) = @_;
   if($$confEntry{type} eq $CONF_TYPE_CMD){
     my $title = $$confEntry{title};
