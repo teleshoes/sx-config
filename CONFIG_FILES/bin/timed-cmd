@@ -56,7 +56,7 @@ my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 my $SCHED_ARG_REGEX = join("|",
   '(--days-of-week|--days-of-week-letters|--months|--days-of-month|--hours|--minutes|--time)=(.+)',
   '(\d+m)',
-  '(\d+h|--every-n-hours=\d+|--every-\d+-hours)',
+  '(\d+h)',
 );
 
 my $ACTION_GET_EVENTS = "get-events";
@@ -192,14 +192,14 @@ my $USAGE = "Usage:
           5m   =>  --minutes='0 5 10 15 20 25 30 35 40 45 50 55'
           15m  =>  --minutes='0 15 30 45'
 
-    <HOUR>h | --every-n-hours=<HOUR> | --every-<HOUR>-hours
+    <HOUR>h
       set hours = every hour divisible by <HOUR>, AND set minutes = 0
       HOUR = 1 | 2 | 3 | 4 | 6 | 8 | 12 | 24
       (if this is the only <SCHED>, this means run job every <HOUR> hours)
         e.g.:
-          4h                 => --hours='0 4 8 12 16 20' --minutes=0
-          --every-6-hours    => --hours='0 6 12 18'      --minutes=0
-          --every-n-hours=8  => --hours='0 8 16'         --minutes=0
+          4h  =>  --hours='0 4 8 12 16 20' --minutes=0
+          6h  =>  --hours='0 6 12 18'      --minutes=0
+          8h  =>  --hours='0 8 16'         --minutes=0
 
     --time=TIME_HHMM
       clock time, 24-hour, formatted 'HH:MM'
@@ -799,10 +799,10 @@ sub applySchedArg($$){
       die "ERROR: <MIN>m can only accept divisors of 60\n";
     }
     $$schedArgs{$ATT_MINUTES} = filterByDivisible $factor, $$SCHED_ALL{$ATT_MINUTES};
-  }elsif($arg =~ /^(\d+h|--every-n-hours=\d+|--every-\d+-hours)$/){
+  }elsif($arg =~ /^(\d+h)$/){
     my $factor = 0+$1 if $arg =~ /(\d+)/;
     if(not defined $factor or $factor !~ /^(1|2|3|4|6|8|12)$/){
-      die "ERROR: --every-n-hours can only accept divisors of 24\n";
+      die "ERROR: <HOUR>h can only accept divisors of 24\n";
     }
     $$schedArgs{$ATT_HOURS} = filterByDivisible $factor, $$SCHED_ALL{$ATT_HOURS};
     $$schedArgs{$ATT_MINUTES} = [0];
