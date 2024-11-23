@@ -899,7 +899,7 @@ sub dowNamesArrToLettersStr(@){
   for my $name(sort keys %okNames){
     die "ERROR: unknown DOW name $name\n" if not defined $DOW_NAME_TO_LETTER{$name};
   }
-  return map {$DOW_NAME_TO_LETTER{$_}} grep {defined $okNames{$_}} @DOW_NAME_ORDER
+  return join "", map {$DOW_NAME_TO_LETTER{$_}} grep {defined $okNames{$_}} @DOW_NAME_ORDER;
 }
 
 sub filterByDivisible($$){
