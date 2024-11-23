@@ -462,8 +462,8 @@ sub main(@){
       ;
     }
 
-    printf "%s|---ALARM%s|%s|%s|%s|%s\n",
-      "-"x(3+1), "-"x($maxTitleLen-8+2), "-"x(4+2), "-"x(5+2), "-"x(5+2), "-"x5;
+    printf "%s|---ALARM%s|%s|%s\n",
+      "-"x(3+1), "-"x($maxTitleLen-8+2), "-"x(4+2), "-"x(5+2), "-"x5;
     for my $alarm(@{$$conf{alarms}}){
       my $cookie = $cookiesByTitle{$$alarm{title}};
       my $status;
@@ -473,12 +473,11 @@ sub main(@){
         $status = "off";
         $cookie = "none";
       }
-      printf "%-3s | %-${maxTitleLen}s | %4s | %5s | %s\n",
+      printf "%-3s | %-${maxTitleLen}s | %4s | %s\n",
         $status,
         $$alarm{title},
         $cookie,
-        $$alarm{timeHHMM},
-        $$alarm{daysOfWeekLetters},
+        $$alarm{schedArgs},
       ;
     }
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
@@ -566,15 +565,13 @@ sub readConf($){
     if($line =~ /^
       \s* alarm \s* =
       \s* (\w+) \s* \|
-      \s* (\d+:\d+) \s* \|
-      \s* ([mtwTfsS]+) \s*
+      \s* ($schedArgsRegex)
       $
     /xi){
       push @{$$conf{alarms}}, {
         type              => $CONF_TYPE_ALARM,
         title             => $1,
-        timeHHMM          => $2,
-        daysOfWeekLetters => $3,
+        schedArgs         => $2,
       };
     }elsif($line =~ /
       ^
@@ -627,9 +624,8 @@ sub addConfEntry($){
     run $EXEC, "--add", "--title=$title", "--cmd=@fullCmd", @schedArgs;
   }elsif($$confEntry{type} eq $CONF_TYPE_ALARM){
     my $title = $$confEntry{title};
-    my $timeHHMM = $$confEntry{timeHHMM};
-    my $daysOfWeekLetters = $$confEntry{daysOfWeekLetters};
-    run $EXEC, "--add", "--alarm", "--title=$title", "$timeHHMM", "dow=$daysOfWeekLetters";
+    my @schedArgs = split /\s+/, $$confEntry{schedArgs};
+    run $EXEC, "--add", "--alarm", "--title=$title", @schedArgs;
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
   }
