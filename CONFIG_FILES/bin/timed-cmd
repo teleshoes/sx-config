@@ -7,8 +7,8 @@ use Time::HiRes qw(time);
 
 sub readConf($);
 sub addEventFromConfEntry($);
-sub getAllEventCookies();
-sub getTimedCmdEventCookies($);
+sub getEventCookiesAll();
+sub getEventCookiesForApplication($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
 sub applySchedArg($$);
@@ -76,7 +76,8 @@ my $USAGE = "Usage:
     same as: $EXEC OPTS --get-configs
 
   $EXEC [OPTS] --get-events
-    -fetch all timed event <COOKIE>s for APPLICATION=$APPLICATION_TIMED_CMD
+    -fetch all timed event <COOKIE>s
+      -if --application is given, limit to APPLICATION
     -extract event attributes and parse TITLE + COMMAND + SCHED_ARGS
       TITLE is the event attribute TITLE
       COMMAND is the event attribute Action0.COMMAND
@@ -87,21 +88,20 @@ my $USAGE = "Usage:
       -otherwise, format as:
         <COOKIE> | <TITLE> | <SCHED_ARGS>
 
-  $EXEC [OPTS] --get-alarms
-    same as: $EXEC OPTS --application=$APPLICATION_ALARM --get
-
   $EXEC [OPTS] --clear
-    -fetch timed event cookies with APPLICATION=$APPLICATION_TIMED_CMD
-    -run --cancel-event for each cookie
+    -fetch all timed event <COOKIE>s
+      -if --application is given, limit to APPLICATION
+    -for each <COOKIE>, run: timedclient-qt5 --cancel-event <COOKIE>
 
   $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --cmd=COMMAND
   $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --alarm
+    -select application
+      -if --application is given, use APPLICATION
+      -if --cmd is given, use $APPLICATION_TIMED_CMD
+      -if --alarm is given, use $APPLICATION_ALARM
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
-
-  $EXEC [OPTS] --clear-alarms
-    same as: $EXEC OPTS --application=$APPLICATION_ALARM --clear
 
   $EXEC [OPTS] --get-configs
     -fetch the commands + alarms in: $CONF_FILE
@@ -133,7 +133,7 @@ my $USAGE = "Usage:
         -add this event or alarm as in --apply-cookies
 
   $EXEC [OPTS] --apply-config
-    -clear all $APPLICATION_TIMED_CMD events as in:
+    -clear ALL EVENTS as in:
       `$EXEC --clear`
     -parse commands and alarms in $CONF_FILE
       alarm = TITLE TIME_HHMM DAYS_OF_WEEK_LETTERS
@@ -235,13 +235,22 @@ my $USAGE = "Usage:
 
   OPTS
     --application=APPLICATION | --app=APPLICATION
-      use APPLICATION instead of $APPLICATION_TIMED_CMD
+      for --add:
+        use APPLICATION instead of $APPLICATION_TIMED_CMD or $APPLICATION_ALARM
+      for --get-events:
+        only list events for APPLICATION
+      for --clear:
+        only cancel events for APPLICATION
+    --app-cmd
+      same as: --application=$APPLICATION_TIMED_CMD
+    --app-alarm
+      same as: --application=$APPLICATION_ALARM
 
     --alarm
-      -ensure that exactly one value is set for hours and minutes, as in '<HH>:<MM>'
-      -extract daysOfWeek, if any, as in 'dow=<DAYS_OF_WEEK_LETTERS>'
-      -same as:
-        --application=$APPLICATION_ALARM \\
+      -use application=$APPLICATION_ALARM instead of $APPLICATION_TIMED_CMD
+      -extract <HH> + <MM> and <DAYS_OF_WEEK_LETTERS> from SCHED args
+        -fail unless exactly one 'hours' and one 'minutes' is specified
+      -add EXTRA_EVENT_ARG entries as in:
         --event-arg=\"createdDate=`date +%s%3N`\" \\
         --event-arg=\"daysOfWeek=<DAYS_OF_WEEK_LETTERS>\" \\
         --event-arg=\"timeOfDayWithSeconds=\$((<HH>*60*60 + <MM>*60))\" \\
@@ -262,7 +271,7 @@ my $USAGE = "Usage:
 sub main(@){
   my $action = $ACTION_GET_CONFIGS;
   my $opts = {
-    application    => $APPLICATION_TIMED_CMD,
+    application    => undef,
     isAlarm        => 0,
     title          => undef,
     shellCmd       => undef,
@@ -277,20 +286,18 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(?:--app|--application)=(.+)$/){
       $$opts{application} = $1;
+    }elsif($arg =~ /^(--app-cmd)$/){
+      $$opts{application} = $APPLICATION_TIMED_CMD;
+    }elsif($arg =~ /^(--app-alarm)$/){
+      $$opts{application} = $APPLICATION_ALARM;
     }elsif($arg =~ /^--event-arg=(.+)$/){
       push @{$$opts{extraEventArgs}}, $1;
     }elsif($arg =~ /^(-g|--get)$/){
       $action = $ACTION_GET_CONFIGS;
     }elsif($arg =~ /^(--get-events)$/){
       $action = $ACTION_GET_EVENTS;
-    }elsif($arg =~ /^--get-alarms$/){
-      $action = $ACTION_GET_EVENTS;
-      $$opts{application} = $APPLICATION_ALARM;
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR;
-    }elsif($arg =~ /^(--clear-alarms)$/){
-      $action = $ACTION_CLEAR;
-      $$opts{application} = $APPLICATION_ALARM;
     }elsif($arg =~ /^(-a|--add)$/){
       $action = $ACTION_ADD;
     }elsif($arg =~ /^--get-configs$/){
@@ -323,7 +330,13 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
-    my @cookies = getTimedCmdEventCookies($$opts{application});
+    my @cookies;
+    if(defined $$opts{application}){
+      @cookies = getEventCookiesForApplication($$opts{application});
+    }else{
+      @cookies = getEventCookiesAll();
+    }
+
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @cookies;
     my $maxTitleLen = max(map {length $$_{TITLE}} values %eventsByCookie);
     for my $cookie(@cookies){
@@ -350,7 +363,12 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
-    my @cookies = getTimedCmdEventCookies($$opts{application});
+    my @cookies;
+    if(defined $$opts{application}){
+      @cookies = getEventCookiesForApplication($$opts{application});
+    }else{
+      @cookies = getEventCookiesAll();
+    }
     for my $cookie(@cookies){
       run "timedclient-qt5", "--cancel-event", $cookie;
     }
@@ -358,7 +376,10 @@ sub main(@){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     my $shellCmd = $$opts{shellCmd};
 
+    my $application;
+
     if($$opts{isAlarm}){
+      $application = $APPLICATION_ALARM;
       if(defined $shellCmd){
         die "$USAGE\nERROR: cannot specify COMMAND for --alarm\n";
       }
@@ -371,8 +392,6 @@ sub main(@){
       my $timeOfDayS = $$hours[0]*60*60 + $$minutes[0]*60;
       my $dowLettersStr = dowNamesArrToLettersStr(@$daysOfWeek) if defined $daysOfWeek;
 
-      $$opts{application} = $APPLICATION_ALARM;
-
       push @{$$opts{extraEventArgs}}, "createdDate=" . nowMillis();
       push @{$$opts{extraEventArgs}}, "timeOfDayWithSeconds=$timeOfDayS";
       push @{$$opts{extraEventArgs}}, "daysOfWeek=$dowLettersStr";
@@ -384,9 +403,15 @@ sub main(@){
       push @{$$opts{extraEventArgs}}, "keepAlive";
       push @{$$opts{extraEventArgs}}, "alignedSnooze";
     }else{
+      $application = $APPLICATION_TIMED_CMD;
       if(not defined $shellCmd){
         die "$USAGE\nERROR: must specify COMMAND if --alarm is not given\n";
       }
+    }
+
+    if(defined $$opts{application}){
+      #override APPLICATION
+      $application = $$opts{application};
     }
 
     if(defined $$opts{onceTick} and %{$$opts{schedArgs}} > 0){
@@ -402,7 +427,7 @@ sub main(@){
 
     my @actionArgs = defined $shellCmd ? ("whenDue", "runCommand=$shellCmd") : ();
     my @eventArgs = (
-      "APPLICATION=$$opts{application}",
+      "APPLICATION=$application",
       "TITLE=$$opts{title}",
       @{$$opts{extraEventArgs}},
     );
@@ -429,10 +454,11 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
+    die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
 
     my $conf = readConf($CONF_FILE);
 
-    my @allCookies = getAllEventCookies();
+    my @allCookies = getEventCookiesAll();
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @allCookies;
     my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
 
@@ -461,6 +487,7 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
+    die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
 
     my $conf = readConf($CONF_FILE);
     my $targetConfEvent = undef;
@@ -474,7 +501,7 @@ sub main(@){
       die "ERROR: unknown conf entry title '$$opts{title}'\n";
     }
 
-    my @allCookies = getAllEventCookies();
+    my @allCookies = getEventCookiesAll();
     my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @allCookies;
     my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
 
@@ -487,11 +514,11 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
+    die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
     my $conf = readConf($CONF_FILE);
 
-    print "\nclearing commands+alarms\n";
+    print "\nclearing all events\n";
     run $EXEC, "--clear";
-    run $EXEC, "--clear-alarms";
     print "\n\n\n";
 
     print "\nadding conf events\n";
@@ -500,11 +527,8 @@ sub main(@){
       addEventFromConfEntry($event);
     }
 
-    print "\n\ncommands:\n";
+    print "\n\nall events:\n";
     run $EXEC, "--get-events";
-
-    print "\n\nalarms:\n";
-    run $EXEC, "--get-alarms";
   }else{
     die "ERROR: unknown action $action\n";
   }
@@ -606,12 +630,12 @@ sub addEventFromConfEntry($){
   }
 }
 
-sub getAllEventCookies(){
+sub getEventCookiesAll(){
   my $out = readProc "timedclient-qt5", "--list";
   return $out =~ /\d+/g;
 }
 
-sub getTimedCmdEventCookies($){
+sub getEventCookiesForApplication($){
   my ($application) = @_;
   my $out = readProc "timedclient-qt5", "--search", "APPLICATION=$application";
   return $out =~ /\d+/g;
