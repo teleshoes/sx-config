@@ -87,6 +87,7 @@ my $USAGE = "Usage:
     -run --cancel-event for each cookie
 
   $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --cmd=COMMAND
+  $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --alarm
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
     -<SCHED> reduces the frequency that <COMMAND> is run
