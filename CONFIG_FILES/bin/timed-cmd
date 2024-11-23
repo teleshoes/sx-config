@@ -54,7 +54,8 @@ my @DOW_LETTER_ORDER = map {$DOW_NAME_TO_LETTER{$_}} @DOW_NAME_ORDER;
 my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 
 my $SCHED_ARG_REGEX = join("|",
-  '(days-of-week|dow|months|days-of-month|hours|minutes|time)=(.+)',
+  '(days-of-week|dow|months|days-of-month|hours|minutes)=(.+)',
+  '((\d|\d\d):(\d\d))',
   '(@\d+m)',
   '(@\d+h)',
 );
@@ -148,7 +149,7 @@ my $USAGE = "Usage:
         `$EXEC --add SCHED --title=TITLE --cmd='FULL_CMD'
     -for each alarm:
       -add alarm as in:
-        `$EXEC --add --alarm --title=TITLE time=TIME_HH_MM dow=DAYS_OF_WEEK_LETTERS`
+        `$EXEC --add --alarm --title=TITLE TIME_HHMM dow=DAYS_OF_WEEK_LETTERS`
 
   TITLE:
     name of event
@@ -201,7 +202,7 @@ my $USAGE = "Usage:
           \@6h  =>  hours=0,6,12,18      minutes=0
           \@8h  =>  hours=0,8,16         minutes=0
 
-    time=TIME_HHMM
+    TIME_HHMM
       clock time, 24-hour, formatted 'HH:MM'
       same as: hours=HH minutes=MM
 
@@ -237,7 +238,7 @@ my $USAGE = "Usage:
       use APPLICATION instead of $APPLICATION_TIMED_CMD
 
     --alarm
-      -ensure that exactly one value is set for hours and minutes, as in time=HH:MM
+      -ensure that exactly one value is set for hours and minutes, as in '<HH>:<MM>'
       -extract daysOfWeek, if any, as in 'dow=<DAYS_OF_WEEK_LETTERS>'
       -same as:
         --no-cmd \\
@@ -627,7 +628,7 @@ sub addConfEntry($){
     my $title = $$confEntry{title};
     my $timeHHMM = $$confEntry{timeHHMM};
     my $daysOfWeekLetters = $$confEntry{daysOfWeekLetters};
-    run $EXEC, "--add", "--alarm", "--title=$title", "time=$timeHHMM", "dow=$daysOfWeekLetters";
+    run $EXEC, "--add", "--alarm", "--title=$title", "$timeHHMM", "dow=$daysOfWeekLetters";
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
   }
@@ -746,7 +747,7 @@ sub getScheduleRecurrenceArgs($){
 sub applySchedArg($$){
   my ($schedArgs, $arg) = @_;
 
-  if($arg =~ /^(days-of-week|dow|months|days-of-month|hours|minutes|time)=(.+)$/){
+  if($arg =~ /^(days-of-week|dow|months|days-of-month|hours|minutes)=(.+)$/){
     my ($field, $valStr) = ($1, $2);
     my $vals = [split /,/, $valStr];
     if($field =~ /^(days-of-week)$/){
@@ -779,19 +780,13 @@ sub applySchedArg($$){
         die "ERROR: malformed min: $min\n" if $min !~ /^\d+$/ or $min >=60;
       }
       $$schedArgs{$ATT_MINUTES} = [map {0+$_} @$vals];
-    }elsif($field =~ /^(time)$/){
-      for my $time(@$vals){
-        if($time =~ /^(\d|\d\d):(\d\d)$/){
-          my ($h, $m) = ($1, $2);
-          $$schedArgs{$ATT_HOURS} = [0+$h];
-          $$schedArgs{$ATT_MINUTES} = [0+$m];
-        }else{
-          die "ERROR: malformed time $time\n";
-        }
-      }
     }else{
       die "ERROR: malformed sched arg: $arg\n";
     }
+  }elsif($arg =~ /^(\d|\d\d):(\d\d)$/){
+    my ($h, $m) = ($1, $2);
+    $$schedArgs{$ATT_HOURS} = [0+$h];
+    $$schedArgs{$ATT_MINUTES} = [0+$m];
   }elsif($arg =~ /^@(\d+m)$/){
     my $factor = 0+$1 if $arg =~ /(\d+)/;
     if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30|60)$/){
@@ -841,7 +836,7 @@ sub parseSchedule($){
 
   if(@schedArgs == 0){
     if(@$hr == 1 and @$min == 1){
-      push @schedArgs, sprintf("time=%02d:%02d", $$hr[0], $$min[0]);
+      push @schedArgs, sprintf("%02d:%02d", $$hr[0], $$min[0]);
     }else{
       push @schedArgs, sprintf("hours=%s", join(",", @$hr)) if not $isAllHr;
       push @schedArgs, sprintf("minutes=%s", join(",", @$min)) if not $isAllMin;
