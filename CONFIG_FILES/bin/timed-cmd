@@ -783,8 +783,8 @@ sub applySchedArg($$){
       for my $time(@$vals){
         if($time =~ /^(\d|\d\d):(\d\d)$/){
           my ($h, $m) = ($1, $2);
-          push @{$$schedArgs{$ATT_HOURS}}, 0+$h;
-          push @{$$schedArgs{$ATT_MINUTES}}, 0+$m;
+          $$schedArgs{$ATT_HOURS} = [0+$h];
+          $$schedArgs{$ATT_MINUTES} = [0+$m];
         }else{
           die "ERROR: malformed time $time\n";
         }
