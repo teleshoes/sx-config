@@ -136,6 +136,11 @@ my $USAGE = "Usage:
     -parse commands and alarms in $CONF_FILE
       alarm = TITLE | SCHED_ARG_SET
       cmd = TITLE | SCHED_ARG_SET | DAEMON_RUN_TIMEOUT | DAEMON_RUN_ENABLED | SHELL_CMD
+      e.g.:
+        alarm = work | 7:00 dow=mtwTf
+        alarm = wknd | 9:00 dow=sS
+        cmd = rotate-logs | \@8h   |   | false | /usr/local/bin/rotate-logs.sh
+        cmd = backup-dcim | 05:00 |   | false | /usr/local/bin/backup-dcim.sh
     -for each cmd:
       -get FULL_CMD
         -if DAEMON_RUN_TIMEOUT is given and DAEMON_RUN_ENABLED is true:
