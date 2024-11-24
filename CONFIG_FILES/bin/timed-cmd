@@ -657,7 +657,6 @@ sub getTimedCmdEventInfo($){
 
   my $event = {
     schedRecur => undef,
-    scheduleFmt => undef,
     tick => undef,
     tickFmt => undef,
     timingFmt => undef,
@@ -675,12 +674,9 @@ sub getTimedCmdEventInfo($){
       $$event{tickFmt} = $2;
     }
   }
-  if(defined $$event{schedRecur}){
-    $$event{scheduleFmt} = parseSchedule($$event{schedRecur});
-  }
 
   if(defined $$event{schedRecur}){
-    $$event{timingFmt} = $$event{scheduleFmt};
+    $$event{timingFmt} = parseSchedule($$event{schedRecur});
   }elsif(defined $$event{tick}){
     $$event{timingFmt} = "$$event{tick} ($$event{tickFmt})";
   }
