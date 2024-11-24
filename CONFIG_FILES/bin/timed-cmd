@@ -36,15 +36,13 @@ my $ATT_MONTHS = "Months";
 my $ATT_DAYS_OF_WEEK = "Days of week";
 my $ATT_DAYS_OF_MONTH = "Days of month";
 
-my $SCHED_ALL = {
-  $ATT_HOURS         => [0..23],
-  $ATT_MINUTES       => [0..59],
-  $ATT_MONTHS        => [qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)],
-  $ATT_DAYS_OF_WEEK  => [qw(Mon Tue Wed Thu Fri Sat Sun)],
-  $ATT_DAYS_OF_MONTH => [0..31], #why 0, i couldnt say
-};
+my @ALL_HOURS         = (0..23);
+my @ALL_MINUTES       = (0..59);
+my @ALL_MONTHS        = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+my @ALL_DAYS_OF_WEEK  = qw(Mon Tue Wed Thu Fri Sat Sun);
+my @ALL_DAYS_OF_MONTH = (0..31); #no idea why timed includes 0
 
-my @DOW_NAME_ORDER = @{$$SCHED_ALL{$ATT_DAYS_OF_WEEK}};
+my @DOW_NAME_ORDER = @ALL_DAYS_OF_WEEK;
 my %DOW_NAME_TO_LETTER = (
   Mon=>"m", Tue=>"t", Wed=>"w", Thu=>"T", Fri=>"f", Sat=>"s", Sun=>"S",
 );
@@ -437,7 +435,14 @@ sub main(@){
       push @eventArgs, "ticker=$$opts{onceTick}";
       @recurrenceArgs = ();
     }else{
-      my $sched = {%$SCHED_ALL, %{$$opts{schedArgs}}};
+      my $schedAll = {
+        $ATT_HOURS                 => [@ALL_HOURS],
+        $ATT_MINUTES               => [@ALL_MINUTES],
+        $ATT_MONTHS                => [@ALL_MONTHS],
+        $ATT_DAYS_OF_WEEK          => [@ALL_DAYS_OF_WEEK],
+        $ATT_DAYS_OF_MONTH         => [@ALL_DAYS_OF_MONTH],
+      };
+      my $sched = {%$schedAll, %{$$opts{schedArgs}}};
 
       print "adding command with schedule: " . parseSchedule($sched) . "\n";
       @recurrenceArgs = getScheduleRecurrenceArgs($sched);
@@ -693,7 +698,7 @@ sub getScheduleRecurrenceArgs($){
     push @args, "minute=$minute";
   }
 
-  if(arrSameElems($$sched{$ATT_DAYS_OF_MONTH}, $$SCHED_ALL{$ATT_DAYS_OF_MONTH})){
+  if(arrSameElems($$sched{$ATT_DAYS_OF_MONTH}, [@ALL_DAYS_OF_MONTH])){
     push @args, "everyDayOfMonth";
   }else{
     for my $dayOfMonth(@{$$sched{$ATT_DAYS_OF_MONTH}}){
@@ -701,7 +706,7 @@ sub getScheduleRecurrenceArgs($){
     }
   }
 
-  if(arrSameElems($$sched{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
+  if(arrSameElems($$sched{$ATT_DAYS_OF_WEEK}, [@ALL_DAYS_OF_WEEK])){
     push @args, "everyDayOfWeek";
   }else{
     for my $dayOfWeek(@{$$sched{$ATT_DAYS_OF_WEEK}}){
@@ -709,7 +714,7 @@ sub getScheduleRecurrenceArgs($){
     }
   }
 
-  if(arrSameElems($$sched{$ATT_MONTHS}, $$SCHED_ALL{$ATT_MONTHS})){
+  if(arrSameElems($$sched{$ATT_MONTHS}, [@ALL_MONTHS])){
     push @args, "everyMonth";
   }else{
     for my $month(@{$$sched{$ATT_MONTHS}}){
@@ -787,13 +792,13 @@ sub applySchedArg($$){
     if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30|60)$/){
       die "ERROR: <MIN>m can only accept divisors of 60\n";
     }
-    $$schedArgs{$ATT_MINUTES} = filterByDivisible $factor, $$SCHED_ALL{$ATT_MINUTES};
+    $$schedArgs{$ATT_MINUTES} = filterByDivisible $factor, [@ALL_MINUTES];
   }elsif($arg =~ /^@(\d+h)$/){
     my $factor = 0+$1 if $arg =~ /(\d+)/;
     if(not defined $factor or $factor !~ /^(1|2|3|4|6|8|12)$/){
       die "ERROR: <HOUR>h can only accept divisors of 24\n";
     }
-    $$schedArgs{$ATT_HOURS} = filterByDivisible $factor, $$SCHED_ALL{$ATT_HOURS};
+    $$schedArgs{$ATT_HOURS} = filterByDivisible $factor, [@ALL_HOURS];
     $$schedArgs{$ATT_MINUTES} = [0];
   }else{
     die "ERROR: unknown SCHED arg $arg\n";
@@ -804,13 +809,13 @@ sub parseSchedule($){
   my ($schedule) = @_;
   my $hr = $$schedule{$ATT_HOURS};
   my $min = $$schedule{$ATT_MINUTES};
-  my $isAllHr = arrSameElems($hr, $$SCHED_ALL{$ATT_HOURS});
-  my $isAllMin = arrSameElems($min, $$SCHED_ALL{$ATT_MINUTES});
+  my $isAllHr = arrSameElems($hr, [@ALL_HOURS]);
+  my $isAllMin = arrSameElems($min, [@ALL_MINUTES]);
 
   my @schedArgs;
   if(@schedArgs == 0 and @$min == 1){
     for my $hrFactor(qw(1 2 3 4 6 8 12 24)){
-      my $factorHrs = filterByDivisible $hrFactor, $$SCHED_ALL{$ATT_HOURS};
+      my $factorHrs = filterByDivisible $hrFactor, [@ALL_HOURS];
       if(arrSameElems($hr, $factorHrs)){
         push @schedArgs, "${hrFactor}h";
         push @schedArgs, "minutes=$$min[0]" if $$min[0] != 0;
@@ -821,7 +826,7 @@ sub parseSchedule($){
 
   if(@schedArgs == 0 and $isAllHr){
     for my $minFactor(qw(1 2 3 4 5 6 10 12 15 20 30)){
-      my $factorMins = filterByDivisible $minFactor, $$SCHED_ALL{$ATT_MINUTES};
+      my $factorMins = filterByDivisible $minFactor, [@ALL_MINUTES];
       if(arrSameElems($min, $factorMins)){
         push @schedArgs, "${minFactor}m";
         last;
@@ -838,13 +843,13 @@ sub parseSchedule($){
     }
   }
 
-  if(not arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, $$SCHED_ALL{$ATT_DAYS_OF_WEEK})){
+  if(not arrSameElems($$schedule{$ATT_DAYS_OF_WEEK}, [@ALL_DAYS_OF_WEEK])){
     push @schedArgs, sprintf("dow=%s", dowNamesArrToLettersStr(@{$$schedule{$ATT_DAYS_OF_WEEK}}));
   }
-  if(not arrSameElems($$schedule{$ATT_MONTHS}, $$SCHED_ALL{$ATT_MONTHS})){
+  if(not arrSameElems($$schedule{$ATT_MONTHS}, [@ALL_MONTHS])){
     push @schedArgs, sprintf("months=%s", join(",", @{$$schedule{$ATT_MONTHS}}));
   }
-  if(not arrSameElems($$schedule{$ATT_DAYS_OF_MONTH}, $$SCHED_ALL{$ATT_DAYS_OF_MONTH})){
+  if(not arrSameElems($$schedule{$ATT_DAYS_OF_MONTH}, [@ALL_DAYS_OF_MONTH])){
     push @schedArgs, sprintf("days-of-month=%s", join(",", @{$$schedule{$ATT_DAYS_OF_MONTH}}));
   }
 
