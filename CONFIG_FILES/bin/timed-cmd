@@ -651,9 +651,10 @@ sub getTimedCmdEventInfo($){
   my ($eventCookie) = @_;
   my @lines = readProcLines "timedclient-qt5", "--get-event=$eventCookie";
   my $okAtts = join "|", qw(APPLICATION TITLE COMMAND USER);
-  my $okSchedAtts = join "|", (
+  my @schedAtts = (
     $ATT_HOURS, $ATT_MINUTES, $ATT_MONTHS, $ATT_DAYS_OF_WEEK, $ATT_DAYS_OF_MONTH,
   );
+  my $okSchedAtts = join "|", @schedAtts;
 
   my $event = {
     schedRecur => undef,
@@ -672,6 +673,14 @@ sub getTimedCmdEventInfo($){
     }elsif($line =~ /^\s*Tick: (\d+) \((.*)\)$/){
       $$event{tick} = $1;
       $$event{tickFmt} = $2;
+    }
+  }
+
+  if(defined $$event{schedRecur}){
+    for my $schedAtt(@schedAtts){
+      if(not defined $$event{schedRecur}{$schedAtt}){
+        die "ERROR: missing $schedAtt for event=$eventCookie\n";
+      }
     }
   }
 
