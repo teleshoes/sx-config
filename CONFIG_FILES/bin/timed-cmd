@@ -10,7 +10,7 @@ sub addEventFromConfEntry($);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
 sub getTimedCmdEventInfo($);
-sub getScheduleRecurrenceArgs($);
+sub formatTimedClientScheduleRecurrenceArgs($);
 sub getSchedRecurAll();
 sub applySchedArgToSchedRecur($$);
 sub convertSchedArgsToSchedRecur(@);
@@ -441,7 +441,7 @@ sub main(@){
       @recurrenceArgs = ();
     }else{
       print "adding command with schedule: " . join(" ", convertSchedRecurToSchedArgs($$opts{schedRecur})) . "\n";
-      @recurrenceArgs = getScheduleRecurrenceArgs($$opts{schedRecur});
+      @recurrenceArgs = formatTimedClientScheduleRecurrenceArgs($$opts{schedRecur});
     }
 
     my @cmd = ("timedclient-qt5");
@@ -687,7 +687,7 @@ sub getTimedCmdEventInfo($){
   return $event;
 }
 
-sub getScheduleRecurrenceArgs($){
+sub formatTimedClientScheduleRecurrenceArgs($){
   my ($schedRecur) = @_;
   my @args;
 
