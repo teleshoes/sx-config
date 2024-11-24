@@ -12,7 +12,7 @@ sub getEventCookiesForApplication($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
 sub getSchedRecurAll();
-sub applySchedArg($$);
+sub applySchedArgToSchedRecur($$);
 sub convertSchedArgsToSchedRecur(@);
 sub convertSchedRecurToSchedArgs($);
 sub dowLettersToArr($);
@@ -319,7 +319,7 @@ sub main(@){
       $$opts{onceTick} = $1;
     }elsif($arg =~ /^($SCHED_ARG_REGEX)$/){
       $$opts{schedRecur} = getSchedRecurAll() if not defined $$opts{schedRecur};
-      applySchedArg($$opts{schedRecur}, $arg);
+      applySchedArgToSchedRecur($$opts{schedRecur}, $arg);
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
@@ -755,7 +755,7 @@ sub getSchedRecurAll(){
   };
 }
 
-sub applySchedArg($$){
+sub applySchedArgToSchedRecur($$){
   my ($schedRecur, $arg) = @_;
 
   if($arg =~ /^(days-of-week|dow|months|days-of-month|hours|minutes)=(.+)$/){
@@ -819,7 +819,7 @@ sub applySchedArg($$){
 sub convertSchedArgsToSchedRecur(@){
   my @schedArgs = @_;
   my $schedRecur = getSchedRecurAll();
-  applySchedArg($schedRecur, $_) foreach @schedArgs;
+  applySchedArgToSchedRecur($schedRecur, $_) foreach @schedArgs;
   return $schedRecur;
 }
 
