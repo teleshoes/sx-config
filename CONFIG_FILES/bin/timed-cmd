@@ -11,6 +11,7 @@ sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
 sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
+sub getSchedRecurAll();
 sub applySchedArg($$);
 sub parseSchedule($);
 sub dowLettersToArr($);
@@ -437,13 +438,7 @@ sub main(@){
       push @eventArgs, "ticker=$$opts{onceTick}";
       @recurrenceArgs = ();
     }else{
-      my $schedAll = {
-        $ATT_HOURS                 => [@ALL_HOURS],
-        $ATT_MINUTES               => [@ALL_MINUTES],
-        $ATT_MONTHS                => [@ALL_MONTHS],
-        $ATT_DAYS_OF_WEEK          => [@ALL_DAYS_OF_WEEK],
-        $ATT_DAYS_OF_MONTH         => [@ALL_DAYS_OF_MONTH],
-      };
+      my $schedAll = getSchedRecurAll();
       my $sched = {%$schedAll, %{$$opts{schedRecur}}};
 
       print "adding command with schedule: " . join(" ", parseSchedule($sched)) . "\n";
@@ -749,6 +744,16 @@ sub getScheduleRecurrenceArgs($){
     }
   }
   return @args;
+}
+
+sub getSchedRecurAll(){
+  return {
+    $ATT_DAYS_OF_WEEK   => [@ALL_DAYS_OF_WEEK],
+    $ATT_MONTHS         => [@ALL_MONTHS],
+    $ATT_DAYS_OF_MONTH  => [@ALL_DAYS_OF_MONTH],
+    $ATT_HOURS          => [@ALL_HOURS],
+    $ATT_MINUTES        => [@ALL_MINUTES],
+  };
 }
 
 sub applySchedArg($$){
