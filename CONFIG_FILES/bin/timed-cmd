@@ -76,37 +76,37 @@ my $USAGE = "Usage:
   $EXEC [OPTS] --get-events
     -fetch all timed event <COOKIE>s
       -if --application is given, limit to APPLICATION
-    -extract event attributes and parse TITLE + COMMAND + SCHED_ARGS
+    -extract event attributes and parse TITLE + COMMAND + SCHED_ARG_SET
       TITLE is the event attribute TITLE
       COMMAND is the event attribute Action0.COMMAND
-      SCHED_ARGS is the set of <SCHED> args that will reproduce the sheduling info
+      <SCHED_ARG_SET> is the set of <SCHED_ARG> args that will reproduce the sheduling info
     -for each event:
       -if COMMAND is defined, format as:
-        <COOKIE> | <TITLE> | <SCHED_ARGS> | <COMMAND>
+        <COOKIE> | <TITLE> | <SCHED_ARG_SET> | <COMMAND>
       -otherwise, format as:
-        <COOKIE> | <TITLE> | <SCHED_ARGS>
+        <COOKIE> | <TITLE> | <SCHED_ARG_SET>
 
   $EXEC [OPTS] --clear
     -fetch all timed event <COOKIE>s
       -if --application is given, limit to APPLICATION
     -for each <COOKIE>, run: timedclient-qt5 --cancel-event <COOKIE>
 
-  $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --cmd=COMMAND
-  $EXEC [OPTS] -a|--add [ONCE | SCHED SCHED ..] --title=TITLE --alarm
+  $EXEC [OPTS] -a|--add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --cmd=COMMAND
+  $EXEC [OPTS] -a|--add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --alarm
     -select application
       -if --application is given, use APPLICATION
       -if --cmd is given, use $APPLICATION_TIMED_CMD
       -if --alarm is given, use $APPLICATION_ALARM
     -create timed event to run <COMMAND>
     -defaults to run every minute (which is the smallest granularity)
-    -<SCHED> reduces the frequency that <COMMAND> is run
+    -<SCHED_ARG>s control the frequency that <COMMAND> is run
 
   $EXEC [OPTS] --get-configs
     -fetch the commands + alarms in: $CONF_FILE
     -for commands:
-      -parse <TITLE> + <SCHEDULE> + <COMMAND> + <TIMEOUT>
+      -parse <TITLE> + <SCHED_ARG_SET> + <COMMAND> + <TIMEOUT>
     -for alarms:
-      -parse <TITLE> + <SCHEDULE>
+      -parse <TITLE> + <SCHED_ARG_SET>
     -fetch all timed event <COOKIE>s and extract <TITLE> attribute for each <COOKIE>
     -for all commands + alarms, extract <ON_OFF_STATUS> + <COOKIE>
       -if TITLE is the same as for any event <COOKIE>:
@@ -134,8 +134,8 @@ my $USAGE = "Usage:
     -clear ALL EVENTS as in:
       `$EXEC --clear`
     -parse commands and alarms in $CONF_FILE
-      alarm = TITLE | SCHED
-      cmd = TITLE | SCHED | DAEMON_RUN_TIMEOUT | DAEMON_RUN_ENABLED | SHELL_CMD
+      alarm = TITLE | SCHED_ARG_SET
+      cmd = TITLE | SCHED_ARG_SET | DAEMON_RUN_TIMEOUT | DAEMON_RUN_ENABLED | SHELL_CMD
     -for each cmd:
       -get FULL_CMD
         -if DAEMON_RUN_TIMEOUT is given and DAEMON_RUN_ENABLED is true:
@@ -143,7 +143,7 @@ my $USAGE = "Usage:
         -otherwise:
           -use FULL_CMD = SHELL_CMD
       -add cmd as in:
-        `$EXEC --add SCHED --title=TITLE --cmd='FULL_CMD'
+        `$EXEC --add --title=TITLE --cmd='FULL_CMD' SCHED_ARG_SET
     -for each alarm:
       -add alarm as in:
         `$EXEC --add --alarm --title=TITLE TIME_HHMM dow=DAYS_OF_WEEK_LETTERS`
@@ -163,7 +163,7 @@ my $USAGE = "Usage:
     --once=TICK_SECONDS | --tick=TICK_SECOND
       set tick=TICK_SECONDS and dont use schedule
 
-  SCHED:
+  SCHED_ARG:
     restrict which minutes the job will run it
       (default is every minute of any hour of any day)
     effects are cumulative, and the order matters (applied left to right)
@@ -184,7 +184,7 @@ my $USAGE = "Usage:
     \@<MIN>m
       set minutes = every minute evenly divisible by <MIN>
       MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60
-      (if this is the only <SCHED>, this means run job every <MIN> minutes)
+      (if this is the only <SCHED_ARG>, this means run job every <MIN> minutes)
         e.g.:
           \@30m  =>  minutes=0,30
           \@5m   =>  minutes=0,5,10,15,20,25,30,35,40,45,50,55
@@ -193,7 +193,7 @@ my $USAGE = "Usage:
     \@<HOUR>h
       set hours = every hour divisible by <HOUR>, AND set minutes = 0
       HOUR = 1 | 2 | 3 | 4 | 6 | 8 | 12 | 24
-      (if this is the only <SCHED>, this means run job every <HOUR> hours)
+      (if this is the only <SCHED_ARG>, this means run job every <HOUR> hours)
         e.g.:
           \@4h  =>  hours=0,4,8,12,16,20 minutes=0
           \@6h  =>  hours=0,6,12,18      minutes=0
@@ -245,7 +245,7 @@ my $USAGE = "Usage:
 
     --alarm
       -use application=$APPLICATION_ALARM instead of $APPLICATION_TIMED_CMD
-      -extract <HH> + <MM> and <DAYS_OF_WEEK_LETTERS> from SCHED args
+      -extract <HH> + <MM> and <DAYS_OF_WEEK_LETTERS> from <SCHED_ARG>s
         -fail unless exactly one 'hours' and one 'minutes' is specified
       -add EXTRA_EVENT_ARG entries as in:
         --event-arg=\"createdDate=`date +%s%3N`\" \\
@@ -323,7 +323,7 @@ sub main(@){
   }
 
   if($action eq $ACTION_GET_EVENTS){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
@@ -356,7 +356,7 @@ sub main(@){
       print "$eventFmt\n";
     }
   }elsif($action eq $ACTION_CLEAR){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
@@ -412,7 +412,7 @@ sub main(@){
     }
 
     if(defined $$opts{onceTick} and %{$$opts{schedArgs}} > 0){
-      die "ERROR: cannot specify both SCHED and ONCE\n";
+      die "ERROR: cannot specify both SCHED_ARG and ONCE\n";
     }
 
     if($$opts{title} !~ /^[a-zA-Z0-9_\-]+$/){
@@ -448,7 +448,7 @@ sub main(@){
 
     run @cmd;
   }elsif($action eq $ACTION_GET_CONFIGS){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
@@ -481,7 +481,7 @@ sub main(@){
       ;
     }
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
@@ -508,7 +508,7 @@ sub main(@){
       addEventFromConfEntry($targetConfEvent);
     }
   }elsif($action eq $ACTION_APPLY_CONFIG){
-    die "$USAGE\nERROR: cannot specify SCHEDULE for action=$action\n" if %{$$opts{schedArgs}} > 0;
+    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if %{$$opts{schedArgs}} > 0;
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
