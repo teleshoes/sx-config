@@ -13,7 +13,7 @@ sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
 sub getSchedRecurAll();
 sub applySchedArg($$);
-sub parseSchedule($);
+sub convertSchedRecurToSchedArgs($);
 sub dowLettersToArr($);
 sub dowArrToLetters($);
 sub filterByDivisible($$);
@@ -439,7 +439,7 @@ sub main(@){
       push @eventArgs, "ticker=$$opts{onceTick}";
       @recurrenceArgs = ();
     }else{
-      print "adding command with schedule: " . join(" ", parseSchedule($$opts{schedRecur})) . "\n";
+      print "adding command with schedule: " . join(" ", convertSchedRecurToSchedArgs($$opts{schedRecur})) . "\n";
       @recurrenceArgs = getScheduleRecurrenceArgs($$opts{schedRecur});
     }
 
@@ -678,7 +678,7 @@ sub getTimedCmdEventInfo($){
   }
 
   if(defined $$event{schedRecur}){
-    $$event{timingFmt} = join(" ", parseSchedule($$event{schedRecur}));
+    $$event{timingFmt} = join(" ", convertSchedRecurToSchedArgs($$event{schedRecur}));
   }elsif(defined $$event{tick}){
     $$event{timingFmt} = "$$event{tick} ($$event{tickFmt})";
   }
@@ -815,7 +815,7 @@ sub applySchedArg($$){
   }
 }
 
-sub parseSchedule($){
+sub convertSchedRecurToSchedArgs($){
   my ($schedRecur) = @_;
   my $hr = $$schedRecur{$ATT_HOURS};
   my $min = $$schedRecur{$ATT_MINUTES};
