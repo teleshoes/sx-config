@@ -164,22 +164,19 @@ my $USAGE = "Usage:
       set tick=TICK_SECONDS and dont use schedule
 
   SCHED_ARG:
-    restrict which minutes the job will run it
-      (default is every minute of any hour of any day)
-    effects are cumulative, and the order matters (applied left to right)
+    -restrict which minutes a timed event is run for
+      (timed events are run at one-minute intervals)
+    -<SCHED_ARG>s can restrict by hour, minute, day-of-month, day-of-week, and month
+    -by default, all minutes are included
+    -each <SCHED_ARG> can restrict the list, and effects are cumulative (applied left to right)
       e.g.:
-        \@1h
-          => every hour, on the hour
-        \@3h minutes=15
-          => every 3 hours, at a quarter past the hour
-        minutes=15 \@3h
-          => every 3 hours, on the hour
-        \@5m dow=mtwTf
-          => every 5 minutes, EXCEPT on Sat or Sun
-        hours=9 minutes=0 dow=tT months=Nov
-          => 09:00am on tuesdays and thursdays in november
-        hours=0 day-of-month=25 months=Dec
-          => midnight on Newton's birthday
+        \@1h                     =>  once every hour, on the hour
+        \@3h minutes=15          =>  once every 3 hours, at a quarter past the hour
+        minutes=15 \@3h          =>  once every 3 hours, *ON THE HOUR* ('\@3h' sets 'minutes=0')
+        \@5m dow=mtwTf           =>  once every 5 minutes, except on Sat or Sun
+        day-of-month=2 05:00    =>  once per month, at 5am on the second day of that month
+        09:00 dow=ST months=Nov =>  once daily at 9am, every sunday and thursday in november
+        23:59 day-of-month=24 months=Dec =>  once per year, one minute before Newton's birthday
 
     \@<MIN>m
       set minutes = every minute evenly divisible by <MIN>
