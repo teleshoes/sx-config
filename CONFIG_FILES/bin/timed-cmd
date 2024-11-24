@@ -13,6 +13,7 @@ sub getTimedCmdEventInfo($);
 sub getScheduleRecurrenceArgs($);
 sub getSchedRecurAll();
 sub applySchedArg($$);
+sub convertSchedArgsToSchedRecur(@);
 sub convertSchedRecurToSchedArgs($);
 sub dowLettersToArr($);
 sub dowArrToLetters($);
@@ -813,6 +814,13 @@ sub applySchedArg($$){
   }else{
     die "ERROR: unknown SCHED arg $arg\n";
   }
+}
+
+sub convertSchedArgsToSchedRecur(@){
+  my @schedArgs = @_;
+  my $schedRecur = getSchedRecurAll();
+  applySchedArg($schedRecur, $_) foreach @schedArgs;
+  return $schedRecur;
 }
 
 sub convertSchedRecurToSchedArgs($){
