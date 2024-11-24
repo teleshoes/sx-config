@@ -391,7 +391,9 @@ sub main(@){
 
       push @{$$opts{extraEventArgs}}, "createdDate=" . nowMillis();
       push @{$$opts{extraEventArgs}}, "timeOfDayWithSeconds=$timeOfDayS";
-      push @{$$opts{extraEventArgs}}, "daysOfWeek=$dowLettersStr";
+      if(not arrSameElems([@$daysOfWeek], [@ALL_DAYS_OF_WEEK])){
+        push @{$$opts{extraEventArgs}}, "daysOfWeek=$dowLettersStr";
+      }
       push @{$$opts{extraEventArgs}}, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
       push @{$$opts{extraEventArgs}}, "type=clock";
       push @{$$opts{extraEventArgs}}, "alarm";
