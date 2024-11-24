@@ -134,7 +134,7 @@ my $USAGE = "Usage:
     -clear ALL EVENTS as in:
       `$EXEC --clear`
     -parse commands and alarms in $CONF_FILE
-      alarm = TITLE TIME_HHMM DAYS_OF_WEEK_LETTERS
+      alarm = TITLE | SCHED
       cmd = TITLE | SCHED | DAEMON_RUN_TIMEOUT | DAEMON_RUN_ENABLED | SHELL_CMD
     -for each cmd:
       -get FULL_CMD
