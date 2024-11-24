@@ -446,7 +446,7 @@ sub main(@){
       };
       my $sched = {%$schedAll, %{$$opts{schedRecur}}};
 
-      print "adding command with schedule: " . parseSchedule($sched) . "\n";
+      print "adding command with schedule: " . join(" ", parseSchedule($sched)) . "\n";
       @recurrenceArgs = getScheduleRecurrenceArgs($sched);
     }
 
@@ -685,7 +685,7 @@ sub getTimedCmdEventInfo($){
   }
 
   if(defined $$event{schedRecur}){
-    $$event{timingFmt} = parseSchedule($$event{schedRecur});
+    $$event{timingFmt} = join(" ", parseSchedule($$event{schedRecur}));
   }elsif(defined $$event{tick}){
     $$event{timingFmt} = "$$event{tick} ($$event{tickFmt})";
   }
@@ -860,7 +860,7 @@ sub parseSchedule($){
     push @schedArgs, sprintf("days-of-month=%s", join(",", @{$$schedRecur{$ATT_DAYS_OF_MONTH}}));
   }
 
-  return "@schedArgs";
+  return @schedArgs;
 }
 
 sub dowLettersStrToNamesArr($){
