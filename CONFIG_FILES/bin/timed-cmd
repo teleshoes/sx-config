@@ -52,7 +52,7 @@ my @DOW_LETTER_ORDER = map {$DOW_NAME_TO_LETTER{$_}} @DOW_NAME_ORDER;
 my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 
 my $SCHED_ARG_REGEX = join("|",
-  '(?:days-of-week|dow|months|days-of-month|hours|minutes)=(?:.+)',
+  '(?:hours|minutes|months|days-of-week|days-of-month|dow)=(?:.+)',
   '(?:(?:\d|\d\d):(?:\d\d))',
   '(?:@\d+m)',
   '(?:@\d+h)',
@@ -183,6 +183,21 @@ my $USAGE = "Usage:
         09:00 dow=ST months=Nov =>  once daily at 9am, every sunday and thursday in november
         23:59 day-of-month=24 months=Dec =>  once per year, one minute before Newton's birthday
 
+    hours=<HOUR>,<HOUR>...
+      set hours
+    minutes=<MIN>,<MIN> ...
+      set minutes
+    months=<MONTH>,<MONTH>...
+      set months
+    days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
+      set days-of-week
+    days-of-month=<DAY_OF_MONTH>,<DAY_OF_MONTH>...
+      set days-of-month
+
+    TIME_HHMM
+      clock time, 24-hour, formatted 'HH:MM'
+      same as: hours=HH minutes=MM
+
     \@<MIN>m
       set minutes = every minute evenly divisible by <MIN>
       MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60
@@ -201,10 +216,6 @@ my $USAGE = "Usage:
           \@6h  =>  hours=0,6,12,18      minutes=0
           \@8h  =>  hours=0,8,16         minutes=0
 
-    TIME_HHMM
-      clock time, 24-hour, formatted 'HH:MM'
-      same as: hours=HH minutes=MM
-
     dow=DAYS_OF_WEEK_LETTERS
       parse DAYS_OF_WEEK_LETERS into <DAY_OF_WEEK>,<DAY_OF_WEEK>...
       same as: days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
@@ -220,17 +231,6 @@ my $USAGE = "Usage:
             f = friday
             s = saturday
             S = sunday
-
-    hours=<HOUR>,<HOUR>...
-      set hours
-    minutes=<MIN>,<MIN> ...
-      set minutes
-    months=<MONTH>,<MONTH>...
-      set months
-    days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
-      set days-of-week
-    days-of-month=<DAY_OF_MONTH>,<DAY_OF_MONTH>...
-      set days-of-month
 
   OPTS
     --application=APPLICATION | --app=APPLICATION
