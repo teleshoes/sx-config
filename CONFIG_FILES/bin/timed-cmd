@@ -136,7 +136,6 @@ my $USAGE = "Usage:
     -parse commands and alarms in $CONF_FILE
       alarm = TITLE TIME_HHMM DAYS_OF_WEEK_LETTERS
       cmd = TITLE | SCHED | DAEMON_RUN_TIMEOUT | DAEMON_RUN_ENABLED | SHELL_CMD
-    -if TITLE_PATTERN is given, ignore any alarm or cmd that does not match TITLE_PATTERN
     -for each cmd:
       -get FULL_CMD
         -if DAEMON_RUN_TIMEOUT is given and DAEMON_RUN_ENABLED is true:
