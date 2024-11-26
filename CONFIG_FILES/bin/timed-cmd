@@ -348,23 +348,23 @@ sub main(@){
       @cookies = getEventCookiesAll();
     }
 
-    my @timedEvents = map {getTimedEventInfo($_)} @cookies;
+    my @timedEventInfos = map {getTimedEventInfo($_)} @cookies;
 
-    my $maxTitleLen = max(map {length $$_{TITLE}} @timedEvents);
-    for my $event(@timedEvents){
+    my $maxTitleLen = max(map {length $$_{TITLE}} @timedEventInfos);
+    for my $eventInfo(@timedEventInfos){
       my $eventFmt;
-      if(defined $$event{COMMAND}){
+      if(defined $$eventInfo{COMMAND}){
         $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %3s | %s",
-          $$event{cookie},
-          $$event{TITLE},
-          $$event{timingFmt},
-          $$event{COMMAND},
+          $$eventInfo{cookie},
+          $$eventInfo{TITLE},
+          $$eventInfo{timingFmt},
+          $$eventInfo{COMMAND},
         ;
       }else{
         $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %s",
-          $$event{cookie},
-          $$event{TITLE},
-          $$event{timingFmt},
+          $$eventInfo{cookie},
+          $$eventInfo{TITLE},
+          $$eventInfo{timingFmt},
         ;
       }
       print "$eventFmt\n";
@@ -471,8 +471,8 @@ sub main(@){
     my $conf = readConf($CONF_FILE);
 
     my @allCookies = getEventCookiesAll();
-    my %eventsByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
-    my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
+    my %eventInfosByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
+    my %cookiesByTitle = map {$eventInfosByCookie{$_}{TITLE} => $_} sort @allCookies;
 
     my @events = @{$$conf{events}};
 
@@ -514,8 +514,8 @@ sub main(@){
     }
 
     my @allCookies = getEventCookiesAll();
-    my %eventsByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
-    my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
+    my %eventInfosByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
+    my %cookiesByTitle = map {$eventInfosByCookie{$_}{TITLE} => $_} sort @allCookies;
 
     if(defined $cookiesByTitle{$$opts{title}}){
       run "timedclient-qt5", "--cancel-event", $cookiesByTitle{$$opts{title}};
