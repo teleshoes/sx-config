@@ -832,35 +832,43 @@ sub convertSchedRecurToSchedArgs($){
   my $isAllHr = arrSameElems($hr, [@ALL_HOURS]);
   my $isAllMin = arrSameElems($min, [@ALL_MINUTES]);
 
+  my $isTimeParsed = 0;
+
   my @schedArgs;
-  if(@schedArgs == 0 and @$min == 1){
+
+  #handle special cases for hour + min
+  if(not $isTimeParsed and @$hr == 1 and @$min == 1){
+    ## <HH>:<MM>
+    push @schedArgs, sprintf("%02d:%02d", $$hr[0], $$min[0]);
+    $isTimeParsed = 1;
+  }
+  if(not $isTimeParsed and @$min == 1){
+    # @<HOUR>h
     for my $hrFactor(qw(1 2 3 4 6 8 12)){
       my @divisibleHours = grep {$_ % $hrFactor == 0} @ALL_HOURS;
       if(arrSameElems($hr, [@divisibleHours])){
         push @schedArgs, "\@${hrFactor}h";
         push @schedArgs, "minutes=$$min[0]" if $$min[0] != 0;
+        $isTimeParsed = 1;
         last;
       }
     }
   }
-
-  if(@schedArgs == 0 and $isAllHr){
+  if(not $isTimeParsed and $isAllHr){
+    # @<MIN>m
     for my $minFactor(qw(1 2 3 4 5 6 10 12 15 20 30)){
       my @divisibleMin = grep {$_ % $minFactor == 0} @ALL_MINUTES;
       if(arrSameElems($min, [@divisibleMin])){
         push @schedArgs, "\@${minFactor}m";
+        $isTimeParsed = 1;
         last;
       }
     }
   }
 
-  if(@schedArgs == 0){
-    if(@$hr == 1 and @$min == 1){
-      push @schedArgs, sprintf("%02d:%02d", $$hr[0], $$min[0]);
-    }else{
-      push @schedArgs, sprintf("hours=%s", join(",", @$hr)) if not $isAllHr;
-      push @schedArgs, sprintf("minutes=%s", join(",", @$min)) if not $isAllMin;
-    }
+  if(not $isTimeParsed){
+    push @schedArgs, sprintf("hours=%s", join(",", @$hr)) if not $isAllHr;
+    push @schedArgs, sprintf("minutes=%s", join(",", @$min)) if not $isAllMin;
   }
 
   if(not arrSameElems($$schedRecur{$ATT_DAYS_OF_WEEK}, [@ALL_DAYS_OF_WEEK])){
