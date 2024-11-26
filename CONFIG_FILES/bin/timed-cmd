@@ -663,6 +663,7 @@ sub getTimedEventInfo($){
   my $okSchedAtts = join "|", @schedAtts;
 
   my $event = {
+    cookie => $eventCookie,
     schedRecur => undef,
     tick => undef,
     tickFmt => undef,
