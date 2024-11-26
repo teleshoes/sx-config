@@ -221,20 +221,24 @@ my $USAGE = "Usage:
         \@1h   =>  minutes=0 hours=`seq -s \",\" 0 23`
 
     dow=DAYS_OF_WEEK_LETTERS
-      parse DAYS_OF_WEEK_LETERS into <DAY_OF_WEEK>,<DAY_OF_WEEK>...
-      same as: days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
+      parse DAYS_OF_WEEK_LETERS into <DAY_OF_WEEK>,<DAY_OF_WEEK> as follows:
+      same as: days-of-week=DAY_OF_WEEK,DAY_OF_WEEK,DAY_OF_WEEK
         DAYS_OF_WEEK_LETTERS
-          case-sensitive string of up to 7 characters,
-            one for each day of the week to include
-          e.g.:   mtwTfsS = every day
-                  mtwTf   = weekdays
-            m = monday
-            t = tuesday
-            w = wednesday
-            T = thursday
-            f = friday
-            s = saturday
-            S = sunday
+          any combination of one or more of these CASE-SENSITIVE letters:
+            m = Mon
+            t = Tue
+            w = Wed
+            T = Thu
+            f = Fri
+            s = Sat
+            S = Sun
+          CASE-SENSITIVE, duplicates and order are ignored
+            (the abbreviations come from nemoalarms app)
+          e.g.:   mwf     => Mon,Wed,Fri
+                  fmw     => Mon,Wed,Fri
+                  ST      => Thu,Sun
+                  SmtwTfs => Mon,Tue,Wed,Thu,Fri,Sat,Sun
+                  S       => Sun
 
   OPTS
     --application=APPLICATION | --app=APPLICATION
