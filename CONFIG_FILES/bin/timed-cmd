@@ -837,7 +837,7 @@ sub convertSchedRecurToSchedArgs($){
     for my $hrFactor(qw(1 2 3 4 6 8 12)){
       my $factorHrs = filterByDivisible $hrFactor, [@ALL_HOURS];
       if(arrSameElems($hr, $factorHrs)){
-        push @schedArgs, "${hrFactor}h";
+        push @schedArgs, "\@${hrFactor}h";
         push @schedArgs, "minutes=$$min[0]" if $$min[0] != 0;
         last;
       }
@@ -848,7 +848,7 @@ sub convertSchedRecurToSchedArgs($){
     for my $minFactor(qw(1 2 3 4 5 6 10 12 15 20 30)){
       my $factorMins = filterByDivisible $minFactor, [@ALL_MINUTES];
       if(arrSameElems($min, $factorMins)){
-        push @schedArgs, "${minFactor}m";
+        push @schedArgs, "\@${minFactor}m";
         last;
       }
     }
