@@ -342,13 +342,8 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
-    my @cookies;
-    if(defined $$opts{application}){
-      @cookies = getEventCookiesForApplication($$opts{application});
-    }else{
-      @cookies = getEventCookiesAll();
-    }
-
+    my @cookies = defined $$opts{application} ?
+      getEventCookiesForApplication($$opts{application}) : getEventCookiesAll();
     my @timedEventInfos = map {getTimedEventInfo($_)} @cookies;
 
     print formatTimedEventInfos(@timedEventInfos);
@@ -357,12 +352,8 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
 
-    my @cookies;
-    if(defined $$opts{application}){
-      @cookies = getEventCookiesForApplication($$opts{application});
-    }else{
-      @cookies = getEventCookiesAll();
-    }
+    my @cookies = defined $$opts{application} ?
+      getEventCookiesForApplication($$opts{application}) : getEventCookiesAll();
     for my $cookie(@cookies){
       run "timedclient-qt5", "--cancel-event", $cookie;
     }
