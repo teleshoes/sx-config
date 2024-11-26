@@ -781,42 +781,40 @@ sub applySchedArgToSchedRecur($$){
   }elsif($schedArg =~ /^dow=(.+)$/){
     my $dowLetterStr = $1;
     $$schedRecur{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($dowLetterStr)];
-  }elsif($schedArg =~ /^(days-of-week|months|days-of-month|hours|minutes)=(.+)$/){
-    my ($field, $valStr) = ($1, $2);
-    my $vals = [split /,/, $valStr];
-    if($field =~ /^(days-of-week)$/){
-      for my $dayOfWeek(@$vals){
-        die "ERROR: malformed day-of-week: $dayOfWeek\n"
-          if $dayOfWeek !~ /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/;
-      }
-      $$schedRecur{$ATT_DAYS_OF_WEEK} = $vals;
-    }elsif($field =~ /^(months)$/){
-      for my $month(@$vals){
-        die "ERROR: malformed month: $month\n"
-          if $month !~ /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/;
-      }
-      $$schedRecur{$ATT_MONTHS} = $vals;
-    }elsif($field =~ /^(days-of-month)$/){
-      for my $dayOfMonth(@$vals){
-        die "ERROR: malformed day-of-month: $dayOfMonth\n"
-          if $dayOfMonth !~ /^\d+$/ or $dayOfMonth > 31;
-      }
-      $$schedRecur{$ATT_DAYS_OF_MONTH} = [map {0+$_} @$vals];
-    }elsif($field =~ /^(hours)$/){
-      for my $hour(@$vals){
-        die "ERROR: malformed hour: $hour\n" if $hour !~ /^\d+$/ or $hour >= 24;
-      }
-      $$schedRecur{$ATT_HOURS} = [map {0+$_} @$vals];
-    }elsif($field =~ /^(minutes)$/){
-      for my $min(@$vals){
-        die "ERROR: malformed min: $min\n" if $min !~ /^\d+$/ or $min >=60;
-      }
-      $$schedRecur{$ATT_MINUTES} = [map {0+$_} @$vals];
-    }else{
-      die "ERROR: malformed SCHED_ARG: $schedArg\n";
-    }
   }else{
-    die "ERROR: unknown SCHED_ARG $schedArg\n";
+    my ($field, $valStr) = ($1, $2) if $schedArg =~ /^([^=]+)=([^=]+)$/;
+    $field = "" if not defined $field;
+    $valStr = "" if not defined $valStr;
+
+    my @vals = split /,/, $valStr;
+    @vals = map {$_ =~ /^0+([1-9]\d*)/ ? $1 : $_} @vals; #strip leading 0s safely
+    my %okVals = map {$_ => 1} @vals;
+
+    my ($att, @allVals);
+    if($field eq "hours"){
+      $att = $ATT_HOURS;
+      @allVals = @ALL_HOURS;
+    }elsif($field eq "minutes"){
+      $att = $ATT_MINUTES;
+      @allVals = @ALL_MINUTES;
+    }elsif($field eq "months"){
+      $att = $ATT_MONTHS;
+      @allVals = @ALL_MONTHS;
+    }elsif($field eq "days-of-week"){
+      $att = $ATT_DAYS_OF_WEEK;
+      @allVals = @ALL_DAYS_OF_WEEK;
+    }elsif($field eq "days-of-month"){
+      $att = $ATT_DAYS_OF_MONTH;
+      @allVals = @ALL_DAYS_OF_MONTH;
+    }else{
+      die "ERROR: unknown SCHED_ARG $schedArg\n";
+    }
+
+    my $allValRegex = join "|", @allVals;
+    for my $val(@vals){
+      die "ERROR: unknown '$att' value $val\n" if $val !~ /^($allValRegex)$/;
+    }
+    $$schedRecur{$att} = [grep {$okVals{$_}} @allVals];
   }
 }
 
