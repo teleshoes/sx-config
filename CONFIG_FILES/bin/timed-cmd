@@ -829,8 +829,15 @@ sub convertSchedRecurToSchedArgs($){
   my ($schedRecur) = @_;
   my $hr = $$schedRecur{$ATT_HOURS};
   my $min = $$schedRecur{$ATT_MINUTES};
+  my $months = $$schedRecur{$ATT_MONTHS};
+  my $daysOfWeek = $$schedRecur{$ATT_DAYS_OF_WEEK};
+  my $daysOfMonth = $$schedRecur{$ATT_DAYS_OF_MONTH};
+
   my $isAllHr = arrSameElems($hr, [@ALL_HOURS]);
   my $isAllMin = arrSameElems($min, [@ALL_MINUTES]);
+  my $isAllMonths = arrSameElems($months, [@ALL_MONTHS]);
+  my $isAllDaysOfWeek = arrSameElems($daysOfWeek, [@ALL_DAYS_OF_WEEK]);
+  my $isAllDaysOfMonth = arrSameElems($daysOfMonth, [@ALL_DAYS_OF_MONTH]);
 
   my $isTimeParsed = 0;
 
@@ -866,20 +873,17 @@ sub convertSchedRecurToSchedArgs($){
     }
   }
 
-  if(not $isTimeParsed){
-    push @schedArgs, sprintf("hours=%s", join(",", @$hr)) if not $isAllHr;
-    push @schedArgs, sprintf("minutes=%s", join(",", @$min)) if not $isAllMin;
-  }
+  my $skipHours = $isTimeParsed || $isAllHr;
+  my $skipMinutes = $isTimeParsed || $isAllHr;
+  my $skipMonths = $isAllMonths;
+  my $skipDow = $isAllDaysOfWeek;
+  my $skipDaysOfMonth = $isAllDaysOfMonth;
 
-  if(not arrSameElems($$schedRecur{$ATT_DAYS_OF_WEEK}, [@ALL_DAYS_OF_WEEK])){
-    push @schedArgs, sprintf("dow=%s", dowNamesArrToLettersStr(@{$$schedRecur{$ATT_DAYS_OF_WEEK}}));
-  }
-  if(not arrSameElems($$schedRecur{$ATT_MONTHS}, [@ALL_MONTHS])){
-    push @schedArgs, sprintf("months=%s", join(",", @{$$schedRecur{$ATT_MONTHS}}));
-  }
-  if(not arrSameElems($$schedRecur{$ATT_DAYS_OF_MONTH}, [@ALL_DAYS_OF_MONTH])){
-    push @schedArgs, sprintf("days-of-month=%s", join(",", @{$$schedRecur{$ATT_DAYS_OF_MONTH}}));
-  }
+  push @schedArgs, sprintf("hours=%s", join(",", @$hr)) if not $skipHours;
+  push @schedArgs, sprintf("minutes=%s", join(",", @$min)) if not $skipMinutes;
+  push @schedArgs, sprintf("months=%s", join(",", @$months)) if not $skipMonths;
+  push @schedArgs, sprintf("dow=%s", dowNamesArrToLettersStr(@$daysOfWeek)) if not $skipDow;
+  push @schedArgs, sprintf("days-of-month=%s", join(",", @$daysOfMonth)) if not $skipDaysOfMonth;
 
   return @schedArgs;
 }
