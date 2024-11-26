@@ -833,6 +833,10 @@ sub convertSchedRecurToSchedArgs($){
   my $daysOfWeek = $$schedRecur{$ATT_DAYS_OF_WEEK};
   my $daysOfMonth = $$schedRecur{$ATT_DAYS_OF_MONTH};
 
+  if(@$hr == 0 or @$min ==0 or @$months == 0 or @$daysOfWeek == 0 or @$daysOfMonth == 0){
+    die "ERROR: must have at least one element in every field of schedRecur\n";
+  }
+
   my $isAllHr = arrSameElems($hr, [@ALL_HOURS]);
   my $isAllMin = arrSameElems($min, [@ALL_MINUTES]);
   my $isAllMonths = arrSameElems($months, [@ALL_MONTHS]);
