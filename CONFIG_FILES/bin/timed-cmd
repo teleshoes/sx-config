@@ -348,21 +348,21 @@ sub main(@){
       @cookies = getEventCookiesAll();
     }
 
-    my %eventsByCookie = map {$_ => getTimedEventInfo $_} @cookies;
-    my $maxTitleLen = max(map {length $$_{TITLE}} values %eventsByCookie);
-    for my $cookie(@cookies){
-      my $event = $eventsByCookie{$cookie};
+    my @timedEvents = map {getTimedEventInfo($_)} @cookies;
+
+    my $maxTitleLen = max(map {length $$_{TITLE}} @timedEvents);
+    for my $event(@timedEvents){
       my $eventFmt;
       if(defined $$event{COMMAND}){
         $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %3s | %s",
-          $cookie,
+          $$event{cookie},
           $$event{TITLE},
           $$event{timingFmt},
           $$event{COMMAND},
         ;
       }else{
         $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %s",
-          $cookie,
+          $$event{cookie},
           $$event{TITLE},
           $$event{timingFmt},
         ;
