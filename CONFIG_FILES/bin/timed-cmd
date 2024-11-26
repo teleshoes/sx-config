@@ -440,7 +440,8 @@ sub main(@){
       push @eventArgs, "ticker=$$opts{onceTick}";
       @recurrenceArgs = ();
     }else{
-      print "adding command with schedule: " . join(" ", convertSchedRecurToSchedArgs($$opts{schedRecur})) . "\n";
+      printf "adding command with schedule: %s\n",
+        join(" ", convertSchedRecurToSchedArgs($$opts{schedRecur}));
       @recurrenceArgs = formatTimedClientScheduleRecurrenceArgs($$opts{schedRecur});
     }
 
