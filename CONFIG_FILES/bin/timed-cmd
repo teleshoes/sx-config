@@ -199,22 +199,27 @@ my $USAGE = "Usage:
       same as: hours=HH minutes=MM
 
     \@<MIN>m
-      set minutes = every minute evenly divisible by <MIN>
-      MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60
-      (if this is the only <SCHED_ARG>, this means run job every <MIN> minutes)
-        e.g.:
-          \@30m  =>  minutes=0,30
-          \@5m   =>  minutes=0,5,10,15,20,25,30,35,40,45,50,55
-          \@15m  =>  minutes=0,15,30,45
+      -schedule the event to run every <MIN> minutes (assuming no other <SCHED_ARG>s)
+      -set minutes to all integers from 0 to 59 divisible by <MIN>
+      -value must be a proper divisor of 60, i.e.:
+        MIN = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30
+      -NOTE: '\@1m' just includes every minute, which is the default, so has no effect
+      e.g.:
+        \@30m  =>  minutes=0,30
+        \@15m  =>  minutes=0,15,30,45
+        \@5m   =>  minutes=0,5,10,15,20,25,30,35,40,45,50,55
+        \@1m   =>  minutes=`seq -s \",\" 0 59`
 
     \@<HOUR>h
-      set hours = every hour divisible by <HOUR>, AND set minutes = 0
-      HOUR = 1 | 2 | 3 | 4 | 6 | 8 | 12 | 24
-      (if this is the only <SCHED_ARG>, this means run job every <HOUR> hours)
-        e.g.:
-          \@4h  =>  hours=0,4,8,12,16,20 minutes=0
-          \@6h  =>  hours=0,6,12,18      minutes=0
-          \@8h  =>  hours=0,8,16         minutes=0
+      -schedule the event to run every <HOUR> hours at minute 0 (assuming no other <SCHED_ARG>s)
+      -set minutes to 0
+      -set hours to all integers from 0 to 23 divisible by <HOUR>
+      -value must be a proper divisor of 24, i.e.:
+        HOUR = 1 | 2 | 3 | 4 | 6 | 8 | 12
+      e.g.:
+        \@8h   =>  minutes=0 hours=0,8,16
+        \@4h   =>  minutes=0 hours=0,4,8,12,16,20
+        \@1h   =>  minutes=0 hours=`seq -s \",\" 0 23`
 
     dow=DAYS_OF_WEEK_LETTERS
       parse DAYS_OF_WEEK_LETERS into <DAY_OF_WEEK>,<DAY_OF_WEEK>...
@@ -797,14 +802,14 @@ sub applySchedArgToSchedRecur($$){
     $$schedRecur{$ATT_MINUTES} = [0+$m];
   }elsif($arg =~ /^@(\d+m)$/){
     my $factor = 0+$1 if $arg =~ /(\d+)/;
-    if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30|60)$/){
-      die "ERROR: <MIN>m can only accept divisors of 60\n";
+    if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30)$/){
+      die "ERROR: \@<MIN>m can only accept proper divisors of 60\n";
     }
     $$schedRecur{$ATT_MINUTES} = filterByDivisible $factor, [@ALL_MINUTES];
   }elsif($arg =~ /^@(\d+h)$/){
     my $factor = 0+$1 if $arg =~ /(\d+)/;
     if(not defined $factor or $factor !~ /^(1|2|3|4|6|8|12)$/){
-      die "ERROR: <HOUR>h can only accept divisors of 24\n";
+      die "ERROR: \@<HOUR>h can only accept proper divisors of 24\n";
     }
     $$schedRecur{$ATT_HOURS} = filterByDivisible $factor, [@ALL_HOURS];
     $$schedRecur{$ATT_MINUTES} = [0];
@@ -829,7 +834,7 @@ sub convertSchedRecurToSchedArgs($){
 
   my @schedArgs;
   if(@schedArgs == 0 and @$min == 1){
-    for my $hrFactor(qw(1 2 3 4 6 8 12 24)){
+    for my $hrFactor(qw(1 2 3 4 6 8 12)){
       my $factorHrs = filterByDivisible $hrFactor, [@ALL_HOURS];
       if(arrSameElems($hr, $factorHrs)){
         push @schedArgs, "${hrFactor}h";
