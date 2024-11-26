@@ -9,7 +9,7 @@ sub readConf($);
 sub addEventFromConfEntry($);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
-sub getTimedCmdEventInfo($);
+sub getTimedEventInfo($);
 sub formatTimedClientScheduleRecurrenceArgs($);
 sub getSchedRecurAll();
 sub applySchedArgToSchedRecur($$);
@@ -348,7 +348,7 @@ sub main(@){
       @cookies = getEventCookiesAll();
     }
 
-    my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @cookies;
+    my %eventsByCookie = map {$_ => getTimedEventInfo $_} @cookies;
     my $maxTitleLen = max(map {length $$_{TITLE}} values %eventsByCookie);
     for my $cookie(@cookies){
       my $event = $eventsByCookie{$cookie};
@@ -471,7 +471,7 @@ sub main(@){
     my $conf = readConf($CONF_FILE);
 
     my @allCookies = getEventCookiesAll();
-    my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @allCookies;
+    my %eventsByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
     my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
 
     my @events = @{$$conf{events}};
@@ -514,7 +514,7 @@ sub main(@){
     }
 
     my @allCookies = getEventCookiesAll();
-    my %eventsByCookie = map {$_ => getTimedCmdEventInfo $_} @allCookies;
+    my %eventsByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
     my %cookiesByTitle = map {$eventsByCookie{$_}{TITLE} => $_} sort @allCookies;
 
     if(defined $cookiesByTitle{$$opts{title}}){
@@ -653,7 +653,7 @@ sub getEventCookiesForApplication($){
   return $out =~ /\d+/g;
 }
 
-sub getTimedCmdEventInfo($){
+sub getTimedEventInfo($){
   my ($eventCookie) = @_;
   my @lines = readProcLines "timedclient-qt5", "--get-event=$eventCookie";
   my $okAtts = join "|", qw(APPLICATION TITLE COMMAND USER);
