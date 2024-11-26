@@ -182,16 +182,16 @@ my $USAGE = "Usage:
         09:00 dow=ST months=Nov =>  once daily at 9am, every sunday and thursday in november
         23:59 day-of-month=24 months=Dec =>  once per year, one minute before Newton's birthday
 
-    hours=<HOUR>,<HOUR>...
-      set hours
-    minutes=<MIN>,<MIN> ...
-      set minutes
-    months=<MONTH>,<MONTH>...
-      set months
-    days-of-week=<DAY_OF_WEEK>,<DAY_OF_WEEK>...
-      set days-of-week
-    days-of-month=<DAY_OF_MONTH>,<DAY_OF_MONTH>...
-      set days-of-month
+    hours=HOUR,HOUR,HOUR...
+      set timed 'Hours: HOUR HOUR HOUR'
+    minutes=MIN,MIN,MIN
+      set timed 'Minutes: MIN MIN MIN'
+    months=MONTH,MONTH,MONTH...
+      set timed 'Months: MONTH MONTH MONTH'
+    days-of-week=DAY_OF_WEEK,DAY_OF_WEEK,DAY_OF_WEEK
+      set timed 'Days of week: DAY_OF_WEEK DAY_OF_WEEK DAY_OF_WEEK'
+    days-of-month=DAY_OF_MONTH,DAY_OF_MONTH,DAY_OF_MONTH
+      set timed 'Days of month: DAY_OF_MONTH DAY_OF_MONTH DAY_OF_MONTH'
 
     TIME_HHMM
       clock time, 24-hour, formatted 'HH:MM'
