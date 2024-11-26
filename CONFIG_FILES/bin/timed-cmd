@@ -703,17 +703,13 @@ sub formatTimedClientScheduleRecurrenceArgs($){
   if(arrSameElems($$schedRecur{$ATT_DAYS_OF_MONTH}, [@ALL_DAYS_OF_MONTH])){
     push @args, "everyDayOfMonth";
   }else{
-    for my $dayOfMonth(@{$$schedRecur{$ATT_DAYS_OF_MONTH}}){
-      push @args, "dayOfMonth=$dayOfMonth";
-    }
+    @args = (@args, map {"dayOfMonth=$_"} @{$$schedRecur{$ATT_DAYS_OF_MONTH}});
   }
 
   if(arrSameElems($$schedRecur{$ATT_DAYS_OF_WEEK}, [@ALL_DAYS_OF_WEEK])){
     push @args, "everyDayOfWeek";
   }else{
-    for my $dayOfWeek(@{$$schedRecur{$ATT_DAYS_OF_WEEK}}){
-      push @args, "dayOfWeek=$dayOfWeek";
-    }
+    @args = (@args, map {"dayOfWeek=$_"} @{$$schedRecur{$ATT_DAYS_OF_WEEK}});
   }
 
   if(arrSameElems($$schedRecur{$ATT_MONTHS}, [@ALL_MONTHS])){
