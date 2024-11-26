@@ -757,9 +757,9 @@ sub getSchedRecurAll(){
 }
 
 sub applySchedArgToSchedRecur($$){
-  my ($schedRecur, $arg) = @_;
+  my ($schedRecur, $schedArg) = @_;
 
-  if($arg =~ /^(days-of-week|dow|months|days-of-month|hours|minutes)=(.+)$/){
+  if($schedArg =~ /^(days-of-week|dow|months|days-of-month|hours|minutes)=(.+)$/){
     my ($field, $valStr) = ($1, $2);
     my $vals = [split /,/, $valStr];
     if($field =~ /^(days-of-week)$/){
@@ -793,20 +793,20 @@ sub applySchedArgToSchedRecur($$){
       }
       $$schedRecur{$ATT_MINUTES} = [map {0+$_} @$vals];
     }else{
-      die "ERROR: malformed sched arg: $arg\n";
+      die "ERROR: malformed SCHED_ARG: $schedArg\n";
     }
-  }elsif($arg =~ /^(\d|\d\d):(\d\d)$/){
+  }elsif($schedArg =~ /^(\d|\d\d):(\d\d)$/){
     my ($h, $m) = ($1, $2);
     $$schedRecur{$ATT_HOURS} = [0+$h];
     $$schedRecur{$ATT_MINUTES} = [0+$m];
-  }elsif($arg =~ /^\@(\d+)m$/){
+  }elsif($schedArg =~ /^\@(\d+)m$/){
     my $minFactor = 0+$1;
     if($minFactor !~ /^(1|2|3|4|5|6|10|12|15|20|30)$/){
       die "ERROR: \@<MIN>m can only accept proper divisors of 60\n";
     }
     my @divisibleMin = grep {$_ % $minFactor == 0} @ALL_MINUTES;
     $$schedRecur{$ATT_MINUTES} = [@divisibleMin];
-  }elsif($arg =~ /^\@(\d+)h$/){
+  }elsif($schedArg =~ /^\@(\d+)h$/){
     my $hrFactor = 0+$1;
     if($hrFactor !~ /^(1|2|3|4|6|8|12)$/){
       die "ERROR: \@<HOUR>h can only accept proper divisors of 24\n";
@@ -815,7 +815,7 @@ sub applySchedArgToSchedRecur($$){
     $$schedRecur{$ATT_HOURS} = [@divisibleHr];
     $$schedRecur{$ATT_MINUTES} = [0];
   }else{
-    die "ERROR: unknown SCHED arg $arg\n";
+    die "ERROR: unknown SCHED_ARG $schedArg\n";
   }
 }
 
