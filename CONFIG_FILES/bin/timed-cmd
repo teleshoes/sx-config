@@ -9,6 +9,7 @@ sub readConf($);
 sub addEventFromConfEntry($);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
+sub formatTimedEventInfos(@);
 sub getTimedEventInfo($);
 sub formatTimedClientScheduleRecurrenceArgs($);
 sub getSchedRecurAll();
@@ -350,25 +351,7 @@ sub main(@){
 
     my @timedEventInfos = map {getTimedEventInfo($_)} @cookies;
 
-    my $maxTitleLen = max(map {length $$_{TITLE}} @timedEventInfos);
-    for my $eventInfo(@timedEventInfos){
-      my $eventFmt;
-      if(defined $$eventInfo{COMMAND}){
-        $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %3s | %s",
-          $$eventInfo{cookie},
-          $$eventInfo{TITLE},
-          $$eventInfo{timingFmt},
-          $$eventInfo{COMMAND},
-        ;
-      }else{
-        $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %s",
-          $$eventInfo{cookie},
-          $$eventInfo{TITLE},
-          $$eventInfo{timingFmt},
-        ;
-      }
-      print "$eventFmt\n";
-    }
+    print formatTimedEventInfos(@timedEventInfos);
   }elsif($action eq $ACTION_CLEAR){
     die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
@@ -651,6 +634,34 @@ sub getEventCookiesForApplication($){
   my ($application) = @_;
   my $out = readProc "timedclient-qt5", "--search", "APPLICATION=$application";
   return $out =~ /\d+/g;
+}
+
+sub formatTimedEventInfos(@){
+  my @timedEventInfos = @_;
+
+  my $fmt = "";
+
+  my $maxTitleLen = max(map {length $$_{TITLE}} @timedEventInfos);
+  for my $eventInfo(@timedEventInfos){
+    my $eventFmt;
+    if(defined $$eventInfo{COMMAND}){
+      $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %3s | %s",
+        $$eventInfo{cookie},
+        $$eventInfo{TITLE},
+        $$eventInfo{timingFmt},
+        $$eventInfo{COMMAND},
+      ;
+    }else{
+      $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %s",
+        $$eventInfo{cookie},
+        $$eventInfo{TITLE},
+        $$eventInfo{timingFmt},
+      ;
+    }
+    $fmt .= "$eventFmt\n";
+  }
+
+  return $fmt;
 }
 
 sub getTimedEventInfo($){
