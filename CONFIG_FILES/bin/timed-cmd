@@ -51,7 +51,7 @@ my @DOW_LETTER_ORDER = map {$DOW_NAME_TO_LETTER{$_}} @DOW_NAME_ORDER;
 my %DOW_LETTER_TO_NAME = map {$DOW_NAME_TO_LETTER{$_} => $_} @DOW_NAME_ORDER;
 
 my $SCHED_ARG_REGEX = join("|",
-  '(?:hours|minutes|months|days-of-week|days-of-month|dow)=(?:.+)',
+  '(?:hours|minutes|months|days-of-week|days-of-month|date|dow)=(?:.+)',
   '(?:(?:\d|\d\d):(?:\d\d))',
   '(?:@\d+m)',
   '(?:@\d+h)',
@@ -180,7 +180,7 @@ my $USAGE = "Usage:
         \@5m dow=mtwTf           =>  once every 5 minutes, except on Sat or Sun
         day-of-month=2 05:00    =>  once per month, at 5am on the second day of that month
         09:00 dow=ST months=Nov =>  once daily at 9am, every sunday and thursday in november
-        23:59 day-of-month=24 months=Dec =>  once per year, one minute before Newton's birthday
+        23:59 date=Dec24        =>  once per year, one minute before Newton's birthday
 
     hours=HOUR,HOUR,HOUR...
       set timed 'Hours: HOUR HOUR HOUR'
@@ -196,6 +196,9 @@ my $USAGE = "Usage:
     TIME_HHMM
       clock time, 24-hour, formatted 'HH:MM'
       same as: hours=HH minutes=MM
+
+    date=<MONTH><DAY_OF_MONTH>
+      same as: months=MONTH day-of-month=<DAY_OF_MONTH>
 
     \@<MIN>m
       -schedule the event to run every <MIN> minutes (assuming no other <SCHED_ARG>s)
@@ -763,6 +766,8 @@ sub getSchedRecurAll(){
 sub applySchedArgToSchedRecur($$){
   my ($schedRecur, $schedArg) = @_;
 
+  my $okMonthsRegex = join "|", @ALL_MONTHS;
+
   if($schedArg =~ /^(\d|\d\d):(\d\d)$/){
     my ($h, $m) = ($1, $2);
     $$schedRecur{$ATT_HOURS} = [0+$h];
@@ -782,6 +787,12 @@ sub applySchedArgToSchedRecur($$){
     my @divisibleHr = grep {$_ % $hrFactor == 0} @ALL_HOURS;
     $$schedRecur{$ATT_HOURS} = [@divisibleHr];
     $$schedRecur{$ATT_MINUTES} = [0];
+  }elsif($schedArg =~ /^date=($okMonthsRegex)(\d+)$/){
+    my ($month, $dayOfMonth) = ($1, $2);
+    $dayOfMonth = 0 + $dayOfMonth;
+    die "ERROR: invalid day-of-month in $schedArg\n" if $dayOfMonth > 31;
+    $$schedRecur{$ATT_MONTHS} = [$month];
+    $$schedRecur{$ATT_DAYS_OF_MONTH} = [$dayOfMonth];
   }elsif($schedArg =~ /^dow=(.+)$/){
     my $dowLetterStr = $1;
     $$schedRecur{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($dowLetterStr)];
@@ -881,11 +892,17 @@ sub convertSchedRecurToSchedArgs($){
     }
   }
 
+  my $isDateParsed = 0;
+  if(@$months == 1 and @$daysOfMonth == 1){
+    push @schedArgs, sprintf("date=%s%02d", $$months[0], $$daysOfMonth[0]);
+    $isDateParsed = 1;
+  }
+
   my $skipHours = $isTimeParsed || $isAllHr;
   my $skipMinutes = $isTimeParsed || $isAllHr;
-  my $skipMonths = $isAllMonths;
+  my $skipMonths = $isDateParsed || $isAllMonths;
   my $skipDow = $isAllDaysOfWeek;
-  my $skipDaysOfMonth = $isAllDaysOfMonth;
+  my $skipDaysOfMonth = $isDateParsed || $isAllDaysOfMonth;
 
   push @schedArgs, sprintf("hours=%s", join(",", @$hr)) if not $skipHours;
   push @schedArgs, sprintf("minutes=%s", join(",", @$min)) if not $skipMinutes;
