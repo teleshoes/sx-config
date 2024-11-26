@@ -778,7 +778,10 @@ sub applySchedArgToSchedRecur($$){
     my @divisibleHr = grep {$_ % $hrFactor == 0} @ALL_HOURS;
     $$schedRecur{$ATT_HOURS} = [@divisibleHr];
     $$schedRecur{$ATT_MINUTES} = [0];
-  }elsif($schedArg =~ /^(days-of-week|dow|months|days-of-month|hours|minutes)=(.+)$/){
+  }elsif($schedArg =~ /^dow=(.+)$/){
+    my $dowLetterStr = $1;
+    $$schedRecur{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($dowLetterStr)];
+  }elsif($schedArg =~ /^(days-of-week|months|days-of-month|hours|minutes)=(.+)$/){
     my ($field, $valStr) = ($1, $2);
     my $vals = [split /,/, $valStr];
     if($field =~ /^(days-of-week)$/){
@@ -787,8 +790,6 @@ sub applySchedArgToSchedRecur($$){
           if $dayOfWeek !~ /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/;
       }
       $$schedRecur{$ATT_DAYS_OF_WEEK} = $vals;
-    }elsif($field =~ /^(dow)$/){
-      $$schedRecur{$ATT_DAYS_OF_WEEK} = [dowLettersStrToNamesArr($valStr)];
     }elsif($field =~ /^(months)$/){
       for my $month(@$vals){
         die "ERROR: malformed month: $month\n"
