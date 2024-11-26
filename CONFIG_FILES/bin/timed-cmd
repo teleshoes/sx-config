@@ -17,7 +17,6 @@ sub convertSchedArgsToSchedRecur(@);
 sub convertSchedRecurToSchedArgs($);
 sub dowLettersToArr($);
 sub dowArrToLetters($);
-sub filterByDivisible($$);
 sub arrSameElems($$);
 sub run(@);
 sub readProc(@);
@@ -800,18 +799,20 @@ sub applySchedArgToSchedRecur($$){
     my ($h, $m) = ($1, $2);
     $$schedRecur{$ATT_HOURS} = [0+$h];
     $$schedRecur{$ATT_MINUTES} = [0+$m];
-  }elsif($arg =~ /^@(\d+m)$/){
-    my $factor = 0+$1 if $arg =~ /(\d+)/;
-    if(not defined $factor or $factor !~ /^(1|2|3|4|5|6|10|12|15|20|30)$/){
+  }elsif($arg =~ /^\@(\d+)m$/){
+    my $minFactor = 0+$1;
+    if($minFactor !~ /^(1|2|3|4|5|6|10|12|15|20|30)$/){
       die "ERROR: \@<MIN>m can only accept proper divisors of 60\n";
     }
-    $$schedRecur{$ATT_MINUTES} = filterByDivisible $factor, [@ALL_MINUTES];
-  }elsif($arg =~ /^@(\d+h)$/){
-    my $factor = 0+$1 if $arg =~ /(\d+)/;
-    if(not defined $factor or $factor !~ /^(1|2|3|4|6|8|12)$/){
+    my @divisibleMin = grep {$_ % $minFactor == 0} @ALL_MINUTES;
+    $$schedRecur{$ATT_MINUTES} = [@divisibleMin];
+  }elsif($arg =~ /^\@(\d+)h$/){
+    my $hrFactor = 0+$1;
+    if($hrFactor !~ /^(1|2|3|4|6|8|12)$/){
       die "ERROR: \@<HOUR>h can only accept proper divisors of 24\n";
     }
-    $$schedRecur{$ATT_HOURS} = filterByDivisible $factor, [@ALL_HOURS];
+    my @divisibleHr = grep {$_ % $hrFactor == 0} @ALL_HOURS;
+    $$schedRecur{$ATT_HOURS} = [@divisibleHr];
     $$schedRecur{$ATT_MINUTES} = [0];
   }else{
     die "ERROR: unknown SCHED arg $arg\n";
@@ -835,8 +836,8 @@ sub convertSchedRecurToSchedArgs($){
   my @schedArgs;
   if(@schedArgs == 0 and @$min == 1){
     for my $hrFactor(qw(1 2 3 4 6 8 12)){
-      my $factorHrs = filterByDivisible $hrFactor, [@ALL_HOURS];
-      if(arrSameElems($hr, $factorHrs)){
+      my @divisibleHours = grep {$_ % $hrFactor == 0} @ALL_HOURS;
+      if(arrSameElems($hr, [@divisibleHours])){
         push @schedArgs, "\@${hrFactor}h";
         push @schedArgs, "minutes=$$min[0]" if $$min[0] != 0;
         last;
@@ -846,8 +847,8 @@ sub convertSchedRecurToSchedArgs($){
 
   if(@schedArgs == 0 and $isAllHr){
     for my $minFactor(qw(1 2 3 4 5 6 10 12 15 20 30)){
-      my $factorMins = filterByDivisible $minFactor, [@ALL_MINUTES];
-      if(arrSameElems($min, $factorMins)){
+      my @divisibleMin = grep {$_ % $minFactor == 0} @ALL_MINUTES;
+      if(arrSameElems($min, [@divisibleMin])){
         push @schedArgs, "\@${minFactor}m";
         last;
       }
@@ -891,11 +892,6 @@ sub dowNamesArrToLettersStr(@){
     die "ERROR: unknown DOW name $name\n" if not defined $DOW_NAME_TO_LETTER{$name};
   }
   return join "", map {$DOW_NAME_TO_LETTER{$_}} grep {defined $okNames{$_}} @DOW_NAME_ORDER;
-}
-
-sub filterByDivisible($$){
-  my ($factor, $arr) = @_;
-  return [grep {$_ % $factor == 0} @$arr];
 }
 
 sub arrSameElems($$){
