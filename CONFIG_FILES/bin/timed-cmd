@@ -7,6 +7,7 @@ use Time::HiRes qw(time);
 
 sub readConf($);
 sub addEventFromConfEntry($);
+sub cancelEvents(@);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
 sub formatTimedEventInfos(@);
@@ -354,9 +355,7 @@ sub main(@){
 
     my @cookies = defined $$opts{application} ?
       getEventCookiesForApplication($$opts{application}) : getEventCookiesAll();
-    for my $cookie(@cookies){
-      run "timedclient-qt5", "--cancel-event", $cookie;
-    }
+    cancelEvents(@cookies);
   }elsif($action eq $ACTION_ADD){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     my $shellCmd = $$opts{shellCmd};
@@ -613,6 +612,13 @@ sub addEventFromConfEntry($){
     run $EXEC, "--add", "--alarm", "--title=$title", @schedArgs;
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
+  }
+}
+
+sub cancelEvents(@){
+  my @cookies = @_;
+  for my $cookie(@cookies){
+    run "timedclient-qt5", "--cancel-event", $cookie;
   }
 }
 
