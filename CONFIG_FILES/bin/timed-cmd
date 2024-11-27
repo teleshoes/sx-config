@@ -6,6 +6,7 @@ use List::Util qw(max);
 use Time::HiRes qw(time);
 
 sub readConf($);
+sub addEvent($$$$$;$$);
 sub addEventFromConfEntry($);
 sub cancelEvents(@);
 sub getEventCookiesAll();
@@ -359,85 +360,11 @@ sub main(@){
     cancelEvents(@cookies);
   }elsif($action eq $ACTION_ADD){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
-    my $title = $$opts{title};
-    my $shellCmd = $$opts{shellCmd};
-    my $isAlarm = $$opts{isAlarm};
-    my $schedRecur = $$opts{schedRecur};
-    my $onceTick = $$opts{onceTick};
-    my @extraEventArgs = @{$$opts{extraEventArgs}} if defined $$opts{extraEventArgs};
 
-    my $application = $$opts{application} if defined $$opts{application};
-
-    if($isAlarm){
-      $application = $APPLICATION_ALARM if not defined $application;
-      if(defined $shellCmd){
-        die "$USAGE\nERROR: cannot specify COMMAND for --alarm\n";
-      }
-      my $hours = $$schedRecur{$ATT_HOURS} if defined $schedRecur;
-      my $minutes = $$schedRecur{$ATT_MINUTES} if defined $schedRecur;
-      my $daysOfWeek = $$schedRecur{$ATT_DAYS_OF_WEEK} if defined $schedRecur;
-      if(not defined $hours or not defined $minutes or @$hours != 1 or @$minutes != 1){
-        die "ERROR: must specify exactly one hour and one minute value for --alarm\n";
-      }
-      my $timeOfDayS = $$hours[0]*60*60 + $$minutes[0]*60;
-      my $dowLettersStr = dowNamesArrToLettersStr(@$daysOfWeek) if defined $daysOfWeek;
-
-      push @extraEventArgs, "createdDate=" . nowMillis();
-      push @extraEventArgs, "timeOfDayWithSeconds=$timeOfDayS";
-      if(not arrSameElems([@$daysOfWeek], [@ALL_DAYS_OF_WEEK])){
-        push @extraEventArgs, "daysOfWeek=$dowLettersStr";
-      }
-
-      #NOTE: maximalTimeoutSnoozeCounter is not implemented in timedclient-qt5 as of 3.6.13-1.8.1
-      push @extraEventArgs, "maximalTimeoutSnoozeCounter=2";
-      push @extraEventArgs, "type=clock";
-      push @extraEventArgs, "alarm";
-      push @extraEventArgs, "reminder";
-      push @extraEventArgs, "boot";
-      push @extraEventArgs, "keepAlive";
-      push @extraEventArgs, "alignedSnooze";
-    }else{
-      $application = $APPLICATION_TIMED_CMD if not defined $application;
-      if(not defined $shellCmd){
-        die "$USAGE\nERROR: must specify COMMAND if --alarm is not given\n";
-      }
-    }
-
-    if(defined $onceTick and defined $schedRecur){
-      die "ERROR: cannot specify both SCHED_ARG and ONCE\n";
-    }
-
-    if($title !~ /^[a-zA-Z0-9_\-]+$/){
-      die "ERROR: TITLE can only contain letters/numbers/underscores/dashes\n";
-    }
-    if(defined $shellCmd and $shellCmd =~ /'/){
-      die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
-    }
-
-    my @actionArgs = defined $shellCmd ? ("whenDue", "runCommand=$shellCmd") : ();
-    my @eventArgs = (
-      "APPLICATION=$application",
-      "TITLE=$title",
-      @extraEventArgs,
+    addEvent(
+      $$opts{title}, $$opts{shellCmd}, $$opts{isAlarm}, $$opts{schedRecur}, $$opts{onceTick},
+      $$opts{extraEventArgs}, $$opts{application}
     );
-
-    my @recurrenceArgs;
-    if(defined $onceTick){
-      print "adding command with ticker=$onceTick\n";
-      push @eventArgs, "ticker=$onceTick";
-      @recurrenceArgs = ();
-    }else{
-      printf "adding command with schedule: %s\n",
-        join(" ", convertSchedRecurToSchedArgs($schedRecur));
-      @recurrenceArgs = formatTimedClientScheduleRecurrenceArgs($schedRecur);
-    }
-
-    my @cmd = ("timedclient-qt5");
-    @cmd = (@cmd, "-a", join(";", @actionArgs)) if @actionArgs > 0;
-    @cmd = (@cmd, "-r", join(";", @recurrenceArgs)) if @recurrenceArgs > 0;
-    @cmd = (@cmd, "-e", join(";", @eventArgs)) if @eventArgs > 0;
-
-    run @cmd;
   }elsif($action eq $ACTION_GET_CONFIGS){
     die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedArgs};
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
@@ -577,6 +504,87 @@ sub readConf($){
   }
 
   return $conf;
+}
+
+sub addEvent($$$$$;$$){
+  my (
+    $title, $shellCmd, $isAlarm, $schedRecur, $onceTick,
+    $optionalExtraEventArgs, $optionalApplication
+  ) = @_;
+
+  my $application = $optionalApplication if defined $optionalApplication;
+  my @extraEventArgs = @{$optionalExtraEventArgs} if defined $optionalExtraEventArgs;
+
+  if($isAlarm){
+    $application = $APPLICATION_ALARM if not defined $application;
+    if(defined $shellCmd){
+      die "$USAGE\nERROR: cannot specify COMMAND for --alarm\n";
+    }
+    my $hours = $$schedRecur{$ATT_HOURS} if defined $schedRecur;
+    my $minutes = $$schedRecur{$ATT_MINUTES} if defined $schedRecur;
+    my $daysOfWeek = $$schedRecur{$ATT_DAYS_OF_WEEK} if defined $schedRecur;
+    if(not defined $hours or not defined $minutes or @$hours != 1 or @$minutes != 1){
+      die "ERROR: must specify exactly one hour and one minute value for --alarm\n";
+    }
+    my $timeOfDayS = $$hours[0]*60*60 + $$minutes[0]*60;
+    my $dowLettersStr = dowNamesArrToLettersStr(@$daysOfWeek) if defined $daysOfWeek;
+
+    push @extraEventArgs, "createdDate=" . nowMillis();
+    push @extraEventArgs, "timeOfDayWithSeconds=$timeOfDayS";
+    if(not arrSameElems([@$daysOfWeek], [@ALL_DAYS_OF_WEEK])){
+      push @extraEventArgs, "daysOfWeek=$dowLettersStr";
+    }
+
+    #NOTE: maximalTimeoutSnoozeCounter is not implemented in timedclient-qt5 as of 3.6.13-1.8.1
+    push @extraEventArgs, "maximalTimeoutSnoozeCounter=2";
+    push @extraEventArgs, "type=clock";
+    push @extraEventArgs, "alarm";
+    push @extraEventArgs, "reminder";
+    push @extraEventArgs, "boot";
+    push @extraEventArgs, "keepAlive";
+    push @extraEventArgs, "alignedSnooze";
+  }else{
+    $application = $APPLICATION_TIMED_CMD if not defined $application;
+    if(not defined $shellCmd){
+      die "$USAGE\nERROR: must specify COMMAND if --alarm is not given\n";
+    }
+  }
+
+  if(defined $onceTick and defined $schedRecur){
+    die "ERROR: cannot specify both SCHED_ARG and ONCE\n";
+  }
+
+  if($title !~ /^[a-zA-Z0-9_\-]+$/){
+    die "ERROR: TITLE can only contain letters/numbers/underscores/dashes\n";
+  }
+  if(defined $shellCmd and $shellCmd =~ /'/){
+    die "ERROR: COMMAND cannot contain apostrophes (for $EXEC convenience)\n";
+  }
+
+  my @actionArgs = defined $shellCmd ? ("whenDue", "runCommand=$shellCmd") : ();
+  my @eventArgs = (
+    "APPLICATION=$application",
+    "TITLE=$title",
+    @extraEventArgs,
+  );
+
+  my @recurrenceArgs;
+  if(defined $onceTick){
+    print "adding command with ticker=$onceTick\n";
+    push @eventArgs, "ticker=$onceTick";
+    @recurrenceArgs = ();
+  }else{
+    printf "adding command with schedule: %s\n",
+      join(" ", convertSchedRecurToSchedArgs($schedRecur));
+    @recurrenceArgs = formatTimedClientScheduleRecurrenceArgs($schedRecur);
+  }
+
+  my @cmd = ("timedclient-qt5");
+  @cmd = (@cmd, "-a", join(";", @actionArgs)) if @actionArgs > 0;
+  @cmd = (@cmd, "-r", join(";", @recurrenceArgs)) if @recurrenceArgs > 0;
+  @cmd = (@cmd, "-e", join(";", @eventArgs)) if @eventArgs > 0;
+
+  run @cmd;
 }
 
 sub addEventFromConfEntry($){
