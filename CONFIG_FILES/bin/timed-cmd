@@ -384,24 +384,25 @@ sub main(@){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
 
+    my $title = $$opts{title};
+
     my $conf = readConf($CONF_FILE);
     my $targetConfEvent = undef;
     for my $event(@{$$conf{events}}){
-      if($$event{title} eq $$opts{title}){
+      if($$event{title} eq $title){
         $targetConfEvent = $event;
         last;
       }
     }
     if(not defined $targetConfEvent){
-      die "ERROR: unknown conf entry title '$$opts{title}'\n";
+      die "ERROR: unknown conf entry title '$title'\n";
     }
 
-    my @allCookies = getEventCookiesAll();
-    my %eventInfosByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
-    my %cookiesByTitle = map {$eventInfosByCookie{$_}{TITLE} => $_} sort @allCookies;
+    my $allEventCookiesByTitle = getAllEventCookiesByTitle();
+    my @cookies = @{$$allEventCookiesByTitle{$title}} if defined $$allEventCookiesByTitle{$title};
 
-    if(defined $cookiesByTitle{$$opts{title}}){
-      run "timedclient-qt5", "--cancel-event", $cookiesByTitle{$$opts{title}};
+    if(@cookies > 0){
+      cancelEvents(@cookies);
     }else{
       addEventFromConfEntry($targetConfEvent);
     }
