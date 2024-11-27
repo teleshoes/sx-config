@@ -146,7 +146,7 @@ my $USAGE = "Usage:
       -otherwise:
         -add this single event or alarm as in --apply-config
 
-  $EXEC [OPTS] --apply-config
+  $EXEC [OPTS] --apply-conf | --apply-config
     -clear ALL EVENTS as in:
       `$EXEC --clear`
     -parse commands and alarms in $CONF_FILE
@@ -338,7 +338,7 @@ sub main(@){
     }elsif($arg =~ /^--toggle=(.+)$/){
       $action = $ACTION_TOGGLE_CONFIG;
       $$opts{title} = $1;
-    }elsif($arg =~ /^(--apply-config)$/){
+    }elsif($arg =~ /^(--apply-conf|--apply-config)$/){
       $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--alarm)$/){
       $$opts{isAlarm} = 1;
