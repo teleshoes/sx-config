@@ -80,7 +80,7 @@ my $USAGE = "Usage:
   $EXEC [OPTS] -g | --get
     same as: $EXEC OPTS --get-configs
 
-  $EXEC [OPTS] --get-events
+  $EXEC [OPTS] -e | --get-events
     -fetch all timed event <COOKIE>s
       -if --application is given, limit to APPLICATION
     -extract event attributes and parse TITLE + COMMAND + SCHED_ARG_SET
@@ -313,7 +313,7 @@ sub main(@){
       push @{$$opts{extraEventArgs}}, $1;
     }elsif($arg =~ /^(-g|--get)$/){
       $action = $ACTION_GET_CONFIGS;
-    }elsif($arg =~ /^(--get-events)$/){
+    }elsif($arg =~ /^(-e|--get-events)$/){
       $action = $ACTION_GET_EVENTS;
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR;
