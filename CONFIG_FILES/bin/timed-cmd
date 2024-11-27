@@ -67,7 +67,7 @@ my $SCHED_ARG_REGEX = join("|",
 
 my $ACTION_GET_EVENTS = "get-events";
 my $ACTION_CLEAR_EVENTS = "clear-events";
-my $ACTION_ADD = "add";
+my $ACTION_ADD_EVENT = "add-event";
 my $ACTION_GET_CONFIGS = "get-configs";
 my $ACTION_TOGGLE_CONFIG = "toggle-config";
 my $ACTION_APPLY_CONFIG = "apply-config";
@@ -318,7 +318,7 @@ sub main(@){
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR_EVENTS;
     }elsif($arg =~ /^(-a|--add)$/){
-      $action = $ACTION_ADD;
+      $action = $ACTION_ADD_EVENT;
     }elsif($arg =~ /^--get-configs$/){
       $action = $ACTION_GET_CONFIGS;
     }elsif($arg =~ /^(-t|--toggle)$/ and @_ > 0){
@@ -359,7 +359,7 @@ sub main(@){
     my @cookies = defined $$opts{application} ?
       getEventCookiesForApplication($$opts{application}) : getEventCookiesAll();
     cancelEvents(@cookies);
-  }elsif($action eq $ACTION_ADD){
+  }elsif($action eq $ACTION_ADD_EVENT){
     validateOpts($opts, $action, {req=>[qw(title)], opt=>[qw(
       shellCmd isAlarm schedRecur onceTick extraEventArgs application
     )]});
