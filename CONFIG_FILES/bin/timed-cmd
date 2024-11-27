@@ -67,6 +67,7 @@ my $SCHED_ARG_REGEX = join("|",
 
 my $ACTION_GET_EVENTS = "get-events";
 my $ACTION_CLEAR_EVENTS = "clear-events";
+my $ACTION_RESET_TIMED = "reset-timed";
 my $ACTION_ADD_EVENT = "add-event";
 my $ACTION_GET_CONFIGS = "get-configs";
 my $ACTION_TOGGLE_CONFIG = "toggle-config";
@@ -97,6 +98,14 @@ my $USAGE = "Usage:
     -fetch all timed event <COOKIE>s
       -if --application is given, limit to APPLICATION
     -for each <COOKIE>, run: timedclient-qt5 --cancel-event <COOKIE>
+
+  $EXEC [OPTS] --reset
+    -clear all timed events as in: $EXEC --clear
+    -stop timed as in: systemctl --user stop timed;
+    -remove all timed config files as in:
+      rm -r ~/.config/timed
+      sudo rm /var/lib/timed/shared_events/events.data*
+    -start timed as in: systemctl --user start time
 
   $EXEC [OPTS] -a|--add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --cmd=COMMAND
   $EXEC [OPTS] -a|--add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --alarm
@@ -317,6 +326,8 @@ sub main(@){
       $action = $ACTION_GET_EVENTS;
     }elsif($arg =~ /^(--clear)$/){
       $action = $ACTION_CLEAR_EVENTS;
+    }elsif($arg =~ /^(--reset)$/){
+      $action = $ACTION_RESET_TIMED;
     }elsif($arg =~ /^(-a|--add)$/){
       $action = $ACTION_ADD_EVENT;
     }elsif($arg =~ /^--get-configs$/){
@@ -359,6 +370,16 @@ sub main(@){
     my @cookies = defined $$opts{application} ?
       getEventCookiesForApplication($$opts{application}) : getEventCookiesAll();
     cancelEvents(@cookies);
+  }elsif($action eq $ACTION_RESET_TIMED){
+    validateOpts($opts, $action, {req=>[], opt=>[]});
+
+    cancelEvents(getEventCookiesAll());
+    run "systemctl", "--user", "stop", "timed";
+    run "rm", "-r", "$ENV{HOME}/.config/timed/";
+    if(-d "/var/lib/timed/"){
+      run "sudo", "rm", "-r", "/var/lib/timed/";
+    }
+    run "systemctl --user start timed";
   }elsif($action eq $ACTION_ADD_EVENT){
     validateOpts($opts, $action, {req=>[qw(title)], opt=>[qw(
       shellCmd isAlarm schedRecur onceTick extraEventArgs application
