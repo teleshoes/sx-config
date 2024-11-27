@@ -400,7 +400,8 @@ sub main(@){
     addAllConfEvents();
 
     print "\n=====\nGETTING ALL EVENTS\n\n";
-    run $EXEC, "--get-events";
+    my @timedEventInfos = map {getTimedEventInfo($_)} getEventCookiesAll();
+    print formatTimedEventInfos(@timedEventInfos);
   }else{
     die "ERROR: unknown action $action\n";
   }
