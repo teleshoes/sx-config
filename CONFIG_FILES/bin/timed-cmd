@@ -360,10 +360,10 @@ sub main(@){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     my $shellCmd = $$opts{shellCmd};
 
-    my $application;
+    my $application = $$opts{application} if defined $$opts{application};
 
     if($$opts{isAlarm}){
-      $application = $APPLICATION_ALARM;
+      $application = $APPLICATION_ALARM if not defined $application;
       if(defined $shellCmd){
         die "$USAGE\nERROR: cannot specify COMMAND for --alarm\n";
       }
@@ -389,15 +389,10 @@ sub main(@){
       push @{$$opts{extraEventArgs}}, "keepAlive";
       push @{$$opts{extraEventArgs}}, "alignedSnooze";
     }else{
-      $application = $APPLICATION_TIMED_CMD;
+      $application = $APPLICATION_TIMED_CMD if not defined $application;
       if(not defined $shellCmd){
         die "$USAGE\nERROR: must specify COMMAND if --alarm is not given\n";
       }
-    }
-
-    if(defined $$opts{application}){
-      #override APPLICATION
-      $application = $$opts{application};
     }
 
     if(defined $$opts{onceTick} and %{$$opts{schedRecur}} > 0){
