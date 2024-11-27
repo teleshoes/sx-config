@@ -366,7 +366,7 @@ sub main(@){
       $$opts{extraEventArgs}, $$opts{application}
     );
   }elsif($action eq $ACTION_GET_CONFIGS){
-    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedArgs};
+    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
@@ -399,7 +399,7 @@ sub main(@){
       ;
     }
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
-    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedArgs};
+    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
