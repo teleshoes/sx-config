@@ -375,12 +375,12 @@ sub main(@){
     my $conf = readConf($CONF_FILE);
     my $allEventCookiesByTitle = getAllEventCookiesByTitle();
 
-    my @events = @{$$conf{events}};
+    my @confEvents = @{$$conf{events}};
 
-    my $maxTitleLen = max(map {length $$_{title}} @events);
-    for my $event(@{$$conf{events}}){
+    my $maxTitleLen = max(map {length $$_{title}} @confEvents);
+    for my $confEvent(@confEvents){
       my ($status, $cookie);
-      my $cookieArr = $$allEventCookiesByTitle{$$event{title}};
+      my $cookieArr = $$allEventCookiesByTitle{$$confEvent{title}};
       if(defined $cookieArr and @$cookieArr == 1){
         $status = "on";
         $cookie = $$cookieArr[0];
@@ -394,11 +394,11 @@ sub main(@){
 
       printf "%-3s | %-${maxTitleLen}s | %4s | %-15s | %5s | %s\n",
         $status,
-        $$event{title},
+        $$confEvent{title},
         $cookie,
-        $$event{schedArgs},
-        ($$event{timeout} ? $$event{timeout} : "-"x5),
-        ($$event{type} eq $CONF_TYPE_ALARM ? "<ALARM>" : $$event{cmd}),
+        $$confEvent{schedArgs},
+        ($$confEvent{timeout} ? $$confEvent{timeout} : "-"x5),
+        ($$confEvent{type} eq $CONF_TYPE_ALARM ? "<ALARM>" : $$confEvent{cmd}),
       ;
     }
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
