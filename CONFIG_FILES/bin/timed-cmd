@@ -358,36 +358,41 @@ sub main(@){
     cancelEvents(@cookies);
   }elsif($action eq $ACTION_ADD){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
+    my $title = $$opts{title};
     my $shellCmd = $$opts{shellCmd};
+    my $isAlarm = $$opts{isAlarm};
+    my $schedRecur = $$opts{schedRecur};
+    my $onceTick = $$opts{onceTick};
+    my @extraEventArgs = @{$$opts{extraEventArgs}};
 
     my $application = $$opts{application} if defined $$opts{application};
 
-    if($$opts{isAlarm}){
+    if($isAlarm){
       $application = $APPLICATION_ALARM if not defined $application;
       if(defined $shellCmd){
         die "$USAGE\nERROR: cannot specify COMMAND for --alarm\n";
       }
-      my $hours = $$opts{schedRecur}{$ATT_HOURS} if defined $$opts{schedRecur};
-      my $minutes = $$opts{schedRecur}{$ATT_MINUTES} if defined $$opts{schedRecur};
-      my $daysOfWeek = $$opts{schedRecur}{$ATT_DAYS_OF_WEEK} if defined $$opts{schedRecur};
+      my $hours = $$schedRecur{$ATT_HOURS} if defined $schedRecur;
+      my $minutes = $$schedRecur{$ATT_MINUTES} if defined $schedRecur;
+      my $daysOfWeek = $$schedRecur{$ATT_DAYS_OF_WEEK} if defined $schedRecur;
       if(not defined $hours or not defined $minutes or @$hours != 1 or @$minutes != 1){
         die "ERROR: must specify exactly one hour and one minute value for --alarm\n";
       }
       my $timeOfDayS = $$hours[0]*60*60 + $$minutes[0]*60;
       my $dowLettersStr = dowNamesArrToLettersStr(@$daysOfWeek) if defined $daysOfWeek;
 
-      push @{$$opts{extraEventArgs}}, "createdDate=" . nowMillis();
-      push @{$$opts{extraEventArgs}}, "timeOfDayWithSeconds=$timeOfDayS";
+      push @extraEventArgs, "createdDate=" . nowMillis();
+      push @extraEventArgs, "timeOfDayWithSeconds=$timeOfDayS";
       if(not arrSameElems([@$daysOfWeek], [@ALL_DAYS_OF_WEEK])){
-        push @{$$opts{extraEventArgs}}, "daysOfWeek=$dowLettersStr";
+        push @extraEventArgs, "daysOfWeek=$dowLettersStr";
       }
-      push @{$$opts{extraEventArgs}}, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
-      push @{$$opts{extraEventArgs}}, "type=clock";
-      push @{$$opts{extraEventArgs}}, "alarm";
-      push @{$$opts{extraEventArgs}}, "reminder";
-      push @{$$opts{extraEventArgs}}, "boot";
-      push @{$$opts{extraEventArgs}}, "keepAlive";
-      push @{$$opts{extraEventArgs}}, "alignedSnooze";
+      push @extraEventArgs, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
+      push @extraEventArgs, "type=clock";
+      push @extraEventArgs, "alarm";
+      push @extraEventArgs, "reminder";
+      push @extraEventArgs, "boot";
+      push @extraEventArgs, "keepAlive";
+      push @extraEventArgs, "alignedSnooze";
     }else{
       $application = $APPLICATION_TIMED_CMD if not defined $application;
       if(not defined $shellCmd){
@@ -395,11 +400,11 @@ sub main(@){
       }
     }
 
-    if(defined $$opts{onceTick} and %{$$opts{schedRecur}} > 0){
+    if(defined $onceTick and defined $schedRecur){
       die "ERROR: cannot specify both SCHED_ARG and ONCE\n";
     }
 
-    if($$opts{title} !~ /^[a-zA-Z0-9_\-]+$/){
+    if($title !~ /^[a-zA-Z0-9_\-]+$/){
       die "ERROR: TITLE can only contain letters/numbers/underscores/dashes\n";
     }
     if(defined $shellCmd and $shellCmd =~ /'/){
@@ -409,19 +414,19 @@ sub main(@){
     my @actionArgs = defined $shellCmd ? ("whenDue", "runCommand=$shellCmd") : ();
     my @eventArgs = (
       "APPLICATION=$application",
-      "TITLE=$$opts{title}",
-      @{$$opts{extraEventArgs}},
+      "TITLE=$title",
+      @extraEventArgs,
     );
 
     my @recurrenceArgs;
-    if(defined $$opts{onceTick}){
-      print "adding command with ticker=$$opts{onceTick}\n";
-      push @eventArgs, "ticker=$$opts{onceTick}";
+    if(defined $onceTick){
+      print "adding command with ticker=$onceTick\n";
+      push @eventArgs, "ticker=$onceTick";
       @recurrenceArgs = ();
     }else{
       printf "adding command with schedule: %s\n",
-        join(" ", convertSchedRecurToSchedArgs($$opts{schedRecur}));
-      @recurrenceArgs = formatTimedClientScheduleRecurrenceArgs($$opts{schedRecur});
+        join(" ", convertSchedRecurToSchedArgs($schedRecur));
+      @recurrenceArgs = formatTimedClientScheduleRecurrenceArgs($schedRecur);
     }
 
     my @cmd = ("timedclient-qt5");
