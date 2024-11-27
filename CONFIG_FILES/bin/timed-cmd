@@ -9,6 +9,7 @@ sub readConf($);
 sub formatConfEvents($@);
 sub addEvent($$$$$;$$);
 sub addEventFromConfEntry($);
+sub toggleConfEventByTitle($);
 sub cancelEvents(@);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
@@ -384,28 +385,7 @@ sub main(@){
     die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
 
-    my $title = $$opts{title};
-
-    my $conf = readConf($CONF_FILE);
-    my $targetConfEvent = undef;
-    for my $event(@{$$conf{events}}){
-      if($$event{title} eq $title){
-        $targetConfEvent = $event;
-        last;
-      }
-    }
-    if(not defined $targetConfEvent){
-      die "ERROR: unknown conf entry title '$title'\n";
-    }
-
-    my $allEventCookiesByTitle = getAllEventCookiesByTitle();
-    my @cookies = @{$$allEventCookiesByTitle{$title}} if defined $$allEventCookiesByTitle{$title};
-
-    if(@cookies > 0){
-      cancelEvents(@cookies);
-    }else{
-      addEventFromConfEntry($targetConfEvent);
-    }
+    toggleConfEventByTitle($$opts{title});
   }elsif($action eq $ACTION_APPLY_CONFIG){
     die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedArgs};
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
@@ -636,6 +616,31 @@ sub addEventFromConfEntry($){
     run $EXEC, "--add", "--alarm", "--title=$title", @schedArgs;
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
+  }
+}
+
+sub toggleConfEventByTitle($){
+  my ($title) = @_;
+
+  my $conf = readConf($CONF_FILE);
+  my $targetConfEvent = undef;
+  for my $event(@{$$conf{events}}){
+    if($$event{title} eq $title){
+      $targetConfEvent = $event;
+      last;
+    }
+  }
+  if(not defined $targetConfEvent){
+    die "ERROR: unknown conf entry title '$title'\n";
+  }
+
+  my $allEventCookiesByTitle = getAllEventCookiesByTitle();
+  my @cookies = @{$$allEventCookiesByTitle{$title}} if defined $$allEventCookiesByTitle{$title};
+
+  if(@cookies > 0){
+    cancelEvents(@cookies);
+  }else{
+    addEventFromConfEntry($targetConfEvent);
   }
 }
 
