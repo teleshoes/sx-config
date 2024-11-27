@@ -373,22 +373,33 @@ sub main(@){
 
     my $conf = readConf($CONF_FILE);
 
+    my $allEventCookiesByTitle = {};
+
     my @allCookies = getEventCookiesAll();
-    my %eventInfosByCookie = map {$_ => getTimedEventInfo $_} @allCookies;
-    my %cookiesByTitle = map {$eventInfosByCookie{$_}{TITLE} => $_} sort @allCookies;
+    for my $cookie(@allCookies){
+      my $eventInfo = getTimedEventInfo $cookie;
+      my $title = $$eventInfo{TITLE};
+      $$allEventCookiesByTitle{$title} = [] if not defined $$allEventCookiesByTitle{$title};
+      push @{$$allEventCookiesByTitle{$title}}, $cookie;
+    }
 
     my @events = @{$$conf{events}};
 
     my $maxTitleLen = max(map {length $$_{title}} @events);
     for my $event(@{$$conf{events}}){
-      my $cookie = $cookiesByTitle{$$event{title}};
-      my $status;
-      if(defined $cookie){
+      my ($status, $cookie);
+      my $cookieArr = $$allEventCookiesByTitle{$$event{title}};
+      if(defined $cookieArr and @$cookieArr == 1){
         $status = "on";
+        $cookie = $$cookieArr[0];
+      }elsif(defined $cookieArr and @$cookieArr > 1){
+        $status = "ERR";
+        $cookie = "DUPE";
       }else{
         $status = "off";
         $cookie = "none";
       }
+
       printf "%-3s | %-${maxTitleLen}s | %4s | %-15s | %5s | %s\n",
         $status,
         $$event{title},
