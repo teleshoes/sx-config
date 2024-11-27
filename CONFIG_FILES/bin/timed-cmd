@@ -144,7 +144,7 @@ my $USAGE = "Usage:
       -if found:
         -remove event <COOKIE>
       -otherwise:
-        -add this event or alarm as in --apply-cookies
+        -add this single event or alarm as in --apply-config
 
   $EXEC [OPTS] --apply-config
     -clear ALL EVENTS as in:
