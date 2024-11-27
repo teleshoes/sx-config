@@ -6,6 +6,7 @@ use List::Util qw(max);
 use Time::HiRes qw(time);
 
 sub readConf($);
+sub formatConfEvents($@);
 sub addEvent($$$$$;$$);
 sub addEventFromConfEntry($);
 sub cancelEvents(@);
@@ -373,34 +374,10 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
 
     my $conf = readConf($CONF_FILE);
+    my @confEvents = @{$$conf{events}};
     my $allEventCookiesByTitle = getAllEventCookiesByTitle();
 
-    my @confEvents = @{$$conf{events}};
-
-    my $maxTitleLen = max(map {length $$_{title}} @confEvents);
-    for my $confEvent(@confEvents){
-      my ($status, $cookie);
-      my $cookieArr = $$allEventCookiesByTitle{$$confEvent{title}};
-      if(defined $cookieArr and @$cookieArr == 1){
-        $status = "on";
-        $cookie = $$cookieArr[0];
-      }elsif(defined $cookieArr and @$cookieArr > 1){
-        $status = "ERR";
-        $cookie = "DUPE";
-      }else{
-        $status = "off";
-        $cookie = "none";
-      }
-
-      printf "%-3s | %-${maxTitleLen}s | %4s | %-15s | %5s | %s\n",
-        $status,
-        $$confEvent{title},
-        $cookie,
-        $$confEvent{schedArgs},
-        ($$confEvent{timeout} ? $$confEvent{timeout} : "-"x5),
-        ($$confEvent{type} eq $CONF_TYPE_ALARM ? "<ALARM>" : $$confEvent{cmd}),
-      ;
-    }
+    print formatConfEvents($allEventCookiesByTitle, @confEvents);
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
     die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
@@ -507,6 +484,38 @@ sub readConf($){
   }
 
   return $conf;
+}
+
+sub formatConfEvents($@){
+  my ($allEventCookiesByTitle, @confEvents) = @_;
+  my $fmt = "";
+
+  my $maxTitleLen = max(map {length $$_{title}} @confEvents);
+  for my $confEvent(@confEvents){
+    my ($status, $cookie);
+    my $cookieArr = $$allEventCookiesByTitle{$$confEvent{title}};
+    if(defined $cookieArr and @$cookieArr == 1){
+      $status = "on";
+      $cookie = $$cookieArr[0];
+    }elsif(defined $cookieArr and @$cookieArr > 1){
+      $status = "ERR";
+      $cookie = "DUPE";
+    }else{
+      $status = "off";
+      $cookie = "none";
+    }
+
+    $fmt .= sprintf "%-3s | %-${maxTitleLen}s | %4s | %-15s | %5s | %s\n",
+      $status,
+      $$confEvent{title},
+      $cookie,
+      $$confEvent{schedArgs},
+      ($$confEvent{timeout} ? $$confEvent{timeout} : "-"x5),
+      ($$confEvent{type} eq $CONF_TYPE_ALARM ? "<ALARM>" : $$confEvent{cmd}),
+    ;
+  }
+
+  return $fmt;
 }
 
 sub addEvent($$$$$;$$){
