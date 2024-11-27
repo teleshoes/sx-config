@@ -502,8 +502,9 @@ sub addEvent($$$$$;$$){
     $optionalExtraEventArgs, $optionalApplication
   ) = @_;
 
-  my $application = $optionalApplication if defined $optionalApplication;
-  my @extraEventArgs = @{$optionalExtraEventArgs} if defined $optionalExtraEventArgs;
+  my ($application, @extraEventArgs);
+  $application = $optionalApplication if defined $optionalApplication;
+  @extraEventArgs = @{$optionalExtraEventArgs} if defined $optionalExtraEventArgs;
 
   if($isAlarm){
     $application = $APPLICATION_ALARM if not defined $application;
