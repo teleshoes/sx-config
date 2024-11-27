@@ -394,7 +394,7 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
 
     print "\n=====\nCANCELING ALL EVENTS\n\n";
-    run $EXEC, "--clear";
+    cancelEvents(getEventCookiesAll());
 
     print "\n=====\nADDING ALL CONF EVENTS\n\n";
     addAllConfEvents();
