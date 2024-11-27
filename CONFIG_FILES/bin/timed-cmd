@@ -728,7 +728,7 @@ sub formatTimedEventInfos(@){
   for my $eventInfo(@timedEventInfos){
     my $eventFmt;
     if(defined $$eventInfo{COMMAND}){
-      $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %3s | %s",
+      $eventFmt = sprintf "%4d | %-${maxTitleLen}s | %-4s | %s",
         $$eventInfo{cookie},
         $$eventInfo{TITLE},
         $$eventInfo{timingFmt},
