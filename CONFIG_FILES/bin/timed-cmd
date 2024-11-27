@@ -102,9 +102,8 @@ my $USAGE = "Usage:
   $EXEC [OPTS] --reset
     -clear all timed events as in: $EXEC --clear
     -stop timed as in: systemctl --user stop timed;
-    -remove all timed config files as in:
-      rm -r ~/.config/timed
-      sudo rm /var/lib/timed/shared_events/events.data*
+    -remove all timed event files + info (including next_cookie), as in:
+      rm -f ~/.config/timed/events.data* /var/lib/timed/shared_events/events.data*
     -start timed as in: systemctl --user start time
 
   $EXEC [OPTS] -a|--add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --cmd=COMMAND
@@ -375,10 +374,8 @@ sub main(@){
 
     cancelEvents(getEventCookiesAll());
     run "systemctl", "--user", "stop", "timed";
-    run "rm", "-r", "$ENV{HOME}/.config/timed/";
-    if(-d "/var/lib/timed/"){
-      run "sudo", "rm", "-r", "/var/lib/timed/";
-    }
+    run "rm -f $ENV{HOME}/.config/timed/events.data*";
+    run "rm -f /var/lib/timed/shared_events/events.data*";
     run "systemctl --user start timed";
   }elsif($action eq $ACTION_ADD_EVENT){
     validateOpts($opts, $action, {req=>[qw(title)], opt=>[qw(
