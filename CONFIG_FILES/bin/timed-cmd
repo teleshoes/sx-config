@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 use List::Util qw(max);
 use Time::HiRes qw(time);
 
+sub validateOpts($$$);
 sub readConf($);
 sub formatConfEvents($@);
 sub addEvent($$$$$;$$);
@@ -345,9 +346,7 @@ sub main(@){
   }
 
   if($action eq $ACTION_GET_EVENTS){
-    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
+    validateOpts($opts, $action, {req=>[], opt=>[qw(application)]});
 
     my @cookies = defined $$opts{application} ?
       getEventCookiesForApplication($$opts{application}) : getEventCookiesAll();
@@ -355,25 +354,22 @@ sub main(@){
 
     print formatTimedEventInfos(@timedEventInfos);
   }elsif($action eq $ACTION_CLEAR){
-    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
+    validateOpts($opts, $action, {req=>[], opt=>[qw(application)]});
 
     my @cookies = defined $$opts{application} ?
       getEventCookiesForApplication($$opts{application}) : getEventCookiesAll();
     cancelEvents(@cookies);
   }elsif($action eq $ACTION_ADD){
-    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
+    validateOpts($opts, $action, {req=>[qw(title)], opt=>[qw(
+      shellCmd isAlarm schedRecur onceTick extraEventArgs application
+    )]});
 
     addEvent(
       $$opts{title}, $$opts{shellCmd}, $$opts{isAlarm}, $$opts{schedRecur}, $$opts{onceTick},
       $$opts{extraEventArgs}, $$opts{application}
     );
   }elsif($action eq $ACTION_GET_CONFIGS){
-    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
-    die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
+    validateOpts($opts, $action, {req=>[], opt=>[]});
 
     my $conf = readConf($CONF_FILE);
     my @confEvents = @{$$conf{events}};
@@ -381,17 +377,11 @@ sub main(@){
 
     print formatConfEvents($allEventCookiesByTitle, @confEvents);
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
-    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedRecur};
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
-    die "$USAGE\nERROR: must specify TITLE for action=$action\n" if not defined $$opts{title};
-    die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
+    validateOpts($opts, $action, {req=>[qw(title)], opt=>[]});
 
     toggleConfEventByTitle($$opts{title});
   }elsif($action eq $ACTION_APPLY_CONFIG){
-    die "$USAGE\nERROR: cannot specify SCHED_ARG for action=$action\n" if defined $$opts{schedArgs};
-    die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
-    die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
-    die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
+    validateOpts($opts, $action, {req=>[], opt=>[]});
 
     print "\n=====\nCANCELING ALL EVENTS\n\n";
     cancelEvents(getEventCookiesAll());
@@ -404,6 +394,24 @@ sub main(@){
     print formatTimedEventInfos(@timedEventInfos);
   }else{
     die "ERROR: unknown action $action\n";
+  }
+}
+
+sub validateOpts($$$){
+  my ($opts, $action, $reqOptKeys) = @_;
+  my %okReq = map {$_ => 1} @{$$reqOptKeys{req}};
+  my %okOpt = map {$_ => 1} @{$$reqOptKeys{opt}};
+
+  for my $key(sort keys %okReq){
+    if(not defined $$opts{$key}){
+      die "$USAGE\nERROR: must specify '$key' for action=$action\n";
+    }
+  }
+
+  for my $key(sort keys %$opts){
+    if(defined $$opts{$key} and not defined $okReq{$key} and not defined $okOpt{$key}){
+      die "$USAGE\nERROR: cannot specify '$key' for action=$action\n";
+    }
   }
 }
 
