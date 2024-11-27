@@ -11,6 +11,7 @@ sub addEventFromConfEntry($);
 sub cancelEvents(@);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
+sub getAllEventCookiesByTitle();
 sub formatTimedEventInfos(@);
 sub getTimedEventInfo($);
 sub formatTimedClientScheduleRecurrenceArgs($);
@@ -372,16 +373,7 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
 
     my $conf = readConf($CONF_FILE);
-
-    my $allEventCookiesByTitle = {};
-
-    my @allCookies = getEventCookiesAll();
-    for my $cookie(@allCookies){
-      my $eventInfo = getTimedEventInfo $cookie;
-      my $title = $$eventInfo{TITLE};
-      $$allEventCookiesByTitle{$title} = [] if not defined $$allEventCookiesByTitle{$title};
-      push @{$$allEventCookiesByTitle{$title}}, $cookie;
-    }
+    my $allEventCookiesByTitle = getAllEventCookiesByTitle();
 
     my @events = @{$$conf{events}};
 
@@ -653,6 +645,20 @@ sub getEventCookiesForApplication($){
   my ($application) = @_;
   my $out = readProc "timedclient-qt5", "--search", "APPLICATION=$application";
   return $out =~ /\d+/g;
+}
+
+sub getAllEventCookiesByTitle(){
+  my $allEventCookiesByTitle = {};
+
+  my @allCookies = getEventCookiesAll();
+  for my $cookie(@allCookies){
+    my $eventInfo = getTimedEventInfo $cookie;
+    my $title = $$eventInfo{TITLE};
+    $$allEventCookiesByTitle{$title} = [] if not defined $$allEventCookiesByTitle{$title};
+    push @{$$allEventCookiesByTitle{$title}}, $cookie;
+  }
+
+  return $allEventCookiesByTitle;
 }
 
 sub formatTimedEventInfos(@){
