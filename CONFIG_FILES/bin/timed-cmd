@@ -289,7 +289,7 @@ sub main(@){
     shellCmd       => undef,
     onceTick       => undef,
     schedRecur     => undef,
-    extraEventArgs => [],
+    extraEventArgs => undef,
   };
   while(@_ > 0){
     my $arg = shift @_;
@@ -303,6 +303,7 @@ sub main(@){
     }elsif($arg =~ /^(--app-alarm)$/){
       $$opts{application} = $APPLICATION_ALARM;
     }elsif($arg =~ /^--event-arg=(.+)$/){
+      $$opts{extraEventArgs} = [] if not defined $$opts{extraEventArgs};
       push @{$$opts{extraEventArgs}}, $1;
     }elsif($arg =~ /^(-g|--get)$/){
       $action = $ACTION_GET_CONFIGS;
@@ -363,7 +364,7 @@ sub main(@){
     my $isAlarm = $$opts{isAlarm};
     my $schedRecur = $$opts{schedRecur};
     my $onceTick = $$opts{onceTick};
-    my @extraEventArgs = @{$$opts{extraEventArgs}};
+    my @extraEventArgs = @{$$opts{extraEventArgs}} if defined $$opts{extraEventArgs};
 
     my $application = $$opts{application} if defined $$opts{application};
 
