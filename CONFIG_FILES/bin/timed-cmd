@@ -387,7 +387,9 @@ sub main(@){
       if(not arrSameElems([@$daysOfWeek], [@ALL_DAYS_OF_WEEK])){
         push @extraEventArgs, "daysOfWeek=$dowLettersStr";
       }
-      push @extraEventArgs, "maximalTimeoutSnoozeCounter=2"; #not implemented in timedclient-qt5 as of 3.6.13-1.8.1
+
+      #NOTE: maximalTimeoutSnoozeCounter is not implemented in timedclient-qt5 as of 3.6.13-1.8.1
+      push @extraEventArgs, "maximalTimeoutSnoozeCounter=2";
       push @extraEventArgs, "type=clock";
       push @extraEventArgs, "alarm";
       push @extraEventArgs, "reminder";
