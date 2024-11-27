@@ -9,6 +9,7 @@ sub readConf($);
 sub formatConfEvents($@);
 sub addEvent($$$$$;$$);
 sub addEventFromConfEntry($);
+sub addAllConfEvents();
 sub toggleConfEventByTitle($);
 sub cancelEvents(@);
 sub getEventCookiesAll();
@@ -391,17 +392,12 @@ sub main(@){
     die "$USAGE\nERROR: cannot specify TITLE for action=$action\n" if defined $$opts{title};
     die "$USAGE\nERROR: cannot specify COMMAND for action=$action\n" if defined $$opts{shellCmd};
     die "$USAGE\nERROR: cannot specify APPLICATION for action=$action\n" if defined $$opts{application};
-    my $conf = readConf($CONF_FILE);
 
     print "\nclearing all events\n";
     run $EXEC, "--clear";
     print "\n\n\n";
 
-    print "\nadding conf events\n";
-    for my $event(@{$$conf{events}}){
-      print "\n";
-      addEventFromConfEntry($event);
-    }
+    addAllConfEvents();
 
     print "\n\nall events:\n";
     run $EXEC, "--get-events";
@@ -617,6 +613,13 @@ sub addEventFromConfEntry($){
   }else{
     die "ERROR: unknown conf type $$confEntry{type}\n";
   }
+}
+
+sub addAllConfEvents(){
+  my $conf = readConf($CONF_FILE);
+  my @confEvents = @{$$conf{events}};
+
+  addEventFromConfEntry($_) foreach @confEvents;
 }
 
 sub toggleConfEventByTitle($){
