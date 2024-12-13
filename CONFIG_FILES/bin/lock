@@ -57,6 +57,7 @@ my $USAGE = "Usage:
 
   $EXEC -d | d | dim | --dim
     -use mcetool to unblank display and dim the screen
+    -run `brightness --fix-color`
 
   $EXEC --is-lpm-enabled
     -extract 'Use low power mode' from mcetool
@@ -177,10 +178,12 @@ sub setLocked($){
 
 sub dimScreen(){
   run "mcetool", "--dim-screen";
+  run "brightness", "--fix-color";
 }
 
 sub unblankAndBlankLPM(){
   run "mcetool", "--dim-screen", "--blank-screen-lpm";
+  run "brightness", "--fix-color";
 }
 
 sub isLPMEnabled(){
