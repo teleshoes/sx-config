@@ -80,6 +80,7 @@ my %packages = (
     python2-dbus
     sailfish-office
     youtube-dl
+    usb-moded-connection-sharing-android-config
   )],
 
   "5-qtemail" => [qw(
