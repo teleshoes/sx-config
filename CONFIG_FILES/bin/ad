@@ -47,6 +47,8 @@ my @MEDIA_EXTS = qw(
 );
 my $OK_MEDIA_EXTS = join "|", @MEDIA_EXTS;
 
+my $DBUS_ENV = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
+
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
@@ -356,9 +358,8 @@ sub main(@){
     lxcShell($opts, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
-    my $envArgs = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
-    system "sudo", "sh", "-c", "$envArgs apkd-install-preload -i $CONTAINER_NAME @apkFileArgs";
-    system "sudo", "sh", "-c", "$envArgs apkd-install -i $CONTAINER_NAME @apkFileArgs";
+    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install-preload -i $CONTAINER_NAME @apkFileArgs";
+    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install -i $CONTAINER_NAME @apkFileArgs";
   }elsif($mode eq $MODE_UNINSTALL){
     die "$USAGE\nError: no APK_FILE to uninstall\n" if @apkFileArgs == 0;
     for my $apkFile(@apkFileArgs){
@@ -467,9 +468,8 @@ sub main(@){
 
 sub serviceCmd($){
   my ($serviceCmd) = @_;
-  my $envArgs = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
   system "sudo", "-u", $USER, "sh", "-c",
-    "$envArgs systemctl --user $serviceCmd $SYSTEMD_SERVICE";
+    "$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE";
 }
 
 sub waitForAliendalvik($){
