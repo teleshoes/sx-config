@@ -4,6 +4,8 @@ use warnings;
 use File::Basename qw(basename);
 
 sub readCapacity();
+sub isPSM();
+sub setPSM($);
 
 my $CAPACITY_DEV = "/sys/class/power_supply/battery/capacity";
 
@@ -16,9 +18,33 @@ my $USAGE = "Usage:
   $EXEC
   $EXEC -g | --get
     show the current battery capacity from $CAPACITY_DEV
+
+  $EXEC --psm get | psm get
+  $EXEC --get-psm | --psm-get
+    get forced psm status with `mcetool`
+    print 'enabled' or 'disabled'
+
+  $EXEC --psm on | psm on
+  $EXEC --psm-on | --enable-psm | --psm-enable
+    enable forced psm with `mcetool -F`
+
+  $EXEC --psm off | psm off
+  $EXEC --psm-off | --disable-psm | --psm-disable
+    disable forced psm with `mcetool -F`
+
+  $EXEC --psm | psm
+  $EXEC --psm-toggle --toggle-psm
+    if forced psm is enabled:
+      same as: $EXEC --psm off
+    otherwise:
+      same as: $EXEC --psm on
 ";
 
 my $CMD_GET = "get";
+my $CMD_PSM_GET = "psm-get";
+my $CMD_PSM_ON = "psm-on";
+my $CMD_PSM_OFF = "psm-off";
+my $CMD_PSM_TOGGLE = "psm-toggle";
 
 sub main(@){
   my $cmd = $CMD_GET;
@@ -29,6 +55,27 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-g|--get)$/){
       $cmd = $CMD_GET;
+    }elsif($arg =~ /^(--get-psm|--psm-get)$/){
+      $cmd = $CMD_PSM_GET;
+    }elsif($arg =~ /^(--psm|psm)$/){
+      if(@_ > 0 and $_[0] =~ /^(get)$/){
+        shift @_;
+        $cmd = $CMD_PSM_GET;
+      }elsif(@_ > 0 and $_[0] =~ /^(on)$/){
+        shift @_;
+        $cmd = $CMD_PSM_ON;
+      }elsif(@_ > 0 and $_[0] =~ /^(off)$/){
+        shift @_;
+        $cmd = $CMD_PSM_OFF;
+      }else{
+        $cmd = $CMD_PSM_TOGGLE;
+      }
+    }elsif($arg =~ /^(--psm-on|--enable-psm|--psm-enable)$/){
+      $cmd = $CMD_PSM_ON;
+    }elsif($arg =~ /^(--psm-off|--disable-psm|--psm-disable)$/){
+      $cmd = $CMD_PSM_OFF;
+    }elsif($arg =~ /^(--psm-toggle|--toggle-psm)$/){
+      $cmd = $CMD_PSM_TOGGLE;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -36,6 +83,14 @@ sub main(@){
 
   if($cmd eq $CMD_GET){
     print readCapacity() . "\n";
+  }elsif($cmd eq $CMD_PSM_GET){
+    print isPSM() ? "enabled\n" : "disabled\n";
+  }elsif($cmd eq $CMD_PSM_ON){
+    setPSM(1);
+  }elsif($cmd eq $CMD_PSM_OFF){
+    setPSM(0);
+  }elsif($cmd eq $CMD_PSM_TOGGLE){
+    setPSM(!isPSM());
   }else{
     die "ERROR: unknown cmd $cmd\n";
   }
@@ -49,6 +104,24 @@ sub readCapacity(){
   }else{
     die "ERROR: could not read $CAPACITY_DEV\n";
   }
+}
+
+sub isPSM(){
+  my $out = `mcetool`;
+  my $status = "";
+  $status = $1 if $out =~ /^Forced power saving mode:\s*(enabled|disabled)$/m;
+  if($status eq "enabled"){
+    return 1;
+  }elsif($status eq "disabled"){
+    return 0;
+  }else{
+    die "ERROR: could not read PSM status\n";
+  }
+}
+
+sub setPSM($){
+  my ($isPSM) = @_;
+  system "mcetool", "-F", ($isPSM ? "enabled" : "disabled");
 }
 
 &main(@ARGV);
