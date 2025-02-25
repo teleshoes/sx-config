@@ -6,7 +6,8 @@ use PhoneBackupUtils;
 use Time::HiRes qw(time);
 
 my $IPMAGIC_NAME = "sx";
-my $REMOTE_BASE_ANDROID_DIR = "/home/.android/data";
+my $USER = "nemo";
+my $REMOTE_BASE_ANDROID_DIR = "/home/.appsupport/instance/$USER/data";
 my $PACKAGE_RESTRICTIONS_XML_FILE = "$REMOTE_BASE_ANDROID_DIR/system/users/0/package-restrictions.xml";
 my $NOTIFICATION_POLICY_XML_FILE = "$REMOTE_BASE_ANDROID_DIR/system/notification_policy.xml";
 my $URI_GRANTS_XML_FILE = "$REMOTE_BASE_ANDROID_DIR/system/urigrants.xml";
