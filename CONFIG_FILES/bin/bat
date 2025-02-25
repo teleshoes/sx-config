@@ -1,1 +1,54 @@
-cat /sys/class/power_supply/battery/capacity
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+sub readCapacity();
+
+my $CAPACITY_DEV = "/sys/class/power_supply/battery/capacity";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h | --help
+    show this message
+
+  $EXEC
+  $EXEC -g | --get
+    show the current battery capacity from $CAPACITY_DEV
+";
+
+my $CMD_GET = "get";
+
+sub main(@){
+  my $cmd = $CMD_GET;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|--get)$/){
+      $cmd = $CMD_GET;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($cmd eq $CMD_GET){
+    print readCapacity() . "\n";
+  }else{
+    die "ERROR: unknown cmd $cmd\n";
+  }
+}
+
+sub readCapacity(){
+  my $out = `cat $CAPACITY_DEV 2>/dev/null`;
+  chomp $out;
+  if($out =~ /^(\d+)$/){
+    return $1;
+  }else{
+    die "ERROR: could not read $CAPACITY_DEV\n";
+  }
+}
+
+&main(@ARGV);
