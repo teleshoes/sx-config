@@ -21,16 +21,39 @@ SilicaFlickable {
     id: root
 
     property real statusBarHeight
-    readonly property bool hasNotifications: notificationList.count > 0 || systemUpdateList.count > 0 || feedsList.hasVisibleFeeds
+    readonly property bool hasNotifications: notificationList.count > 0
+                                             || systemUpdateList.count > 0
+                                             || feedsList.hasVisibleFeeds
     property bool stickyHeader: !Lipstick.compositor.lockScreenLayer.lockScreenEventsEnabled
-                                && contentY > notificationsArea.y + notificationHeaderContainer.y + notificationHeader.height
+                                && contentY > (notificationsArea.y
+                                               + notificationHeaderContainer.y
+                                               + notificationHeaderContainer.height)
+    property bool _housekeepingAllowed: !Lipstick.compositor.lockScreenLayer.lockScreenEventsEnabled
+                                        && ((notificationListModel.populated && notificationList.hasRemovableNotifications)
+                                            || feedsList.hasRemovableNotifications)
+    property int _cornerPadding: {
+        // squeeze content horizontally on rounded display landscape
+        if (!(desktop.orientation & Orientation.LandscapeMask)) {
+            return 0
+        }
 
-    property bool _housekeepingAllowed: !Lipstick.compositor.lockScreenLayer.lockScreenEventsEnabled &&
-                                        ((notificationListModel.populated && notificationList.hasRemovableNotifications)
-                                         || feedsList.hasRemovableNotifications)
+        var biggestCorner = Math.max(Screen.topLeftCorner.radius,
+                                     Screen.topRightCorner.radius,
+                                     Screen.bottomLeftCorner.radius,
+                                     Screen.bottomRightCorner.radius)
+        return Math.max(biggestCorner * 0.7, 0)
+    }
+    property real leftPadding: Math.max(_cornerPadding,
+                                        desktop.orientation == Orientation.Landscape
+                                        ? Screen.topCutout.height : 0)
+    property real rightPadding: Math.max(_cornerPadding,
+                                         desktop.orientation == Orientation.LandscapeInverted
+                                         ? Screen.topCutout.height : 0)
 
-    contentHeight: Math.ceil(Math.max(footerSpacer.y + footerSpacer.height, noNotificationsLabel.y + noNotificationsLabel.height)) + Theme.paddingLarge
-    topMargin: -notificationHeader.height
+    contentHeight: Math.ceil(Math.max(footerSpacer.y + footerSpacer.height,
+                                      noNotificationsLabel.y + noNotificationsLabel.height))
+                   + Theme.paddingLarge
+    topMargin: -notificationHeader.stickyHeight
     clip: stickyHeader
 
     function _scrollToExpandingItem(item, yOffset) {
@@ -116,8 +139,9 @@ SilicaFlickable {
 
         // Leave space for the status area
         y: statusBarHeight - Theme.paddingSmall
+        x: root.leftPadding
+        width: parent.width - x - root.rightPadding
         spacing: Theme.paddingSmall
-        width: parent.width
 
         Label {
             id: dateLabel
@@ -129,8 +153,10 @@ SilicaFlickable {
             }
             color: Theme.highlightColor
             font.pixelSize: Theme.fontSizeSmall
+
             WallClock {
                 id: wallClock
+
                 enabled: Desktop.eventsViewVisible
                 updateFrequency: WallClock.Day
             }
@@ -148,6 +174,7 @@ SilicaFlickable {
 
         CalendarWidgetLoader {
             id: calendarWidget
+
             active: false
             eventsView: root
         }
@@ -193,7 +220,8 @@ SilicaFlickable {
         id: noNotificationsLabel
 
         x: notificationsArea.x + Theme.paddingMedium
-        y: Math.max(notificationsArea.y + notificationHeaderContainer.y + notificationHeader.height + Theme.itemSizeSmall,
+        y: Math.max(notificationsArea.y + notificationHeaderContainer.y
+                    + notificationHeaderContainer.height + Theme.itemSizeSmall,
                     root.height/2 - implicitHeight/2)
         width: notificationsArea.width - 2*Theme.paddingMedium
         opacity: (!root.hasNotifications && notificationList.contentHeight < 1 && !feedsList.showingRemovableContent)
@@ -209,8 +237,11 @@ SilicaFlickable {
     Item {
         id: notificationsArea
 
-        width: parent.width
-        height: Math.max(systemUpdateList.contentHeight + notificationList.contentHeight + notificationHeader.height + feedsList.height, root.height - y)
+        x: root.leftPadding
+        width: parent.width - x - root.rightPadding
+        height: Math.max(systemUpdateList.contentHeight + notificationList.contentHeight
+                         + notificationHeaderContainer.height + feedsList.height,
+                         root.height - y)
 
         anchors {
             top: headerColumn.bottom
@@ -227,20 +258,27 @@ SilicaFlickable {
             objectName: "EventsViewList_housekeeping"
             anchors.fill: parent
             enabled: Lipstick.compositor.eventsLayer.housekeepingAllowed
-            onPressAndHold: if (!Lipstick.compositor.eventsLayer.housekeeping) Lipstick.compositor.eventsLayer.setHousekeeping(true)
+            onPressAndHold: {
+                if (!Lipstick.compositor.eventsLayer.housekeeping)
+                    Lipstick.compositor.eventsLayer.setHousekeeping(true)
+            }
             onClicked: Lipstick.compositor.eventsLayer.setHousekeeping(false)
         }
 
         Item {
             id: notificationHeaderContainer
 
-            height: notificationHeader.height
+            height: notificationHeader.implicitHeight
             width: parent.width
 
             Notifications.NotificationHeader {
                 id: notificationHeader
+
                 stickyHeader: root.stickyHeader
                 parent: stickyHeader ? root.parent : notificationHeaderContainer
+                x: stickyHeader ? root.leftPadding : 0
+                width: stickyHeader ? parent.width - root.leftPadding - root.rightPadding
+                                    : parent.width
             }
         }
 
@@ -248,7 +286,8 @@ SilicaFlickable {
             id: systemUpdateList
 
             y: notificationHeaderContainer.height
-            height: Screen.height * 1000 // Ensures the view is fully populated without needing to bind height: contentHeight
+            // Ensures the view is fully populated without needing to bind height: contentHeight
+            height: Screen.height * 1000
             model: null //HACK: remove update notifications
             viewVisible: Desktop.eventsViewVisible
         }
@@ -257,6 +296,7 @@ SilicaFlickable {
             id: notificationList
 
             property var displayedIds: ({})
+
             onDisplayed: displayedIds[id] = true
             onExpanded: root._scrollToExpandingItem(item, 0)
 
@@ -277,13 +317,15 @@ SilicaFlickable {
             }
 
             // Do not overwrite/break width binding
-            height: Screen.height * 1000 // Ensures the view is fully populated without needing to bind height: contentHeight
+            // Ensures the view is fully populated without needing to bind height: contentHeight
+            height: Screen.height * 1000
             model: notificationListModel.populated ? notificationListModel : null
             viewVisible: Desktop.eventsViewVisible
         }
 
         EventFeedList {
             id: feedsList
+
             y: notificationList.y + notificationList.contentHeight
             onExpanded: root._scrollToExpandingItem(item, itemYOffset)
             Binding on width {
@@ -295,6 +337,7 @@ SilicaFlickable {
 
     Item {
         id: footerSpacer
+
         y: notificationsArea.y + notificationsArea.height
         visible: root.hasNotifications
 
@@ -305,6 +348,7 @@ SilicaFlickable {
 
     VerticalScrollDecorator {
         id: scrollDecorator
+
         _forcedParent: root.parent
         _topMenuSpacing: root.topMargin
     }

@@ -230,6 +230,7 @@ Page {
 
             ConfigurationValue {
                 id: doNotDisturb
+
                 defaultValue: false
                 key: "/lipstick/do_not_disturb"
             }

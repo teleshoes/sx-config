@@ -20,11 +20,12 @@ SystemWindow {
     property bool volumeIncreasing
     property bool lateScreenshotCapture
     property var screenshot
-    property bool controllingMedia: forceMediaVolume.value ||
-                                    volumeControl.mediaState === VolumeControl.MediaStateActive ||
-                                    volumeControl.mediaState === VolumeControl.MediaStateForeground ||
-                                    volumeControl.mediaState === VolumeControl.MediaStateBackground ||
-                                    volumeControl.callActive || showContinuousVolume
+    property bool controllingMedia: forceMediaVolume.value
+                                    || volumeControl.mediaState === VolumeControl.MediaStateActive
+                                    || volumeControl.mediaState === VolumeControl.MediaStateForeground
+                                    || volumeControl.mediaState === VolumeControl.MediaStateBackground
+                                    || volumeControl.callActive
+                                    || showContinuousVolume
     property real statusBarPushDownY: volumeArea.y + volumeArea.height
     property bool showContinuousVolume: false
     property bool suppressVolumeBar
@@ -61,8 +62,8 @@ SystemWindow {
                                     ? Theme.highlightDimmerColor
                                     : Theme.primaryColor
     property color _backgroundColor: controllingMedia && (volumeControl.volume > volumeControl.safeVolume)
-                                        ? Theme.primaryColor
-                                        : Theme.secondaryHighlightColor
+                                     ? Theme.primaryColor
+                                     : Theme.secondaryHighlightColor
 
     Behavior on _foregroundColor { ColorAnimation { } }
     Behavior on _backgroundColor { ColorAnimation { } }
@@ -104,6 +105,7 @@ SystemWindow {
 
     ConfigurationValue {
         id: forceMediaVolume
+
         key: "/jolla/sound/force_mediavolume"
         defaultValue: false
     }
@@ -128,12 +130,14 @@ SystemWindow {
     // FIXME: This should be something cleaner for API point of view. JB#59279
     ConfigurationValue {
         id: swVolumeSliderActive
+
         key: "/jolla/sound/sw_volume_slider/active"
         defaultValue: false
     }
 
     HapticsEffect {
         id: silenceVibra
+
         intensity: 0.2
         duration: 85
     }
@@ -233,7 +237,8 @@ SystemWindow {
                 }
                 opacity: parent.muteOpacity
 
-                property string baseSource: controllingMedia ? "image://theme/icon-system-volume-mute" : "image://theme/icon-system-ringtone-mute"
+                property string baseSource: controllingMedia ? "image://theme/icon-system-volume-mute"
+                                                             : "image://theme/icon-system-ringtone-mute"
                 source: baseSource + "?" + _foregroundColor
             }
 
@@ -244,7 +249,8 @@ SystemWindow {
                 x: muteIcon.x
                 opacity: 1 - parent.muteOpacity
 
-                property string baseSource: controllingMedia ? "image://theme/icon-system-volume" : "image://theme/icon-system-ringtone"
+                property string baseSource: controllingMedia ? "image://theme/icon-system-volume"
+                                                             : "image://theme/icon-system-ringtone"
                 source: baseSource + "?" + _foregroundColor
             }
 
@@ -474,6 +480,7 @@ SystemWindow {
 
     Timer {
         id: hideTimer
+
         interval: 1500
         onTriggered: {
             if (!Lipstick.compositor.volumeGestureFilterItem.active)
@@ -483,12 +490,14 @@ SystemWindow {
 
     Timer {
         id: keyRepeatDelay
+
         interval: 600
         onTriggered: keyRepeat.start()
     }
 
     Timer {
         id: keyRepeat
+
         interval: volumeBar.controllingMedia ? 75 : 300
         repeat: true
         onTriggered: {
@@ -536,9 +545,10 @@ SystemWindow {
 
             if (volumeBar.controllingMedia) {
                 if (volumeIncreasing)
-                    initialChange = volumeControl.volume === volumeControl.maximumVolume ? 0 : -1 / (volumeControl.maximumVolume+1)
+                    initialChange = volumeControl.volume === volumeControl.maximumVolume
+                            ? 0 : -1 / (volumeControl.maximumVolume + 1)
                 else
-                    initialChange = volumeControl.volume === 0 ? 0 : 1 / (volumeControl.maximumVolume+1)
+                    initialChange = volumeControl.volume === 0 ? 0 : 1 / (volumeControl.maximumVolume + 1)
 
                 keyRepeat.stop()
                 keyRepeatDelay.restart()
@@ -605,6 +615,7 @@ SystemWindow {
 
     Timer {
         id: screenshotTimer
+
         interval: 200
         onTriggered: {
             lateScreenshotCapture = true
@@ -619,7 +630,9 @@ SystemWindow {
     }
 
     function restartHideTimerIfWindowVisibleAndWarningNotVisible() {
-        if (volumeControl.windowVisible && !loader.warningActive && !Lipstick.compositor.volumeGestureFilterItem.active) {
+        if (volumeControl.windowVisible
+                && !loader.warningActive
+                && !Lipstick.compositor.volumeGestureFilterItem.active) {
             hideTimer.restart()
         }
     }

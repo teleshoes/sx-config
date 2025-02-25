@@ -52,7 +52,8 @@ PagedView {
                                       || shiftState === ShiftState.LatchedShift
                                       || shiftState === ShiftState.LockedShift
                                       || (shiftState === ShiftState.AutoShift && autocaps
-                                          && (typeof inputHandler.preedit !== "string"
+                                          && (!inputHandler
+                                              || typeof inputHandler.preedit !== "string"
                                               || inputHandler.preedit.length === 0))
     readonly property bool isShiftLocked: shiftState === ShiftState.LockedShift
     readonly property alias languageSelectionPopupVisible: languageSelectionPopup.visible
@@ -246,7 +247,9 @@ PagedView {
             }
         }
         onInputMethodReset: {
-            inputHandler._reset()
+            if (inputHandler) {
+                inputHandler._reset()
+            }
         }
     }
 
@@ -544,7 +547,9 @@ PagedView {
         inSymView2 = false
 
         resetShift()
-        inputHandler._reset()
+        if (inputHandler) {
+            inputHandler._reset()
+        }
 
         lastPressedKey = null
         lastInitialKey = null

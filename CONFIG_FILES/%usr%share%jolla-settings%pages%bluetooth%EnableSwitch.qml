@@ -37,7 +37,7 @@ SettingsToggle {
     available: AccessPolicy.bluetoothToggleEnabled
     active: bluetoothStatus.connected
     icon.source: "image://theme/icon-m-bluetooth"
-    checked: btTechModel.powered && bluetoothStatus.powered
+    checked: btTech.powered && bluetoothStatus.powered
 
     menu: ContextMenu {
         SettingsMenuItem {
@@ -91,10 +91,10 @@ SettingsToggle {
         iface: "com.jolla.settings.ui"
     }
 
-    TechnologyModel {
-        id: btTechModel
-        name: "bluetooth"
+    NetworkTechnology {
+        id: btTech
 
+        path: Connman.bluetoothTechnologyPath
         onPoweredChanged: {
             busy = false
         }
@@ -109,8 +109,7 @@ SettingsToggle {
             errorNotification.notify(SettingsControlError.BlockedByAccessPolicy)
             return
         }
-        btTechModel.powered = !btTechModel.powered
+        btTech.powered = !btTech.powered
         busy = true
     }
-
 }

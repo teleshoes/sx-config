@@ -116,12 +116,16 @@ Private.SilicaMouseArea {
     property alias defaultOrientationTransition: orientationState.defaultTransition
     property bool orientationTransitionRunning
 
-    property bool isPortrait: (orientation === Orientation.Portrait || orientation === Orientation.PortraitInverted || orientation === Orientation.None)
-    property bool isLandscape: (orientation === Orientation.Landscape || orientation === Orientation.LandscapeInverted)
+    property bool isPortrait: !isLandscape
+    property bool isLandscape: orientation & Orientation.LandscapeMask
+    property int cutoutMode: __silica_applicationwindow_instance.defaultPageCutoutMode
 
-    readonly property int _navigation: __stack_container ? __stack_container.navigation : PageNavigation.NoNavigation
-    readonly property int _navigationPending: __stack_container ? __stack_container.navigationPending : PageNavigation.NoNavigation
-    readonly property int _direction: __stack_container ? __stack_container.direction : PageNavigation.NoDirection
+    readonly property int _navigation: __stack_container ? __stack_container.navigation
+                                                         : PageNavigation.NoNavigation
+    readonly property int _navigationPending: __stack_container ? __stack_container.navigationPending
+                                                                : PageNavigation.NoNavigation
+    readonly property int _direction: __stack_container ? __stack_container.direction
+                                                        : PageNavigation.NoDirection
 
     ConfigurationValue {
         id: forceOrientation
@@ -145,6 +149,10 @@ Private.SilicaMouseArea {
     property int _horizontalDimension: (pageContainer && _exposed && parent) ? parent.width : Screen.width
     property int _verticalDimension: (pageContainer && _exposed && parent) ? parent.height : Screen.height
 
+    property int _verticalDimensionLandscapeRestricted: _verticalDimension
+                                                        - ((cutoutMode & CutoutMode.AvoidLandscapeCutout)
+                                                           ? Screen.topCutout.height : 0)
+
     property var _forwardDestination
     property var _forwardDestinationProperties
     property int _forwardDestinationAction: PageStackAction.Push
@@ -156,14 +164,15 @@ Private.SilicaMouseArea {
 
     property bool _opaqueBackground: background !== null && background != backgroundComponent
     readonly property bool _exposed: pageContainer
-                && __stack_container
-                && pageContainer.visible
-                && ((pageContainer._currentContainer === __stack_container)
-                    || (pageContainer._currentContainer !== null && (pageContainer._currentContainer === __stack_container.transitionPartner)))
+                                     && __stack_container
+                                     && pageContainer.visible
+                                     && ((pageContainer._currentContainer === __stack_container)
+                                         || (pageContainer._currentContainer !== null
+                                             && (pageContainer._currentContainer === __stack_container.transitionPartner)))
     readonly property bool _belowTop: pageContainer
-                && __stack_container
-                && pageContainer._currentContainer === __stack_container
-                && __stack_container.attachedContainer !== null
+                                      && __stack_container
+                                      && pageContainer._currentContainer === __stack_container
+                                      && __stack_container.attachedContainer !== null
     property bool _clickablePageIndicators: true
 
     property int __silica_page
@@ -173,6 +182,7 @@ Private.SilicaMouseArea {
     focus: true
     // This unusual binding avoids a warning when the page is destroyed.
     anchors.centerIn: page ? parent : null
+    anchors.verticalCenterOffset: orientationState.verticalCenterOffset
 
     width: orientationState.width
     height: orientationState.height
@@ -200,7 +210,10 @@ Private.SilicaMouseArea {
         property bool completed
         // Choose the orientation this page will have given the current device orientation
         property int pageOrientation: Orientation.None
-        property int desiredPageOrientation: __silica_applicationwindow_instance._selectOrientation(page._allowedOrientations, __silica_applicationwindow_instance.deviceOrientation)
+        property int desiredPageOrientation: {
+            return __silica_applicationwindow_instance._selectOrientation(page._allowedOrientations,
+                                                                          __silica_applicationwindow_instance.deviceOrientation)
+        }
         property bool desiredPageOrientationSuitable: desiredPageOrientation & __silica_applicationwindow_instance.deviceOrientation
 
         // These are the state managed orientation derived properties. Normally the pages properties
@@ -208,6 +221,7 @@ Private.SilicaMouseArea {
         // bindings will be broken so property changes due to state fast-forwarding aren't propagated.
         property real width: page.isPortrait ? page._horizontalDimension : page._verticalDimension
         property real height: page.isPortrait ? page._verticalDimension : page._horizontalDimension
+        property real verticalCenterOffset
         property real orientation: Orientation.Portrait
         property real rotation
 
@@ -224,6 +238,7 @@ Private.SilicaMouseArea {
                 page.rotation = page.rotation
                 page.width = page.width
                 page.height = page.height
+                page.anchors.verticalCenterOffset = page.anchors.verticalCenterOffset
 
                 pageOrientation = desiredPageOrientation
 
@@ -232,6 +247,7 @@ Private.SilicaMouseArea {
                 page.rotation = Qt.binding(function() { return orientationState.rotation })
                 page.width = Qt.binding(function() { return orientationState.width })
                 page.height = Qt.binding(function() { return orientationState.height })
+                page.anchors.verticalCenterOffset = Qt.binding(function() { return orientationState.verticalCenterOffset })
             }
         }
 
@@ -250,13 +266,14 @@ Private.SilicaMouseArea {
             },
             State {
                 name: 'Portrait'
-                when: orientationState.pageOrientation === Orientation.Portrait ||
-                      orientationState.pageOrientation ===  Orientation.None
+                when: orientationState.pageOrientation === Orientation.Portrait
+                      || orientationState.pageOrientation ===  Orientation.None
                 PropertyChanges {
                     target: orientationState
                     restoreEntryValues: false
                     width: page._horizontalDimension
                     height: page._verticalDimension
+                    verticalCenterOffset: 0
                     rotation: 0
                     orientation: Orientation.Portrait
                 }
@@ -267,8 +284,9 @@ Private.SilicaMouseArea {
                 PropertyChanges {
                     target: orientationState
                     restoreEntryValues: false
-                    width: page._verticalDimension
+                    width: page._verticalDimensionLandscapeRestricted
                     height: page._horizontalDimension
+                    verticalCenterOffset: (page._verticalDimension - page._verticalDimensionLandscapeRestricted) / 2
                     rotation: 90
                     orientation: Orientation.Landscape
                 }
@@ -281,6 +299,7 @@ Private.SilicaMouseArea {
                     restoreEntryValues: false
                     width: page._horizontalDimension
                     height: page._verticalDimension
+                    verticalCenterOffset: 0
                     rotation: 180
                     orientation: Orientation.PortraitInverted
                 }
@@ -291,8 +310,9 @@ Private.SilicaMouseArea {
                 PropertyChanges {
                     target: orientationState
                     restoreEntryValues: false
-                    width: page._verticalDimension
+                    width: page._verticalDimensionLandscapeRestricted
                     height: page._horizontalDimension
+                    verticalCenterOffset: (page._verticalDimension - page._verticalDimensionLandscapeRestricted) / 2
                     rotation: 270
                     orientation: Orientation.LandscapeInverted
                 }

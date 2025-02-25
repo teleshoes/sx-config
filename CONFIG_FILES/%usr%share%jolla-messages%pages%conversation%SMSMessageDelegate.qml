@@ -64,7 +64,9 @@ ListItem {
     property bool showDetails
 
     //HACK-DISABLE-HIDE-TIMESTAMP
-    //property bool hideDefaultTimestamp: modelData && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6 && modelData.index !== 0)
+    //property bool hideDefaultTimestamp: modelData
+    //                                    && (calculateDaysDiff(modelData.startTime, currentDateTime) > 6
+    //                                        && modelData.index !== 0)
     property bool hideDefaultTimestamp: false
     //HACK-DISABLE-HIDE-TIMESTAMP
 
@@ -221,6 +223,7 @@ ListItem {
 
     Column {
         id: attachments
+
         height: Math.max(implicitHeight, attachmentOverlay.height)
         width: Math.max(implicitWidth, attachmentOverlay.width)
         anchors {
@@ -234,6 +237,7 @@ ListItem {
 
         Repeater {
             id: attachmentLoader
+
             model: modelData.messageParts
 
             AttachmentDelegate {
@@ -270,12 +274,13 @@ ListItem {
 
         Rectangle {
             anchors.fill: parent
-            color:  modelData.messageParts.length ? Theme.highlightDimmerColor : Theme.highlightColor
+            color: modelData.messageParts.length ? Theme.highlightDimmerColor : Theme.highlightColor
             opacity: modelData.messageParts.length ? Theme.opacityHigh : Theme.opacityFaint
         }
 
         Loader {
             id: busyLoader
+
             active: (eventStatus === CommHistory.DownloadingStatus
                      || eventStatus === CommHistory.WaitingStatus
                      || (eventStatus === CommHistory.SendingStatus && modelData.eventType === CommHistory.MMSEvent))
@@ -288,6 +293,7 @@ ListItem {
 
         Loader {
             id: progressLoader
+
             active: (modelData.eventType === CommHistory.MMSEvent) && (eventStatus === CommHistory.DownloadingStatus
                                                                        || eventStatus === CommHistory.SendingStatus)
             anchors.centerIn: parent
@@ -297,6 +303,7 @@ ListItem {
                 inAlternateCycle: true
                 MmsMessageProgress {
                     id: transfer
+
                     path: "/msg/" + modelData.eventId + (inbound ? "/Retrieve" : "/Send")
                     inbound: eventStatus === CommHistory.DownloadingStatus
                 }
@@ -306,8 +313,8 @@ ListItem {
         // Retry icon for inbound messages (in attachment style)
         Icon {
             id: attachmentRetryIcon
-            anchors.centerIn: parent
 
+            anchors.centerIn: parent
             source: message.inbound && (message.eventStatus >= CommHistory.TemporarilyFailedStatus
                         || message.eventStatus === CommHistory.ManualNotificationStatus)
                     ? "image://theme/icon-m-refresh"
@@ -317,6 +324,7 @@ ListItem {
 
     LinkedText {
         id: messageText
+
         anchors {
             top: bubble.top
             left: inbound ? attachments.right : undefined
@@ -453,7 +461,9 @@ ListItem {
                         ? messageText.color
                         : palette.primaryColor
                 font.pixelSize: Theme.fontSizeExtraSmall
-                anchors.baselineOffset: timestamp.mergeTimestamp ? (messageText.height - messageText.lastLineHeight + timestamp.height) : 0
+                anchors.baselineOffset: timestamp.mergeTimestamp
+                                        ? (messageText.height - messageText.lastLineHeight + timestamp.height)
+                                        : 0
                 text: {
                     if (eventStatusText)
                         return eventStatusText
@@ -482,6 +492,7 @@ ListItem {
 
         Loader {
             id: detailedTimestampLoader
+
             sourceComponent: detailedTimestampComponent
             active: showDetails
             visible: !!item

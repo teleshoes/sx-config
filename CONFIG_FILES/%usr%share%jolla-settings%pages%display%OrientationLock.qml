@@ -7,8 +7,10 @@ import Mer.Cutes 1.1
 
 SettingsToggle {
     // Lock mode from user point of view
-    readonly property bool portraitLock: displaySettings.orientationLock == "portrait" || displaySettings.orientationLock == "portrait-inverted"
-    readonly property bool landscapeLock: displaySettings.orientationLock == "landscape" || displaySettings.orientationLock == "landscape-inverted"
+    readonly property bool portraitLock: displaySettings.orientationLock == "portrait"
+                                         || displaySettings.orientationLock == "portrait-inverted"
+    readonly property bool landscapeLock: displaySettings.orientationLock == "landscape"
+                                          || displaySettings.orientationLock == "landscape-inverted"
 
     property var lastToggledMillis: 0
     property string lastToggledOrigLock: ""

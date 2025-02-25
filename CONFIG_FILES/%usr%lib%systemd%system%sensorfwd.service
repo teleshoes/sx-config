@@ -8,7 +8,7 @@ Conflicts=actdead.target
 [Service]
 Type=notify
 ExecStart=/usr/sbin/sensorfwd -c=/etc/sensorfw/primaryuse.conf --systemd --log-level=warning
-ExecReload=/bin/kill -HUP $MAINPID
+ExecReload=/usr/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=2
 # Sandboxing

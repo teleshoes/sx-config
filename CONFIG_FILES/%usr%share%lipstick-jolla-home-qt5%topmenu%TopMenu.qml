@@ -47,12 +47,12 @@ SilicaFlickable {
         if (_pendingControl) {
             if (_pendingControl.hasOwnProperty("__jolla_settings_toggle")) {
                 Lipstick.compositor.lockScreenLayer.unlockReason = _pendingControl.checked
-                     //: Indicates device must be unlocked to disable a setting
+                   ? //: Indicates device must be unlocked to disable a setting
                      //% "Unlock to disable setting"
-                   ? qsTrId("lipstick_jolla_home-la-unlock_to_disable")
-                     //: Indicates device must be unlocked to enable a setting
+                     qsTrId("lipstick_jolla_home-la-unlock_to_disable")
+                   : //: Indicates device must be unlocked to enable a setting
                      //% "Unlock to enable setting"
-                   : qsTrId("lipstick_jolla_home-la-unlock_to_enable")
+                     qsTrId("lipstick_jolla_home-la-unlock_to_enable")
             } else {
                 //: Indicates device must be unlocked to access a shortcut feature.
                 //% "Unlock to access shortcut"
@@ -69,6 +69,7 @@ SilicaFlickable {
 
     NumberAnimation {
         id: scrollAnimation
+
         target: topMenu
         property: "contentY"
         easing.type: Easing.InOutQuad
@@ -79,7 +80,7 @@ SilicaFlickable {
     signal reboot()
 
     readonly property int toggleColumns: Math.floor(width / Theme.itemSizeExtraLarge)
-    property int itemSize: Math.round(width/toggleColumns)
+    property int itemSize: Math.round(width / toggleColumns)
     readonly property bool exposed: Lipstick.compositor.topMenuLayer.exposed
     readonly property real offset: Lipstick.compositor.topMenuLayer.absoluteExposure + contentY
     property alias exposedArea: background
@@ -116,6 +117,7 @@ SilicaFlickable {
 
     MenuBackground {
         id: background
+
         width: topMenu.width
         height: topMenu.expanded
                 ? topMenu.contentHeight
@@ -130,7 +132,9 @@ SilicaFlickable {
 
     Column {
         id: column
+
         width: parent.width
+
         Item {
             id: topPadding
 
@@ -159,6 +163,7 @@ SilicaFlickable {
             ]
             transitions: Transition {
                 id: powerTransition
+
                 from: "no-power"
                 to: "power"
                 NumberAnimation {
@@ -176,15 +181,15 @@ SilicaFlickable {
                 }
             }
 
+            // shutdown options
             Row {
-                id: shutdownOptions
-
                 y: Math.min(0, -height - topPadding.height + topMenu.offset)
 
                 width: topMenu.width
                 height: topMenu.itemSize
                 visible: Lipstick.compositor.powerKeyPressed
                          || Lipstick.compositor.experimentalFeatures.topmenu_shutdown_reboot_visible
+
                 PowerButton {
                     id: shutdownButton
 
@@ -201,7 +206,7 @@ SilicaFlickable {
                     id: rebootButton
 
                     visible: rebootActionConfig.value
-                    width: parent.width/2
+                    width: parent.width / 2
                     height: parent.height
 
                     offset: lockButton.offset + height
@@ -224,14 +229,10 @@ SilicaFlickable {
                 y: Math.min(0, -height - topPadding.height + topMenu.offset)
                 width: topMenu.width
                 height: topMenu.itemSize
-
                 visible: !shutdownButton.visible || powerTransition.running
-
-                onClicked: Lipstick.compositor.setDisplayOff()
-
                 iconSource: "image://theme/graphic-display-blank"
-
                 opacity: shutdownButton.opacity
+                onClicked: Lipstick.compositor.setDisplayOff()
             }
         }
 
@@ -256,17 +257,20 @@ SilicaFlickable {
 
         Loader {
             id: shortcutsLoader
+
             width: parent.width
             active: shortcutsEnabled.value || actionsEnabled.value || Desktop.showMultiSimSelector
 
             ConfigurationValue {
                 id: shortcutsEnabled
+
                 key: "/desktop/lipstick-jolla-home/topmenu_shortcuts_enabled"
                 defaultValue: true
             }
 
             ConfigurationValue {
                 id: actionsEnabled
+
                 key: "/desktop/lipstick-jolla-home/topmenu_actions_enabled"
                 defaultValue: true
             }
@@ -277,6 +281,7 @@ SilicaFlickable {
 
                 Column {
                     id: shortcutsColumn
+
                     width: parent.width
 
                     Item {
@@ -290,7 +295,6 @@ SilicaFlickable {
                             y: Math.min(0, -height - shortcutsLoader.y + topMenu.offset)
                             width: parent.width
                             active: shortcutsEnabled.value
-                            showListFavorites: true
                             columns: toggleColumns
                             pager: topMenu
                             padding: Theme.paddingLarge
@@ -327,6 +331,7 @@ SilicaFlickable {
 
                         UserInfo {
                             id: user
+
                             watched: true
                         }
 
@@ -348,12 +353,13 @@ SilicaFlickable {
 
                         Item {
                             id: settingsButtonItem
+
                             property bool menuOpen
 
                             anchors.top: userSelectorLoader.active ? userSelectorLoader.top : undefined
                             height: menuOpen && topMenu.contextMenu
-                                ? settingsButton.height + topMenu.contextMenu.height
-                                : settingsButton.height
+                                    ? settingsButton.height + topMenu.contextMenu.height
+                                    : settingsButton.height
                             width: parent.width
                             y: Math.min(0, -height - shortcutsLoader.y - favoriteSettingsLoader.height
                                         + topMenu.offset)
@@ -371,7 +377,7 @@ SilicaFlickable {
                                 Rectangle {
                                     z: -1
                                     anchors.fill: parent
-                                    color:  Theme.rgba(Theme.highlightBackgroundColor, Theme.highlightBackgroundOpacity)
+                                    color: Theme.rgba(Theme.highlightBackgroundColor, Theme.highlightBackgroundOpacity)
                                     visible: settingsButton.down
                                 }
 
@@ -400,12 +406,15 @@ SilicaFlickable {
                                     Component.onDestruction: settingsButtonItem.menuOpen = false
 
                                     MenuItem {
+                                        visible: favoriteSettingsLoader.hasContent
                                         //% "Organize"
                                         text: qsTrId("lipstick_jolla_home-me-topmenu_organize")
-                                        color: Desktop.deviceLockState === DeviceLock.Unlocked ? _enabledColor : _disabledColor
+                                        color: Desktop.deviceLockState === DeviceLock.Unlocked
+                                               ? _enabledColor : _disabledColor
                                         onClicked: {
                                             if (Desktop.deviceLockState === DeviceLock.Unlocked) {
-                                                Lipstick.compositor.topMenuLayer.housekeeping = !Lipstick.compositor.topMenuLayer.housekeeping
+                                                Lipstick.compositor.topMenuLayer.housekeeping
+                                                        = !Lipstick.compositor.topMenuLayer.housekeeping
                                             } else {
                                                 housekeepingNotif.publish()
                                             }
@@ -495,6 +504,7 @@ SilicaFlickable {
     // changed after some time (i.e. some error occurred), cancel the pending notification.
     Timer {
         id: settingChangeNotifTimeout
+
         interval: 5000
         onTriggered: {
             topMenu._resetPendingControl(null)
@@ -518,12 +528,12 @@ SilicaFlickable {
 
         function reset(control) {
             body = control.checked
-                      //: Indicates a feature is now turned off. %1 = name of feature
+                    ? //: Indicates a feature is now turned off. %1 = name of feature
                       //% "%1 disabled"
-                    ? qsTrId("lipstick_jolla_home-la-toggle_disabled").arg(control.name)
-                      //: Indicates a feature is now turned on. %1 = name of feature
+                      qsTrId("lipstick_jolla_home-la-toggle_disabled").arg(control.name)
+                    : //: Indicates a feature is now turned on. %1 = name of feature
                       //% "%1 enabled"
-                    : qsTrId("lipstick_jolla_home-la-toggle_enabled").arg(control.name)
+                      qsTrId("lipstick_jolla_home-la-toggle_enabled").arg(control.name)
             appIcon = control.systemIcon
         }
 

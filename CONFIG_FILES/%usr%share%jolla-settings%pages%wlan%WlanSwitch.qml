@@ -53,6 +53,7 @@ SettingsToggle {
 
     Timer {
         id: busyTimer
+
         interval: connDialogConfig.scanningWait
         onTriggered: connectionSelector.openConnection()
         onRunningChanged: {
@@ -75,7 +76,7 @@ SettingsToggle {
 
     NetworkTechnology {
         id: wifiTechnology
-        path: networkManager.WifiTechnology
+        path: Connman.wifiTechnologyPath
     }
 
     NetworkManager { id: networkManager }

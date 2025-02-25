@@ -75,6 +75,7 @@ Page {
 
     EnabledLayoutModel {
         id: enabledLayoutModel
+
         layoutModel: layoutModel
         refreshTimer.onTriggered: {
             layoutComboBox.currentIndex = enabledLayoutModel.getLayoutIndex(currentLayoutConfig.value)
@@ -84,6 +85,7 @@ Page {
 
     EnabledLayoutModel {
         id: enabledPhysicalLayoutModel
+
         layoutModel: physicalLayoutModel
         refreshTimer.onTriggered: {
             physicalLayoutComboBox.currentIndex = enabledPhysicalLayoutModel.getLayoutIndex(currentPhysicalLayoutConfig.value)
@@ -93,6 +95,7 @@ Page {
 
     Component {
         id: enabledKeyboardsPage
+
         KeyboardsPage {
             model: layoutModel
             emojisEnabled: enabledLayoutModel.emojisEnabled
@@ -101,6 +104,7 @@ Page {
 
     Component {
         id: enabledPhysicalLayoutsPage
+
         KeyboardsPage {
             model: physicalLayoutModel
         }
@@ -114,6 +118,7 @@ Page {
 
         Column {
             id: content
+
             width: parent.width
 
             function getEnabledLayoutsDisplayValue(model) {
@@ -255,11 +260,13 @@ Page {
 
     ConfigurationValue {
         id: currentLayoutConfig
+
         key: "/sailfish/text_input/active_layout"
     }
 
     ConfigurationValue {
         id: activeLayoutsConfig
+
         key: "/sailfish/text_input/enabled_layouts"
         onValueChanged: {
             pluginSettingsModel.refresh()
@@ -283,6 +290,7 @@ Page {
 
     ConfigurationValue {
         id: currentPhysicalLayoutConfig
+
         key: "/desktop/lipstick-jolla-home/layout"
         defaultValue: "us"
     }

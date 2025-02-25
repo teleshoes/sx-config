@@ -64,10 +64,11 @@ Compositor {
 
     // Home will be obscured if any of the layers stacking on top of it is opaque.
     readonly property bool homeVisible: !(peekLayer.opaque || (root.deviceIsLocked && lockScreenLayer.opaque))
-                || (homeLayerItem.currentItem.maximized && !(launcherLayerItem.opaque
-                || topMenuLayerItem.opaque
-                || alarmLayerItem.opaque
-                || dialogLayerItem.opaque))
+                                        || (homeLayerItem.currentItem.maximized
+                                            && !(launcherLayerItem.opaque
+                                                 || topMenuLayerItem.opaque
+                                                 || alarmLayerItem.opaque
+                                                 || dialogLayerItem.opaque))
 
     homeActive: homeLayerItem.active
 
@@ -96,7 +97,8 @@ Compositor {
     property alias volumeGestureFilterItem: globalVolumeGestureItem
     readonly property alias experimentalFeatures: experimentalFeatures
     // Needs more prototyping, disable by default. See JB#40618
-    readonly property bool quickAppToggleGestureExceeded: experimentalFeatures.quickAppToggleGesture && peekLayer.quickAppToggleGestureExceeded
+    readonly property bool quickAppToggleGestureExceeded: experimentalFeatures.quickAppToggleGesture
+                                                          && peekLayer.quickAppToggleGestureExceeded
 
     property alias launcherHinting: launcherLayerItem.hinting
     property alias topMenuHinting: topMenuLayerItem.hinting
@@ -133,6 +135,7 @@ Compositor {
 
     // True if only the current notification window is allowed to be visible
     property bool onlyCurrentNotificationAllowed
+    property bool notificationPreviewVisible
 
     topmostWindowOrientation: {
         if (alarmLayerItem.window && !alarmLayerItem.renderDialogBackground) {  // test for full-screen alarm/call window
@@ -151,7 +154,8 @@ Compositor {
             return QtQuick.Screen.primaryOrientation
         }
     }
-    property int topmostWindowAngle: QtQuick.Screen.angleBetween(topmostWindowOrientation, QtQuick.Screen.primaryOrientation)
+    property int topmostWindowAngle: QtQuick.Screen.angleBetween(topmostWindowOrientation,
+                                                                 QtQuick.Screen.primaryOrientation)
     onSensorOrientationChanged: updateScreenOrientation()
     onOrientationLockChanged: updateScreenOrientation()
     onTopmostWindowChanged: updateWindows()
@@ -177,6 +181,12 @@ Compositor {
         options: keymapConfig.options
     }
 
+    // disable some cases where we don't want to pass a synthesized back even to app, or
+    // we don't want to internally handle such. For dialogs we could consider some back stepping / cancel
+    // action handling, but that needs some per case checking
+    // (and disabling handling in SystemDialogApplicationWindow.qml)
+    synthesizeBackEvent: !topMenuLayer.exposed && !notificationPreviewVisible && !topmostIsDialog
+
     readonly property alias blurPeek: peekBlurSource.blur
     readonly property alias blurHome: homeBlurSource.blur
     readonly property alias blurApplication: applicationBlurSource.blur
@@ -186,9 +196,9 @@ Compositor {
             return peekBlurSource.provider
         } else if (blurHome) {
             return homeBlurSource.provider
-        } else {
-            return null
         }
+
+        return null
     }
     readonly property Item dialogBlurSource: {
         if (blurApplication) {
@@ -215,6 +225,7 @@ Compositor {
 
     ConfigurationGroup {
         id: peekFilterConfigs
+
         path: "/desktop/lipstick-jolla-home/peekfilter"
         property int boundaryWidth: Theme.paddingLarge
         property int boundaryHeight: Theme.paddingLarge
@@ -233,7 +244,8 @@ Compositor {
                                                                   && (topmostWindow.window.surface.windowFlags & 1)
 
     readonly property bool topmostIsDialog: dialogLayerItem.active
-    readonly property bool systemGesturesDisabled: !lockScreenLayer.active && (topmostIsDialog || topmostWindowRequestsGesturesDisabled)
+    readonly property bool systemGesturesDisabled: !lockScreenLayer.active
+                                                   && (topmostIsDialog || topmostWindowRequestsGesturesDisabled)
 
     // Locked or Undefined == Locked
     readonly property bool deviceIsLocked: Desktop.deviceLockState >= DeviceLock.Locked
@@ -374,7 +386,8 @@ Compositor {
         var transientWindow = window
         while (window.surface && window.surface.transientParent) {
             if (window.surface.transientParent !== window.parent.surface) {
-                console.log("transient/item ancestry mismatch for window [title=", transientWindow.title, ", category=", transientWindow.category, "]")
+                console.log("transient/item ancestry mismatch for window [title=", transientWindow.title,
+                            ", category=", transientWindow.category, "]")
                 return transientWindow
             }
 
@@ -521,8 +534,7 @@ Compositor {
         exposedWindow = null
     }
 
-    function updateWindows(keepOrientation)
-    {
+    function updateWindows(keepOrientation) {
         var windows = new Array
         if (alarmLayer.window) windows.push(alarmLayer.window.window)
         else if (dialogLayer.window) windows.push(dialogLayer.window.window)
@@ -609,7 +621,9 @@ Compositor {
         }
 
         topMenuInteractiveArea {
-            enabled: !homeHouseKeeping && topMenuLayerItem.edgeFilter.enabled && (homeLayerItem.active || topMenuLayerItem.exposed)
+            enabled: !homeHouseKeeping
+                     && topMenuLayerItem.edgeFilter.enabled
+                     && (homeLayerItem.active || topMenuLayerItem.exposed)
             drag.target: topMenuLayerItem
         }
 
@@ -647,7 +661,6 @@ Compositor {
                     }
 
                     anchors.fill: parent
-
                     visible: root.homeVisible
 
                     dimmer {
@@ -692,7 +705,9 @@ Compositor {
                 peekFilter.enabled: !root.deviceIsLocked
 
                 ThemeTransaction {
-                    deferAmbience: wallpaperItem.transitioning || ambienceChangeTimeout.running || topMenuLayerItem.transitioning
+                    deferAmbience: wallpaperItem.transitioning
+                                   || ambienceChangeTimeout.running
+                                   || topMenuLayerItem.transitioning
                     onAmbienceAboutToChange: {
                         if (homeLayerItem.visible || lockScreenLayerItem.exposed) {
                             ambienceChangeTimeout.running = true
@@ -736,6 +751,8 @@ Compositor {
         RotatingItem {
             id: indicatorHomeForeground
 
+            property bool doubleHandles: Screen.topCutout.height > 0
+
             LayerEdgeIndicator {
                 id: topmenuEdgeHandle
 
@@ -749,6 +766,10 @@ Compositor {
                 parent: peekLayer.exposed && !peekLayer.peeking
                         ? indicatorApplicationForeground
                         : indicatorHomeForeground
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.horizontalCenterOffset: indicatorHomeForeground.doubleHandles
+                                                ? (Screen.topCutout.width / 2 + Theme.paddingLarge + width / 2) : 0
+
                 y: (indicatorHomeForeground.inverted ? -1 : 1) * (indicatorHomeForeground.transposed
                                                                   ? -topMenuLayer.x : topMenuLayer.y)
                    + (topMenuLayer.topMenu ? topMenuLayer.topMenu.height : 0)
@@ -761,6 +782,8 @@ Compositor {
                 parent: peekLayer.exposed && !peekLayer.peeking
                         ? indicatorApplicationForeground
                         : indicatorHomeForeground
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.horizontalCenterOffset: topmenuEdgeHandle.anchors.horizontalCenterOffset
                 exposed: systemInitComplete && !topMenuLayer.exposed
                          && (launcherLayer.exposed || (homeLayer.active && homeLayer.wallpaperVisible))
                 offset: (indicatorHomeForeground.inverted ? -1 : 1)
@@ -774,6 +797,42 @@ Compositor {
                     }
                 }
                 opacityBehavior.enabled: !launcherLayerItem.closeFromEdge && !launcherLayer.peekFilter.bottomActive
+            }
+
+            Loader {
+                active: indicatorHomeForeground.doubleHandles
+                sourceComponent: Component {
+                    Item {
+                        LayerEdgeIndicator {
+                            rotation: 180
+                            exposed: topmenuEdgeHandle.exposed
+                            // can't bind opacities due to behavior on them
+                            opacity: topMenuLayerItem.closeFromEdge ? topMenuLayerItem.contentOpacity
+                                                                    : (exposed ? 1.0 : 0.0)
+                            opacityBehavior.enabled: topmenuEdgeHandle.opacityBehavior.enabled
+                            parent: topmenuEdgeHandle.parent
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.horizontalCenterOffset: -topmenuEdgeHandle.anchors.horizontalCenterOffset
+                            y: topmenuEdgeHandle.y
+                        }
+                        LayerEdgeIndicator {
+                            highlighted: launcherEdgeHandle.highlighted
+                            parent: launcherEdgeHandle.parent
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.horizontalCenterOffset: -launcherEdgeHandle.anchors.horizontalCenterOffset
+                            exposed: launcherEdgeHandle.exposed
+                            offset: launcherEdgeHandle.offset
+                            opacity: {
+                                if (launcherLayer.peekFilter.bottomActive || launcherLayerItem.closeFromEdge) {
+                                    return launcherLayer.contentOpacity * peekLayer.contentOpacity
+                                } else {
+                                    return exposed ? 1.0 : 0.0
+                                }
+                            }
+                            opacityBehavior.enabled: launcherEdgeHandle.opacityBehavior.enabled
+                        }
+                    }
+                }
             }
 
             Item {
@@ -927,7 +986,7 @@ Compositor {
                             ? lockScreenLayerItem.window
                             : homeLayerItem.window)
                 } else if (launcherLayerItem.active
-                        || lockScreenLayerItem.active) {
+                           || lockScreenLayerItem.active) {
                     setCurrentWindow(root.obscuredWindow)
                 }
             }
@@ -1019,12 +1078,16 @@ Compositor {
                         acceptMargin: appLayerItem.peekFilter.topAcceptMargin
                         opacity: appLayerItem.contentOpacity
                         parent: indicatorApplicationForeground
-                        onHintingChanged: appLayerItem.window.fadeEnabled = !hinting
-                        active: hintcoordinator.value === 2
+                        onHintingChanged: {
+                            if (appLayerItem.window)
+                                appLayerItem.window.fadeEnabled = !hinting
+                        }
+                        active: hintcoordinator.exposed && hintcoordinator.value === 2
                         onActiveChanged: {
                             if (active) {
-                                appLayerItem.window.opacity = Qt.binding(function(){
-                                    return closeGestureHint.active ? Theme.opacityFaint : 1.0
+                                appLayerItem.window.opacity = Qt.binding(function() {
+                                    return (closeGestureHint.active && closeGestureHint.hinting)
+                                            ? Theme.opacityFaint : 1.0
                                 })
                             }
                         }
@@ -1032,14 +1095,16 @@ Compositor {
 
                     HintCoordinator {
                         id: hintcoordinator
+
                         exposed: systemInitComplete && !systemGesturesDisabled
-                               && appLayerItem.exposed && !appLayerItem.window.closeHinted
+                                 && appLayerItem.exposed && appLayerItem.window && !appLayerItem.window.closeHinted
                         window: appLayerItem.window
                     }
                 }
 
                 Item {
                     id: lockscreenApplicationForeground
+
                     anchors.fill: parent
 
                     BlurSource {
@@ -1084,7 +1149,8 @@ Compositor {
                                 }
                             }
 
-                            foregroundItem.opacity: wallpaperItem.transitioning || ambienceChangeTimeout.running ? 0.0 : 1.0
+                            foregroundItem.opacity: wallpaperItem.transitioning || ambienceChangeTimeout.running
+                                                    ? 0.0 : 1.0
 
                             Behavior on foregroundItem.opacity { FadeAnimator { duration: 300; alwaysRunToEnd: true } }
 
@@ -1092,6 +1158,7 @@ Compositor {
                                 // Delay the lockscreen fade out until the application has provided a
                                 // buffer to render, but don't wait forever.
                                 id: lockscreenDelayTimer
+
                                 running: appLayerItem.window && !appLayerItem.window.mapped
                                 interval: 2000
                             }
@@ -1262,7 +1329,10 @@ Compositor {
                     }
                 }
 
-                onClosed: if (launcherLayerItem.closedFromBottom) launcherEdgeHandle.animate = false
+                onClosed: {
+                    if (launcherLayerItem.closedFromBottom)
+                        launcherEdgeHandle.animate = false
+                }
                 onPinnedChanged: if (_dragActive && pinned) setCurrentWindow(launcherLayerItem.window)
             }
 
@@ -1287,9 +1357,12 @@ Compositor {
 
                 Behavior on opacity {
                     id: displayOffBehavior
+
                     enabled: !topMenuLayerItem.closing && !displayOffRectangle.suppressDisplayOffBehavior
+
                     SmoothedAnimation {
                         id: displayOffAnimation
+
                         duration: 400
                         velocity: -1
                     }
@@ -1315,7 +1388,8 @@ Compositor {
                     onGestureCanceled: displayOffRectangle.keepVisible = false
                     onGestureTriggered: {
                         displayOffRectangle.suppressDisplayOffBehavior = true
-                        if (closeFromEdge) topmenuEdgeHandle.earlyFadeout = true
+                        if (closeFromEdge)
+                            topmenuEdgeHandle.earlyFadeout = true
                     }
                 }
                 edgeFilter {
@@ -1329,9 +1403,9 @@ Compositor {
                               && !forceTouchInputDisabled.value
 
                     topRejectMargin: !Desktop.startupWizardRunning
-                                && (appLayerItem.active || alarmLayerItem.inCall)
-                            ? Theme.itemSizeMedium
-                            : 0
+                                     && (appLayerItem.active || alarmLayerItem.inCall)
+                                     ? Theme.itemSizeMedium
+                                     : 0
 
                     onGestureStarted: {
                         if (!topMenuLayerItem.active) {
@@ -1686,7 +1760,7 @@ Compositor {
             break
         case WindowType.PartnerSpace:
             homeLayerItem.partnerWindowLowered(wrapper)
-            break;
+            break
         case WindowType.Camera:
             cameraLayerItem.close()
             break
@@ -1776,12 +1850,14 @@ Compositor {
 
     Timer {
         id: pendingShowUnlockScreenTimer
+
         interval: 250 // As short as possible without the end result looking unintentional
         onTriggered: root.showUnlockScreen()
     }
 
     Timer {
         id: incomingAlarmTimer
+
         interval: 2000
         onTriggered: root._resetIncomingAlarm()
     }
@@ -1793,6 +1869,7 @@ Compositor {
 
     UnresponsiveApplicationDialog {
         id: unresponsiveApplicationDialog
+
         window: root.windowsBeingClosed.length > 0 ? root.windowsBeingClosed[0].window
                                                    : (appLayer.window ? appLayer.window.window : null)
     }
@@ -1802,7 +1879,8 @@ Compositor {
 
         anchors.fill: parent
         enabled: displayCursor.value && available && !lipstickSettings.lowPowerMode
-        rotation: QtQuick.Screen.angleBetween(Lipstick.compositor.topmostWindowOrientation, QtQuick.Screen.primaryOrientation)
+        rotation: QtQuick.Screen.angleBetween(Lipstick.compositor.topmostWindowOrientation,
+                                              QtQuick.Screen.primaryOrientation)
 
         onAvailableChanged: if (available) mouseVisibilityTimer.restart()
         onMouseXChanged: if (available) mouseVisibilityTimer.restart()
@@ -1817,6 +1895,7 @@ Compositor {
 
         ConfigurationValue {
             id: displayCursor
+
             key: "/desktop/sailfish/compositor/display_cursor"
             defaultValue: true
         }
@@ -1901,6 +1980,7 @@ Compositor {
 
     Rectangle {
         id: dimmingRectangle
+
         anchors.fill: parent
         color: "black"
         opacity: 0.0
@@ -1912,6 +1992,7 @@ Compositor {
 
     MouseArea {
         id: screenshotButton
+
         x: defaultX
         y: defaultY
         visible: active && !snapping
@@ -1979,9 +2060,9 @@ Compositor {
         }
         Image {
             id: shutterIcon
+
             anchors.centerIn: parent
             source: "image://theme/icon-camera-shutter"
-
             opacity: {
                 if (screenshotButton.pressed) {
                     return Theme.opacityHigh
@@ -1991,6 +2072,7 @@ Compositor {
         }
         Timer {
             id: screenshotExposureTimer
+
             interval: 1000
             onTriggered: parent.endExposure()
         }
@@ -1998,6 +2080,7 @@ Compositor {
 
     Loader {
         id: debugWindow
+
         active: root.debug
         z: 10
         anchors.fill: parent

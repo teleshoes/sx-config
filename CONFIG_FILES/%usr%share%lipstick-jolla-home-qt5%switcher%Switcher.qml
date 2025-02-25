@@ -20,13 +20,13 @@ SilicaFlickable {
 
     readonly property int showingWid: Lipstick.compositor.appLayer.pendingWindowId
     property Item launchingItem
-    property bool skipOnReleased: false
+    property bool skipOnReleased
     readonly property bool appShowInProgress: showingWid > 0
-                || (launchingItem && launchingItem.launching && !launchingItem.minimized)
+                                              || (launchingItem && launchingItem.launching && !launchingItem.minimized)
     property real statusBarHeight: Lipstick.compositor.homeLayer.statusBar.height
     readonly property real count: repeater.count
     readonly property bool largeScreen: Screen.sizeCategory >= Screen.Large
-    property bool housekeeping: false
+    property bool housekeeping
     property bool menuOpen: housekeepingMenu.active
 
     property alias model: switcherModel
@@ -98,7 +98,8 @@ SilicaFlickable {
         } else if (Lipstick.compositor.cameraLayer.application === launcherItem) {
             // Don't create covers for or show the lockscreen camera on activation.
         } else if (!Lipstick.compositor.homeLayer.activatePartnerWindow(launcherItem)) {
-            // We don't know if D-Bus method call will create a new process, let the respective service handle the loading cover
+            // We don't know if D-Bus method call will create a new process,
+            // let the respective service handle the loading cover
             var dBusActivationOnly = launcherItem.exec.length === 0 && launcherItem.dBusActivated
             if (launcherItem.shouldDisplay && launcherItem.entryType == "Application" && !dBusActivationOnly) {
                 var switcherIndex = switcherModel.findInactiveCover(launcherItem)
@@ -132,9 +133,9 @@ SilicaFlickable {
                 if (item.minimized) {
                     item.minimized = false
                     return true
-                } else {
-                    return false
                 }
+
+                return false
             }
         }
         return false
@@ -163,6 +164,7 @@ SilicaFlickable {
 
     PullDownMenu {
         id: housekeepingMenu
+
         visible: switcherRoot.housekeeping
 
         MenuItem {
@@ -175,6 +177,7 @@ SilicaFlickable {
 
     Timer {
         id: closeAllTimer
+
         property int lastIndex
 
         interval: 100
@@ -203,7 +206,7 @@ SilicaFlickable {
     }
 
     function isAndroidApplication(launcherItem) {
-        return launcherItem.readValue("X-apkd-apkfile") != ""
+        return launcherItem.readValue("X-apkd-packageName") != ""
     }
 
     function windowIndexOf(launcherItem) {
@@ -217,8 +220,7 @@ SilicaFlickable {
         var appId
         var isAndroid = isAndroidApplication(launcherItem)
         if (isAndroid) {
-            var pkg = cmd.split(' ')[2]
-            appId = pkg.split('/')[0]
+            appId = launcherItem.readValue("X-apkd-packageName")
         }
 
         for (var i = 0; i < switcherModel.itemCount; i++) {
@@ -348,18 +350,23 @@ SilicaFlickable {
 
     Timer {
         id: ensureVisibleTimer
+
         property Item item
+
         interval: 1
         onTriggered: {
             Lipstick.compositor.topMenuLayer.hide()
-            if (columnChangeAnimation.running) {
+            if (columnChangeAnimation.running || !item) {
                 return
-            } else if (item.y < contentY) {
+            }
+
+            if (item.y < contentY) {
                 scrollAnimation.to = item.y
                 scrollAnimation.duration = 150
                 scrollAnimation.start()
             } else if (item.y + item.height + switcherWrapper.y + switcherGrid.rowSpacing > contentY + height) {
-                var to = Math.min(item.y + item.height + switcherGrid.rowSpacing, switcherWrapper.height) + switcherWrapper.y - height
+                var to = Math.min(item.y + item.height + switcherGrid.rowSpacing,
+                                  switcherWrapper.height) + switcherWrapper.y - height
                 if (to >= 0) {
                     scrollAnimation.to = to
                     scrollAnimation.duration = 150
@@ -371,6 +378,7 @@ SilicaFlickable {
 
     NumberAnimation {
         id: scrollAnimation
+
         target: switcherRoot
         property: "contentY"
         easing.type: Easing.InOutQuad
@@ -441,7 +449,8 @@ SilicaFlickable {
                     scrollAnimation.stop()
                     if (desktop.orientationTransitionRunning || !switcherRoot.visible) {
                         switcherGrid.columns = cols
-                        switcherGrid.coverSize = switcherGrid.columns == switcherGrid.largeColumns ? Theme.coverSizeLarge : Theme.coverSizeSmall
+                        switcherGrid.coverSize = switcherGrid.columns == switcherGrid.largeColumns
+                                ? Theme.coverSizeLarge : Theme.coverSizeSmall
                     } else {
                         columnChangeAnimation.restart()
                     }
@@ -450,12 +459,14 @@ SilicaFlickable {
 
             Timer {
                 id: columnUpdateTimer
+
                 interval: 1
                 onTriggered: switcherGrid.doUpdateColumns()
             }
 
             SequentialAnimation {
                 id: columnChangeAnimation
+
                 NumberAnimation { target: switcherItems; property: "opacity"; to: 0.0; duration: 200 }
                 ScriptAction {
                     script: {
@@ -463,7 +474,8 @@ SilicaFlickable {
                         if (switcherGrid.allowSmallCovers && switcherModel.itemCount > switcherGrid.largeItemCount)
                             cols = switcherGrid.smallColumns
                         switcherGrid.columns = cols
-                        switcherGrid.coverSize = switcherGrid.columns == switcherGrid.largeColumns ? Theme.coverSizeLarge : Theme.coverSizeSmall
+                        switcherGrid.coverSize = switcherGrid.columns == switcherGrid.largeColumns
+                                ? Theme.coverSizeLarge : Theme.coverSizeSmall
                         switcherRoot.contentY = 0
                     }
                 }
@@ -472,21 +484,25 @@ SilicaFlickable {
 
             EditableGridManager {
                 id: gridManager
+
                 view: switcherGrid
                 pager: switcherRoot
                 contentContainer: switcherItems
+
                 function itemAt(x, y) {
                     return switcherGrid.childAt(x, y)
                 }
                 function itemCount() {
                     return repeater.count
                 }
+
                 onScroll: switcherRoot.scroll(up)
                 onStopScrolling: switcherRoot.stopScrolling()
             }
 
             MruSortedModel {
                 id: mruSwitcherModel
+
                 model: PersistentSwitcherModel {
                     id: switcherModel
 
@@ -508,6 +524,7 @@ SilicaFlickable {
 
                 delegate: SwitcherItem {
                     id: switcherDelegate
+
                     manager: gridManager
                     width: switcherGrid.coverSize.width
                     height: switcherGrid.coverSize.height
@@ -539,8 +556,8 @@ SilicaFlickable {
                     showingWid: switcherRoot.showingWid
                     columns: switcherGrid.columns
                     animateMovement: switcherRoot.visible
-                                && !columnChangeAnimation.running
-                                && !desktop.orientationTransitionRunning
+                                     && !columnChangeAnimation.running
+                                     && !desktop.orientationTransitionRunning
 
                     processId: model.processId
 
@@ -549,6 +566,12 @@ SilicaFlickable {
                             switcherRoot.housekeeping = false
                         } else {
                             if (!Lipstick.compositor.multitaskingHome) {
+                                if (running) {
+                                    // this could be possibly used for non-multitasking mode too, but
+                                    // for now only there because on app activation the switcher will disappear
+                                    // and that might affect surface state
+                                    triggerActivating()
+                                }
                                 Lipstick.compositor.launcherLayer.hide()
                             }
                             if (running) {
@@ -573,6 +596,7 @@ SilicaFlickable {
 
                     WindowProperty {
                         id: coverWindowId
+
                         windowId: model.window || 0
                         property: "SAILFISH_COVER_WINDOW"
                         onValueChanged: {
@@ -599,6 +623,7 @@ SilicaFlickable {
                     }
                     WindowProperty {
                         id: applicationWindowId
+
                         windowId: model.window || 0
                         property: "SAILFISH_APPLICATION_WINDOW"
                     }
@@ -642,8 +667,8 @@ SilicaFlickable {
         // with any opacity applied to switcherWrapper.
         Item {
             id: switcherItems
-            anchors.fill: switcherGrid
 
+            anchors.fill: switcherGrid
             // MouseArea doesn't propagate the enabled state to children, so do it manually
             // https://bugreports.qt-project.org/browse/QTBUG-38364
             enabled: parent.enabled
@@ -677,9 +702,13 @@ SilicaFlickable {
                 } else {
                     oomScore = 99 + i
                 }
-                JollaSystemInfo.adjustOOMScore(oomScore, Lipstick.compositor.windowForId(switcherModel.windowId(mruSwitcherModel.mapRowToSource(i))))
+
+                JollaSystemInfo.adjustOOMScore(oomScore,
+                                               Lipstick.compositor.windowForId(
+                                                   switcherModel.windowId(mruSwitcherModel.mapRowToSource(i))))
             }
         }
     }
+
     CloseAllAppsHint {}
 }

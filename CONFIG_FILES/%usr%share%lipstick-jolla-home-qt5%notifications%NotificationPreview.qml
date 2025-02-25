@@ -87,6 +87,11 @@ SystemWindow {
         property: "appIconUrl"
         value: notificationWindow.appIconUrl
     }
+    Binding {
+        target: Lipstick.compositor
+        property: "notificationPreviewVisible"
+        value: active
+    }
 
     function firstLine(str) {
         var i = str.indexOf("\n")
@@ -369,6 +374,7 @@ SystemWindow {
 
             NotificationIcon {
                 id: notificationIcon
+
                 anchors {
                     top: popupPreviewScrollContainer.bottom
                     left: appIcon.right
@@ -561,6 +567,7 @@ SystemWindow {
 
     SequentialAnimation {
         id: notificationTimer
+
         property int duration
         paused: running && (popupArea.swipeActive || popupArea.showSwipeHint
                             || (notificationWindow.state === "showPopup" && popupArea.expanded))
@@ -880,7 +887,8 @@ SystemWindow {
             target: scrollAnimation.target
             property: "x"
             from: 0
-            to: Math.max(-scrollAnimation.range / 2, -scrollAnimation.speed * scrollAnimation.accelerationDuration / 1000 / 2)
+            to: Math.max(-scrollAnimation.range / 2,
+                         -scrollAnimation.speed * scrollAnimation.accelerationDuration / 1000 / 2)
             duration: (to - from) < 0 ? scrollAnimation.accelerationDuration : 0
             easing.type: Easing.InQuad
         }
@@ -899,7 +907,8 @@ SystemWindow {
 
             target: scrollAnimation.target
             property: "x"
-            from: Math.min(-scrollAnimation.range / 2, -scrollAnimation.range + scrollAnimation.speed * scrollAnimation.accelerationDuration / 1000 / 2)
+            from: Math.min(-scrollAnimation.range / 2,
+                           -scrollAnimation.range + scrollAnimation.speed * scrollAnimation.accelerationDuration / 1000 / 2)
             to: -scrollAnimation.range
             duration: (to - from) < 0 ? scrollAnimation.accelerationDuration : 0
             easing.type: Easing.OutQuad

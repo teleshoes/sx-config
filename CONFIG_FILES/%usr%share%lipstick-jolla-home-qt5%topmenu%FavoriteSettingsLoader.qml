@@ -17,10 +17,11 @@ import "../main"
 Loader {
     id: root
 
-    property alias switchesModel: simpleFavModel
+    property bool hasContent: simpleFavModel.count > 0
+                              || listFavModel.count > 0
+                              || gridFavModel.count > 0
     property real firstColumnVCenterOffset: width / columns / 2
     property int columns: 4
-    property bool showListFavorites
     property Item pager
     property int padding
 
@@ -71,15 +72,32 @@ Loader {
 
     FavoritesModel {
         id: simpleFavModel
+
         filter: combineTogglesIntoActions ? filterNone : filterToggles
         key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
         userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
     }
 
+    FavoritesModel {
+        id: gridFavModel
+
+        filter: combineTogglesIntoActions ? filterTogglesAndActions : filterActions
+        key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
+        userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
+    }
+
+    FavoritesModel {
+        id: listFavModel
+
+        filter: "list_favorites"
+        key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
+        userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
+    }
+
     sourceComponent: Column {
-        id: favoritesColumn
         width: root.width
         height: implicitHeight
+
         Item {
             width: 1
             height: root.padding
@@ -103,6 +121,7 @@ Loader {
             }
             Grid {
                 id: simpleFavGrid
+
                 columns: root.columns
                 height: implicitHeight
                 Behavior on height {
@@ -111,21 +130,25 @@ Loader {
                 }
                 EditableGridManager {
                     id: simpleFavGridManager
+
                     view: simpleFavGrid
                     pager: root.pager
                     contentContainer: simpleFavContainer
                     dragContainer: pager
+
                     function itemAt(x, y) {
                         return simpleFavGrid.childAt(x, y)
                     }
                     function itemCount() {
                         return simpleFavRepeater.count
                     }
+
                     onScroll: pager.scroll(up)
                     onStopScrolling: pager.stopScrolling()
                 }
                 Repeater {
                     id: simpleFavRepeater
+
                     model: simpleFavModel
                     delegate: FavoriteSettingsDelegate {
                         manager: simpleFavGridManager
@@ -146,8 +169,10 @@ Loader {
         /*** SLIDERS ***/
         Loader {
             id: listFavLoader
-            active: showListFavorites
+
+            active: true
             width: root.width
+
             Rectangle {
                 anchors {
                     fill: parent
@@ -160,7 +185,9 @@ Loader {
             }
             sourceComponent: Grid {
                 id: listFavGrid
+
                 property alias movingItem: listFavGridManager.movingItem
+
                 width: root.width
                 height: implicitHeight
                 columns: sliderColumns
@@ -170,10 +197,12 @@ Loader {
                 }
                 EditableGridManager {
                     id: listFavGridManager
+
                     view: listFavGrid
                     pager: root.pager
                     contentContainer: listFavLoader
                     dragContainer: pager
+
                     function itemAt(x, y) {
                         return listFavGrid.childAt(x, y)
                     }
@@ -185,12 +214,8 @@ Loader {
                 }
                 Repeater {
                     id: listFavRepeater
-                    model: FavoritesModel {
-                        id: listFavModel
-                        filter: filterSliders
-                        key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
-                        userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
-                    }
+
+                    model: listFavModel
                     delegate: FavoriteSettingsDelegate {
                         manager: listFavGridManager
                         width: root.width / sliderColumns
@@ -211,8 +236,10 @@ Loader {
         /*** ACTIONS ***/
         Item {
             id: gridFavGridContainer
+
             width: parent.width
             height: gridFavGrid.height
+
             Rectangle {
                 anchors {
                     fill: parent
@@ -226,6 +253,7 @@ Loader {
             }
             Grid {
                 id: gridFavGrid
+
                 columns: root.columns
                 height: implicitHeight
                 Behavior on height {
@@ -234,10 +262,12 @@ Loader {
                 }
                 EditableGridManager {
                     id: gridManager
+
                     view: gridFavGrid
                     pager: root.pager
                     contentContainer: gridFavGridContainer
                     dragContainer: pager
+
                     function itemAt(x, y) {
                         return gridFavGrid.childAt(x, y)
                     }
@@ -249,12 +279,8 @@ Loader {
                 }
                 Repeater {
                     id: gridFavRepeater
-                    model: FavoritesModel {
-                        id: gridFavModel
-                        filter: combineTogglesIntoActions ? filterTogglesAndActions : filterActions
-                        key: "/desktop/lipstick-jolla-home/topmenu_shortcuts"
-                        userModifiedKey: "/desktop/lipstick-jolla-home/topmenu_shortcuts_user"
-                    }
+
+                    model: gridFavModel
                     delegate: FavoriteSettingsDelegate {
                         id: pageOrActionDelegate
 

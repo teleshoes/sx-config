@@ -255,7 +255,9 @@ PagedView {
             }
         }
         onInputMethodReset: {
-            inputHandler._reset()
+            if (inputHandler) {
+                inputHandler._reset()
+            }
         }
     }
 
@@ -575,7 +577,9 @@ PagedView {
         inSymView2 = false
 
         resetShift()
-        inputHandler._reset()
+        if (inputHandler) {
+            inputHandler._reset()
+        }
 
         lastPressedKey = null
         lastInitialKey = null
