@@ -36,6 +36,8 @@ my @LXC_PATHS = qw(
   /var/lib/lxc
 );
 
+my $SYSTEMD_SERVICE = "aliendalvik";
+
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
 
 my @MEDIA_EXTS = qw(
@@ -465,7 +467,7 @@ sub main(@){
 
 sub serviceCmd($){
   my ($serviceCmd) = @_;
-  system "sudo", "systemctl", $serviceCmd, "aliendalvik";
+  system "sudo", "systemctl", $servicCmd, $SYSTEMD_SERVICE;
 }
 
 sub waitForAliendalvik($){
