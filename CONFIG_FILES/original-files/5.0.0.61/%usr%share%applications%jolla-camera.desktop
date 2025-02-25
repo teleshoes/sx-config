@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Camera
+X-MeeGo-Logical-Id=jolla-camera-ap-name
+X-MeeGo-Translation-Catalog=jolla-camera
+Icon=icon-launcher-camera
+Exec=/usr/bin/invoker --type=silica-media,silica-qt5 -A -- /usr/bin/jolla-camera
+Comment=Jolla Camera
+
+[X-Sailjail]
+ApplicationName=camera
+OrganizationName=com.jolla
+Permissions=Camera;Audio;Microphone;Pictures;Videos;MediaIndexing;Location;Privileged;Ambience;RemovableMedia
