@@ -29,7 +29,8 @@ my $SHELL_ENV_VARS_SH_FMT = join " ", map{"$_=$SHELL_ENV_VARS{$_}"}
 my $SHELL_ENV_VARS_USAGE_FMT = join " \\\n            ", map{"$_=$SHELL_ENV_VARS{$_}"}
   sort keys %SHELL_ENV_VARS;
 
-my $CONTAINER_NAME = "default";
+my $USER = "nemo";
+my $CONTAINER_NAME = $USER;
 my @LXC_PATHS = qw(
   /tmp/appsupport
   /var/lib/lxc
@@ -143,8 +144,8 @@ my $USAGE = "Usage:
 
   $EXEC -i|i|--install|install APK_FILE APK_FILE...
   $EXEC --install=APK_FILE
-    run: apkd-install-preload APK_FILE APK_FILE...
-         apkd-install APK_FILE APK_FILE...
+    run: apkd-install-preload -i $CONTAINER_NAME APK_FILE APK_FILE...
+         apkd-install -i $CONTAINER_NAME APK_FILE APK_FILE...
 
     APK_FILE
       an .apk file, OR a prefix of .apk files in $APK_DIR
@@ -354,8 +355,8 @@ sub main(@){
   }elsif($mode eq $MODE_INSTALL){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
     my $envArgs = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
-    system "sudo", "sh", "-c", "$envArgs apkd-install-preload @apkFileArgs";
-    system "sudo", "sh", "-c", "$envArgs apkd-install @apkFileArgs";
+    system "sudo", "sh", "-c", "$envArgs apkd-install-preload -i $CONTAINER_NAME @apkFileArgs";
+    system "sudo", "sh", "-c", "$envArgs apkd-install -i $CONTAINER_NAME @apkFileArgs";
   }elsif($mode eq $MODE_UNINSTALL){
     die "$USAGE\nError: no APK_FILE to uninstall\n" if @apkFileArgs == 0;
     for my $apkFile(@apkFileArgs){
