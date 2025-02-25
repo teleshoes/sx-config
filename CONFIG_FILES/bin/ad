@@ -467,7 +467,9 @@ sub main(@){
 
 sub serviceCmd($){
   my ($serviceCmd) = @_;
-  system "sudo", "systemctl", $servicCmd, $SYSTEMD_SERVICE;
+  my $envArgs = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
+  system "sudo", "-u", $USER, "sh", "-c",
+    "$envArgs systemctl --user $serviceCmd $SYSTEMD_SERVICE";
 }
 
 sub waitForAliendalvik($){
