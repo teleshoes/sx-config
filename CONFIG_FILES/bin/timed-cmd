@@ -15,6 +15,7 @@ sub toggleConfEventByTitle($);
 sub cancelEvents(@);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
+sub getEventCookiesForTitle($);
 sub getAllEventCookiesByTitle();
 sub formatTimedEventInfos(@);
 sub getTimedEventInfo($);
@@ -673,8 +674,7 @@ sub toggleConfEventByTitle($){
     die "ERROR: unknown conf entry title '$title'\n";
   }
 
-  my $allEventCookiesByTitle = getAllEventCookiesByTitle();
-  my @cookies = @{$$allEventCookiesByTitle{$title}} if defined $$allEventCookiesByTitle{$title};
+  my @cookies = getEventCookiesForTitle($title);
 
   if(@cookies > 0){
     cancelEvents(@cookies);
@@ -698,6 +698,12 @@ sub getEventCookiesAll(){
 sub getEventCookiesForApplication($){
   my ($application) = @_;
   my $out = readProc "timedclient-qt5", "--search", "APPLICATION=$application";
+  return $out =~ /\d+/g;
+}
+
+sub getEventCookiesForTitle($){
+  my ($title) = @_;
+  my $out = readProc "timedclient-qt5", "--search", "TITLE=$title";
   return $out =~ /\d+/g;
 }
 
