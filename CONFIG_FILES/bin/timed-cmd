@@ -146,14 +146,10 @@ my $USAGE = "Usage:
         ON_OFF_STATUS=off
     -print ON_OFF_STATUS
 
-  $EXEC [OPTS] -t CONFIG_TITLE
-  $EXEC [OPTS] --toggle CONFIG_TITLE
-    -fetch all timed event <COOKIE>s and extract <TITLE> attribute for each <COOKIE>
-    -find matching event where <CONFIG_TITLE> = <TITLE>
-      -if found:
-        -remove event <COOKIE>
-      -otherwise:
-        -add this single event or alarm as in --apply-config
+  $EXEC [OPTS] -t|--toggle CONFIG_TITLE
+    -get ON_OFF_STATUS as in: $EXEC --get-enabled CONFIG_TITLE
+      -if 'on':  same as $EXEC --disable CONFIG_TITLE
+      -if 'off': same as $EXEC --enable CONFIG_TITLE
 
   $EXEC [OPTS] --apply-conf | --apply-config
     -clear ALL EVENTS as in:
