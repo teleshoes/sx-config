@@ -19,6 +19,9 @@ my @DAEMONS_TIMED_CMD = qw(
 my @DAEMONS_SCREEN_DAEMON = qw(
   keepalive lock-daemon mpris-fakeplayer
 );
+my %DAEMONS_OTHER = (
+  lpm => {on => 'lock --lpm-enable', off => 'lock --lpm-disable', get => 'lock --is-lpm-enabled'},
+);
 
 my %DAEMONS = (
   (map {$_ => { on  => "timed-cmd --enable $_",
@@ -31,6 +34,7 @@ my %DAEMONS = (
                 get => "screen-daemon $_ --status"
              }
   } @DAEMONS_SCREEN_DAEMON),
+  %DAEMONS_OTHER,
 );
 
 my $ACTION_GET = "get";
