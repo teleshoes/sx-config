@@ -4,12 +4,17 @@ use warnings;
 use File::Basename qw(basename);
 
 sub readCapacity();
+sub fetchDaemonEnabled($);
+sub isAnyDaemonEnabled();
 sub isPSM();
 sub setPSM($);
 
 my $CAPACITY_DEV = "/sys/class/power_supply/battery/capacity";
 
 my $EXEC = basename $0;
+
+my %DAEMONS = (
+);
 
 my $ACTION_GET = "get";
 my $ACTION_ON = "on";
@@ -23,6 +28,23 @@ my $USAGE = "Usage:
   $EXEC
   $EXEC -g | --get
     show the current battery capacity from $CAPACITY_DEV
+
+  $EXEC -d get | --daemons get | daemons get
+    print status of each battery-consuming daemon,
+    formatted '<DAEMON_NAME> = on|off'
+
+  $EXEC -d on | --daemons on | daemons on
+    enable all battery-consuming daemons
+
+  $EXEC -d off | --daemons off | daemons off
+    disable all battery-consuming daemons
+
+  $EXEC -d | --daemons | daemons
+  $EXEC -d toggle | --daemons toggle | daemons toggle
+    get status of battery-consuming daemons
+      if all are enabled:  same as: $EXEC -d off
+      if all are disabled: same as: $EXEC -d on
+      otherwise:           same as: $EXEC -d off
 
   $EXEC --psm get | psm get
     get forced psm status with `mcetool`
@@ -43,6 +65,8 @@ my $USAGE = "Usage:
 ";
 
 my $CMD_GET = "get";
+my $CMD_DAEMONS_GET = "daemons-get";
+my $CMD_DAEMONS_SET = "daemons-set";
 my $CMD_PSM_GET = "psm-get";
 my $CMD_PSM_SET = "psm-set";
 
@@ -56,6 +80,18 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-g|--get)$/){
       $cmd = $CMD_GET;
+    }elsif($arg =~ /^(-d|--daemons|daemons)$/){
+      if(@_ > 0 and $_[0] =~ /^($ACTION_GET|$ACTION_ON|$ACTION_OFF|$ACTION_TOGGLE)$/){
+        $actionArg = shift @_;
+      }else{
+        $actionArg = $ACTION_TOGGLE;
+      }
+
+      if($actionArg eq $ACTION_GET){
+        $cmd = $CMD_DAEMONS_GET;
+      }else{
+        $cmd = $CMD_DAEMONS_SET;
+      }
     }elsif($arg =~ /^(--psm|psm)$/){
       if(@_ > 0 and $_[0] =~ /^($ACTION_GET|$ACTION_ON|$ACTION_OFF|$ACTION_TOGGLE)$/){
         $actionArg = shift @_;
@@ -75,6 +111,30 @@ sub main(@){
 
   if($cmd eq $CMD_GET){
     print readCapacity() . "\n";
+  }elsif($cmd eq $CMD_DAEMONS_GET){
+    for my $daemonName(sort keys %DAEMONS){
+      my $isEnabled = fetchDaemonEnabled($daemonName);
+      print "$daemonName = " . ($isEnabled ? "on" : "off") . "\n";
+    }
+  }elsif($cmd eq $CMD_DAEMONS_SET){
+    $actionArg = isAnyDaemonEnabled() ? $ACTION_OFF : $ACTION_ON if $actionArg eq $ACTION_TOGGLE;
+    my @cmds;
+    for my $daemonName(sort keys %DAEMONS){
+      if($actionArg eq $ACTION_ON){
+        push @cmds, $DAEMONS{$daemonName}{on};
+      }else{
+        push @cmds, $DAEMONS{$daemonName}{off};
+      }
+    }
+    for my $cmd(@cmds){
+      print "$cmd\n";
+      system $cmd;
+    }
+    print "\n\n";
+    for my $daemonName(sort keys %DAEMONS){
+      my $isEnabled = fetchDaemonEnabled($daemonName);
+      print "$daemonName = " . ($isEnabled ? "on" : "off") . "\n";
+    }
   }elsif($cmd eq $CMD_PSM_GET){
     print isPSM() ? "enabled\n" : "disabled\n";
   }elsif($cmd eq $CMD_PSM_SET){
@@ -94,6 +154,28 @@ sub readCapacity(){
   }else{
     die "ERROR: could not read $CAPACITY_DEV\n";
   }
+}
+
+sub fetchDaemonEnabled($){
+  my ($daemonName) = @_;
+  my $getCmd = $DAEMONS{$daemonName}{get};
+  my $val = `$getCmd`;
+  if($val =~ /^(on|enabled)$/i){
+    return 1;
+  }elsif($val =~ /^(off|disabled)$/i){
+    return 0;
+  }else{
+    die "ERROR: could not parse `$getCmd`\n";
+  }
+}
+
+sub isAnyDaemonEnabled(){
+  for my $daemonName(sort keys %DAEMONS){
+    if(fetchDaemonEnabled($daemonName)){
+      return 1;
+    }
+  }
+  return 0;
 }
 
 sub isPSM(){
