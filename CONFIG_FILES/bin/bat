@@ -11,6 +11,11 @@ my $CAPACITY_DEV = "/sys/class/power_supply/battery/capacity";
 
 my $EXEC = basename $0;
 
+my $ACTION_GET = "get";
+my $ACTION_ON = "on";
+my $ACTION_OFF = "off";
+my $ACTION_TOGGLE = "toggle";
+
 my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
@@ -20,20 +25,17 @@ my $USAGE = "Usage:
     show the current battery capacity from $CAPACITY_DEV
 
   $EXEC --psm get | psm get
-  $EXEC --get-psm | --psm-get
     get forced psm status with `mcetool`
     print 'enabled' or 'disabled'
 
   $EXEC --psm on | psm on
-  $EXEC --psm-on | --enable-psm | --psm-enable
     enable forced psm with `mcetool -F`
 
   $EXEC --psm off | psm off
-  $EXEC --psm-off | --disable-psm | --psm-disable
     disable forced psm with `mcetool -F`
 
   $EXEC --psm | psm
-  $EXEC --psm-toggle --toggle-psm
+  $EXEC --psm toggle | psm toggle
     if forced psm is enabled:
       same as: $EXEC --psm off
     otherwise:
@@ -42,12 +44,11 @@ my $USAGE = "Usage:
 
 my $CMD_GET = "get";
 my $CMD_PSM_GET = "psm-get";
-my $CMD_PSM_ON = "psm-on";
-my $CMD_PSM_OFF = "psm-off";
-my $CMD_PSM_TOGGLE = "psm-toggle";
+my $CMD_PSM_SET = "psm-set";
 
 sub main(@){
   my $cmd = $CMD_GET;
+  my $actionArg = undef;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -55,27 +56,18 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-g|--get)$/){
       $cmd = $CMD_GET;
-    }elsif($arg =~ /^(--get-psm|--psm-get)$/){
-      $cmd = $CMD_PSM_GET;
     }elsif($arg =~ /^(--psm|psm)$/){
-      if(@_ > 0 and $_[0] =~ /^(get)$/){
-        shift @_;
-        $cmd = $CMD_PSM_GET;
-      }elsif(@_ > 0 and $_[0] =~ /^(on)$/){
-        shift @_;
-        $cmd = $CMD_PSM_ON;
-      }elsif(@_ > 0 and $_[0] =~ /^(off)$/){
-        shift @_;
-        $cmd = $CMD_PSM_OFF;
+      if(@_ > 0 and $_[0] =~ /^($ACTION_GET|$ACTION_ON|$ACTION_OFF|$ACTION_TOGGLE)$/){
+        $actionArg = shift @_;
       }else{
-        $cmd = $CMD_PSM_TOGGLE;
+        $actionArg = $ACTION_TOGGLE;
       }
-    }elsif($arg =~ /^(--psm-on|--enable-psm|--psm-enable)$/){
-      $cmd = $CMD_PSM_ON;
-    }elsif($arg =~ /^(--psm-off|--disable-psm|--psm-disable)$/){
-      $cmd = $CMD_PSM_OFF;
-    }elsif($arg =~ /^(--psm-toggle|--toggle-psm)$/){
-      $cmd = $CMD_PSM_TOGGLE;
+
+      if($actionArg eq $ACTION_GET){
+        $cmd = $CMD_PSM_GET;
+      }else{
+        $cmd = $CMD_PSM_SET;
+      }
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -85,12 +77,10 @@ sub main(@){
     print readCapacity() . "\n";
   }elsif($cmd eq $CMD_PSM_GET){
     print isPSM() ? "enabled\n" : "disabled\n";
-  }elsif($cmd eq $CMD_PSM_ON){
-    setPSM(1);
-  }elsif($cmd eq $CMD_PSM_OFF){
-    setPSM(0);
-  }elsif($cmd eq $CMD_PSM_TOGGLE){
-    setPSM(!isPSM());
+  }elsif($cmd eq $CMD_PSM_SET){
+    $actionArg = isPSM() ? $ACTION_OFF : $ACTION_ON if $actionArg eq $ACTION_TOGGLE;
+    my $val = $actionArg eq $ACTION_ON ? 1 : 0;
+    setPSM($val);
   }else{
     die "ERROR: unknown cmd $cmd\n";
   }
