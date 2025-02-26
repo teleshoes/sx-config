@@ -11,7 +11,7 @@ sub formatConfEvents($@);
 sub addEvent($$$$$;$$);
 sub addEventFromConfEntry($);
 sub addAllConfEvents();
-sub toggleConfEventByTitle($);
+sub setConfEventEnabledStatusByTitle($$);
 sub cancelEvents(@);
 sub getEventCookiesAll();
 sub getEventCookiesForApplication($);
@@ -66,13 +66,17 @@ my $SCHED_ARG_REGEX = join("|",
   '(?:@\d+h)',
 );
 
+my $CONFIG_EVENT_STATUS_ENABLE = "enable";
+my $CONFIG_EVENT_STATUS_DISABLE = "disable";
+my $CONFIG_EVENT_STATUS_TOGGLE = "toggle";
+
 my $ACTION_GET_EVENTS = "get-events";
 my $ACTION_CLEAR_EVENTS = "clear-events";
 my $ACTION_RESET_TIMED = "reset-timed";
 my $ACTION_ADD_EVENT = "add-event";
 my $ACTION_GET_CONFIGS = "get-configs";
 my $ACTION_GET_CONFIG_EVENT_STATUS = "get-config-event-status";
-my $ACTION_TOGGLE_CONFIG = "toggle-config";
+my $ACTION_SET_CONFIG_EVENT_STATUS = "set-config-event-status";
 my $ACTION_APPLY_CONFIG = "apply-config";
 
 my $USAGE = "Usage:
@@ -341,8 +345,9 @@ sub main(@){
       $action = $ACTION_GET_CONFIG_EVENT_STATUS;
       $$opts{title} = shift @_;
     }elsif($arg =~ /^(-t|--toggle)$/ and @_ > 0){
-      $action = $ACTION_TOGGLE_CONFIG;
+      $action = $ACTION_SET_CONFIG_EVENT_STATUS;
       $$opts{title} = shift @_;
+      $$opts{configEventStatus} = $CONFIG_EVENT_STATUS_TOGGLE;
     }elsif($arg =~ /^(--apply-conf|--apply-config)$/){
       $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--alarm)$/){
@@ -404,10 +409,10 @@ sub main(@){
     validateOpts($opts, $action, {req=>[qw(title)], opt=>[]});
     my @cookies = getEventCookiesForTitle($$opts{title});
     print @cookies > 0 ? "on\n" : "off\n";
- }elsif($action eq $ACTION_TOGGLE_CONFIG){
-    validateOpts($opts, $action, {req=>[qw(title)], opt=>[]});
+ }elsif($action eq $ACTION_SET_CONFIG_EVENT_STATUS){
+    validateOpts($opts, $action, {req=>[qw(title configEventStatus)], opt=>[]});
 
-    toggleConfEventByTitle($$opts{title});
+    setConfEventEnabledStatusByTitle($$opts{title}, $$opts{configEventStatus});
   }elsif($action eq $ACTION_APPLY_CONFIG){
     validateOpts($opts, $action, {req=>[], opt=>[]});
 
@@ -672,8 +677,8 @@ sub addAllConfEvents(){
   addEventFromConfEntry($_) foreach @confEvents;
 }
 
-sub toggleConfEventByTitle($){
-  my ($title) = @_;
+sub setConfEventEnabledStatusByTitle($$){
+  my ($title, $configEventStatus) = @_;
 
   my $conf = readConf($CONF_FILE);
   my $targetConfEvent = undef;
@@ -689,9 +694,14 @@ sub toggleConfEventByTitle($){
 
   my @cookies = getEventCookiesForTitle($title);
 
-  if(@cookies > 0){
+  if($configEventStatus eq $CONFIG_EVENT_STATUS_TOGGLE){
+    $configEventStatus = @cookies == 0 ?
+      $CONFIG_EVENT_STATUS_ENABLE : $CONFIG_EVENT_STATUS_DISABLE;
+  }
+
+  if($configEventStatus eq $CONFIG_EVENT_STATUS_DISABLE and @cookies > 0){
     cancelEvents(@cookies);
-  }else{
+  }elsif($configEventStatus eq $CONFIG_EVENT_STATUS_ENABLE and @cookies == 0){
     addEventFromConfEntry($targetConfEvent);
   }
 }
