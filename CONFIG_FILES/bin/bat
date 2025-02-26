@@ -16,6 +16,9 @@ my $EXEC = basename $0;
 my @DAEMONS_TIMED_CMD = qw(
   lpm-refresh backup email gps-mls keepalive-win
 );
+my @DAEMONS_SCREEN_DAEMON = qw(
+  keepalive lock-daemon mpris-fakeplayer
+);
 
 my %DAEMONS = (
   (map {$_ => { on  => "timed-cmd --enable $_",
@@ -23,6 +26,11 @@ my %DAEMONS = (
                 get => "timed-cmd --get-enabled $_"
              }
   } @DAEMONS_TIMED_CMD),
+  (map {$_ => { on  => "screen-daemon $_ --ensure",
+                off => "screen-daemon $_ --stop",
+                get => "screen-daemon $_ --status"
+             }
+  } @DAEMONS_SCREEN_DAEMON),
 );
 
 my $ACTION_GET = "get";
