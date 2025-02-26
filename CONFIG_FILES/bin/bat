@@ -13,7 +13,16 @@ my $CAPACITY_DEV = "/sys/class/power_supply/battery/capacity";
 
 my $EXEC = basename $0;
 
+my @DAEMONS_TIMED_CMD = qw(
+  lpm-refresh backup email gps-mls keepalive-win
+);
+
 my %DAEMONS = (
+  (map {$_ => { on  => "timed-cmd --enable $_",
+                off => "timed-cmd --disable $_",
+                get => "timed-cmd --get-enabled $_"
+             }
+  } @DAEMONS_TIMED_CMD),
 );
 
 my $ACTION_GET = "get";
