@@ -71,6 +71,7 @@ my $ACTION_CLEAR_EVENTS = "clear-events";
 my $ACTION_RESET_TIMED = "reset-timed";
 my $ACTION_ADD_EVENT = "add-event";
 my $ACTION_GET_CONFIGS = "get-configs";
+my $ACTION_GET_CONFIG_EVENT_STATUS = "get-config-event-status";
 my $ACTION_TOGGLE_CONFIG = "toggle-config";
 my $ACTION_APPLY_CONFIG = "apply-config";
 
@@ -135,6 +136,15 @@ my $USAGE = "Usage:
       <ON_OFF_STATUS> | <TITLE> | <COOKIE_FMT> | <TIMEOUT> | <COMMAND>
     -print header for alarms, and print each alarm formatted:
       <ON_OFF_STATUS> | <TITLE> | <COOKIE_FMT> | <TIME_HHMM> | <DAYS_OF_WEEK_LETTERS>
+
+  $EXEC [OPTS] --get-enabled CONFIG_TITLE
+    -fetch all timed event <COOKIE>s and extract <TITLE> attribute for each <COOKIE>
+    -find matching event where <CONFIG_TITLE> = <TITLE>
+      -if found:
+        ON_OFF_STATUS=on
+      -otherwise:
+        ON_OFF_STATUS=off
+    -print ON_OFF_STATUS
 
   $EXEC [OPTS] -t CONFIG_TITLE
   $EXEC [OPTS] --toggle CONFIG_TITLE
@@ -331,6 +341,9 @@ sub main(@){
       $action = $ACTION_ADD_EVENT;
     }elsif($arg =~ /^--get-configs$/){
       $action = $ACTION_GET_CONFIGS;
+    }elsif($arg =~ /^(--get-enabled)$/ and @_ > 0){
+      $action = $ACTION_GET_CONFIG_EVENT_STATUS;
+      $$opts{title} = shift @_;
     }elsif($arg =~ /^(-t|--toggle)$/ and @_ > 0){
       $action = $ACTION_TOGGLE_CONFIG;
       $$opts{title} = shift @_;
@@ -391,6 +404,10 @@ sub main(@){
     my $allEventCookiesByTitle = getAllEventCookiesByTitle();
 
     print formatConfEvents($allEventCookiesByTitle, @confEvents);
+ }elsif($action eq $ACTION_GET_CONFIG_EVENT_STATUS){
+    validateOpts($opts, $action, {req=>[qw(title)], opt=>[]});
+    my @cookies = getEventCookiesForTitle($$opts{title});
+    print @cookies > 0 ? "on\n" : "off\n";
  }elsif($action eq $ACTION_TOGGLE_CONFIG){
     validateOpts($opts, $action, {req=>[qw(title)], opt=>[]});
 
