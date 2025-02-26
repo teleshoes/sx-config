@@ -150,6 +150,16 @@ my $USAGE = "Usage:
         ON_OFF_STATUS=off
     -print ON_OFF_STATUS
 
+  $EXEC [OPTS] --enable CONFIG_TITLE
+    -get ON_OFF_STATUS as in: $EXEC --get-enabled CONFIG_TITLE
+      -if 'off':
+        -add this single event or alarm, as in --apply-config
+
+  $EXEC [OPTS] --disable CONFIG_TITLE
+    -get ON_OFF_STATUS as in: $EXEC --get-enabled CONFIG_TITLE
+      -if 'on':
+        -remove all timed event <COOKIE>s with <CONFIG_TITLE> = <TITLE>
+
   $EXEC [OPTS] -t|--toggle CONFIG_TITLE
     -get ON_OFF_STATUS as in: $EXEC --get-enabled CONFIG_TITLE
       -if 'on':  same as $EXEC --disable CONFIG_TITLE
@@ -344,6 +354,14 @@ sub main(@){
     }elsif($arg =~ /^(--get-enabled)$/ and @_ > 0){
       $action = $ACTION_GET_CONFIG_EVENT_STATUS;
       $$opts{title} = shift @_;
+    }elsif($arg =~ /^(--enable)$/ and @_ > 0){
+      $action = $ACTION_SET_CONFIG_EVENT_STATUS;
+      $$opts{title} = shift @_;
+      $$opts{configEventStatus} = $CONFIG_EVENT_STATUS_ENABLE;
+    }elsif($arg =~ /^(--disable)$/ and @_ > 0){
+      $action = $ACTION_SET_CONFIG_EVENT_STATUS;
+      $$opts{title} = shift @_;
+      $$opts{configEventStatus} = $CONFIG_EVENT_STATUS_DISABLE;
     }elsif($arg =~ /^(-t|--toggle)$/ and @_ > 0){
       $action = $ACTION_SET_CONFIG_EVENT_STATUS;
       $$opts{title} = shift @_;
