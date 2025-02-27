@@ -1580,13 +1580,13 @@ def convertToStr(string):
   return string
 
 def regexMatch(pattern, string, flags=0):
-  return re.match(pattern, convertToStr(string), flags)
+  return re.match(pattern, convertToStr(string), flags=flags)
 
 def regexSub(pattern, repl, string, count=0, flags=0):
-  return re.sub(pattern, repl, convertToStr(string), count, flags)
+  return re.sub(pattern, repl, convertToStr(string), count=count, flags=flags)
 
 def regexSplit(pattern, string, maxsplit=0, flags=0):
-  return re.split(pattern, convertToStr(string), maxsplit, flags)
+  return re.split(pattern, convertToStr(string), maxsplit=maxsplit, flags=flags)
 
 if __name__ == '__main__':
   main()
