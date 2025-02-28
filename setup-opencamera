@@ -7,7 +7,7 @@ use PhoneBackupUtils;
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $OPENCAMERA_DATA_DIR = "/home/.android/data/data/net.sourceforge.opencamera";
+my $OPENCAMERA_DATA_DIR = "/home/.appsupport/instance/$USER/data/data/net.sourceforge.opencamera";
 my $PREFS_XML_FILE = "$OPENCAMERA_DATA_DIR/shared_prefs/net.sourceforge.opencamera_preferences.xml";
 
 my $SDCARD_BLOCK_DEV = "/dev/mmcblk0p2";
