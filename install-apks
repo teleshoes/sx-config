@@ -22,7 +22,7 @@ my %WD_AD_INSTALL_CMDS = (
   $MODE_ALIENDALVIK4 => "ad",
 );
 
-my $ANDROID_DATA_DIR = "/home/.android/data";
+my $ANDROID_DATA_DIR = "/home/.appsupport/instance/$USER/data";
 
 my %OBB_DEST_DIRS = (
   $MODE_WAYDROID     => "/home/$USER/.local/share/waydroid/data/media/obb",
