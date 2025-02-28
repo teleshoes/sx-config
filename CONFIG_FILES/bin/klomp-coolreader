@@ -8,7 +8,7 @@ my $CR_PROC_REGEX = "(org.coolreader)";
 my @KLOMP_TOGGLE_CMD = qw(klomp-cmd pause);
 my @COOLREADER_TOGGLE_CMD = qw(coolreader-ctl ttsPlayPause);
 
-my $CR_DATA_DIR = "/home/.android/data/data/org.coolreader";
+my $CR_DATA_DIR = "/home/.appsupport/instance/nemo/data/data/org.coolreader";
 my $CR_STATE_LOG_FILE = "$CR_DATA_DIR/files/cr-state-log.txt";
 
 my $USAGE = "Usage:
