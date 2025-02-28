@@ -27,7 +27,7 @@ my @ANDROID_STORAGE_DIRS = (
 );
 my $CR3_INI_FILE = "cr3.ini";
 
-my $MEDIA_PROVIDERS_MODULE_DATA_DIR = "/home/.android/data/data/com.android.providers.media.module";
+my $MEDIA_PROVIDERS_MODULE_DATA_DIR = "/home/.appsupport/instance/$USER/data/data/com.android.providers.media.module";
 
 my $usage = "Usage:
   $0 -h|--help
