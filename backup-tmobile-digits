@@ -51,7 +51,7 @@ sub main(@){
   print "\n\nfetch sqlite DB\n";
   my $tmpDbFile = "/tmp/backup-tmobile-digits-$nowMillis.db";
   runRetry 30, "ipmagic", $IPMAGIC_NAME, "-u", "root",
-    "sqlite3 $REMOTE_DIGITS_DB_FILE 'vacuum into \"$tmpDbFile\"'"
+    "sqlite3 $REMOTE_DIGITS_DB_FILE \"vacuum into '$tmpDbFile'\""
   ;
 
   my $db = "$BACKUP_DIGITS_DB_DIR/${dtm}_${nowMillis}_cdigits3x.sqlite";
