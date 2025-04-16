@@ -50,7 +50,7 @@ sub main(@){
   backup "dcim-backup", ($$opts{quick} ? ("--quick") : ());
   backup "sync-pixmirror" unless $$opts{quick};
   #backup "sync-android-apps --backup"; WAYDROID
-  backup "backup-lap";
+  backup "backup-workouts";
   backup "backup-amazfish";
   backup "backup-hrmon";
   backup "backup-home";
