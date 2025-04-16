@@ -4,25 +4,24 @@ use warnings;
 use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 
-my $user = "nemo";
-my $ipmagicName = "sx";
+my $USER = "nemo";
+my $ROOT_USER = "root";
+my $IPMAGIC_NAME = "sx";
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $BACKUP_DIR = "$BASE_DIR/backup/backup-lap";
 
-my $SRC_DIR = "/home/$user/.cache/lap";
+my $SRC_DIR = "/home/$USER/.cache/lap";
 
 sub run(@);
 
 sub main(@){
-  my $rootUser = "root";
-
   run "mkdir -p $BACKUP_DIR" if not -d $BACKUP_DIR;
   die "ERROR: $BACKUP_DIR is not a dir\n" if not -d $BACKUP_DIR;
 
-  runRetry 5, "ipmagic", $ipmagicName, "mkdir -p $SRC_DIR";
+  runRetry 5, "ipmagic", $IPMAGIC_NAME, "mkdir -p $SRC_DIR";
 
-  my @cmd = ("ipmagic", $ipmagicName, "-u", $rootUser, "--rsync",
+  my @cmd = ("ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER, "--rsync",
     "-avP",
     "--one-file-system",
     ":$SRC_DIR/",
