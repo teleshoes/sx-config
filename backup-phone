@@ -22,6 +22,7 @@ my $USAGE = "Usage:
         -skip check-missing in dcim-backup
         -skip sync-pixmirror
         -skip cleanup-backups
+        -skip sync-home-config
 ";
 
 sub main(@){
@@ -58,6 +59,7 @@ sub main(@){
   backup "backup-klomp-lists";
   backup "cleanup-backups" unless $$opts{quick};
   backup "backup-tmobile-digits";
+  backup "sync-home-config" unless $$opts{quick};
   backup "backup-comm", "--apply-only" unless $$opts{quick};
 }
 
