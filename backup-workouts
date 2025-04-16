@@ -9,28 +9,28 @@ my $ROOT_USER = "root";
 my $IPMAGIC_NAME = "sx";
 
 my $BASE_DIR = "$ENV{HOME}/Code/sx";
-my $BACKUP_DIR = "$BASE_DIR/backup/backup-lap";
 
-my $SRC_DIR = "/home/$USER/.cache/lap";
+my $LAP_REMOTE_DIR = "/home/$USER/.cache/lap";
+my $LAP_BACKUP_DIR = "$BASE_DIR/backup/backup-lap";
 
 sub backupDir($$);
 sub run(@);
 
 sub main(@){
-  backupDir($SRC_DIR, $BACKUP_DIR);
+  backupDir($LAP_REMOTE_DIR, $LAP_BACKUP_DIR);
 }
 
 sub backupDir($$){
-  my ($srcDir, $backupDir) = @_;
+  my ($remoteDir, $backupDir) = @_;
   run "mkdir -p $backupDir" if not -d $backupDir;
   die "ERROR: $backupDir is not a dir\n" if not -d $backupDir;
 
-  runRetry 5, "ipmagic", $IPMAGIC_NAME, "mkdir -p $srcDir";
+  runRetry 5, "ipmagic", $IPMAGIC_NAME, "mkdir -p $remoteDir";
 
   my @cmd = ("ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER, "--rsync",
     "-avP",
     "--one-file-system",
-    ":$srcDir/",
+    ":$remoteDir/",
     "$backupDir/",
   );
 
