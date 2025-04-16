@@ -13,11 +13,15 @@ my $BASE_DIR = "$ENV{HOME}/Code/sx";
 my $LAP_REMOTE_DIR = "/home/$USER/.cache/lap";
 my $LAP_BACKUP_DIR = "$BASE_DIR/backup/backup-lap";
 
+my $PUSHUPS_REMOTE_DIR = "/home/$USER/.cache/pushups";
+my $PUSHUPS_BACKUP_DIR = "$BASE_DIR/backup/backup-pushups";
+
 sub backupDir($$);
 sub run(@);
 
 sub main(@){
   backupDir($LAP_REMOTE_DIR, $LAP_BACKUP_DIR);
+  backupDir($PUSHUPS_REMOTE_DIR, $PUSHUPS_BACKUP_DIR);
 }
 
 sub backupDir($$){
