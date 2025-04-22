@@ -26,6 +26,10 @@ sub main(@){
   print "\n\n### creating raw img from sparse img\n";
   createRawImg();
 
+  my $tmpDir = "$ENV{PWD}/guestfs-cache";
+  system "mkdir", "-p", $tmpDir;
+  $ENV{TMPDIR} = $tmpDir;
+
   print "\n\n### starting guestfish\n";
   my $gf = startGuestfish qw(
     guestfish
@@ -47,6 +51,7 @@ sub main(@){
 
   print "\n\n### guestfish cleanup + exit\n";
   stopGuestfish($gf);
+  run "rm", "-r", $tmpDir;
 
   print "\n\n### editing autologin\n";
   print "fix groupadd with bbe\n";
