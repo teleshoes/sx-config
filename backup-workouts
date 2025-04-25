@@ -43,6 +43,15 @@ sub main(@){
       die "\n\n\n#####\nERROR: $cachedFile does not match $backupFile\n\n\n";
     }
   }
+
+  my @cmd = ("ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync",
+    "-avP",
+    "--no-owner",
+    "--ignore-existing",
+    "$PUSHUPS_LOCAL_CACHE_DIR/",
+    ":$PUSHUPS_REMOTE_DIR/",
+  );
+  runRetry 5, @cmd;
 }
 
 sub backupDir($$){
