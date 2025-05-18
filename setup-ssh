@@ -2,7 +2,7 @@ IPMAGIC_NAME="sx"
 USER="nemo"
 HOST=$(ipmagic $IPMAGIC_NAME)
 
-echo setup sshc nemo
+echo setup sshc $USER
 sshc --close $USER@$HOST
 sshc $USER@$HOST echo ok $USER
 
