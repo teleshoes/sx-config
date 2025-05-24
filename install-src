@@ -137,7 +137,7 @@ sub install($$$$){
       . " set -x"
       . " && rm -rf $REMOTE_SRC_DIR/$projectName"
       . " && mkdir -p $REMOTE_SRC_DIR"
-      . " && git clone $url $REMOTE_SRC_DIR/$projectName"
+      . " && git clone --progress $url $REMOTE_SRC_DIR/$projectName"
       . " && cd $REMOTE_SRC_DIR/$projectName"
       . " && echo -ne \"=====\\n=====\\n=====\\n\""
       . " && $cmd"
