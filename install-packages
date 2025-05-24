@@ -51,6 +51,7 @@ my %packages = (
     make cmake gcc gcc-c++
     pcre-devel sqlite sqlite-devel
     python3-pip
+    cairo-devel pango-devel
   )],
 
   "3-patches" => [qw(
