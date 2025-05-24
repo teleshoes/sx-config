@@ -48,6 +48,7 @@ my %packages = (
   )],
 
   "2-build" => [qw(
+    autoconf automake pkgconfig
     make cmake gcc gcc-c++
     pcre-devel sqlite sqlite-devel
     python3-pip
