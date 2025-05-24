@@ -23,6 +23,7 @@ my %INSTALLS = (
   pyeconet       => ["GIT", "https://github.com/teleshoes/pyeconet",          "sudo pip install ."],
   sqlite3_pcre   => ["GIT", "https://github.com/ralight/sqlite3-pcre",        "make && sudo make install"],
   mhonarc        => ["GIT", "https://github.com/sympa-community/MHonArc",     "perl Makefile.PL && sudo make install"],
+  gnuplot        => ["GIT", "git://git.code.sf.net/p/gnuplot/gnuplot-main",   "./prepare && ./configure --without-qt && make -j8 && sudo make install"],
 );
 
 my %DISABLED_INSTALLS = (
