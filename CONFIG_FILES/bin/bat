@@ -58,7 +58,7 @@ my $USAGE = "Usage:
     enable all battery-consuming daemons
 
   $EXEC -d off | --daemons off | daemons off
-    disable all battery-consuming daemons
+    disable all battery-consuming daemons and run `screen wipe`
 
   $EXEC -d | --daemons | daemons
   $EXEC -d toggle | --daemons toggle | daemons toggle
@@ -150,6 +150,9 @@ sub main(@){
     for my $cmd(@cmds){
       print "$cmd\n";
       system $cmd;
+    }
+    if($actionArg eq $ACTION_OFF){
+      system "screen -wipe";
     }
     print "\n\n";
     for my $daemonName(sort keys %DAEMONS){
