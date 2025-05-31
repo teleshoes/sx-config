@@ -4,7 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 my $FIX_ARR = [
-  [lipstick => [qw(lip)]         => "systemctl --user restart lipstick"],
+  [lipstick => [qw(lip)]         => "systemctl --user restart lipstick --force"],
   [led      => [qw()]            => "update-status-led"],
   [bt       => [qw(bluetooth)]   => "bluetooth-fix"],
   [ofono    => [qw(net network)] => "network-fix --force"],
