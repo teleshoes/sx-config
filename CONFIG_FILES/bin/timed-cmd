@@ -27,6 +27,7 @@ sub convertSchedRecurToSchedArgs($);
 sub dowLettersToArr($);
 sub dowArrToLetters($);
 sub arrSameElems($$);
+sub formatCmd(@);
 sub run(@);
 sub readProc(@);
 sub readProcLines(@);
@@ -1082,8 +1083,21 @@ sub arrSameElems($$){
   return 1;
 }
 
+sub formatCmd(@){
+  my @cmd = @_;
+  my @escapedWords;
+  for my $word(@cmd){
+    if($word =~ /[^a-zA-Z0-9_,=\-\+\.\/]/){
+      $word =~ s/'/'\\''/g;
+      $word = "'$word'";
+    }
+    push @escapedWords, $word;
+  }
+  return join(" ", @escapedWords);
+}
+
 sub run(@){
-  print "@_\n";
+  print formatCmd(@_) . "\n";
   system @_;
   die "ERROR: \"@_\" failed\n" if $? != 0;
 }
