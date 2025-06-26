@@ -23,6 +23,12 @@ sub main(@){
   print "\n\n### editing flash.sh to fix supported device product codes\n";
   editFlashSh();
 
+  print "\n\n### allow any OEM image\n";
+  #replace '_v9a_' => '_'
+  run "sed", "-i", "-E",
+    "s/^(flash_blob.*)(_v\\d+a_)/\\1_/",
+    "flash-config.sh";
+
   print "\n\n### creating raw img from sparse img\n";
   createRawImg();
 
@@ -70,7 +76,7 @@ sub main(@){
   restoreSparseImg();
 
   print "\n\n### updating md5.list\n";
-  updateMd5("md5.lst", "flash.sh", $SRC_SPARSE_IMG);
+  updateMd5("md5.lst", "flash.sh", "flash-config.sh", $SRC_SPARSE_IMG);
 
   print "\n\n### done\n";
 }
