@@ -1548,6 +1548,8 @@ def guessContentType(filename, filepath):
     contentType = "video/avi"
   elif regexMatch(r'^.*\.(3gp)$', filename, re.IGNORECASE):
     contentType = "video/3gpp"
+  elif regexMatch(r'^.*\.(amr)$', filename, re.IGNORECASE):
+    contentType = "audio/AMR"
   else:
     mimeType = result = subprocess.check_output([ "file"
                                                 , "--mime"
