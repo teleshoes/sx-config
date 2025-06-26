@@ -20,7 +20,7 @@ sub nowMillis();
 sub run(@);
 
 sub main(@){
-  print "\n\n### editing flash.sh to fix supported device product codes\n";
+  print "\n\n### editing flash.sh to fix supported device product codes and add -S 512k to oem\n";
   editFlashSh();
 
   print "\n\n### allow any OEM image\n";
@@ -101,6 +101,16 @@ sub editFlashSh(){
       "flash.sh";
   }else{
     print "no devices need modifying\n";
+  }
+
+
+  if(grepFile(".-S 512k flash", "flash.sh")){
+    print "skipping already present '-S 512k flash'\n";
+  }else{
+    print "editing flash.sh to add -S 512k to flash_blob\n";
+    run "sed", "-i", "-E",
+      "s/flash \"\\\$partition\" \"\\\$b\"/-S 512k \\0/",
+      "flash.sh";
   }
 }
 
