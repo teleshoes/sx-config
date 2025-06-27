@@ -9,16 +9,8 @@ my $STARTUP_SCRIPT_FILE = "/usr/local/bin/autostart";
 my $STARTUP_SCRIPT_CONTENTS = "#!/bin/sh
 PATH=/home/nemo/bin:\$PATH
 
+remount-sdcard
 /home/nemo/bin/screen-daemon remount-sdcard --start
-
-SD_PHONE_MNT=`sudo lsblk /dev/mmcblk0p1 -n -o MOUNTPOINT`
-SD_DROID_MNT=`sudo lsblk /dev/mmcblk0p2 -n -o MOUNTPOINT`
-
-sudo mkdir -p /media/sdcard/
-sudo rm -f /media/sdcard/phone
-sudo ln -s \$SD_PHONE_MNT /media/sdcard/phone
-sudo rm -f /media/sdcard/droid
-sudo ln -s \$SD_DROID_MNT /media/sdcard/droid
 
 /home/nemo/bin/screen-daemon button-monitor --start
 /home/nemo/bin/screen-daemon keepalive --start
