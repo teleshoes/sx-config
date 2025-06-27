@@ -36,6 +36,11 @@ my $USAGE = "Usage:
           -make parent mountpoint private
           -mount --move <SRC_MOUNT_POINT> <DEST_MOUNT_POINT>
           -make parent mountpoint shared
+      -if MODE = symlink:
+        -if <DEST_MOUNT_POINT> is a symlink to <SRC_MOUNT_POINT>:
+          -do nothing
+        -otherwise:
+          -remove <DEST_MOUNT_POINT> and replace with a symlink to <SRC_MOUNT_POINT>
 
   $EXEC --loop
     -perform `$EXEC --apply` every 30s
@@ -130,6 +135,18 @@ sub applySdcardConf($){
         }else{
           die "ERROR: failed to re-mount $srcMountPoint\n";
         }
+      }
+    }elsif($mode eq "symlink"){
+      my $link = readlink $destMountPoint;
+      if(-l $destMountPoint and $link eq $srcMountPoint){
+        print "$destMountPoint already symlink to $srcMountPoint\n";
+      }else{
+        run "sudo mkdir -p $DEST_MNT_BASE_DIR";
+        run "sudo", "rm", "-f", $destMountPoint if -l $destMountPoint;
+        run "sudo", "rmdir", $destMountPoint if -d $destMountPoint;
+        run "sudo", "rm", "-f", $destMountPoint if -e $destMountPoint;
+        run "sudo", "ln", "-s", $srcMountPoint, $destMountPoint;
+      }
     }else{
       die "ERROR: unknown mode $mode\n";
     }
