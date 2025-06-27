@@ -25,15 +25,17 @@ my $USAGE = "Usage:
   $EXEC --apply
     for each SDCARD_NAME in $SDCARDS_CONF_FILE:
       -extract UUID from <SDCARD_NAME>.uuid=<UUID>
+      -extract MODE from <SDCARD_NAME>.mode=<MODE>
       -get SRC_MOUNT_POINT and DEST_MOUNT_POINT to remount
         SRC_MOUNT_POINT = $SRC_MNT_BASE_DIR/<UUID>
         DEST_MOUNT_POINT = $DEST_MNT_BASE_DIR/<SDCARD_NAME>
-      -if <DEST_MOUNT_POINT> is a mountpoint:
-        -do nothing
-      -otherwise:
-        -make parent mountpoint private
-        -mount --move <SRC_MOUNT_POINT> <DEST_MOUNT_POINT>
-        -make parent mountpoint shared
+      -if MODE = remount:
+        -if <DEST_MOUNT_POINT> is a mountpoint:
+          -do nothing
+        -otherwise:
+          -make parent mountpoint private
+          -mount --move <SRC_MOUNT_POINT> <DEST_MOUNT_POINT>
+          -make parent mountpoint shared
 
   $EXEC --loop
     -perform `$EXEC --apply` every 30s
@@ -95,38 +97,41 @@ sub applySdcardConf($){
   for my $name(sort keys %$entries){
     print "\n$name\n";
     my $uuid = $$entries{$name}{uuid};
-    if(not defined $uuid){
+    my $mode = $$entries{$name}{mode};
+    if(not defined $uuid or not defined $mode){
       die "ERROR: malformed/missing config for $name\n"
     }
     my $srcMountPoint = "$SRC_MNT_BASE_DIR/$uuid";
     my $destMountPoint = "$DEST_MNT_BASE_DIR/$name";
-
-    my $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
-    if(not -l $destMountPoint and $isDestMountpoint =~ /is a mountpoint/){
-      print "$destMountPoint is already a mountpoint\n";
-    }else{
-      run "sudo rmdir $destMountPoint" if -d $destMountPoint;
-      run "sudo rm -f $destMountPoint" if -e $destMountPoint;
-      die "ERROR: could not remove $destMountPoint\n" if -e $destMountPoint;
-      run "sudo mkdir -p $destMountPoint";
-
-      die "ERROR: could not create $destMountPoint\n" if not -d $destMountPoint;
-
-      my $parentDir = dirname $srcMountPoint;
-      my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
-      chomp $parentMountPoint;
-
-      run "sudo", "mount", "--make-private", $parentMountPoint;
-      run "sudo", "mount", "--move", $srcMountPoint, $destMountPoint;
-      run "sudo", "mount", "--make-shared", $parentMountPoint;
-
-      $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
-
-      if($isDestMountpoint =~ /is a mountpoint/){
-        print "ran mount --move for $srcMountPoint => $destMountPoint\n";
+    if($mode eq "remount"){
+      my $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
+      if(not -l $destMountPoint and $isDestMountpoint =~ /is a mountpoint/){
+        print "$destMountPoint is already a mountpoint\n";
       }else{
-        die "ERROR: failed to re-mount $srcMountPoint\n";
-      }
+        run "sudo rmdir $destMountPoint" if -d $destMountPoint;
+        run "sudo rm -f $destMountPoint" if -e $destMountPoint;
+        die "ERROR: could not remove $destMountPoint\n" if -e $destMountPoint;
+        run "sudo mkdir -p $destMountPoint";
+
+        die "ERROR: could not create $destMountPoint\n" if not -d $destMountPoint;
+
+        my $parentDir = dirname $srcMountPoint;
+        my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
+        chomp $parentMountPoint;
+
+        run "sudo", "mount", "--make-private", $parentMountPoint;
+        run "sudo", "mount", "--move", $srcMountPoint, $destMountPoint;
+        run "sudo", "mount", "--make-shared", $parentMountPoint;
+
+        $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
+
+        if($isDestMountpoint =~ /is a mountpoint/){
+          print "ran mount --move for $srcMountPoint => $destMountPoint\n";
+        }else{
+          die "ERROR: failed to re-mount $srcMountPoint\n";
+        }
+    }else{
+      die "ERROR: unknown mode $mode\n";
     }
   }
 }
