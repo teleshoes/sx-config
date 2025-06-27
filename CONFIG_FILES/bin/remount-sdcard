@@ -5,6 +5,7 @@ use File::Basename qw(basename dirname);
 
 sub readConf();
 sub applySdcardConf($);
+sub run(@);
 
 my $USER = "nemo";
 my $SRC_MNT_BASE_DIR = "/run/media/$USER";
@@ -101,10 +102,10 @@ sub applySdcardConf($){
     if(not -l $destMountPoint and $isDestMountpoint =~ /is a mountpoint/){
       print "$destMountPoint is already a mountpoint\n";
     }else{
-      system "sudo rmdir $destMountPoint" if -d $destMountPoint;
-      system "sudo rm -f $destMountPoint" if -e $destMountPoint;
+      run "sudo rmdir $destMountPoint" if -d $destMountPoint;
+      run "sudo rm -f $destMountPoint" if -e $destMountPoint;
       die "ERROR: could not remove $destMountPoint\n" if -e $destMountPoint;
-      system "sudo mkdir -p $destMountPoint";
+      run "sudo mkdir -p $destMountPoint";
 
       die "ERROR: could not create $destMountPoint\n" if not -d $destMountPoint;
 
@@ -112,9 +113,9 @@ sub applySdcardConf($){
       my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
       chomp $parentMountPoint;
 
-      system "sudo", "mount", "--make-private", $parentMountPoint;
-      system "sudo", "mount", "--move", $srcMountPoint, $destMountPoint;
-      system "sudo", "mount", "--make-shared", $parentMountPoint;
+      run "sudo", "mount", "--make-private", $parentMountPoint;
+      run "sudo", "mount", "--move", $srcMountPoint, $destMountPoint;
+      run "sudo", "mount", "--make-shared", $parentMountPoint;
 
       $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
 
@@ -125,6 +126,12 @@ sub applySdcardConf($){
       }
     }
   }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
+  die "ERROR: cmd '@_' failed\n$!\n" if $? != 0;
 }
 
 &main(@ARGV);
