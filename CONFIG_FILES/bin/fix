@@ -38,7 +38,7 @@ my $USAGE = "Usage:
   $EXEC -h | --help
     show this message
 
-  $EXEC FIX_NAME [FIX_NAME FIX_NAME ..]
+  $EXEC [OPTS] FIX_NAME [FIX_NAME FIX_NAME ..]
     -send a notification with `notify -t $NOTIFY_TIMEOUT 'fix FIX_NAME FIX_NAME ...'`
     -for each FIX_NAME:
       run the command associated with that fix name
@@ -48,12 +48,19 @@ my $USAGE = "Usage:
       separated by a comma,
       without aliases
 
+  OPTS
+    -d | --daemon
+      run fix commands and notify with 'nohup CMD >/dev/null 2>/dev/null &'
+
   FIX_NAME" . $FIX_USAGE_FORMAT . "
 ";
 
 sub main(@){
   my $cmd = $CMD_FIX;
   my @fixNames;
+  my $opts = {
+    daemon => 1,
+  };
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -63,6 +70,8 @@ sub main(@){
       push @fixNames, lc $arg;
     }elsif($arg =~ /^(--csv)$/){
       $cmd = $CMD_CSV;
+    }elsif($arg =~ /^(-d|--daemon)$/){
+      $$opts{daemon} = 1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -73,10 +82,18 @@ sub main(@){
 
     my $msg = "fix: @fixNames";
     print "$msg\n";
-    system "notify", "-t", $NOTIFY_TIMEOUT, $msg;
+
+    my $notifyCmd = "notify -t $NOTIFY_TIMEOUT '$msg'";
+    if($$opts{daemon}){
+      $notifyCmd = "nohup $notifyCmd >/dev/null 2>/dev/null &";
+    }
+    system $notifyCmd;
 
     for my $fixName(@fixNames){
       my $cmd = $FIX_COMMANDS{$fixName};
+      if($$opts{daemon}){
+        $cmd = "nohup $cmd >/dev/null 2>/dev/null &";
+      }
       print "$cmd\n";
       system $cmd;
     }
