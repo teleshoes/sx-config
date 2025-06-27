@@ -3,21 +3,14 @@ use strict;
 use warnings;
 use File::Basename qw(basename dirname);
 
-sub moveSdcard();
+sub readConf();
+sub applySdcardConf($);
 
 my $USER = "nemo";
 my $SRC_MNT_BASE_DIR = "/run/media/$USER";
 my $DEST_MNT_BASE_DIR = "/media/sdcard";
 
 my $SDCARDS_CONF_FILE = "/etc/sdcards.conf";
-
-my $NAME;
-my $UUID;
-my $CONF = `cat $SDCARDS_CONF_FILE`;
-if($CONF =~ /^(\w+)\.uuid=(.+)$/){
-  $NAME = $1;
-  $UUID = $2;
-}
 
 my $CMD_APPLY = "apply";
 
@@ -29,15 +22,17 @@ my $USAGE = "Usage:
 
   $EXEC
   $EXEC --apply
-    -get SRC_MOUNT_POINT and DEST_MOUNT_POINT to remount
-      SRC_MOUNT_POINT=$SRC_MNT_BASE_DIR/$UUID
-      DEST_MOUNT_POINT=$DEST_MNT_BASE_DIR/$NAME
-    -if <DEST_MOUNT_POINT> is a mountpoint:
-      -do nothing
-    -otherwise:
-      -make parent mountpoint private
-      -mount --move <SRC_MOUNT_POINT> <DEST_MOUNT_POINT>
-      -make parent mountpoint shared
+    for each SDCARD_NAME in $SDCARDS_CONF_FILE:
+      -extract UUID from <SDCARD_NAME>.uuid=<UUID>
+      -get SRC_MOUNT_POINT and DEST_MOUNT_POINT to remount
+        SRC_MOUNT_POINT = $SRC_MNT_BASE_DIR/<UUID>
+        DEST_MOUNT_POINT = $DEST_MNT_BASE_DIR/<SDCARD_NAME>
+      -if <DEST_MOUNT_POINT> is a mountpoint:
+        -do nothing
+      -otherwise:
+        -make parent mountpoint private
+        -mount --move <SRC_MOUNT_POINT> <DEST_MOUNT_POINT>
+        -make parent mountpoint shared
 
   $EXEC --loop
     -perform `$EXEC --apply` every 30s
@@ -61,49 +56,73 @@ sub main(@){
   }
 
   if($cmd eq $CMD_APPLY){
+    my $entries = readConf();
     if($isLoop){
       while(1){
         system "date";
-        moveSdcard();
+        applySdcardConf($entries);
         sleep 30;
       }
     }else{
-      moveSdcard();
+      applySdcardConf($entries);
     }
   }else{
     die "ERROR: unknown cmd $cmd\n";
   }
 }
 
-sub moveSdcard(){
-  my $srcMountPoint = "$SRC_MNT_BASE_DIR/$UUID";
-  my $destMountPoint = "$DEST_MNT_BASE_DIR/$NAME";
+sub readConf(){
+  my $entries = {};
+  if(-e $SDCARDS_CONF_FILE){
+    open my $fh, "<", $SDCARDS_CONF_FILE
+      or die "ERROR: could not read $SDCARDS_CONF_FILE\n$!\n";
+    my @lines = <$fh>;
+    close $fh;
+    for my $line(@lines){
+      if($line =~ /^\s*(\w+)\.(\w+)\s*=\s*(.*)?\s*$/){
+        my ($name, $field, $val) = ($1, $2, $3);
+        $$entries{$name} = {} if not defined $$entries{$name};
+        $$entries{$name}{$field} = $val;
+      }
+    }
+  }
+  return $entries;
+}
 
-  my $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
-  if(not -l $destMountPoint and $isDestMountpoint =~ /is a mountpoint/){
-    print "$destMountPoint is already a mountpoint\n";
-  }else{
-    system "sudo rmdir $destMountPoint" if -d $destMountPoint;
-    system "sudo rm -f $destMountPoint" if -e $destMountPoint;
-    die "ERROR: could not remove $destMountPoint\n" if -e $destMountPoint;
-    system "sudo mkdir -p $destMountPoint";
+sub applySdcardConf($){
+  my ($entries) = @_;
+  for my $name(sort keys %$entries){
+    print "\n$name\n";
+    my $uuid = $$entries{$name}{uuid};
+    my $srcMountPoint = "$SRC_MNT_BASE_DIR/$uuid";
+    my $destMountPoint = "$DEST_MNT_BASE_DIR/$name";
 
-    die "ERROR: could not create $destMountPoint\n" if not -d $destMountPoint;
-
-    my $parentDir = dirname $srcMountPoint;
-    my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
-    chomp $parentMountPoint;
-
-    system "sudo", "mount", "--make-private", $parentMountPoint;
-    system "sudo", "mount", "--move", $srcMountPoint, $destMountPoint;
-    system "sudo", "mount", "--make-shared", $parentMountPoint;
-
-    $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
-
-    if($isDestMountpoint =~ /is a mountpoint/){
-      print "ran mount --move for $srcMountPoint => $destMountPoint\n";
+    my $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
+    if(not -l $destMountPoint and $isDestMountpoint =~ /is a mountpoint/){
+      print "$destMountPoint is already a mountpoint\n";
     }else{
-      die "ERROR: failed to re-mount $srcMountPoint\n";
+      system "sudo rmdir $destMountPoint" if -d $destMountPoint;
+      system "sudo rm -f $destMountPoint" if -e $destMountPoint;
+      die "ERROR: could not remove $destMountPoint\n" if -e $destMountPoint;
+      system "sudo mkdir -p $destMountPoint";
+
+      die "ERROR: could not create $destMountPoint\n" if not -d $destMountPoint;
+
+      my $parentDir = dirname $srcMountPoint;
+      my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
+      chomp $parentMountPoint;
+
+      system "sudo", "mount", "--make-private", $parentMountPoint;
+      system "sudo", "mount", "--move", $srcMountPoint, $destMountPoint;
+      system "sudo", "mount", "--make-shared", $parentMountPoint;
+
+      $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
+
+      if($isDestMountpoint =~ /is a mountpoint/){
+        print "ran mount --move for $srcMountPoint => $destMountPoint\n";
+      }else{
+        die "ERROR: failed to re-mount $srcMountPoint\n";
+      }
     }
   }
 }
