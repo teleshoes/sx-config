@@ -5,8 +5,12 @@ use File::Basename qw(basename dirname);
 
 sub moveSdcard();
 
-my $DEV = "/dev/mmcblk0p1";
-my $TARGET_MOUNT_DIR = "/media/sdcard/phone";
+my $USER = "nemo";
+my $SRC_MNT_BASE_DIR = "/run/media/$USER";
+my $DEST_MNT_BASE_DIR = "/media/sdcard";
+
+my $NAME = "phone";
+my $UUID = "d754afec-4b8e-4c50-ae5e-5f79c986778e";
 
 my $EXEC = basename $0;
 
@@ -16,12 +20,14 @@ my $USAGE = "Usage:
 
   $EXEC
   $EXEC --move
-    -get <CURRENT_MOUNT_POINT> of $DEV from `mount`
-    -if <CURRENT_MOUNT_POINT> is $TARGET_MOUNT_DIR:
+    -get SRC_MOUNT_POINT and DEST_MOUNT_POINT to remount
+      SRC_MOUNT_POINT=$SRC_MNT_BASE_DIR/$UUID
+      DEST_MOUNT_POINT=$DEST_MNT_BASE_DIR/$NAME
+    -if <DEST_MOUNT_POINT> is a mountpoint:
       -do nothing
     -otherwise:
       -make parent mountpoint private
-      -mount --move <CURRENT_DIR> $TARGET_MOUNT_DIR
+      -mount --move <SRC_MOUNT_POINT> <DEST_MOUNT_POINT>
       -make parent mountpoint shared
 
   $EXEC --loop
@@ -63,36 +69,35 @@ sub main(@){
 }
 
 sub moveSdcard(){
-  my $mount = `mount`;
-  if($mount =~ /^$DEV on (.+) type/m){
-    my $dir = $1;
-    if($dir ne $TARGET_MOUNT_DIR){
-      system "sudo rmdir $TARGET_MOUNT_DIR" if -d $TARGET_MOUNT_DIR;
-      system "sudo rm -f $TARGET_MOUNT_DIR" if -e $TARGET_MOUNT_DIR;
-      system "sudo mkdir -p $TARGET_MOUNT_DIR";
+  my $srcMountPoint = "$SRC_MNT_BASE_DIR/$UUID";
+  my $destMountPoint = "$DEST_MNT_BASE_DIR/$NAME";
 
-      die "ERROR: could not create $TARGET_MOUNT_DIR\n" if not -d $TARGET_MOUNT_DIR;
-
-      my $parentDir = dirname $dir;
-      my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
-      chomp $parentMountPoint;
-
-      system "sudo", "mount", "--make-private", $parentMountPoint;
-      system "sudo", "mount", "--move", $dir, $TARGET_MOUNT_DIR;
-      system "sudo", "mount", "--make-shared", $parentMountPoint;
-
-      $mount = `mount`;
-
-      if($mount =~ /^$DEV on $TARGET_MOUNT_DIR type/m){
-        print "moved $DEV mountpoint from $dir to $TARGET_MOUNT_DIR\n";
-      }else{
-        die "ERROR: failed to re-mount $DEV\n";
-      }
-    }else{
-      print "$DEV already mounted on $TARGET_MOUNT_DIR\n";
-    }
+  my $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
+  if(not -l $destMountPoint and $isDestMountpoint =~ /is a mountpoint/){
+    print "$destMountPoint is already a mountpoint\n";
   }else{
-    print "$DEV not mounted\n";
+    system "sudo rmdir $destMountPoint" if -d $destMountPoint;
+    system "sudo rm -f $destMountPoint" if -e $destMountPoint;
+    die "ERROR: could not remove $destMountPoint\n" if -e $destMountPoint;
+    system "sudo mkdir -p $destMountPoint";
+
+    die "ERROR: could not create $destMountPoint\n" if not -d $destMountPoint;
+
+    my $parentDir = dirname $srcMountPoint;
+    my $parentMountPoint = `findmnt -n -o TARGET --target "$parentDir"`;
+    chomp $parentMountPoint;
+
+    system "sudo", "mount", "--make-private", $parentMountPoint;
+    system "sudo", "mount", "--move", $srcMountPoint, $destMountPoint;
+    system "sudo", "mount", "--make-shared", $parentMountPoint;
+
+    $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
+
+    if($isDestMountpoint =~ /is a mountpoint/){
+      print "ran mount --move for $srcMountPoint => $destMountPoint\n";
+    }else{
+      die "ERROR: failed to re-mount $srcMountPoint\n";
+    }
   }
 }
 
