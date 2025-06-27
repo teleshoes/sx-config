@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use File::Basename qw(basename dirname);
 
+sub moveSdcard();
+
 my $DEV = "/dev/mmcblk0p1";
 my $TARGET_MOUNT_DIR = "/media/sdcard/phone";
 
@@ -27,8 +29,6 @@ my $USAGE = "Usage:
 ";
 
 my $MODE_MOVE = "move";
-
-sub moveSdcard();
 
 sub main(@){
   my $mode = $MODE_MOVE;
