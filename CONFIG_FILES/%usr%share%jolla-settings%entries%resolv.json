@@ -5,7 +5,7 @@
             "path": "system_settings/connectivity/wlan/resolv_toggle_switch",
             "title": "resolv",
             "type": "custom",
-            "icon": "image://theme/icon-m-download",
+            "icon": "image://theme/icon-m-downloads",
             "params": {
                 "source": "/usr/share/jolla-settings/ResolvSwitch.qml",
                 "type": "grid",
