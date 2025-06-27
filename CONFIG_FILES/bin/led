@@ -34,6 +34,13 @@ my $DEVICES = {
     led_blue       => "$XZ2C_DEV_LEDS_DIR/blue/brightness",
     max_brightness => 127,
   },
+  X10II => {
+    name           => 'Sony Xperia 10 II',
+    led_red        => "/sys/class/leds/red/brightness",
+    led_green      => "/sys/class/leds/green/brightness",
+    led_blue       => "/sys/class/leds/blue/brightness",
+    max_brightness => 255,
+  },
   X10III => {
     name           => 'Sony Xperia 10 III',
     led_red        => "$X10III_DEV_LEDS_DIR/red/brightness",
