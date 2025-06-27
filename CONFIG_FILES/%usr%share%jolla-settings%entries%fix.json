@@ -1,0 +1,16 @@
+{
+    "translation_catalog": "settings-system",
+    "entries": [
+        {
+            "path": "system_settings/info/fix",
+            "title": "Fix",
+            "type": "custom",
+            "icon": "image://theme/icon-m-diagnostic",
+            "params": {
+                "source": "/usr/share/jolla-settings/pages/developermode/FixSwitch.qml",
+                "type": "grid",
+                "settings_path": "system_settings/info/fix"
+            }
+        }
+    ]
+}
