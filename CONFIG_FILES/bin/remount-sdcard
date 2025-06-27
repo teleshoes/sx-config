@@ -12,6 +12,8 @@ my $DEST_MNT_BASE_DIR = "/media/sdcard";
 my $NAME = "phone";
 my $UUID = "d754afec-4b8e-4c50-ae5e-5f79c986778e";
 
+my $CMD_APPLY = "apply";
+
 my $EXEC = basename $0;
 
 my $USAGE = "Usage:
@@ -19,7 +21,7 @@ my $USAGE = "Usage:
     show this message
 
   $EXEC
-  $EXEC --move
+  $EXEC --apply
     -get SRC_MOUNT_POINT and DEST_MOUNT_POINT to remount
       SRC_MOUNT_POINT=$SRC_MNT_BASE_DIR/$UUID
       DEST_MOUNT_POINT=$DEST_MNT_BASE_DIR/$NAME
@@ -31,21 +33,19 @@ my $USAGE = "Usage:
       -make parent mountpoint shared
 
   $EXEC --loop
-    -perform `$EXEC --move` every 30s
+    -perform `$EXEC --apply` every 30s
 ";
 
-my $MODE_MOVE = "move";
-
 sub main(@){
-  my $mode = $MODE_MOVE;
+  my $cmd = $CMD_APPLY;
   my $isLoop = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(--move)$/){
-      $mode = $MODE_MOVE;
+    }elsif($arg =~ /^(--apply)$/){
+      $cmd = $CMD_APPLY;
     }elsif($arg =~ /^(--loop)$/){
       $isLoop = 1;
     }else{
@@ -53,7 +53,7 @@ sub main(@){
     }
   }
 
-  if($mode eq $MODE_MOVE){
+  if($cmd eq $CMD_APPLY){
     if($isLoop){
       while(1){
         system "date";
@@ -64,7 +64,7 @@ sub main(@){
       moveSdcard();
     }
   }else{
-    die "ERROR: unknown mode $mode\n";
+    die "ERROR: unknown cmd $cmd\n";
   }
 }
 
