@@ -95,6 +95,9 @@ sub applySdcardConf($){
   for my $name(sort keys %$entries){
     print "\n$name\n";
     my $uuid = $$entries{$name}{uuid};
+    if(not defined $uuid){
+      die "ERROR: malformed/missing config for $name\n"
+    }
     my $srcMountPoint = "$SRC_MNT_BASE_DIR/$uuid";
     my $destMountPoint = "$DEST_MNT_BASE_DIR/$name";
 
