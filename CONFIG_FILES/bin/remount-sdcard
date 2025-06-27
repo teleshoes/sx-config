@@ -9,8 +9,15 @@ my $USER = "nemo";
 my $SRC_MNT_BASE_DIR = "/run/media/$USER";
 my $DEST_MNT_BASE_DIR = "/media/sdcard";
 
-my $NAME = "phone";
-my $UUID = "d754afec-4b8e-4c50-ae5e-5f79c986778e";
+my $SDCARDS_CONF_FILE = "/etc/sdcards.conf";
+
+my $NAME;
+my $UUID;
+my $CONF = `cat $SDCARDS_CONF_FILE`;
+if($CONF =~ /^(\w+)\.uuid=(.+)$/){
+  $NAME = $1;
+  $UUID = $2;
+}
 
 my $CMD_APPLY = "apply";
 
