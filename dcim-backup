@@ -444,7 +444,7 @@ sub getRemoteDCIMInfo($){
 
   my $infoByFile = {};
   print "fetching remote file info for $remoteDCIM\n";
-  my @stats = readProcLinesRetry(30,
+  my @stats = readProcLinesRetry(120,
     "ipmagic", $IPMAGIC_NAME, "--ssh-exec", "sshc",  "-s", $findStatCmd,
   );
 
