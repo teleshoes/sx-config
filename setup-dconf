@@ -168,7 +168,7 @@ sub getTopmenuToggles(){
     fontsize               => 'system_settings/look_and_feel/display/fontsize/enable_switch',
     orientation_lock       => 'system_settings/look_and_feel/display/orientation_lock',
     silence                => 'system_settings/look_and_feel/sounds/silence_switch',
-    flashlight             => 'system_settings/look_and_feel/events/flashlight/enable_switch',
+    flashlight             => 'system_settings/look_and_feel/topmenu/flashlight/enable_switch',
     wlan                   => 'system_settings/connectivity/wlan/enable_switch',
     global_proxy           => 'system_settings/connectivity/wlan/enable_global_proxy',
     resolv                 => 'system_settings/connectivity/wlan/resolv_toggle_switch',
