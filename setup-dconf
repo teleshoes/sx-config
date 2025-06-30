@@ -36,6 +36,7 @@ my @SELECTED_TOP_MENU_ITEMS = (
   $$TOPMENU_ACTIONS{connect_to_internet},
   $$TOPMENU_TOGGLES{hotspot},
   $$TOPMENU_TOGGLES{volte},
+  $$TOPMENU_TOGGLES{resolv},
   $$TOPMENU_TOGGLES{screenshot},
 
   $$TOPMENU_TOGGLES{pulse},
