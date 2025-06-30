@@ -31,18 +31,17 @@ my @SELECTED_TOP_MENU_ITEMS = (
   $$TOPMENU_TOGGLES{flashlight},
   $$TOPMENU_TOGGLES{orientation_lock},
   $$TOPMENU_TOGGLES{location},
-  $$TOPMENU_TOGGLES{hotspot},
+  $$TOPMENU_TOGGLES{vibration},
 
   $$TOPMENU_ACTIONS{connect_to_internet},
-  $$TOPMENU_ACTIONS{make_a_note},
+  $$TOPMENU_TOGGLES{hotspot},
   $$TOPMENU_TOGGLES{volte},
-
   $$TOPMENU_TOGGLES{screenshot},
-  $$TOPMENU_TOGGLES{pulse},
-  $$TOPMENU_TOGGLES{vibration},
-  $$TOPMENU_TOGGLES{lpm},
 
+  $$TOPMENU_TOGGLES{pulse},
+  $$TOPMENU_TOGGLES{lpm},
   $$TOPMENU_TOGGLES{fix},
+  $$TOPMENU_ACTIONS{make_a_note},
 );
 
 my @NOTIFICATIONS_APP_NAMES_NO_PREVIEW = (
