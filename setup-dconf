@@ -39,6 +39,11 @@ my @SELECTED_TOP_MENU_ITEMS = (
   $$TOPMENU_TOGGLES{volte},
 
   $$TOPMENU_TOGGLES{screenshot},
+  $$TOPMENU_TOGGLES{pulse},
+  $$TOPMENU_TOGGLES{vibration},
+  $$TOPMENU_TOGGLES{lpm},
+
+  $$TOPMENU_TOGGLES{fix},
 );
 
 my @NOTIFICATIONS_APP_NAMES_NO_PREVIEW = (
@@ -183,6 +188,10 @@ sub getTopmenuToggles(){
     bluetooth              => 'system_settings/connectivity/bluetooth/enable_switch',
     nfc                    => 'system_settings/connectivity/nfc/enable_nfc',
     screenshot             => 'system_settings/look_and_feel/topmenu/screenshot/enable_switch',
+    pulse                  => 'system_settings/connectivity/wlan/pulse_vol_switch',
+    vibration              => 'system_settings/look_and_feel/vibration',
+    lpm                    => 'system_settings/look_and_feel/lpm',
+    fix                    => 'system_settings/info/fix',
   };
 }
 sub getTopmenuSliders(){
