@@ -101,7 +101,6 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 ./setup-vpn
 
 ./install-cpan
-./install-cpan #run it twice, first time fails with network error halfway
 
 ./install-adwaita-icons
 
