@@ -38,6 +38,15 @@ sub main(@){
   }
   system "mkdir", "-p", $BACKUP_NOTES_DB_DIR;
 
+  if(not ipmagicTest($IPMAGIC_NAME, $USER, "-e", $REMOTE_DB_PATH)){
+    print "RUNNING NOTES APP FOR 5s\n";
+    run "ipmagic", $IPMAGIC_NAME, "-s", "
+      jolla-notes &
+      sleep 5
+      pkill jolla-notes
+    ";
+  }
+
   my $nowMillis = nowMillis();
   my $db = "$BACKUP_NOTES_DB_DIR/notes-db-$nowMillis.sqlite";
   runRetry 10, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", ":$REMOTE_DB_PATH", $db;
