@@ -5,6 +5,7 @@ use warnings;
 my $ipmagicName = "sx";
 my $USER = "root";
 
+sub setupCpanConfig();
 sub run(@);
 
 my %MODULES = (
@@ -46,15 +47,7 @@ my $usage = "Usage:
 sub main(@){
   die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
 
-  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf pushy_https 0; s save'";
-  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf prereqs 1; s save'";
-
-  run "ipmagic", $ipmagicName, "-u", $USER, ''
-    . '( echo;'
-    . '  echo o conf pushy_https 0;'
-    . '  echo o conf prerequisites_policy follow;'
-    . '  echo o conf commit;'
-    . ') | cpan';
+  setupCpanConfig();
 
   run "ipmagic", $ipmagicName, "-u", $USER,
     "perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
@@ -71,6 +64,18 @@ sub main(@){
     run "ipmagic", $ipmagicName, "-u", $USER,
       "perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
   }
+}
+
+sub setupCpanConfig(){
+  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf pushy_https 0; s save'";
+  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf prereqs 1; s save'";
+
+  run "ipmagic", $ipmagicName, "-u", $USER, ''
+    . '( echo;'
+    . '  echo o conf pushy_https 0;'
+    . '  echo o conf prerequisites_policy follow;'
+    . '  echo o conf commit;'
+    . ') | cpan';
 }
 
 sub run(@){
