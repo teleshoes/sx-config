@@ -156,10 +156,15 @@ my $USAGE = "Usage:
       e.g.: --key-regex='text_input'
             --key-regex='^/desktop/lipstick-jolla-home/'
             --key-regex='voice|media'
+
+    -r | --restart-lipstick | --kill-lipstick
+      at the start of the bash script, before setting any dconf keys,
+        kill lipstick and then restart it in the background
 ";
 
 sub main(@){
   my $opts = {
+    restartLipstick => 0,
     keyRegexFilter  => undef,
   };
   while(@_ > 0){
@@ -171,12 +176,20 @@ sub main(@){
       $$opts{keyRegexFilter} = shift @_;
     }elsif($arg =~ /^--key-regex-filter=(.+)$/){
       $$opts{keyRegexFilter} = $1;
+    }elsif($arg =~ /^(-r|--restart-lipstick|--kill-lipstick)$/){
+      $$opts{restartLipstick} = 1;
     }else{
       die "ERROR: unknown arg $arg\n";
     }
   }
 
   my $script = "";
+  if($$opts{restartLipstick}){
+    $script .= "echo killing+restarting lipstick\n";
+    $script .= "pkill -9 lipstick\n";
+    $script .= "systemctl --user restart lipstick &\n";
+  }
+
   my @keys = sort keys %$DCONF;
   my $filter = $$opts{keyRegexFilter};
   if(defined $filter){
