@@ -151,23 +151,40 @@ my $USAGE = "Usage:
     -run bash script remotely
 
   OPTS
+    -k KEY_REGEX | --key-regex-filter=KEY_REGEX
+      include only dconf keys that match the regex
+      e.g.: --key-regex='text_input'
+            --key-regex='^/desktop/lipstick-jolla-home/'
+            --key-regex='voice|media'
 ";
 
 sub main(@){
   my $opts = {
+    keyRegexFilter  => undef,
   };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-k)$/ and @_ > 0){
+      $$opts{keyRegexFilter} = shift @_;
+    }elsif($arg =~ /^--key-regex-filter=(.+)$/){
+      $$opts{keyRegexFilter} = $1;
     }else{
       die "ERROR: unknown arg $arg\n";
     }
   }
 
   my $script = "";
-  for my $key(sort keys %$DCONF){
+  my @keys = sort keys %$DCONF;
+  my $filter = $$opts{keyRegexFilter};
+  if(defined $filter){
+    @keys = grep {$_ =~ /$filter/} @keys;
+    print "matching keys:\n" . join("", map {"  $_\n"} @keys) . "\n";
+  }
+
+  for my $key(@keys){
     my $val = $$DCONF{$key};
     $script .= "
       source /etc/bashrc
