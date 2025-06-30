@@ -37,6 +37,8 @@ my @SELECTED_TOP_MENU_ITEMS = (
   $$TOPMENU_ACTIONS{connect_to_internet},
   $$TOPMENU_ACTIONS{make_a_note},
   $$TOPMENU_TOGGLES{volte},
+
+  $$TOPMENU_TOGGLES{screenshot},
 );
 
 my @NOTIFICATIONS_APP_NAMES_NO_PREVIEW = (
@@ -180,6 +182,7 @@ sub getTopmenuToggles(){
     location               => 'system_settings/connectivity/gps_and_location/enable_location',
     bluetooth              => 'system_settings/connectivity/bluetooth/enable_switch',
     nfc                    => 'system_settings/connectivity/nfc/enable_nfc',
+    screenshot             => 'system_settings/look_and_feel/topmenu/screenshot/enable_switch',
   };
 }
 sub getTopmenuSliders(){
