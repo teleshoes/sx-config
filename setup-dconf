@@ -33,7 +33,6 @@ my @SELECTED_TOP_MENU_ITEMS = (
   $$TOPMENU_TOGGLES{location},
   $$TOPMENU_TOGGLES{hotspot},
 
-  $$TOPMENU_TOGGLES{resolv},
   $$TOPMENU_ACTIONS{connect_to_internet},
   $$TOPMENU_ACTIONS{make_a_note},
   $$TOPMENU_TOGGLES{volte},
