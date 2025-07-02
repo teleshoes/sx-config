@@ -183,17 +183,22 @@ SilicaFlickable {
 
             // shutdown options
             Row {
+                id: shutdownRow
+
+                property int optionCount: 1 + (rebootButton.visible ? 1 : 0) + (extraLockButton.visible ? 1 : 0)
+
                 y: Math.min(0, -height - topPadding.height + topMenu.offset)
 
                 width: topMenu.width
                 height: topMenu.itemSize
                 visible: Lipstick.compositor.powerKeyPressed
                          || Lipstick.compositor.experimentalFeatures.topmenu_shutdown_reboot_visible
+                         || Lipstick.compositor.experimentalFeatures.topmenu_always_show_lockbutton
 
                 PowerButton {
                     id: shutdownButton
 
-                    width: parent.width / (rebootButton.visible ? 2 : 1)
+                    width: parent.width / shutdownRow.optionCount
                     height: parent.height
 
                     offset: lockButton.offset + height
@@ -206,7 +211,7 @@ SilicaFlickable {
                     id: rebootButton
 
                     visible: rebootActionConfig.value
-                    width: parent.width / 2
+                    width: parent.width / shutdownRow.optionCount
                     height: parent.height
 
                     offset: lockButton.offset + height
@@ -220,6 +225,17 @@ SilicaFlickable {
                         key: "/desktop/jolla/reboot_action_enabled"
                         defaultValue: false
                     }
+                }
+
+                PowerButton {
+                    id: extraLockButton
+
+                    visible: Lipstick.compositor.experimentalFeatures.topmenu_always_show_lockbutton
+                    width: parent.width / shutdownRow.optionCount
+                    height: parent.height
+                    offset: lockButton.offset + height
+                    iconSource: "image://theme/graphic-display-blank"
+                    onClicked: Lipstick.compositor.setDisplayOff()
                 }
             }
 

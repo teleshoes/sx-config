@@ -298,6 +298,7 @@ Compositor {
     }
 
     function goToSwitcher(minimize) { goToHome(homeLayerItem.switcher, minimize) }
+
     function goToEvents() { goToHome(homeLayerItem.events, true) }
 
     function goToApplication(winId) {
@@ -330,6 +331,7 @@ Compositor {
 
     FileWatcher {
         id: initDoneFile
+
         // init-done file appears when the boot finishes
         fileName: "/run/systemd/boot-status/init-done"
     }
@@ -341,6 +343,7 @@ Compositor {
         property bool quickAppToggleGesture
         property bool multitasking_home: true
         property bool topmenu_shutdown_reboot_visible
+        property bool topmenu_always_show_lockbutton
         property int lockscreen_notification_count: 4
         property bool dismiss_lockscreen_on_bootup
     }
@@ -433,6 +436,11 @@ Compositor {
         if (window && window.userData && window.userData.windowType === WindowType.Wallpaper) {
             window.userData.setAsWallpaper()
             return
+        }
+
+        // hide switcher to get the app visible
+        if (!multitaskingHome) {
+            launcherLayer.hide()
         }
 
         var transientWindow = window
@@ -868,8 +876,8 @@ Compositor {
                         PropertyChanges {
                             target: closeAreaIndicator
                             // triggered closing reverts briefly to peekfilter progress 0
-                            opacity: Theme.opacityHigh *
-                                     (appLayerItem.peekFilter.progress > 0 ? appLayerItem.peekFilter.progress : 1)
+                            opacity: Theme.opacityHigh * (appLayerItem.peekFilter.progress > 0
+                                                          ? appLayerItem.peekFilter.progress : 1)
                         }
                     }
                 ]
@@ -1970,10 +1978,6 @@ Compositor {
         function power_button_trigger(argument) {
             if (argument === "double-power-key") {
                 root.showUnlockScreen()
-            } else if (argument === "home-key") {
-                if (!root.systemGesturesDisabled) {
-                    root.goToSwitcher(true)
-                }
             }
         }
     }
