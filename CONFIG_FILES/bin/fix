@@ -4,17 +4,17 @@ use warnings;
 use File::Basename qw(basename);
 
 my $FIX_ARR = [
-  [lipstick => [qw(lip)]         => "systemctl --user restart lipstick --force"],
-  [led      => [qw()]            => "update-status-led"],
-  [bt       => [qw(bluetooth)]   => "bluetooth-fix"],
-  [ofono    => [qw(net network)] => "network-fix --force"],
-  [mms      => [qw(mms-engine)]  => "pkill mms-engine"],
-  [ip6      => [qw(ipv6)]        => "fix-ip6"],
-  [cam      => [qw(camera)]      => "cam --kill"],
-  [adr      => [qw(ad)]          => "adr"],
-  [cr3      => [qw(coolreader)]  => "cr3-fix"],
-  [pulse    => [qw()]            => "systemctl --user restart pulseaudio"],
-  [kb       => [qw(keyboard)]    => "systemctl --user restart maliit-server"],
+  [lipstick => [qw(lip)]         => ["systemctl --user restart lipstick --force"]],
+  [led      => [qw()]            => ["update-status-led"]],
+  [bt       => [qw(bluetooth)]   => ["bluetooth-fix"]],
+  [ofono    => [qw(net network)] => ["network-fix --force"]],
+  [mms      => [qw(mms-engine)]  => ["pkill mms-engine"]],
+  [ip6      => [qw(ipv6)]        => ["fix-ip6"]],
+  [cam      => [qw(camera)]      => ["cam --kill"]],
+  [adr      => [qw(ad)]          => ["adr"]],
+  [cr3      => [qw(coolreader)]  => ["cr3-fix"]],
+  [pulse    => [qw()]            => ["systemctl --user restart pulseaudio"]],
+  [kb       => [qw(keyboard)]    => ["systemctl --user restart maliit-server"]],
 ];
 
 my $CMD_FIX = "fix";
@@ -90,12 +90,14 @@ sub main(@){
     system $notifyCmd;
 
     for my $fixName(@fixNames){
-      my $cmd = $FIX_COMMANDS{$fixName};
-      if($$opts{daemon}){
-        $cmd = "nohup $cmd >/dev/null 2>/dev/null &";
+      my @cmds = @{$FIX_COMMANDS{$fixName}};
+      for my $cmd(@cmds){
+        if($$opts{daemon}){
+          $cmd = "nohup $cmd >/dev/null 2>/dev/null &";
+        }
+        print "$cmd\n";
+        system $cmd;
       }
-      print "$cmd\n";
-      system $cmd;
     }
   }elsif($cmd eq $CMD_CSV){
     my $csv = join ",", @FIX_NAMES;
