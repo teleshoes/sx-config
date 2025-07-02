@@ -13,7 +13,9 @@ my $FIX_ARR = [
   [cam      => [qw(camera)]      => ["cam --kill"]],
   [adr      => [qw(ad)]          => ["adr"]],
   [cr3      => [qw(coolreader)]  => ["cr3-fix"]],
-  [pulse    => [qw()]            => ["systemctl --user restart pulseaudio"]],
+  [pulse    => [qw()]            => [ "sudo systemctl restart ohmd",
+                                      "systemctl --user restart pulseaudio",
+                                    ]],
   [kb       => [qw(keyboard)]    => ["systemctl --user restart maliit-server"]],
 ];
 
