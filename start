@@ -1,21 +1,33 @@
 #flashing
+#  -boot android, get IMEI and mac addresses, etc
 #  -check bootloader unlockable:
 #    *#*#7378423#*#* to access the service menu.
 #    Tap Service info > Configuration > Rooting Status.
 #    If 'Bootloader unlock allowed' says Yes, good.
 #    If not, throw phone in garbage.
-#  -maybe downgrade phone to 6.0.1 marshmallow to extract DRM keys
-#    or maybe not
-#  -upgrade phone to latest android
-#    as of 2021-02-28 the latest is: baseband:1302-7793_34.4.A.2.118
-#    per jolla, must be 34.3.A.0.xxx (xxx > 228) or 34.4.A.yyy (yyy is anything)
 #  -enable 'Allow OEM Unlock' and 'USB Debugging' in developer tools in android menu
 #  -get an unlock code from
 #    https://developer.sony.com/develop/open-devices/get-started/unlock-bootloader/
 #  -unlock phone with fastboot
 #     sudo fastboot oem unlock 0x<UNLOCK_CODE>
-#  -download sony binary img AOSP v13+ loire
-#  -run ./flash.sh | tee log
+#  -flash phone to known good android version
+#    -download full android image with xperifirm or from interwabs
+#    -reset userdata+dalvik to maybe avoid bootloop
+#      -enter blue fastboot volup mode
+#      -enter recovery mode: sudo fastboot reboot recovery
+#      -factory reset data
+#    -flash desired android:
+#      -enter green flashing voldown mode
+#        cd /media/stuff/Images/xperia/<IMAGEDIR>
+#        ~/Code/newflasher-xperia/newflasher #yes to erase userdata, yes to tadump
+#        #mv tadump flashing/unlocking/<MODEL>/<INSTANCE>
+#        ~/Code/newflasher-xperia/newflasher #yes to erase userdata, no to tadump
+#    -if bootloop, try, in any order:
+#      -factory reset again
+#      -flash again
+#      -switch to slot a: ~/Code/newflasher-xperia/newflasher set_active:a
+#  -boot android, complete setup minimally, reboot android, boot to flash
+#  -flash SFOS
 
 # settings -> display -> timeout -> 10 min #for convenience only, timeout is also in setup-dconf
 
