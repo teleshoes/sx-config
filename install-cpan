@@ -67,6 +67,9 @@ sub main(@){
     run "ipmagic", $ipmagicName, "-u", $USER,
       "perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
   }
+
+  #build encodings after install
+  run "ipmagic", $ipmagicName, "-u", $USER, "enc2xs", "-C";
 }
 
 sub setupCpanConfig(){
