@@ -16,6 +16,7 @@ my %MODULES = (
     Date::Parse
     MIME::Lite
     MIME::Parser
+    Encode::HanExtra
   )],
   klompbigtext => [qw(
     Text::CSV
