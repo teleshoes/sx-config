@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+
+my $IMG_FILE_BARCODE = "/media/sdcard/phone/retrofit_barcode_xid.png";
+my $EXEC_IMG_VIEW = "img-view";
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+    -run: $EXEC_IMG_VIEW $IMG_FILE_BARCODE
+";
+
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  exec $EXEC_IMG_VIEW, $IMG_FILE_BARCODE;
+}
+
+&main(@ARGV);
