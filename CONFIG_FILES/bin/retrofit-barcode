@@ -2,17 +2,26 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
+use Time::HiRes qw(sleep);
 
 my $EXEC = basename $0;
 
 my $IMG_FILE_BARCODE = "/media/sdcard/phone/retrofit_barcode_xid.png";
+
+my $SCREEN_DAEMON_NAME_HRMON = "hrmon";
+
 my $EXEC_IMG_VIEW = "img-view";
+my $EXEC_SCREEN_DAEMON = "screen-daemon";
+my $EXEC_FINGERTERM = "fingerterm";
+my $EXEC_UDO = "udo";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
   $EXEC
+    -run: $EXEC_SCREEN_DAEMON $SCREEN_DAEMON_NAME_HRMON --ensure
+    -run: $EXEC_UDO $EXEC_FINGERTERM -e '$EXEC_SCREEN_DAEMON $SCREEN_DAEMON_NAME_HRMON --attach' &
     -run: $EXEC_IMG_VIEW $IMG_FILE_BARCODE
 ";
 
@@ -26,6 +35,13 @@ sub main(@){
       die "ERROR: unknown arg $arg\n";
     }
   }
+
+  system $EXEC_SCREEN_DAEMON, $SCREEN_DAEMON_NAME_HRMON, "--ensure";
+  system ""
+    . "$EXEC_UDO $EXEC_FINGERTERM"
+    . " -e '$EXEC_SCREEN_DAEMON $SCREEN_DAEMON_NAME_HRMON --attach'"
+    . " &";
+  sleep 0.2;
 
   exec $EXEC_IMG_VIEW, $IMG_FILE_BARCODE;
 }
