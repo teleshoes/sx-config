@@ -81,6 +81,7 @@ my %packages = (
     libvncserver
     python2-dbus
     sailfish-office
+    sailfish-filemanager
     youtube-dl
     usb-moded-connection-sharing-android-config
   )],
