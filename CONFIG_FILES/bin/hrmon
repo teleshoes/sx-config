@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 sub getLastLogFile();
+sub getLastHeartrateLogEntry();
 sub stopHrmon();
 sub run(@);
 
@@ -114,18 +115,7 @@ sub main(@){
   }elsif($cmd eq $CMD_STATUS){
     run "screen-daemon", "hrmon", "--status";
   }elsif($cmd eq $CMD_GET){
-    my $logFile = getLastLogFile();
-    if($logFile =~ /\.log$/){
-      system "grep 'Heart rate' '$logFile' | tail -1";
-    }elsif($logFile =~ /\.log\.gz$/){
-      system "zgrep 'Heart rate' '$logFile' | tail -1";
-    }elsif($logFile =~ /\.log\.xz$/){
-      system "xz -d -c '$logFile' | grep 'Heart rate' | tail -1";
-    }elsif($logFile =~ /\.log\.bz2$/){
-      system "bzip2 -d -c '$logFile' | grep 'Heart rate' | tail -1";
-    }else{
-      die "ERROR: unrecognized log file format '$logFile'\n";
-    }
+    getLastHeartrateLogEntry();
   }elsif($cmd eq $CMD_ROTATE_LOGS){
     system "mkdir", "-p", $LOG_DIR;
     my @logFiles = sort glob "$LOG_DIR/*.log";
@@ -157,6 +147,24 @@ sub getLastLogFile(){
   die "ERROR: no log files available in $LOG_DIR\n" if @logFiles == 0;
   my $lastLogFile = $logFiles[-1];
   return $lastLogFile;
+}
+
+sub getLastHeartrateLogEntry(){
+  my $logFile = getLastLogFile();
+  my @cmd;
+  if($logFile =~ /\.log$/){
+    @cmd = ("grep 'Heart rate' '$logFile' | tail -1");
+  }elsif($logFile =~ /\.log\.gz$/){
+    @cmd = ("zgrep 'Heart rate' '$logFile' | tail -1");
+  }elsif($logFile =~ /\.log\.xz$/){
+    @cmd = ("xz -d -c '$logFile' | grep 'Heart rate' | tail -1");
+  }elsif($logFile =~ /\.log\.bz2$/){
+    @cmd = ("bzip2 -d -c '$logFile' | grep 'Heart rate' | tail -1");
+  }else{
+    die "ERROR: unrecognized log file format '$logFile'\n";
+  }
+
+  system @cmd;
 }
 
 sub stopHrmon(){
