@@ -1,5 +1,4 @@
 {
-    "translation_catalog": "settings-networking",
     "entries": [
         {
             "path": "system_settings/connectivity/wlan/resolv_toggle_switch",
