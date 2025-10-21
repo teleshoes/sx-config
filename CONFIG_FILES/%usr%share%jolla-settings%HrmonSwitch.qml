@@ -8,6 +8,9 @@ import Mer.Cutes 1.1
 SettingsToggle {
     property var hrmonState: "off" //'off', 'waiting', 'error' or '###'
 
+    property var delayMillisOff: 5000
+    property var delayMillisOn: 1000
+
     name: "hr:" + hrmonState
     icon.source: "image://theme/icon-m-watch"
     showOnOffLabel: true
@@ -28,7 +31,18 @@ SettingsToggle {
     onVisibleChanged: {
       if(visible){
         retrieveHrmonState();
+        updateTimer.start();
+      }else{
+        updateTimer.stop();
       }
+    }
+
+    Timer {
+      id: updateTimer
+
+      interval: delayMillisOff
+      repeat: true
+      onTriggered: retrieveHrmonState()
     }
 
     function retrieveHrmonState() {
@@ -42,6 +56,12 @@ SettingsToggle {
         hrmonState = match[0];
       }else{
         hrmonState = "error"
+      }
+
+      if(hrmonState == "off" || hrmonState == "waiting"){
+        updateTimer.interval = delayMillisOff;
+      }else{
+        updateTimer.interval = delayMillisOn;
       }
     }
 
