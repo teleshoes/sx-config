@@ -228,6 +228,7 @@ sub main(@){
 
 sub getTopmenuToggles(){
   return {
+    appsupport             => 'system_settings/info/android/enable_switch',
     fontsize               => 'system_settings/look_and_feel/display/fontsize/enable_switch',
     orientation_lock       => 'system_settings/look_and_feel/display/orientation_lock',
     silence                => 'system_settings/look_and_feel/sounds/silence_switch',
