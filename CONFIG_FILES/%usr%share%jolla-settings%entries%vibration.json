@@ -9,7 +9,7 @@
             "params": {
                 "source": "/usr/share/jolla-settings/VibrationSwitch.qml",
                 "type": "grid",
-                "settings_path": "system_settings/look_and_feel/vibration"
+                "settings_path": "system_settings/look_and_feel/sounds"
             }
         }
     ]
