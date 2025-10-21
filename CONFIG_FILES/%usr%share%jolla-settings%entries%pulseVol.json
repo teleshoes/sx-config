@@ -1,7 +1,7 @@
 {
     "entries": [
         {
-            "path": "system_settings/connectivity/wlan/pulse_vol_switch",
+            "path": "system_settings/look_and_feel/topmenu/pulse_vol/switch",
             "title": "pulseVol",
             "type": "custom",
             "icon": "image://theme/icon-m-sounds",

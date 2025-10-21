@@ -1,7 +1,7 @@
 {
     "entries": [
         {
-            "path": "system_settings/info/fix",
+            "path": "system_settings/look_and_feel/topmenu/fix/switch",
             "title": "Fix",
             "type": "custom",
             "icon": "image://theme/icon-m-diagnostic",

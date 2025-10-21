@@ -1,7 +1,7 @@
 {
     "entries": [
         {
-            "path": "system_settings/connectivity/wlan/resolv_toggle_switch",
+            "path": "system_settings/look_and_feel/topmenu/resolv/switch",
             "title": "resolv",
             "type": "custom",
             "icon": "image://theme/icon-m-downloads",

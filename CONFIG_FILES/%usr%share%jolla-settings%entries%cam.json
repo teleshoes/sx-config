@@ -1,7 +1,7 @@
 {
     "entries": [
         {
-            "path": "system_settings/info/camera_system_settings/cam",
+            "path": "system_settings/look_and_feel/topmenu/cam/switch",
             "title": "cam",
             "type": "custom",
             "icon": "image://theme/icon-m-camera",

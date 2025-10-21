@@ -1,7 +1,7 @@
 {
     "entries": [
         {
-            "path": "system_settings/connectivity/wlan/hrmon_switch",
+            "path": "system_settings/look_and_feel/topmenu/hrmon/switch",
             "title": "hrmon",
             "type": "custom",
             "icon": "image://theme/icon-m-watch",

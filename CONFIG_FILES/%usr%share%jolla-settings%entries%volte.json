@@ -1,7 +1,7 @@
 {
     "entries": [
         {
-            "path": "system_settings/connectivity/volte_toggle_switch",
+            "path": "system_settings/look_and_feel/topmenu/volte/switch",
             "title": "volte",
             "type": "custom",
             "icon": "image://theme/icon-m-media-radio",

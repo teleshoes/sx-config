@@ -1,7 +1,7 @@
 {
     "entries": [
         {
-            "path": "system_settings/look_and_feel/lpm",
+            "path": "system_settings/look_and_feel/topmenu/lpm/switch",
             "title": "Low Power Mode",
             "type": "custom",
             "icon": "image://theme/custom-icon-m-lpm",
