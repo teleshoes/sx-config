@@ -1,0 +1,16 @@
+{
+    "translation_catalog": "settings-system",
+    "entries": [
+        {
+            "path": "system_settings/connectivity/wlan/hrmon_switch",
+            "title": "hrmon",
+            "type": "custom",
+            "icon": "image://theme/icon-m-watch",
+            "params": {
+                "source": "/usr/share/jolla-settings/HrmonSwitch.qml",
+                "type": "grid",
+                "settings_path": "system_settings/look_and_feel/sounds"
+            }
+        }
+    ]
+}
