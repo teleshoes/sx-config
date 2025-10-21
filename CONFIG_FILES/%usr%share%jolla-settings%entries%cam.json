@@ -8,8 +8,7 @@
             "icon": "image://theme/icon-m-camera",
             "params": {
                 "source": "/usr/share/jolla-settings/CamSwitch.qml",
-                "type": "grid",
-                "settings_path": "system_settings/info/camera_system_settings"
+                "type": "grid"
             }
         }
     ]

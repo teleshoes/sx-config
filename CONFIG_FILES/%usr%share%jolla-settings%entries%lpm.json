@@ -8,8 +8,7 @@
             "icon": "image://theme/custom-icon-m-lpm",
             "params": {
                 "source": "/usr/share/jolla-settings/LPMSwitch.qml",
-                "type": "grid",
-                "settings_path": "system_settings/look_and_feel/lpm"
+                "type": "grid"
             }
         }
     ]

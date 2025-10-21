@@ -8,8 +8,7 @@
             "icon": "image://theme/icon-m-watch",
             "params": {
                 "source": "/usr/share/jolla-settings/HrmonSwitch.qml",
-                "type": "grid",
-                "settings_path": "system_settings/look_and_feel/sounds"
+                "type": "grid"
             }
         }
     ]
