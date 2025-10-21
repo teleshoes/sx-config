@@ -609,6 +609,11 @@ SystemWindow {
     onAppIconUrlChanged: refreshPeriod()
 
     function displayNotification() {
+        // do not display notification on connecting charger
+        if(notificationWindow.appNameText === 'System' && notificationWindow.bodyText === ('Charging...')){
+          state = "hidePopup";
+          return;
+        }
         // do not display notifications with appName in dconf:
         //   /lipstick/notifications_app_names_no_preview
         for (var i = 0; i < appNamesNoPreview.value.length; i++) {
