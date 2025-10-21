@@ -79,7 +79,15 @@ SilicaFlickable {
     signal shutdown()
     signal reboot()
 
-    readonly property int toggleColumns: Math.floor(width / Theme.itemSizeExtraLarge)
+    ConfigurationValue {
+        id: toggleColumnsConfig
+
+        key: "/desktop/lipstick-jolla-home/topmenu_shortcuts_columns"
+        defaultValue: defaultToggleColumns
+    }
+    readonly property int defaultToggleColumns: Math.floor(width / Theme.itemSizeExtraLarge)
+    property int toggleColumns: Math.max(1, Number(toggleColumnsConfig.value) || defaultToggleColumns)
+
     property int itemSize: Math.round(width / toggleColumns)
     readonly property bool exposed: Lipstick.compositor.topMenuLayer.exposed
     readonly property real offset: Lipstick.compositor.topMenuLayer.absoluteExposure + contentY
