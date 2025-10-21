@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(basename);
 
 sub stopHrmon();
 sub run(@);
@@ -14,47 +15,49 @@ my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/hrmon";
 
+my $EXEC = basename $0;
+
 my $USAGE = "Usage:
-  $0 -h | --help
+  $EXEC -h | --help
     show this message
 
-  $0
-  $0 --screen-daemon | --ensure-attach | ensure-attach
+  $EXEC
+  $EXEC --screen-daemon | --ensure-attach | ensure-attach
     ensure screen-daemon is running and attach to it
       -run: 'screen-daemon hrmon --ensure-attach'
 
-  $0 --run | run
+  $EXEC --run | run
     kill any $BLE_HRL_EXEC procs and run $BLE_HRL_EXEC
       -run: pkill -f BLEHeartRateLogger.py
       -run: $BLE_HRL_EXEC -b -v -m $MAC
 
-  $0 --start | start
+  $EXEC --start | start
     run --stop, and then start screen-daemon
-      -run: $0 --stop
+      -run: $EXEC --stop
       -run: screen-daemon hrmon --start
 
-  $0 --stop | stop
+  $EXEC --stop | stop
     stop screen-daemon and kill any other $BLE_HRL_EXEC procs
       -run: screen-daemon hrmon --stop
       -run: pkill -f BLEHeartRateLogger.py
 
-  $0 --status | status
+  $EXEC --status | status
     print 'on' or 'off' if screen daemon is running
       -run: screen-daemon hrmon --status
 
-  $0 --get | get | -g | g
+  $EXEC --get | get | -g | g
     print the last line of the last log file, decompressing gz/bz2/xz if necessary
       -fetch latest log file as in: `ls $LOG_DIR/*.log* | sort | tail -1`
       -if compressed, decompress in memory
       -print the last line
 
-  $0 --rotate-logs | rotate-logs | logs
+  $EXEC --rotate-logs | rotate-logs | logs
     stop monitoring, compress all logs, and restart if was running
-      -get PREV_STATUS as in: STATUS=`$0 --status`
-      -run: $0 --stop
+      -get PREV_STATUS as in: STATUS=`$EXEC --status`
+      -run: $EXEC --stop
       -run: bzip2 $LOG_DIR/*.log
       -if \$PREV_STATUS = 'on':
-        run: $0 --start
+        run: $EXEC --start
 ";
 
 my $CMD_ENSURE_ATTACH = "ensure-attach";
