@@ -38,7 +38,7 @@ my $USAGE = "Usage:
 
   $EXEC --start | start
     run --stop, and then start screen-daemon
-      -run: $EXEC --stop
+      -stop as in: `$EXEC --stop`
       -run: screen-daemon hrmon --start
 
   $EXEC --stop | stop
@@ -48,7 +48,9 @@ my $USAGE = "Usage:
 
   $EXEC --status | status
     print 'on' or 'off' if screen daemon is running
-      -run: screen-daemon hrmon --status
+      -get <STATUS> as 'on' or 'off'
+        -run: screen-daemon hrmon --status
+      -print '<STATUS>'
 
   $EXEC --last | last
     print the last 'Heart rate' line of the last log file (decompress gz/bz2/xz if necessary)
