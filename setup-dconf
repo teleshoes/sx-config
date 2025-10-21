@@ -19,6 +19,9 @@ my $TOPMENU_SLIDERS = getTopmenuSliders();
 my $TOPMENU_ACTIONS = getTopmenuActions();
 my $TOPMENU_SHORTCUTS = getTopmenuShortcuts();
 
+#0 calculates from width
+my $TOPMENU_TOGGLE_COLUMNS = 4;
+
 my @SELECTED_TOP_MENU_ITEMS = (
   $$TOPMENU_SLIDERS{brightness},
   $$TOPMENU_SLIDERS{media_volume},
@@ -83,6 +86,7 @@ my $DCONF = {
   "/desktop/lipstick-jolla-home/topmenu_shortcuts" =>
     gvariantList(@SELECTED_TOP_MENU_ITEMS),
   "/desktop/lipstick-jolla-home/topmenu_shortcuts_enabled" => "true",
+  "/desktop/lipstick-jolla-home/topmenu_shortcuts_columns" => $TOPMENU_TOGGLE_COLUMNS,
 
   "/desktop/jolla/reboot_action_enabled" => "true",
 
