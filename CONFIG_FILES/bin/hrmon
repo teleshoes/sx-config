@@ -23,7 +23,7 @@ my $USAGE = "Usage:
     ensure screen-daemon is running and attach to it
       -run: 'screen-daemon hrmon --ensure-attach'
 
-  $0 --run
+  $0 --run | run
     kill any $BLE_HRL_EXEC procs and run $BLE_HRL_EXEC
       -run: pkill -f BLEHeartRateLogger.py
       -run: $BLE_HRL_EXEC -b -v -m $MAC
@@ -38,7 +38,7 @@ my $USAGE = "Usage:
       -run: screen-daemon hrmon --stop
       -run: pkill -f BLEHeartRateLogger.py
 
-  $0 --status
+  $0 --status | status
     print 'on' or 'off' if screen daemon is running
       -run: screen-daemon hrmon --status
 
