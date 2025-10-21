@@ -234,8 +234,8 @@ sub getTopmenuToggles(){
     flashlight             => 'system_settings/look_and_feel/topmenu/flashlight/enable_switch',
     wlan                   => 'system_settings/connectivity/wlan/enable_switch',
     global_proxy           => 'system_settings/connectivity/wlan/enable_global_proxy',
-    resolv                 => 'system_settings/connectivity/wlan/resolv_toggle_switch',
-    volte                  => 'system_settings/connectivity/volte_toggle_switch',
+    resolv                 => 'system_settings/look_and_feel/topmenu/resolv/switch',
+    volte                  => 'system_settings/look_and_feel/topmenu/volte/switch',
     cellular_data          => 'system_settings/connectivity/mobile/context0',
     hotspot                => 'system_settings/connectivity/tethering/wlan_hotspot_switch',
     vpn                    => 'system_settings/connectivity/vpn/enable_switch',
@@ -244,11 +244,11 @@ sub getTopmenuToggles(){
     bluetooth              => 'system_settings/connectivity/bluetooth/enable_switch',
     nfc                    => 'system_settings/connectivity/nfc/enable_nfc',
     screenshot             => 'system_settings/look_and_feel/topmenu/screenshot/enable_switch',
-    pulse                  => 'system_settings/connectivity/wlan/pulse_vol_switch',
-    vibration              => 'system_settings/look_and_feel/vibration',
-    lpm                    => 'system_settings/look_and_feel/lpm',
-    fix                    => 'system_settings/info/fix',
-    cam                    => 'system_settings/info/camera_system_settings/cam',
+    pulse                  => 'system_settings/look_and_feel/topmenu/pulse_vol/switch',
+    vibration              => 'system_settings/look_and_feel/topmenu/vibration/switch',
+    lpm                    => 'system_settings/look_and_feel/topmenu/lpm/switch',
+    fix                    => 'system_settings/look_and_feel/topmenu/fix/switch',
+    cam                    => 'system_settings/look_and_feel/topmenu/cam/switch',
   };
 }
 sub getTopmenuSliders(){
