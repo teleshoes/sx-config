@@ -299,6 +299,12 @@ Loader {
 
                         Connections {
                             target: pageOrActionDelegate.item
+
+                            //omit warning when triggered() signal is not present
+                            //  useful when combining simple+action items,
+                            //  as SettingsToggle does not have this signal
+                            ignoreUnknownSignals: true
+
                             onTriggered: {
                                 if (model.object.type == "action") {
                                     Lipstick.compositor.invokeRemoteAction(remoteAction)
