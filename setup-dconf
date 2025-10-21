@@ -250,6 +250,7 @@ sub getTopmenuToggles(){
     lpm                    => 'system_settings/look_and_feel/topmenu/lpm/switch',
     fix                    => 'system_settings/look_and_feel/topmenu/fix/switch',
     cam                    => 'system_settings/look_and_feel/topmenu/cam/switch',
+    hrmon                  => 'system_settings/look_and_feel/topmenu/hrmon/switch',
   };
 }
 sub getTopmenuSliders(){
