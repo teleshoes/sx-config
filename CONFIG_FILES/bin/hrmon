@@ -50,7 +50,7 @@ my $USAGE = "Usage:
     print 'on' or 'off' if screen daemon is running
       -run: screen-daemon hrmon --status
 
-  $EXEC --get | get | -g | g
+  $EXEC --last | last
     print the last 'Heart rate' line of the last log file (decompress gz/bz2/xz if necessary)
       -fetch latest log file as in: `ls $LOG_DIR/*.log* | sort | tail -1`
       -if compressed, decompress in memory
@@ -87,7 +87,7 @@ my $CMD_RUN = "run";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
 my $CMD_STATUS = "status";
-my $CMD_GET = "get";
+my $CMD_LAST = "last";
 my $CMD_ROTATE_LOGS = "rotate-logs";
 
 sub main(@){
@@ -107,8 +107,8 @@ sub main(@){
       $cmd = $CMD_STOP;
     }elsif($arg =~ /^(--status|status)$/){
       $cmd = $CMD_STATUS;
-    }elsif($arg =~ /^(--get|get|-g|g)$/){
-      $cmd = $CMD_GET;
+    }elsif($arg =~ /^(--last|last)$/){
+      $cmd = $CMD_LAST;
     }elsif($arg =~ /^(--rotate-logs|rotate-logs|logs)$/){
       $cmd = $CMD_ROTATE_LOGS;
     }else{
@@ -134,7 +134,7 @@ sub main(@){
     stopHrmon();
   }elsif($cmd eq $CMD_STATUS){
     run "screen-daemon", "hrmon", "--status";
-  }elsif($cmd eq $CMD_GET){
+  }elsif($cmd eq $CMD_LAST){
     my ($hr, $epoch) = getLastHeartrateLogEntry();
     if(not defined $hr){
       print "none\n";
