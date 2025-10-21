@@ -1,10 +1,12 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Date::Parse qw(str2time);
 use File::Basename qw(basename);
 
 sub getLastLogFile();
 sub getLastHeartrateLogEntry();
+sub readProc(@);
 sub stopHrmon();
 sub run(@);
 
@@ -48,10 +50,19 @@ my $USAGE = "Usage:
       -run: screen-daemon hrmon --status
 
   $EXEC --get | get | -g | g
-    print the last line of the last log file, decompressing gz/bz2/xz if necessary
+    print the last 'Heart rate' line of the last log file (decompress gz/bz2/xz if necessary)
       -fetch latest log file as in: `ls $LOG_DIR/*.log* | sort | tail -1`
       -if compressed, decompress in memory
-      -print the last line
+      -find the last line, if any, that matches:
+        '<DATETIME_FMT>  Heart rate: <HEARTRATE>'
+          where <DATETIME_FMT> is the date/time formatted 'YYYY-mm-dd HH:MM:SS,NNN'
+            and <HEARTRATE> is a non-negative integer
+      -if no line matches:
+        -print 'none'
+      -otherwise:
+        -parse the DATETIME_FMT as DATETIME_EPOCH
+        -print '<HEARTRATE_FMT> (<DATETIME_EPOCH>)'
+          e.g.: 90 (1684987200)
 
   $EXEC --rotate-logs | rotate-logs | logs
     stop monitoring, compress all logs, and restart if was running
@@ -115,7 +126,12 @@ sub main(@){
   }elsif($cmd eq $CMD_STATUS){
     run "screen-daemon", "hrmon", "--status";
   }elsif($cmd eq $CMD_GET){
-    getLastHeartrateLogEntry();
+    my ($hr, $epoch) = getLastHeartrateLogEntry();
+    if(not defined $hr){
+      print "none\n";
+    }else{
+      print "$hr ($epoch)\n";
+    }
   }elsif($cmd eq $CMD_ROTATE_LOGS){
     system "mkdir", "-p", $LOG_DIR;
     my @logFiles = sort glob "$LOG_DIR/*.log";
@@ -153,18 +169,39 @@ sub getLastHeartrateLogEntry(){
   my $logFile = getLastLogFile();
   my @cmd;
   if($logFile =~ /\.log$/){
-    @cmd = ("grep 'Heart rate' '$logFile' | tail -1");
+    @cmd = ("sh", "-c", "grep 'Heart rate' '$logFile' | tail -1");
   }elsif($logFile =~ /\.log\.gz$/){
-    @cmd = ("zgrep 'Heart rate' '$logFile' | tail -1");
+    @cmd = ("sh", "-c", "zgrep 'Heart rate' '$logFile' | tail -1");
   }elsif($logFile =~ /\.log\.xz$/){
-    @cmd = ("xz -d -c '$logFile' | grep 'Heart rate' | tail -1");
+    @cmd = ("sh", "-c", "xz -d -c '$logFile' | grep 'Heart rate' | tail -1");
   }elsif($logFile =~ /\.log\.bz2$/){
-    @cmd = ("bzip2 -d -c '$logFile' | grep 'Heart rate' | tail -1");
+    @cmd = ("sh", "-c", "bzip2 -d -c '$logFile' | grep 'Heart rate' | tail -1");
   }else{
     die "ERROR: unrecognized log file format '$logFile'\n";
   }
 
-  system @cmd;
+  my $out = readProc @cmd;
+  if($out =~ /^\s*$/){
+    return (undef, undef);
+  }
+  if($out !~ /^(\d\d\d\d-\d\d-\d\d) (\d\d:\d\d:\d\d),(\d\d\d)\s+Heart rate:\s*(\d+)$/){
+    die "ERROR: invalid log line format in $logFile:\n$out\n";
+  }
+  my ($ymd, $hms, $millis, $heartrate) = ($1, $2, $3, $4);
+  my $epoch = str2time "${ymd}T${hms}";
+  return ($heartrate, $epoch);
+}
+
+sub readProc(@){
+  my @cmd = @_;
+  open my $cmdFH, "-|", @cmd or die "ERROR: could not run @cmd\n$!\n";
+  my @lines = <$cmdFH>;
+  close $cmdFH;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
+  }
 }
 
 sub stopHrmon(){
