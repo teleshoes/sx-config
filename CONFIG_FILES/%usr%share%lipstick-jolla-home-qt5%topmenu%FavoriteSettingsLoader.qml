@@ -21,6 +21,7 @@ Loader {
                               || listFavModel.count > 0
                               || gridFavModel.count > 0
     property real firstColumnVCenterOffset: width / columns / 2
+    // NOTE: columns value is calculated and set in TopMenu.qml
     property int columns: 4
     property Item pager
     property int padding
