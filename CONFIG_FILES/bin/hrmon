@@ -6,6 +6,7 @@ use File::Basename qw(basename);
 
 sub getLastLogFile();
 sub getLastHeartrateLogEntry();
+sub formatRelativeTime($);
 sub readProc(@);
 sub stopHrmon();
 sub run(@);
@@ -60,9 +61,17 @@ my $USAGE = "Usage:
       -if no line matches:
         -print 'none'
       -otherwise:
-        -parse the DATETIME_FMT as DATETIME_EPOCH
-        -print '<HEARTRATE_FMT> (<DATETIME_EPOCH>)'
-          e.g.: 90 (1684987200)
+        -parse the DATETIME_FMT, compare to current time and get ELAPSED_TIME_S
+        -format ELAPSED_TIME_S as value ELAPSED_TIME_FMT with optional units days/hours/minutes
+                      '#s'
+                   '#m##s'
+                '#h##m##s'
+             '#d##h##m##s'
+        -calculate DIRECTION
+          -if DATETIME_FMT is in the past (should always be the case): 'ago'
+          -otherwise: 'in the future'
+        -print '<HEARTRATE_FMT> (<ELAPSED_TIME_FMT> <DIRECTION>)'
+          e.g.: 90 (3d04h22m3s ago)
 
   $EXEC --rotate-logs | rotate-logs | logs
     stop monitoring, compress all logs, and restart if was running
@@ -130,7 +139,7 @@ sub main(@){
     if(not defined $hr){
       print "none\n";
     }else{
-      print "$hr ($epoch)\n";
+      print "$hr (" . formatRelativeTime($epoch) . ")\n";
     }
   }elsif($cmd eq $CMD_ROTATE_LOGS){
     system "mkdir", "-p", $LOG_DIR;
@@ -190,6 +199,32 @@ sub getLastHeartrateLogEntry(){
   my ($ymd, $hms, $millis, $heartrate) = ($1, $2, $3, $4);
   my $epoch = str2time "${ymd}T${hms}";
   return ($heartrate, $epoch);
+}
+
+sub formatRelativeTime($){
+  my ($epoch) = @_;
+  my $diff = time - $epoch;
+  my $isNegative = $diff < 0;
+  $diff = 0-$diff if $isNegative;
+
+  my $s = int($diff % 60);
+  my $m = int($diff / 60 % 60);
+  my $h = int($diff / 60 / 60 % 24);
+  my $d = int($diff / 60 / 60 / 24);
+
+  my $fmt;
+  if($d > 0){
+    $fmt = sprintf "%dd%02dh%02dm%02ds", $d, $h, $m, $s;
+  }elsif($h > 0){
+    $fmt = sprintf "%dh%02dm%02ds", $h, $m, $s;
+  }elsif($m > 0){
+    $fmt = sprintf "%dm%02ds", $m, $s;
+  }else{
+    $fmt = sprintf "%dds", $m, $s;
+  }
+
+  my $direction = $isNegative ? "in the future" : "ago";
+  return "$fmt $direction";
 }
 
 sub readProc(@){
