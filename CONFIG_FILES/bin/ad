@@ -8,6 +8,9 @@ use Time::HiRes qw(time);
 sub serviceCmd($);
 sub waitForAliendalvik($);
 sub isAliendalvikRunning();
+sub readSdcardsConf();
+sub isSdcardsMounted($);
+sub isUUIDMounted($);
 sub lxcWrapCmd($@);
 sub lxcShell($@);
 sub lxcReadProc($@);
@@ -17,6 +20,8 @@ sub parseScreenDimArg($$);
 sub nowMillis();
 
 my $EXEC = basename $0;
+
+my $SDCARDS_CONF_FILE = "/etc/sdcards.conf";
 
 my $APK_DIR = "/media/sdcard/phone/apks-aliendalvik";
 my %SHELL_ENV_VARS = (
@@ -196,6 +201,15 @@ my $USAGE = "Usage:
       -if response is ok, exit with exit code 0
       -otherwise, print error message and exit with exit code 1
 
+  $EXEC --check-sdcard | --check-sdcards
+    check if android sdcards in /etc/sdcards.conf are mounted
+      -parse $SDCARDS_CONF_FILE
+      -extract UUID '<NAME>.uuid' of any sdcard with android true '<NAME>.android=true'
+      -for each UUID:
+        -ensure that /storage/<UUID> exists and is a mountpoint
+      -if all are mounted, exit with exit code 0
+      -otherwise, print error message and exit with exit code 1
+
   OPTS
     -q | --quiet
       do not print shell commands before running them (this is the default)
@@ -221,6 +235,7 @@ my $MODE_UNINSTALL = "uninstall";
 my $MODE_LAUNCH = "launch";
 my $MODE_WAIT = "wait";
 my $MODE_CHECK_RUNNING = "check-running";
+my $MODE_CHECK_SDCARDS = "check-sdcards";
 
 my $OK_OPTS = join "|", qw(
   -q --quiet -v --verbose
@@ -313,6 +328,8 @@ sub main(@){
       $mode = $MODE_WAIT;
     }elsif($isFirstArg and $arg =~ /^(--check-running)$/){
       $mode = $MODE_CHECK_RUNNING;
+    }elsif($isFirstArg and $arg =~ /^(--check-sdcards?)$/){
+      $mode = $MODE_CHECK_SDCARDS;
     }elsif($isFirstArg and $arg =~ /^(--wait)=(\d+)$/){
       $mode = $MODE_WAIT;
       $waitTimeoutSeconds = $1;
@@ -461,6 +478,14 @@ sub main(@){
       print STDERR "ERROR: aliendalvik is not running\n";
       exit 1;
     }
+  }elsif($mode eq $MODE_CHECK_SDCARDS){
+    my $sdcardsConf = readSdcardsConf();
+    if(isSdcardsMounted($sdcardsConf)){
+      exit 0;
+    }else{
+      print STDERR "ERROR: sdcards are not mounted\n";
+      exit 1;
+    }
   }else{
     die "ERROR: unknown mode $mode\n";
   }
@@ -491,6 +516,55 @@ sub isAliendalvikRunning(){
   my $opts = {};
   my $out = lxcReadProc $opts, "echo", "ok";
   if($out =~ /^ok$/){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+sub readSdcardsConf(){
+  my $entries = {};
+  if(-e $SDCARDS_CONF_FILE){
+    open my $fh, "<", $SDCARDS_CONF_FILE
+      or die "ERROR: could not read $SDCARDS_CONF_FILE\n$!\n";
+    my @lines = <$fh>;
+    close $fh;
+    for my $line(@lines){
+      if($line =~ /^\s*(\w+)\.(\w+)\s*=\s*(.*)?\s*$/){
+        my ($name, $field, $val) = ($1, $2, $3);
+        $$entries{$name} = {} if not defined $$entries{$name};
+        $$entries{$name}{$field} = $val;
+      }
+    }
+  }
+  return $entries;
+}
+
+sub isSdcardsMounted($){
+  my ($sdcardsConf) = @_;
+  for my $name(sort keys %$sdcardsConf){
+    my $isAndroid = $$sdcardsConf{$name}{android};
+    $isAndroid = "" if not defined $isAndroid;
+    if($isAndroid =~ /true/i){
+      my $uuid = $$sdcardsConf{$name}{uuid};
+      if(not defined $uuid){
+        die "ERROR: failed to parse UUID in $SDCARDS_CONF_FILE\n";
+      }
+      if(not isUUIDMounted($uuid)){
+        print "sdcard '$name' is not mounted\n";
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+
+sub isUUIDMounted($){
+  my ($uuid) = @_;
+  my $opts = {};
+  my $dir = "/storage/$uuid";
+  my $out = lxcReadProc $opts, "mountpoint", $dir;
+  if($out =~ /^$dir is a mountpoint$/){
     return 1;
   }else{
     return 0;
