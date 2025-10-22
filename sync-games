@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
 use Time::HiRes qw(time);
 
 my $DIR_BASE = "$ENV{HOME}/Code/sx";
@@ -38,9 +41,6 @@ sub getSnesRoms();
 
 sub checksumMatches($$);
 sub sha1sum($);
-sub mtime($);
-sub nowMillis();
-sub run(@);
 
 my $usage = "Usage:
   $0 -h|--help
@@ -391,20 +391,6 @@ sub sha1sum($){
     die "error running sha1sum on $file\n";
   }
   return $1;
-}
-
-sub mtime($){
-  my @stat = stat $_[0];
-  return $stat[9];
-}
-
-sub nowMillis(){
-  return int(time() * 1000.0 + 0.5);
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
 }
 
 &main(@ARGV);
