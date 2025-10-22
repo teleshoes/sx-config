@@ -6,7 +6,7 @@ use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
 sub serviceCmd($);
-sub waitForAliendalvik($);
+sub waitForAliendalvik($$);
 sub isAliendalvikRunning();
 sub readSdcardsConf();
 sub isSdcardsMounted($);
@@ -219,6 +219,11 @@ my $USAGE = "Usage:
       do not print shell commands before running them (this is the default)
     -v | --verbose
       print shell commands before running them
+    -n MSG
+    --notify MSG
+    --notify=MSG
+      send notifications during --wait (and --init)
+      prefix notifications with 'MSG: '
 
   LXC_ATTACH_CMD
     lxc-attach -q --name=$CONTAINER_NAME --lxcpath=LXC_PATH
@@ -242,7 +247,7 @@ my $MODE_CHECK_RUNNING = "check-running";
 my $MODE_CHECK_SDCARDS = "check-sdcards";
 
 my $OK_OPTS = join "|", qw(
-  -q --quiet -v --verbose
+  -q --quiet -v --verbose -n --notify
 );
 
 sub main(@){
@@ -254,6 +259,8 @@ sub main(@){
   my $intent;
   my $opts = {
     verbose         => 0,
+    useNotify       => 0,
+    notifyMsg       => undef,
     shellEnvWrapper => 1,
   };
   my ($tapXpos, $tapYpos);
@@ -261,12 +268,18 @@ sub main(@){
   my @mediaFiles;
   my $waitTimeoutSeconds;
 
-  while(@_ > 0 and $_[0] =~ /^($OK_OPTS)$/){
+  while(@_ > 0 and $_[0] =~ /^($OK_OPTS)(?:=.+)?$/){
     my $opt = shift @_;
     if($opt =~ /^(-q|--quiet)$/){
       $$opts{verbose} = 0;
     }elsif($opt =~ /^(-v|--verbose)$/){
       $$opts{verbose} = 1;
+    }elsif($opt =~ /^(-n|--notify)$/ and @_ > 0){
+      $$opts{useNotify} = 1;
+      $$opts{notifyMsg} = shift @_;
+    }elsif($opt =~ /^--notify=(.+)$/){
+      $$opts{useNotify} = 1;
+      $$opts{notifyMsg} = $1;
     }else{
       die "$USAGE\nERROR: unknown opt $opt\n";
     }
@@ -370,8 +383,8 @@ sub main(@){
     serviceCmd $serviceCmd;
   }elsif($mode eq $MODE_INIT){
     serviceCmd "restart" if not isAliendalvikRunning();
-    serviceCmd "restart" if not waitForAliendalvik($DEFAULT_WAIT_TIMEOUT_SECONDS);
-    serviceCmd "restart" if not waitForAliendalvik($DEFAULT_WAIT_TIMEOUT_SECONDS);
+    serviceCmd "restart" if not waitForAliendalvik($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS);
+    serviceCmd "restart" if not waitForAliendalvik($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS);
     for my $cmd(@initCmds){
       system $cmd;
     }
@@ -469,7 +482,7 @@ sub main(@){
     exec @cmd;
   }elsif($mode eq $MODE_WAIT){
     $waitTimeoutSeconds = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $waitTimeoutSeconds;
-    if(waitForAliendalvik($waitTimeoutSeconds)){
+    if(waitForAliendalvik($opts, $waitTimeoutSeconds)){
       exit 0;
     }else{
       printf STDERR "ERROR: aliendalvik did not start and mount sdcards+home in %ds\n",
@@ -502,17 +515,31 @@ sub serviceCmd($){
     "$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE";
 }
 
-sub waitForAliendalvik($){
-  my ($waitTimeoutSeconds) = @_;
+sub waitForAliendalvik($$){
+  my ($opts, $waitTimeoutSeconds) = @_;
   my $waitTimeoutMillis = $waitTimeoutSeconds * 1000;
   my $start = nowMillis();
   my $sdcardsConf = readSdcardsConf();
+  my $notifiedWaiting = 0;
+  my $notifyPrefix = defined $$opts{notifyMsg} ? $$opts{notifyMsg} : "ad";
+
   while(1){
     if($waitTimeoutMillis < nowMillis()-$start){
+      if($$opts{useNotify}){
+        system "notify", "$notifyPrefix: TIMEOUT for android start";
+      }
       return 0;
     }
     if(isAliendalvikRunning() && isSdcardsMounted($sdcardsConf) && isHomeMounted()){
+      if($$opts{useNotify} and $notifiedWaiting){
+        system "notify", "$notifyPrefix: android started";
+      }
       return 1;
+    }else{
+      if($$opts{useNotify} and not $notifiedWaiting){
+        system "notify", "$notifyPrefix: waiting for android to start";
+        $notifiedWaiting = 1;
+      }
     }
     sleep 1;
   }
