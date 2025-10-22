@@ -469,7 +469,8 @@ sub main(@){
     if(waitForAliendalvik($waitTimeoutSeconds)){
       exit 0;
     }else{
-      print STDERR "ERROR: aliendalvik did not start + mount sdcards in ${waitTimeoutSeconds}s\n";
+      printf STDERR "ERROR: aliendalvik did not start and mount sdcards in %ds\n",
+        $waitTimeoutSeconds;
       exit 1;
     }
   }elsif($mode eq $MODE_CHECK_RUNNING){
