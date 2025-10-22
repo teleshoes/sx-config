@@ -59,6 +59,13 @@ sub main(@){
 
   runRetry 5, "ipmagic", $IPMAGIC_NAME, "-u", "root", "rm \"$tmpDbFile\"";
 
+  ###
+
+  if(not ipmagicTest $IPMAGIC_NAME, "root", "-d", $BACKUP_DIGITS_ATT_FILES_REPO_DIR){
+    print STDERR "\n\n\n!!!!! SKIPPING T-MOBILE DIGITS ATTS BACKUP\n\n\n";
+    print "WARNING: $REMOTE_DIGITS_DB_FILE does not exist\n";
+    exit 0;
+  }
 
   print "\n\ncopy previous repo files to new atts dir to speedup remote rsync\n";
   my $attsDir = "$BACKUP_DIGITS_ATT_FILES_BASE_DIR/${dtm}_${nowMillis}";
