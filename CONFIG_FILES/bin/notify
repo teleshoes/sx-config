@@ -151,6 +151,8 @@ sub main(@){
     }
   }
 
+  ensureUser();
+
   if($mode eq $MODE_LIST){
     my $sql = ""
       . "select"
@@ -197,6 +199,13 @@ sub main(@){
     system "rm", "-f", "$ID_CACHE_DIR/$appName";
   }else{
     die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub ensureUser(){
+  if(`whoami` eq "root\n"){
+    print STDERR "rerunning with udo\n";
+    exec "udo", $0, @ARGV;
   }
 }
 
