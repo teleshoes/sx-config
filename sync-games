@@ -25,7 +25,8 @@ my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes";
 my $DIR_DEST_SNES9XEX_DATA = "/media/sdcard/phone/Games/snes9xex";
 
 my $DIR_KINGDOM_LATEST_BACKUP = "$DIR_BACKUP/games/kingdom-save";
-my $DIR_KINGDOM_REMOTE_SAVE = "/home/nemo/android_storage/Android/data/com.rawfury.kingdom2crowns/files/Release";
+my $DIR_KINGDOM_REMOTE_ANDROID_FILES = "/home/nemo/android_storage/Android/data/com.rawfury.kingdom2crowns/files";
+my $DIR_KINGDOM_REMOTE_SAVE = "$DIR_KINGDOM_REMOTE_ANDROID_FILES/Release";
 
 sub backupNesoidSaves();
 sub backupSnes9xExSaves();
@@ -201,7 +202,7 @@ sub overwriteRemoteKingdomSave(){
     "chown",
     "-R",
     "$DIR_KINGDOM_REMOTE_SAVE/",
-    "--reference=$DIR_KINGDOM_REMOTE_SAVE/..",
+    "--reference=$DIR_KINGDOM_REMOTE_ANDROID_FILES",
   ;
 }
 
