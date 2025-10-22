@@ -11,6 +11,7 @@ sub isAliendalvikRunning();
 sub readSdcardsConf();
 sub isSdcardsMounted($);
 sub isUUIDMounted($);
+sub isHomeMounted();
 sub lxcWrapCmd($@);
 sub lxcShell($@);
 sub lxcReadProc($@);
@@ -22,6 +23,7 @@ sub nowMillis();
 my $EXEC = basename $0;
 
 my $SDCARDS_CONF_FILE = "/etc/sdcards.conf";
+my $SAILFISH_HOME_MAPPER_BLOCK_DEV = "/dev/mapper/sailfish-home";
 
 my $APK_DIR = "/media/sdcard/phone/apks-aliendalvik";
 my %SHELL_ENV_VARS = (
@@ -90,7 +92,7 @@ my $USAGE = "Usage:
 
   $EXEC fuse|remount-fuse|--fuse|--remount-fuse
     remount all fuse filesystems in android container
-    fixes out-of-sync /storage mounts for android_storage and external sdcards
+    fixes out-of-sync /storage mounts for home+android_storage and external sdcards
     (and symlinks like /sdcard)
       -same as: $EXEC --shell 'mount -a -t fuse -o remount'
 
@@ -185,7 +187,7 @@ my $USAGE = "Usage:
 
   $EXEC -w|w|--wait TIMEOUT_SECONDS
   $EXEC --wait=TIMEOUT_SECONDS
-    wait until aliendalvik is running and sdcards are mounted
+    wait until aliendalvik is running and sdcards+home are mounted
          e.g.: $EXEC --wait 30 && echo OK || echo FAIL
     -every 1s, check if aliendalvik is running as in:
         `$EXEC --check-running && $EXEC --check-sdcards`
@@ -203,9 +205,10 @@ my $USAGE = "Usage:
       -otherwise, print error message and exit with exit code 1
 
   $EXEC --check-sdcard | --check-sdcards
-    check if android sdcards in /etc/sdcards.conf are mounted
+    check if sailfish home and android sdcards in /etc/sdcards.conf are mounted
       -parse $SDCARDS_CONF_FILE
       -extract UUID '<NAME>.uuid' of any sdcard with android true '<NAME>.android=true'
+      -extract UUID of $SAILFISH_HOME_MAPPER_BLOCK_DEV (fails if none found)
       -for each UUID:
         -ensure that /storage/<UUID> exists and is a mountpoint
       -if all are mounted, exit with exit code 0
@@ -469,7 +472,7 @@ sub main(@){
     if(waitForAliendalvik($waitTimeoutSeconds)){
       exit 0;
     }else{
-      printf STDERR "ERROR: aliendalvik did not start and mount sdcards in %ds\n",
+      printf STDERR "ERROR: aliendalvik did not start and mount sdcards+home in %ds\n",
         $waitTimeoutSeconds;
       exit 1;
     }
@@ -482,10 +485,10 @@ sub main(@){
     }
   }elsif($mode eq $MODE_CHECK_SDCARDS){
     my $sdcardsConf = readSdcardsConf();
-    if(isSdcardsMounted($sdcardsConf)){
+    if(isSdcardsMounted($sdcardsConf) && isHomeMounted()){
       exit 0;
     }else{
-      print STDERR "ERROR: sdcards are not mounted\n";
+      print STDERR "ERROR: sdcards+home are not mounted\n";
       exit 1;
     }
   }else{
@@ -508,7 +511,7 @@ sub waitForAliendalvik($){
     if($waitTimeoutMillis < nowMillis()-$start){
       return 0;
     }
-    if(isAliendalvikRunning() && isSdcardsMounted($sdcardsConf)){
+    if(isAliendalvikRunning() && isSdcardsMounted($sdcardsConf) && isHomeMounted()){
       return 1;
     }
     sleep 1;
@@ -568,6 +571,23 @@ sub isUUIDMounted($){
   my $dir = "/storage/$uuid";
   my $out = lxcReadProc $opts, "mountpoint", $dir;
   if($out =~ /^$dir is a mountpoint$/){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+sub isHomeMounted(){
+  my $opts = {};
+  my $out = lxcReadProc $opts, "mount";
+
+  my $homeUUID;
+  my $uuidRegex = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+  if($out =~ /^$SAILFISH_HOME_MAPPER_BLOCK_DEV on \S+\/($uuidRegex)/m){
+    $homeUUID = $1;
+  }
+
+  if(defined $homeUUID and $out =~ / on \/storage\/$homeUUID/){
     return 1;
   }else{
     return 0;
