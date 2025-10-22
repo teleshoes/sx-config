@@ -21,7 +21,8 @@ my $DIR_SNES9XEX_BY_MTIME = "$DIR_BACKUP/games/snes9xex-saves/saves-by-mtime";
 my $DIR_SRC_NES_ROMS = "$ENV{HOME}/Games/nes";
 my $DIR_DEST_NESOID_DATA = "/media/sdcard/phone/Games/nesoid";
 
-my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes";
+my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes/roms/main";
+my $DIR_SRC_SNES_ROMS_ALT = "$ENV{HOME}/Games/snes/roms/collections/extra_roms";
 my $DIR_DEST_SNES9XEX_DATA = "/media/sdcard/phone/Games/snes9xex";
 
 my $DIR_KINGDOM_LATEST_BACKUP = "$DIR_BACKUP/games/kingdom-save";
@@ -247,7 +248,13 @@ sub setupSnes9xEx(){
   my %snesRoms = %{getSnesRoms()};
   for my $romName(sort keys %snesRoms){
     my $romFileName = $snesRoms{$romName};
-    run "cp -ar \"$DIR_SRC_SNES_ROMS/$romFileName\" \"$tmpDir/$romName.smc\"";
+    if(-e "$DIR_SRC_SNES_ROMS/$romFileName"){
+      run "cp -ar \"$DIR_SRC_SNES_ROMS/$romFileName\" \"$tmpDir/$romName.smc\"";
+    }elsif(-e "$DIR_SRC_SNES_ROMS_ALT/$romFileName"){
+      run "cp -ar \"$DIR_SRC_SNES_ROMS_ALT/$romFileName\" \"$tmpDir/$romName.smc\"";
+    }else{
+      die "ERROR: missing rom $DIR_SRC_SNES_ROMS/$romFileName\n";
+    }
   }
 
   run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_SNES9XEX_DATA";
