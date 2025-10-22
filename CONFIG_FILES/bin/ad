@@ -507,10 +507,8 @@ sub waitForAliendalvik($){
     if($waitTimeoutMillis < nowMillis()-$start){
       return 0;
     }
-    if(isAliendalvikRunning()){
-      if(isSdcardsMounted($sdcardsConf)){
-        return 1;
-      }
+    if(isAliendalvikRunning() && isSdcardsMounted($sdcardsConf)){
+      return 1;
     }
     sleep 1;
   }
