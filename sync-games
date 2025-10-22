@@ -30,6 +30,7 @@ sub restoreNesoidSaves();
 sub restoreSnes9xExSaves();
 sub fetchKingdomSave();
 sub cacheKingdomSave();
+sub overwriteRemoteKingdomSave();
 sub setupNesoid();
 sub setupSnes9xEx();
 sub getNesRoms();
@@ -58,6 +59,7 @@ my $usage = "Usage:
     -copy SNES roms
     -setup Snes9xEx
     -restore Snes9xEx saves
+    -OVERWRITE remote kingdom save with last backup
 ";
 
 sub main(@){
@@ -86,6 +88,8 @@ sub main(@){
 
     setupSnes9xEx();
     restoreSnes9xExSaves();
+
+    overwriteRemoteKingdomSave();
   }
 }
 
@@ -182,6 +186,22 @@ sub cacheKingdomSave(){
     "--no-notify",
     "--game=k2ca",
     "--save-dir=$DIR_KINGDOM_LATEST_BACKUP",
+  ;
+}
+sub overwriteRemoteKingdomSave(){
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync",
+    "-avP",
+    "--del",
+    "$DIR_KINGDOM_LATEST_BACKUP/",
+    ":$DIR_KINGDOM_REMOTE_SAVE/",
+  ;
+
+  #chown the save dir to the parent's owner+group
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "-s",
+    "chown",
+    "-R",
+    "$DIR_KINGDOM_REMOTE_SAVE/",
+    "--reference=$DIR_KINGDOM_REMOTE_SAVE/..",
   ;
 }
 
