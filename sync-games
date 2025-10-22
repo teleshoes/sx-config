@@ -21,10 +21,14 @@ my $DIR_DEST_NESOID_DATA = "/media/sdcard/phone/Games/nesoid";
 my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes";
 my $DIR_DEST_SNES9XEX_DATA = "/media/sdcard/phone/Games/snes9xex";
 
+my $DIR_KINGDOM_LATEST_BACKUP = "$DIR_BACKUP/games/kingdom-save";
+my $DIR_KINGDOM_REMOTE_SAVE = "/home/nemo/android_storage/Android/data/com.rawfury.kingdom2crowns/files/Release";
+
 sub backupNesoidSaves();
 sub backupSnes9xExSaves();
 sub restoreNesoidSaves();
 sub restoreSnes9xExSaves();
+sub fetchKingdomSave();
 sub setupNesoid();
 sub setupSnes9xEx();
 sub getNesRoms();
@@ -43,6 +47,7 @@ my $usage = "Usage:
   $0 [--backup]
     -backup nesoid saves
     -backup snes9xex saves
+    -backup android kingdom save
 
   $0 --restore
     -copy NES roms
@@ -70,6 +75,8 @@ sub main(@){
     backupNesoidSaves();
 
     backupSnes9xExSaves();
+
+    fetchKingdomSave();
   }elsif($command eq "--restore"){
     setupNesoid();
     restoreNesoidSaves();
@@ -157,6 +164,15 @@ sub restoreSnes9xExSaves(){
     "$DIR_SNES9XEX_LAST_BACKUP/",
     "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/",
     "--exclude=*.smc";
+}
+
+sub fetchKingdomSave(){
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync",
+    "-avP",
+    "--del",
+    ":$DIR_KINGDOM_REMOTE_SAVE/",
+    "$DIR_KINGDOM_LATEST_BACKUP/",
+  ;
 }
 
 sub setupNesoid(){
