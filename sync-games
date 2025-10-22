@@ -24,6 +24,7 @@ my $DIR_DEST_SNES9XEX_DATA = "/media/sdcard/phone/Games/snes9xex";
 sub backupNesoidSaves();
 sub backupSnes9xExSaves();
 sub restoreNesoidSaves();
+sub restoreSnes9xExSaves();
 sub setupNesoid();
 sub setupSnes9xEx();
 sub getNesRoms();
