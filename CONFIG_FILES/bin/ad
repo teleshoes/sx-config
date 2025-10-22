@@ -185,9 +185,10 @@ my $USAGE = "Usage:
 
   $EXEC -w|w|--wait TIMEOUT_SECONDS
   $EXEC --wait=TIMEOUT_SECONDS
-    wait until aliendalvik is running
+    wait until aliendalvik is running and sdcards are mounted
          e.g.: $EXEC --wait 30 && echo OK || echo FAIL
-    -every 1s, check if aliendalvik is running as in `$EXEC --check-running`
+    -every 1s, check if aliendalvik is running as in:
+        `$EXEC --check-running && $EXEC --check-sdcards`
       -if TIMEOUT_SECONDS has transpired:
         print error message and exit with exit code 1
       -if `LXC_ATTACH_CMD` succeeded:
@@ -468,7 +469,7 @@ sub main(@){
     if(waitForAliendalvik($waitTimeoutSeconds)){
       exit 0;
     }else{
-      print STDERR "ERROR: aliendalvik did not start in ${waitTimeoutSeconds}s\n";
+      print STDERR "ERROR: aliendalvik did not start + mount sdcards in ${waitTimeoutSeconds}s\n";
       exit 1;
     }
   }elsif($mode eq $MODE_CHECK_RUNNING){
@@ -501,12 +502,15 @@ sub waitForAliendalvik($){
   my ($waitTimeoutSeconds) = @_;
   my $waitTimeoutMillis = $waitTimeoutSeconds * 1000;
   my $start = nowMillis();
+  my $sdcardsConf = readSdcardsConf();
   while(1){
     if($waitTimeoutMillis < nowMillis()-$start){
       return 0;
     }
-    if(isAliendalvikRunning){
-      return 1;
+    if(isAliendalvikRunning()){
+      if(isSdcardsMounted($sdcardsConf)){
+        return 1;
+      }
     }
     sleep 1;
   }
