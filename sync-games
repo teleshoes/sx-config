@@ -81,8 +81,12 @@ sub main(@){
 
     backupSnes9xExSaves();
 
-    fetchKingdomSave();
-    cacheKingdomSave();
+    if(ipmagicTest $IPMAGIC_NAME, "root", "-d", $DIR_KINGDOM_REMOTE_SAVE){
+      fetchKingdomSave();
+      cacheKingdomSave();
+    }else{
+      print "skipping kingdom backup\n";
+    }
   }elsif($command eq "--restore"){
     setupNesoid();
     restoreNesoidSaves();
@@ -90,7 +94,11 @@ sub main(@){
     setupSnes9xEx();
     restoreSnes9xExSaves();
 
-    overwriteRemoteKingdomSave();
+    if(ipmagicTest $IPMAGIC_NAME, "root", "-d", $DIR_KINGDOM_REMOTE_ANDROID_FILES){
+      overwriteRemoteKingdomSave();
+    }else{
+      print "skipping kingdom restore (must run android app once first)\n";
+    }
   }
 }
 
