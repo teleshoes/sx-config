@@ -29,6 +29,7 @@ sub backupSnes9xExSaves();
 sub restoreNesoidSaves();
 sub restoreSnes9xExSaves();
 sub fetchKingdomSave();
+sub cacheKingdomSave();
 sub setupNesoid();
 sub setupSnes9xEx();
 sub getNesRoms();
@@ -48,6 +49,7 @@ my $usage = "Usage:
     -backup nesoid saves
     -backup snes9xex saves
     -backup android kingdom save
+    -cache newly backed up kingdom save with `kingdom-save`
 
   $0 --restore
     -copy NES roms
@@ -77,6 +79,7 @@ sub main(@){
     backupSnes9xExSaves();
 
     fetchKingdomSave();
+    cacheKingdomSave();
   }elsif($command eq "--restore"){
     setupNesoid();
     restoreNesoidSaves();
@@ -172,6 +175,13 @@ sub fetchKingdomSave(){
     "--del",
     ":$DIR_KINGDOM_REMOTE_SAVE/",
     "$DIR_KINGDOM_LATEST_BACKUP/",
+  ;
+}
+sub cacheKingdomSave(){
+  run "kingdom-save",
+    "--no-notify",
+    "--game=k2ca",
+    "--save-dir=$DIR_KINGDOM_LATEST_BACKUP",
   ;
 }
 
