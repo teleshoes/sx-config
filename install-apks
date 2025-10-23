@@ -110,8 +110,12 @@ sub main(@){
   die "could not find host\n" if $host !~ /\w/;
 
   print "\n\nrenaming ALL local apk files\n";
-  my @apkFiles = glob "$srcDir/*.apk";
+  my @apkFiles = grep {-f $_} (glob("$srcDir/*.apk"), glob("$srcDir/*.apkm"));
   for my $apkFile(@apkFiles){
+    if($apkFile =~ /\.apkm$/){
+      print "skipping APKM $apkFile\n";
+      next;
+    }
     runQuiet "apk-name", $apkFile;
     if($? != 0){
       die "ERROR: apk-name failed for $apkFile\n";
