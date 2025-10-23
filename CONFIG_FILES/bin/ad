@@ -5,7 +5,7 @@ use Cwd qw(abs_path);
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
-sub serviceCmd($);
+sub systemctlCmd($);
 sub waitForAliendalvik($$);
 sub isAliendalvikRunning();
 sub readSdcardsConf();
@@ -382,7 +382,7 @@ sub main(@){
   }
 
   if($mode eq $MODE_SERVICE){
-    serviceCmd $serviceCmd;
+    systemctlCmd $serviceCmd;
   }elsif($mode eq $MODE_INIT){
     my $attempts = 2;
     while(1){
@@ -390,7 +390,7 @@ sub main(@){
       die "ERROR: android failed to start and mount sdcards+home\n" if $attempts < 0;
 
       if(not isAliendalvikRunning()){
-        serviceCmd "start";
+        systemctlCmd "start";
       }
       if(waitForAliendalvik($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
         last;
@@ -521,7 +521,7 @@ sub main(@){
   }
 }
 
-sub serviceCmd($){
+sub systemctlCmd($){
   my ($serviceCmd) = @_;
   if($ENV{USER} eq $USER){
     system "$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE";
