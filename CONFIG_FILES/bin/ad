@@ -63,7 +63,7 @@ my $USAGE = "Usage:
   $EXEC start|--start
   $EXEC stop|--stop
   $EXEC restart|--restart
-    run: sudo systemctl start|stop|restart aliendalvik
+    run as $USER: systemctl --user start|stop|restart $SYSTEMD_SERVICE
 
   $EXEC [OPTS] init|--init [INIT_CMD INIT_CMD...]
     -ensure aliendalvik is running and sdcards+home are mounted
