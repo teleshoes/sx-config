@@ -11,6 +11,7 @@ sub restartSystemctl();
 sub sendDbusStartStop($);
 sub systemctlCmd($);
 sub waitForAndroidStart($$);
+sub waitForAndroidEvents($$@);
 sub isAliendalvikRunning();
 sub readSdcardsConf();
 sub isSdcardsMounted($);
@@ -50,6 +51,9 @@ my @LXC_PATHS = qw(
 my $SYSTEMD_SERVICE = "appsupport";
 
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
+
+my $EVENT_ANDROID_START = "start";
+my $EVENT_ANDROID_MOUNT = "mount";
 
 my @MEDIA_EXTS = qw(
   jpg jpeg png gif mpo webm
@@ -579,27 +583,48 @@ sub systemctlCmd($){
 
 sub waitForAndroidStart($$){
   my ($opts, $waitTimeoutSeconds) = @_;
+  my @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT);
+  return waitForAndroidEvents($opts, $waitTimeoutSeconds, @events);
+}
+
+sub waitForAndroidEvents($$@){
+  my ($opts, $waitTimeoutSeconds, @events) = @_;
   my $waitTimeoutMillis = $waitTimeoutSeconds * 1000;
   my $start = nowMillis();
   my $sdcardsConf = readSdcardsConf();
   my $notifiedWaiting = 0;
   my $notifyPrefix = defined $$opts{notifyMsg} ? $$opts{notifyMsg} : "ad";
 
+  my $msg = "$notifyPrefix: android " . join("+", @events);
+
   while(1){
     if($waitTimeoutMillis < nowMillis()-$start){
       if($$opts{useNotify}){
-        system "notify", "$notifyPrefix: TIMEOUT for android start";
+        system "notify", "$msg TIMEOUT";
       }
       return 0;
     }
-    if(isAliendalvikRunning() && isSdcardsMounted($sdcardsConf) && isHomeMounted()){
+
+    my $isSuccess = 1;
+    for my $event(@events){
+      if($event eq $EVENT_ANDROID_START){
+        $isSuccess = isAliendalvikRunning();
+      }elsif($event eq $EVENT_ANDROID_MOUNT){
+        $isSuccess = isSdcardsMounted($sdcardsConf) && isHomeMounted();
+      }else{
+        die "ERROR: unknown event $event\n";
+      }
+      last if not $isSuccess;
+    }
+
+    if($isSuccess){
       if($$opts{useNotify} and $notifiedWaiting){
-        system "notify", "$notifyPrefix: android started";
+        system "notify", "$msg SUCCESS";
       }
       return 1;
     }else{
       if($$opts{useNotify} and not $notifiedWaiting){
-        system "notify", "$notifyPrefix: waiting for android to start";
+        system "notify", "$msg WAITING";
         $notifiedWaiting = 1;
       }
     }
