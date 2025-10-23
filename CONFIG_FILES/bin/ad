@@ -10,7 +10,7 @@ sub stopDbus();
 sub restartSystemctl();
 sub sendDbusStartStop($);
 sub systemctlCmd($);
-sub waitForAliendalvik($$);
+sub waitForAndroidStart($$);
 sub isAliendalvikRunning();
 sub readSdcardsConf();
 sub isSdcardsMounted($);
@@ -410,7 +410,7 @@ sub main(@){
       if(not isAliendalvikRunning()){
         startDbus();
       }
-      if(waitForAliendalvik($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
+      if(waitForAndroidStart($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
         last;
       }
     }
@@ -512,7 +512,7 @@ sub main(@){
     exec @cmd;
   }elsif($mode eq $MODE_WAIT){
     $waitTimeoutSeconds = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $waitTimeoutSeconds;
-    if(waitForAliendalvik($opts, $waitTimeoutSeconds)){
+    if(waitForAndroidStart($opts, $waitTimeoutSeconds)){
       exit 0;
     }else{
       printf STDERR "ERROR: aliendalvik did not start and mount sdcards+home in %ds\n",
@@ -577,7 +577,7 @@ sub systemctlCmd($){
   }
 }
 
-sub waitForAliendalvik($$){
+sub waitForAndroidStart($$){
   my ($opts, $waitTimeoutSeconds) = @_;
   my $waitTimeoutMillis = $waitTimeoutSeconds * 1000;
   my $start = nowMillis();
