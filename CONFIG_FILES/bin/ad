@@ -5,6 +5,9 @@ use Cwd qw(abs_path);
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
+sub startDbus();
+sub stopDbus();
+sub restartSystemctl();
 sub sendDbusStartStop($);
 sub systemctlCmd($);
 sub waitForAliendalvik($$);
@@ -66,9 +69,11 @@ my $USAGE = "Usage:
     show this message
 
   $EXEC start|--start
+    call system dbus method $DBUS_CONTROL_METHOD true $USER
   $EXEC stop|--stop
+    call system dbus method $DBUS_CONTROL_METHOD false $USER
   $EXEC restart|--restart
-    run as $USER: systemctl --user start|stop|restart $SYSTEMD_SERVICE
+    run as $USER: systemctl --user restart $SYSTEMD_SERVICE
 
   $EXEC [OPTS] init|--init [INIT_CMD INIT_CMD...]
     -ensure aliendalvik is running and sdcards+home are mounted
@@ -387,7 +392,15 @@ sub main(@){
   }
 
   if($mode eq $MODE_SERVICE){
-    systemctlCmd $serviceCmd;
+    if($serviceCmd eq "start"){
+      startDbus();
+    }elsif($serviceCmd eq "stop"){
+      stopDbus();
+    }elsif($serviceCmd eq "restart"){
+      restartSystemctl();
+    }else{
+      die "ERROR: unknown service cmd $serviceCmd\n";
+    }
   }elsif($mode eq $MODE_INIT){
     my $attempts = 2;
     while(1){
@@ -395,7 +408,7 @@ sub main(@){
       die "ERROR: android failed to start and mount sdcards+home\n" if $attempts < 0;
 
       if(not isAliendalvikRunning()){
-        systemctlCmd "start";
+        startDbus();
       }
       if(waitForAliendalvik($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
         last;
@@ -524,6 +537,16 @@ sub main(@){
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub startDbus(){
+  sendDbusStartStop(1);
+}
+sub stopDbus(){
+  sendDbusStartStop(0);
+}
+sub restartSystemctl(){
+  systemctlCmd("restart");
 }
 
 sub sendDbusStartStop($){
