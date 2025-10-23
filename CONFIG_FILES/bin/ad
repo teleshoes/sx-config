@@ -5,6 +5,7 @@ use Cwd qw(abs_path);
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
+sub sendDbusStartStop($);
 sub systemctlCmd($);
 sub waitForAliendalvik($$);
 sub isAliendalvikRunning();
@@ -55,6 +56,10 @@ my @MEDIA_EXTS = qw(
 my $OK_MEDIA_EXTS = join "|", @MEDIA_EXTS;
 
 my $DBUS_ENV = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/100000/dbus/user_bus_socket";
+
+my $DBUS_DEST_SERVICE_NAME = "com.jolla.apkd.control";
+my $DBUS_PATH = "/com/jolla/apkd";
+my $DBUS_CONTROL_METHOD = "com.jolla.apkd.control.controlService";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -519,6 +524,23 @@ sub main(@){
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub sendDbusStartStop($){
+  my ($isStart) = @_;
+
+  my @dbusCmd = ("dbus-send",
+    "--system",
+    "--type=method_call",
+    "--print-reply",
+    "--dest=$DBUS_DEST_SERVICE_NAME",
+    "$DBUS_PATH",
+    "$DBUS_CONTROL_METHOD",
+    ($isStart ? "boolean:true" : "boolean:false"),
+    "string:$USER",
+  );
+
+  system @dbusCmd;
 }
 
 sub systemctlCmd($){
