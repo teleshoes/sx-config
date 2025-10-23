@@ -11,6 +11,7 @@ sub restartSystemctl();
 sub sendDbusStartStop($);
 sub systemctlCmd($);
 sub waitForAndroidStart($$);
+sub waitForAndroidStop($$);
 sub waitForAndroidEvents($$@);
 sub isAliendalvikRunning();
 sub readSdcardsConf();
@@ -53,6 +54,7 @@ my $SYSTEMD_SERVICE = "appsupport";
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
 
 my $EVENT_ANDROID_START = "start";
+my $EVENT_ANDROID_STOP = "stop";
 my $EVENT_ANDROID_MOUNT = "mount";
 
 my @MEDIA_EXTS = qw(
@@ -586,6 +588,11 @@ sub waitForAndroidStart($$){
   my @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT);
   return waitForAndroidEvents($opts, $waitTimeoutSeconds, @events);
 }
+sub waitForAndroidStop($$){
+  my ($opts, $waitTimeoutSeconds) = @_;
+  my @events = ($EVENT_ANDROID_STOP);
+  return waitForAndroidEvents($opts, $waitTimeoutSeconds, @events);
+}
 
 sub waitForAndroidEvents($$@){
   my ($opts, $waitTimeoutSeconds, @events) = @_;
@@ -609,6 +616,8 @@ sub waitForAndroidEvents($$@){
     for my $event(@events){
       if($event eq $EVENT_ANDROID_START){
         $isSuccess = isAliendalvikRunning();
+      }elsif($event eq $EVENT_ANDROID_STOP){
+        $isSuccess = not isAliendalvikRunning();
       }elsif($event eq $EVENT_ANDROID_MOUNT){
         $isSuccess = isSdcardsMounted($sdcardsConf) && isHomeMounted();
       }else{
