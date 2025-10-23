@@ -67,15 +67,15 @@ my $USAGE = "Usage:
 
   $EXEC [OPTS] init|--init [INIT_CMD INIT_CMD...]
     -ensure aliendalvik is running and sdcards+home are mounted
-      -if not running, restart it
+      -if not running, start it
       -wait up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s for it to start and mount sdcards+home
-    -retry check+restart+wait one more time, again up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s
+    -retry check+start+wait one more time, again up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s
     -if aliendalvik is running with sdcards+home mounted:
       -run each INIT_CMD, in order, waiting for each to finish
     similar to:
-      $EXEC --check-running || $EXEC restart
+      $EXEC --check-running || $EXEC start
       $EXEC --wait
-      $EXEC --check-running || $EXEC restart
+      $EXEC --check-running || $EXEC start
       $EXEC --wait && sh -c 'INIT_CMD ; INIT_CMD ; INIT_CMD'
 
   $EXEC
@@ -390,7 +390,7 @@ sub main(@){
       die "ERROR: android failed to start and mount sdcards+home\n" if $attempts < 0;
 
       if(not isAliendalvikRunning()){
-        serviceCmd "restart";
+        serviceCmd "start";
       }
       if(waitForAliendalvik($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
         last;
