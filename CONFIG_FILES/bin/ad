@@ -523,8 +523,13 @@ sub main(@){
 
 sub serviceCmd($){
   my ($serviceCmd) = @_;
-  system "sudo", "-u", $USER, "sh", "-c",
-    "$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE";
+  if($ENV{USER} eq $USER){
+    system "$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE";
+  }elsif($ENV{USER} eq "root"){
+    system "runuser -l $USER -c '$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE'";
+  }else{
+    die "ERROR: user '$ENV{USER}' must be $USER or root\n";
+  }
 }
 
 sub waitForAliendalvik($$){
