@@ -200,19 +200,29 @@ my $USAGE = "Usage:
     same as: $EXEC --intent=com.android.settings/.Settings
     NOTE: args to settings treated as '$EXEC shell settings ARG ARG..'
 
-  $EXEC -w|w|--wait
+  $EXEC -w|w|--wait [--events=EVENTS_CSV]
     same as: $EXEC --wait=$DEFAULT_WAIT_TIMEOUT_SECONDS
 
-  $EXEC -w|w|--wait TIMEOUT_SECONDS
-  $EXEC --wait=TIMEOUT_SECONDS
-    wait until aliendalvik is running and sdcards+home are mounted
-         e.g.: $EXEC --wait 30 && echo OK || echo FAIL
-    -every 1s, check if aliendalvik is running as in:
-        `$EXEC --check-running && $EXEC --check-sdcards`
+  $EXEC -w|w|--wait TIMEOUT_SECONDS [--events=EVENTS_CSV]
+  $EXEC --wait=TIMEOUT_SECONDS [--events=EVENTS_CSV]
+    wait until android events occur
+    default is android started and sdcards+home mounted)
+         e.g.: $EXEC --start && $EXEC --wait 30 && echo OK || echo FAIL
+    -parse EVENTS_CSV into EVENTS 'start', 'stop', 'mount'
+      -default is 'start,mount'
+    -every 1s, check if *all* event conditions are met:
+      -check each event given, in order
+        start: android is running
+                 as in: `$EXEC --check-running`
+        stop:  android is NOT running
+                 as in: `sh -c '$EXEC --check-running && exit 1 || exit 0'`
+        mount: sdcards+home are mounted
+                 as in: `$EXEC --check-sdcards`
+      -if *all* event conditions are met:
+        -exit with exit code 0
       -if TIMEOUT_SECONDS has transpired:
-        print error message and exit with exit code 1
-      -if `LXC_ATTACH_CMD` succeeded:
-        exit with exit code 0
+        -print error message
+        -exit with exit code 1
       -otherwise:
         sleep for 1s and retry
 
@@ -237,6 +247,12 @@ my $USAGE = "Usage:
       do not print shell commands before running them (this is the default)
     -v | --verbose
       print shell commands before running them
+    --events=EVENTS_CSV
+      in --wait, wait for these events before success instead of start and mount
+      default: --events=start,mount
+        EVENTS_CSV = EVENT,EVENT,EVENT
+        EVENT      = one of 'start', 'stop', 'mount'
+      e.g.: `ad stop && ad --wait --events=stop` to ensure android is not running
     -n MSG
     --notify MSG
     --notify=MSG
@@ -285,6 +301,7 @@ sub main(@){
   my $orientArg;
   my @mediaFiles;
   my $waitTimeoutSeconds;
+  my @waitEvents;
 
   while(@_ > 0 and $_[0] =~ /^($OK_OPTS)(?:=.+)?$/){
     my $opt = shift @_;
@@ -368,6 +385,9 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--wait)=(\d+)$/){
       $mode = $MODE_WAIT;
       $waitTimeoutSeconds = $1;
+    }elsif($arg =~ /^--events=(.+)$/){
+      my $eventCsv = $1;
+      @waitEvents = map {lc $_} split(/,/, $eventCsv);
     }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
@@ -518,7 +538,16 @@ sub main(@){
     exec @cmd;
   }elsif($mode eq $MODE_WAIT){
     $waitTimeoutSeconds = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $waitTimeoutSeconds;
-    if(waitForAndroidStart($opts, $waitTimeoutSeconds)){
+
+    @waitEvents = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT) if @waitEvents == 0;
+
+    for my $event(@waitEvents){
+      if($event !~ /^($EVENT_ANDROID_START|$EVENT_ANDROID_STOP|$EVENT_ANDROID_MOUNT)$/){
+        die "ERROR: unknown event '$event'\n";
+      }
+    }
+
+    if(waitForAndroidEvents($opts, $waitTimeoutSeconds, @waitEvents)){
       exit 0;
     }else{
       printf STDERR "ERROR: aliendalvik did not start and mount sdcards+home in %ds\n",
