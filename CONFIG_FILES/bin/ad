@@ -84,6 +84,9 @@ my $USAGE = "Usage:
     -sleep 3s
     -start android as in: $EXEC --stop
 
+  $EXEC systemctl|--systemctl SERVICE_CMD
+    run as $USER: systemctl --user SERVICE_CMD $SYSTEMD_SERVICE
+
   $EXEC [OPTS] init|--init [INIT_CMD INIT_CMD...]
     -ensure aliendalvik is running and sdcards+home are mounted
       -if not running, start it
@@ -270,6 +273,7 @@ my $USAGE = "Usage:
 ";
 
 my $MODE_SERVICE = "service";
+my $MODE_SYSTEMCTL = "systemctl";
 my $MODE_INIT = "init";
 my $MODE_SHELL = "shell";
 my $MODE_RES = "res";
@@ -333,6 +337,9 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(?:--)?(start|stop|restart)$/ and $isLastArg){
       $mode = $MODE_SERVICE;
       $serviceCmd = $1;
+    }elsif($isFirstArg and $arg =~ /^(?:--)?(systemctl)$/ and $i == $#_-1){
+      $mode = $MODE_SYSTEMCTL;
+      $serviceCmd = $_[++$i];
     }elsif($isFirstArg and $arg =~ /^(?:--)?(init)$/){
       $mode = $MODE_INIT;
     }elsif($isFirstArg and $arg =~ /^(-x|x)$/){
@@ -430,6 +437,8 @@ sub main(@){
     }else{
       die "ERROR: unknown service cmd $serviceCmd\n";
     }
+  }elsif($mode eq $MODE_SYSTEMCTL){
+    systemctlCmd($serviceCmd);
   }elsif($mode eq $MODE_INIT){
     my $attempts = 2;
     while(1){
