@@ -7,7 +7,7 @@ use Time::HiRes qw(time);
 
 sub startDbus();
 sub stopDbus();
-sub restartSystemctl();
+sub restartDbus();
 sub sendDbusStartStop($);
 sub systemctlCmd($);
 sub waitForAndroidStart($$);
@@ -79,7 +79,10 @@ my $USAGE = "Usage:
   $EXEC stop|--stop
     call system dbus method $DBUS_CONTROL_METHOD false $USER
   $EXEC restart|--restart
-    run as $USER: systemctl --user restart $SYSTEMD_SERVICE
+    -stop android as in: $EXEC --stop
+    -wait for android to be stopped as in: $EXEC --wait --events=stop
+    -sleep 3s
+    -start android as in: $EXEC --stop
 
   $EXEC [OPTS] init|--init [INIT_CMD INIT_CMD...]
     -ensure aliendalvik is running and sdcards+home are mounted
@@ -423,7 +426,7 @@ sub main(@){
     }elsif($serviceCmd eq "stop"){
       stopDbus();
     }elsif($serviceCmd eq "restart"){
-      restartSystemctl();
+      restartDbus();
     }else{
       die "ERROR: unknown service cmd $serviceCmd\n";
     }
@@ -580,8 +583,12 @@ sub startDbus(){
 sub stopDbus(){
   sendDbusStartStop(0);
 }
-sub restartSystemctl(){
-  systemctlCmd("restart");
+sub restartDbus(){
+  my $opts = {};
+  sendDbusStartStop(0);
+  waitForAndroidStop($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS);
+  sleep 3;
+  sendDbusStartStop(1);
 }
 
 sub sendDbusStartStop($){
