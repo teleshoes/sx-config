@@ -286,7 +286,7 @@ my $waydroidSrcAppIconDir = "/home/waydroid/data/icons";
 my $waydroidBackupAppIconDir = "$SDCARD_DIR/android-app-icons-wd";
 my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
 
-my $aliendalvikSrcAppIconDir = "/var/lib/apkd";
+my $aliendalvikSrcAppIconDir = "/home/$user/.local/share/apkd-bridge/launcherIcon";
 my $aliendalvikBackupAppIconDir = "$SDCARD_DIR/android-app-icons-ad";
 my $aliendalvikDestAppIconDir = "/usr/share/icons/aliendalvik";
 
