@@ -111,6 +111,10 @@ my @config = qw(
 
   harbour-mlsmanager
   sfos-forum-viewer
+  amazfish-ui
+  audio-output
+
+  sailfish-filemanager
 
   aurora-store
   axs
