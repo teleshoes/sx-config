@@ -249,7 +249,7 @@ my $aliendalvikDestAppIconDir = "/usr/share/icons/aliendalvik";
 
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
-sub createAndroidDesktopFile($$$$);
+sub createAndroidDesktopFile($$$);
 sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
@@ -405,19 +405,19 @@ sub createAndroidDesktopFiles(){
   if($USE_WAYDROID){
     for my $appName(sort keys %androidLaunchers){
       my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
-      createAndroidDesktopFile($appName, "waydroid", "wd", $waydroidDestAppIconDir);
+      createAndroidDesktopFile($appName, "waydroid", $waydroidDestAppIconDir);
     }
   }
   if($USE_ALIENDALVIK){
     for my $appName(sort keys %androidLaunchers){
       my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
-      createAndroidDesktopFile($appName, "aliendalvik", "ad", $aliendalvikDestAppIconDir);
+      createAndroidDesktopFile($appName, "aliendalvik", $aliendalvikDestAppIconDir);
     }
   }
 }
 
-sub createAndroidDesktopFile($$$$){
-  my ($appName, $androidEnvName, $wdAdLauncherCmdExec, $androidIconDir) = @_;
+sub createAndroidDesktopFile($$$){
+  my ($appName, $androidEnvName, $androidIconDir) = @_;
 
   my ($pkg, $action, $iconPathOverride) = @{$androidLaunchers{$appName}};
 
@@ -426,9 +426,17 @@ sub createAndroidDesktopFile($$$$){
 
   my $fullIntent = "$pkg/$action";
 
-  my $desktopFilePrefix = "android-$wdAdLauncherCmdExec";
-
-  my $cmd = "/usr/local/bin/udo $wdAdLauncherCmdExec --launch-intent=\"$fullIntent\"";
+  my $cmd;
+  my $desktopFilePrefix;
+  if($androidEnvName eq "aliendalvik"){
+    $cmd = "/usr/local/bin/udo ad --launch-intent=\"$fullIntent\"";
+    $desktopFilePrefix = "android-ad";
+  }elsif($androidEnvName eq "wayland"){
+    $cmd = "/usr/local/bin/udo wd --launch-intent=\"$fullIntent\"";
+    $desktopFilePrefix = "android-wd";
+  }else{
+    die "ERROR: unknown android environment $androidEnvName\n";
+  }
 
   my $desktopFile = "$activeDir/$desktopFilePrefix-$appName.desktop";
   my $desktopContents = ""
