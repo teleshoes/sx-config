@@ -15,6 +15,7 @@ sub run(@);
 sub tryrun(@);
 sub runIpmagicRoot(@);
 sub tryrunIpmagicRoot(@);
+sub readIpmagicRoot(@);
 
 my @removals = qw(
   busybox-symlinks-bash
@@ -421,6 +422,20 @@ sub runIpmagicRoot(@){
 }
 sub tryrunIpmagicRoot(@){
   tryrun "ipmagic", $ipmagicName, "-u", "root", @_;
+}
+sub readIpmagicRoot(@){
+  my @cmd = ("ipmagic", $ipmagicName, "-u", "root", @_);
+  open my $cmdH, "-|", @cmd, or die "ERROR: could not run \"@_\"\n$!\n";
+  my @lines = <$cmdH>;
+  close $cmdH;
+
+  die "ERROR: \"@_\" failed\n" if $? != 0;
+
+  if(wantarray){
+    return @lines;
+  }else{
+    return join "", @lines;
+  }
 }
 
 &main(@ARGV);
