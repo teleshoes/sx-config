@@ -111,6 +111,26 @@ my @config = qw(
 
   harbour-mlsmanager
   sfos-forum-viewer
+
+  aurora-store
+  axs
+  band-chat
+  cavestory
+  chess
+  ge-ac
+  librera-fd-pdf
+  microg-settings
+  mobile-sheets
+  mpv
+  petsafe
+  retro-fitness
+  riot
+  runpee
+  seatgeek
+  stubhub
+  ticketmaster
+  tribit
+  whisker
 );
 
 my @unused = qw(
@@ -153,7 +173,12 @@ my @unused = qw(
 my %androidLaunchers = (
   "android-settings"   => ["com.android.settings",                      ".Settings",                                                       undef],
   "aptoide"            => ["cm.aptoide.pt",                             ".view.MainActivity",                                              undef],
+  "aurora-store"       => ["com.aurora.store",                          ".MainActivity",                                                   undef],
+  "axs"                => ["com.axs.android",                           ".ui.content.main.MainActivity",                                   undef],
+  "band-chat"          => ["com.nhn.android.band",                      ".SplashActivity",                                                 undef],
   "bromite"            => ["org.bromite.bromite",                       "com.google.android.apps.chrome.Main",                             undef],
+  "cavestory"          => ["io.github.doukutsu_rs",                     ".MainActivity",                                                   undef],
+  "chess"              => ["jwtc.android.chess",                        ".start",                                                          undef],
   "chrome"             => ["com.android.chrome",                        "com.google.android.apps.chrome.Main",                             undef],
   "coolreader"         => ["org.coolreader",                            ".CoolReader",                                                     undef],
   "discord"            => ["com.discord",                               ".app.AppActivity\$Main",                                          undef],
@@ -162,25 +187,39 @@ my %androidLaunchers = (
   "fairynest"          => ["com.spled.aicontrol",                       ".activity.main.MainActivity",                                     undef],
   "fbmessenger"        => ["com.facebook.orca",                         ".auth.StartScreenActivity",                                       undef],
   "fdroid"             => ["org.fdroid.fdroid",                         ".views.main.MainActivity",                                        undef],
+  "ge-ac"              => ["com.ge.kitchen",                            "com.ge.cafe.SplashActivity",                                      undef],
   "google-maps"        => ["com.google.android.apps.maps",              "com.google.android.maps.MapsActivity",                            undef],
   "google-tts"         => ["com.google.android.tts",                    "android.app.AppDetailsActivity",                                  undef],
   "ivona-tts"          => ["com.ivona.tts",                             ".WelcomeActivity",                                                undef],
   "ivona-tts-amy"      => ["com.ivona.tts.voicebeta.eng.gbr.amy",       ".IvonaVoice",                                                     undef],
   "jitsi"              => ["org.jitsi.meet",                            ".MainActivity",                                                   undef],
   "kingdom"            => ["com.rawfury.kingdom2crowns",                "com.unity3d.player.UnityPlayerActivity",                          undef],
+  "librera-fd-pdf"     => ["com.foobnix.pro.pdf.reader",                "com.foobnix.ui2.MainTabs2",                                       undef],
+  "microg-settings"    => ["com.google.android.gms",                    "org.microg.gms.ui.SettingsActivity",                              undef],
   "midea"              => ["com.midea.aircondition.obm",                ".activity.LoginActivity",                                         undef],
+  "mobile-sheets"      => ["com.zubersoft.mobilesheetsfree",            ".MobileSheetsFree",                                               undef],
+  "mpv"                => ["is.xyz.mpv",                                ".MainActivity",                                                   undef],
   "mystrom"            => ["com.cogniance.asoka.srs.android",           ".MainActivity",                                                   undef],
   "nesoid"             => ["com.androidemu.nes",                        ".MainActivity",                                                   undef],
   "opencamera"         => ["net.sourceforge.opencamera",                ".MainActivity",                                                   undef],
+  "petsafe"            => ["net.petsafe.platform",                      ".views.ActSplash",                                                undef],
+  "retro-fitness"      => ["com.netpulse.mobile.retro",                 "com.netpulse.mobile.launch.LaunchActivity",                       undef],
   "rheem"              => ["com.rheem.econetconsumerandroid",           "com.rheem.econet.view.splash.SplashActivity",                     undef],
+  "riot"               => ["im.vector.alpha",                           "im.vector.activity.LauncherActivity",                             undef],
+  "runpee"             => ["air.RunPee",                                "io.flutter.embedding.android.FlutterActivity",                    undef],
+  "seatgeek"           => ["com.seatgeek.android",                      ".ui.activities.SplashActivity",                                   undef],
   "snes9x"             => ["com.explusalpha.Snes9xPlus",                "com.imagine.BaseActivity",                                        undef],
+  "stubhub"            => ["com.stubhub",                               ".MainActivity",                                                   undef],
   "textfree"           => ["com.pinger.textfree",                       ".call.activities.TFSplash",                                       undef],
+  "ticketmaster"       => ["com.ticketmaster.mobile.android.na",        "com.ticketmaster.mobile.android.library.activity.MainActivity",   undef],
   "tkts"               => ["com.TDF.AndroidTdf",                        ".applicationwide.TktsSplashScreenActivity",                       undef],
   "tmobile-digits"     => ["com.tmobile.digits",                        "com.mavenir.digits.digits3x.MainActivity",                        undef],
   "tor"                => ["org.torproject.torbrowser",                 ".App",                                                            undef],
   "traintime"          => ["com.mta.mobileapp",                         ".MainActivity",                                                   undef],
+  "tribit"             => ["com.thousandshores.tribit",                 ".modulelogin.activity.FirstActivity",                             undef],
   "vanced-microg"      => ["com.mgoogle.android.gms",                   "android.app.AppDetailsActivity",                                  undef],
   "vlc"                => ["org.videolan.vlc",                          ".StartActivity",                                                  undef],
+  "whisker"            => ["com.whisker.android",                       ".MainActivity",                                                   undef],
   "youtube"            => ["com.vanced.android.youtube",                "com.google.android.youtube.app.honeycomb.Shell\$HomeActivity",    undef],
   "youtube-music"      => ["com.vanced.android.apps.youtube.music",     "com.google.android.apps.youtube.music.activities.MusicActivity",  undef],
   "youtube-vanced-mgr" => ["com.vanced.manager",                        ".ui.MainActivity",                                                undef],
