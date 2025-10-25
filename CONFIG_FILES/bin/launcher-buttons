@@ -521,7 +521,7 @@ sub createAndroidDesktopFile($$$){
   my $cmd;
   my $desktopFilePrefix;
   if($androidEnvName eq "aliendalvik"){
-    $cmd = "/usr/local/bin/udo ad --launch-intent=\"$fullIntent\"";
+    $cmd = "ad --app $appName '$fullIntent'";
     $desktopFilePrefix = "android-ad";
   }elsif($androidEnvName eq "wayland"){
     $cmd = "/usr/local/bin/udo wd --launch-intent=\"$fullIntent\"";
