@@ -81,6 +81,7 @@ my %packages = (
     jolla-calendar
     libvncserver
     python2-dbus
+    sailfish-audiorecorder
     sailfish-office
     sailfish-filemanager
     youtube-dl
