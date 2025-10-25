@@ -65,6 +65,7 @@ my %packages = (
     cutes-js
     gpscon
     gstreamer1.0-tools
+    harbour-audio-output
     harbour-filetug
     harbour-gpsinfo
     harbour-jollacompass
