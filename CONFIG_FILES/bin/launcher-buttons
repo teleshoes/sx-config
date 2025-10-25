@@ -292,7 +292,7 @@ my $aliendalvikDestAppIconDir = "/usr/share/icons/aliendalvik";
 
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
-sub createAndroidDesktopFile($$$);
+sub createAndroidDesktopFile($$);
 sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
@@ -508,38 +508,41 @@ sub createAndroidDesktopFiles(){
   if($USE_WAYDROID){
     for my $appName(sort keys %androidLaunchers){
       my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
-      createAndroidDesktopFile($appName, "waydroid", $waydroidDestAppIconDir);
+      createAndroidDesktopFile($appName, "waydroid");
     }
   }
   if($USE_ALIENDALVIK){
     for my $appName(sort keys %androidLaunchers){
       my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
-      createAndroidDesktopFile($appName, "aliendalvik", $aliendalvikDestAppIconDir);
+      createAndroidDesktopFile($appName, "aliendalvik");
     }
   }
 }
 
-sub createAndroidDesktopFile($$$){
-  my ($appName, $androidEnvName, $androidIconDir) = @_;
+sub createAndroidDesktopFile($$){
+  my ($appName, $androidEnvName) = @_;
 
   my ($pkg, $action, $iconPathOverride) = @{$androidLaunchers{$appName}};
-
-  my $iconPath = "$androidIconDir/$pkg.png";
-  $iconPath = $iconPathOverride if defined $iconPathOverride;
 
   my $fullIntent = "$pkg/$action";
 
   my $cmd;
   my $desktopFilePrefix;
+  my $androidIconDir;
   if($androidEnvName eq "aliendalvik"){
     $cmd = "ad --app $appName '$fullIntent'";
     $desktopFilePrefix = "android-ad";
+    $androidIconDir = $aliendalvikDestAppIconDir;
   }elsif($androidEnvName eq "wayland"){
     $cmd = "/usr/local/bin/udo wd --launch-intent=\"$fullIntent\"";
     $desktopFilePrefix = "android-wd";
+    $androidIconDir = $waydroidDestAppIconDir;
   }else{
     die "ERROR: unknown android environment $androidEnvName\n";
   }
+
+  my $iconPath = "$androidIconDir/$pkg.png";
+  $iconPath = $iconPathOverride if defined $iconPathOverride;
 
   my $desktopFile = "$activeDir/$desktopFilePrefix-$appName.desktop";
   my $desktopContents = ""
