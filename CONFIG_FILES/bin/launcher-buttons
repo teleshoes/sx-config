@@ -147,7 +147,7 @@ my @unused = qw(
 ########################################################
 
 
-# APP_NAME => [PACKAGE, ACTION, ICON_PATH, PRESTART_CMD]
+# APP_NAME => [PACKAGE, ACTION, ICON_PATH]
 # these get created as "/usr/shared/applications/<PREFIX>-<APP_NAME>.desktop"
 #   PREFIX is "android-ad" for USE_ALIENDALVIK and "android-wd" for USE_WAYDROID
 my %androidLaunchers = (
@@ -249,7 +249,7 @@ my $aliendalvikDestAppIconDir = "/usr/share/icons/aliendalvik";
 
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
-sub createAndroidDesktopFile($$$$$);
+sub createAndroidDesktopFile($$$$);
 sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
@@ -384,7 +384,7 @@ sub createAndroidDesktopFiles(){
 
     run "mkdir", "-p", $aliendalvikBackupAppIconDir;
     for my $appName(sort keys %androidLaunchers){
-      my ($pkg, $intent, $iconPath, $prestartCmd) = @{$androidLaunchers{$appName}};
+      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
       my $pkgNameFmt = $pkg;
       $pkgNameFmt =~ s/\W/_/g;
       my $iconFile = $$adIcons{$pkgNameFmt};
@@ -404,20 +404,20 @@ sub createAndroidDesktopFiles(){
 
   if($USE_WAYDROID){
     for my $appName(sort keys %androidLaunchers){
-      my ($pkg, $intent, $iconPath, $prestartCmd) = @{$androidLaunchers{$appName}};
-      createAndroidDesktopFile($appName, "waydroid", "wd", $waydroidDestAppIconDir, $prestartCmd);
+      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
+      createAndroidDesktopFile($appName, "waydroid", "wd", $waydroidDestAppIconDir);
     }
   }
   if($USE_ALIENDALVIK){
     for my $appName(sort keys %androidLaunchers){
-      my ($pkg, $intent, $iconPath, $prestartCmd) = @{$androidLaunchers{$appName}};
-      createAndroidDesktopFile($appName, "aliendalvik", "ad", $aliendalvikDestAppIconDir, $prestartCmd);
+      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
+      createAndroidDesktopFile($appName, "aliendalvik", "ad", $aliendalvikDestAppIconDir);
     }
   }
 }
 
-sub createAndroidDesktopFile($$$$$){
-  my ($appName, $androidEnvName, $wdAdLauncherCmdExec, $androidIconDir, $prestartCmd) = @_;
+sub createAndroidDesktopFile($$$$){
+  my ($appName, $androidEnvName, $wdAdLauncherCmdExec, $androidIconDir) = @_;
 
   my ($pkg, $action, $iconPathOverride) = @{$androidLaunchers{$appName}};
 
@@ -428,12 +428,7 @@ sub createAndroidDesktopFile($$$$$){
 
   my $desktopFilePrefix = "android-$wdAdLauncherCmdExec";
 
-  my $cmd;
-  if(defined $prestartCmd){
-    $cmd = "/usr/local/bin/udo sh -c '$prestartCmd; $wdAdLauncherCmdExec --launch-intent=\"$fullIntent\"'";
-  }else{
-    $cmd = "/usr/local/bin/udo $wdAdLauncherCmdExec --launch-intent=\"$fullIntent\"";
-  }
+  my $cmd = "/usr/local/bin/udo $wdAdLauncherCmdExec --launch-intent=\"$fullIntent\"";
 
   my $desktopFile = "$activeDir/$desktopFilePrefix-$appName.desktop";
   my $desktopContents = ""
