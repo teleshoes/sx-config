@@ -238,10 +238,12 @@ my $usage = "Usage:
         REPO_NAME can be a repo name (e.g.: \"openrepos-jsmith\"),
           or an existing OPENREPOS_USERNAME (e.g.: \"jsmith\")
       storeman-obs
-        run:
+        -fetch VERSION_MAJ_MIN from `cat /etc/os/release`
+        -fetch ARCH from `uname -m`
+        -run:
           ssu rr mentaljam-obs
           rm -f /var/cache/ssu/features.ini
-          ssu ar harbour-storeman-obs 'https://repo.sailfishos.org/obs/home:/olf:/harbour-storeman/%(release)_%(arch)/'
+          ssu ar harbour-storeman-obs 'https://repo.sailfishos.org/obs/home:/olf:/harbour-storeman/<VERSION_MAJ_MIN>_<ARCH>/'
           ssu ur
           pkcon repo-set-data harbour-storeman-obs refresh-now true
       removals
@@ -330,10 +332,25 @@ sub main(@){
     }elsif($command =~ /^killpkg$/){
       tryrunIpmagicRoot "pkill", "-f", "packagekitd";
     }elsif($command =~ /^storeman-obs$/){
+      my $arch = readIpmagicRoot "uname -m";
+      chomp $arch;
+      die "ERROR: could not parse arch from uname -m\n" if $arch !~ /^\w+$/;
+
+      my $versionMajMin;
+      my $release = readIpmagicRoot "cat /etc/os-release";
+      if($release =~ /^VERSION_ID="?(\d+\.\d+)/m){
+        $versionMajMin = $1;
+      }else{
+        die "ERROR: could not parse MAJ.MIN version from /etc/os-release\n";
+      }
+
+      print "version maj.min: $versionMajMin\n";
+      print "arch: $arch\n";
+
       runIpmagicRoot "ssu", "rr", "mentaljam-obs";
       runIpmagicRoot "rm", "-f", "/var/cache/ssu/features.ini";
       runIpmagicRoot "ssu", "ar", "harbour-storeman-obs",
-        "'https://repo.sailfishos.org/obs/home:/olf:/harbour-storeman/%(release)_%(arch)/'";
+        "'https://repo.sailfishos.org/obs/home:/olf:/harbour-storeman/${versionMajMin}_${arch}/'";
       runIpmagicRoot "ssu", "ur";
       runIpmagicRoot "pkcon", "repo-set-data", "harbour-storeman-obs", "refresh-now", "true";
     }elsif(defined $packages{$command}){
