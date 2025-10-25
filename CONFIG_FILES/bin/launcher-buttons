@@ -507,13 +507,11 @@ sub createAndroidDesktopFiles(){
 
   if($USE_WAYDROID){
     for my $appName(sort keys %androidLaunchers){
-      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
       createAndroidDesktopFile($appName, "waydroid");
     }
   }
   if($USE_ALIENDALVIK){
     for my $appName(sort keys %androidLaunchers){
-      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
       createAndroidDesktopFile($appName, "aliendalvik");
     }
   }
