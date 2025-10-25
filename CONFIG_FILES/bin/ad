@@ -102,6 +102,9 @@ my $USAGE = "Usage:
       $EXEC --check-running || $EXEC start
       $EXEC --wait && sh -c 'INIT_CMD ; INIT_CMD ; INIT_CMD'
 
+  $EXEC app|--app APP_NAME INTENT
+    same as: $EXEC --init --notify=APP_NAME && $EXEC --launch INTENT
+
   $EXEC
   $EXEC -x|x
   $EXEC --shell|shell
@@ -277,6 +280,7 @@ my $USAGE = "Usage:
 my $MODE_SERVICE = "service";
 my $MODE_SYSTEMCTL = "systemctl";
 my $MODE_INIT = "init";
+my $MODE_APP = "app";
 my $MODE_SHELL = "shell";
 my $MODE_RES = "res";
 my $MODE_TAP = "tap";
@@ -344,6 +348,11 @@ sub main(@){
       $serviceCmd = $_[++$i];
     }elsif($isFirstArg and $arg =~ /^(?:--)?(init)$/){
       $mode = $MODE_INIT;
+    }elsif($isFirstArg and $arg =~ /^(?:--)?(app)$/ and $i == $#_-2){
+      $mode = $MODE_APP;
+      $$opts{useNotify} = 1;
+      $$opts{notifyMsg} = $_[++$i];
+      $intent = $_[++$i];
     }elsif($isFirstArg and $arg =~ /^(-x|x)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 0;
@@ -447,6 +456,9 @@ sub main(@){
     for my $cmd(@initCmds){
       system $cmd;
     }
+  }elsif($mode eq $MODE_APP){
+    initAndroid($opts);
+    launchIntent($intent);
   }elsif($mode eq $MODE_SHELL){
     lxcShell($opts, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
