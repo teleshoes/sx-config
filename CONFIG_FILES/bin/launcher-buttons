@@ -312,8 +312,12 @@ my $usage = "Usage:
       in $allDir and $activeDir
 
   $0 --inactive
-    print app names of desktop files that
-      are in $allDir and are not in $activeDir
+    -get all desktop files from:
+      $allDir
+    -do not include desktop files that are in:
+      $activeDir
+    -do not include desktop files that are specifically marked unused
+    -print the remaining inactive desktop files
 ";
 
 sub main(@){
@@ -338,6 +342,14 @@ sub main(@){
     my @allAppNames = getAppNamesInDir $allDir;
     my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $activeDir;
     my @inactive = grep {not defined $okActiveAppNames{$_}} @allAppNames;
+
+    my @validAppNames = getValidAppNames();
+    my @unusedItems = @unused;
+    @unusedItems = applyConfigReplacements \@unusedItems, \@validAppNames;
+    my %okUnusedAppNames = map {$_ => 1} @unusedItems;
+    @inactive = grep {not defined $okUnusedAppNames{$_}} @inactive;
+
+    print "\n\ninactive launchers:\n";
     print map {"$_\n"} @inactive;
   }elsif($cmd eq "rearrange"){
     rearrangeLauncherButtons();
