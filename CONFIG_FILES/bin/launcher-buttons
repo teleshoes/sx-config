@@ -464,6 +464,11 @@ sub createAndroidDesktopFiles(){
       "$waydroidBackupAppIconDir/",
       "$waydroidDestAppIconDir/",
     ;
+    run "chown",
+      "-R",
+      "$waydroidDestAppIconDir/",
+      "--reference=$waydroidDestAppIconDir/../",
+    ;
   }
   if($USE_ALIENDALVIK){
     my $adIcons = {};
@@ -492,6 +497,11 @@ sub createAndroidDesktopFiles(){
     run "rsync", "-avP",
       "$aliendalvikBackupAppIconDir/",
       "$aliendalvikDestAppIconDir/",
+    ;
+    run "chown",
+      "-R",
+      "$aliendalvikDestAppIconDir/",
+      "--reference=$aliendalvikDestAppIconDir/../",
     ;
   }
 
