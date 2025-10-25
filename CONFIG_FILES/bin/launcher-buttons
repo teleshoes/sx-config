@@ -533,7 +533,7 @@ sub createAndroidDesktopFile($$){
     $cmd .= " --app $appName '$fullIntent'";
     $desktopFilePrefix = "android-ad";
     $androidIconDir = $aliendalvikDestAppIconDir;
-  }elsif($androidEnvName eq "wayland"){
+  }elsif($androidEnvName eq "waydroid"){
     $cmd = "/usr/local/bin/udo wd --launch-intent=\"$fullIntent\"";
     $desktopFilePrefix = "android-wd";
     $androidIconDir = $waydroidDestAppIconDir;
