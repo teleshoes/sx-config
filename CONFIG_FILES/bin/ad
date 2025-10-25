@@ -14,6 +14,7 @@ sub waitForAndroidStart($$);
 sub waitForAndroidStop($$);
 sub waitForAndroidEvents($$@);
 sub isAliendalvikRunning();
+sub launchIntent($);
 sub readSdcardsConf();
 sub isSdcardsMounted($);
 sub isUUIDMounted($);
@@ -535,19 +536,7 @@ sub main(@){
     }
   }elsif($mode eq $MODE_LAUNCH){
     die "ERROR: missing intent\n" if not defined $intent;
-    my ($pkgName, $activity);
-    if($intent =~ /^(.+)\/(.+)$/){
-      ($pkgName, $activity) = ($1, $2);
-      if($activity =~ /^\./){
-        #this is NOT implemented by apkd-launcher, apparently
-        $activity = "$pkgName$activity";
-      }
-    }else{
-      die "ERROR: malformed intent (must be PKG_NAME/ACTIVITY)\n";
-    }
-    my $apk = "$pkgName.apk";
-    my @cmd = ("apkd-launcher", $apk, "$pkgName/$activity");
-    exec @cmd;
+    launchIntent($intent);
   }elsif($mode eq $MODE_WAIT){
     $waitTimeoutSeconds = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $waitTimeoutSeconds;
 
@@ -694,6 +683,23 @@ sub isAliendalvikRunning(){
   }else{
     return 0;
   }
+}
+
+sub launchIntent($){
+  my ($intent) = @_;
+  my ($pkgName, $activity);
+  if($intent =~ /^(.+)\/(.+)$/){
+    ($pkgName, $activity) = ($1, $2);
+    if($activity =~ /^\./){
+      #this is NOT implemented by apkd-launcher, apparently
+      $activity = "$pkgName$activity";
+    }
+  }else{
+    die "ERROR: malformed intent (must be PKG_NAME/ACTIVITY)\n";
+  }
+  my $apk = "$pkgName.apk";
+  my @cmd = ("apkd-launcher", $apk, "$pkgName/$activity");
+  exec @cmd;
 }
 
 sub readSdcardsConf(){
