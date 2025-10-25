@@ -5,6 +5,7 @@ use Cwd qw(abs_path);
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
+sub initAndroid($);
 sub startDbus();
 sub stopDbus();
 sub restartDbus();
@@ -441,18 +442,7 @@ sub main(@){
   }elsif($mode eq $MODE_SYSTEMCTL){
     systemctlCmd($serviceCmd);
   }elsif($mode eq $MODE_INIT){
-    my $attempts = 2;
-    while(1){
-      $attempts--;
-      die "ERROR: android failed to start and mount sdcards+home\n" if $attempts < 0;
-
-      if(not isAliendalvikRunning()){
-        startDbus();
-      }
-      if(waitForAndroidStart($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
-        last;
-      }
-    }
+    initAndroid($opts);
 
     for my $cmd(@initCmds){
       system $cmd;
@@ -572,6 +562,22 @@ sub main(@){
     }
   }else{
     die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub initAndroid($){
+  my ($opts) = @_;
+  my $attempts = 2;
+  while(1){
+    $attempts--;
+    die "ERROR: android failed to start and mount sdcards+home\n" if $attempts < 0;
+
+    if(not isAliendalvikRunning()){
+      startDbus();
+    }
+    if(waitForAndroidStart($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
+      last;
+    }
   }
 }
 
