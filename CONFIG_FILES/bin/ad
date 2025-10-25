@@ -264,6 +264,9 @@ my $USAGE = "Usage:
         EVENTS_CSV = EVENT,EVENT,EVENT
         EVENT      = one of 'start', 'stop', 'mount'
       e.g.: `ad stop && ad --wait --events=stop` to ensure android is not running
+    --skip-mount
+      skip checking sdcards+home mounted during --wait
+      same as: --events=start
     -n MSG
     --notify MSG
     --notify=MSG
@@ -409,6 +412,8 @@ sub main(@){
     }elsif($arg =~ /^--events=(.+)$/){
       my $eventCsv = $1;
       @waitEvents = map {lc $_} split(/,/, $eventCsv);
+    }elsif($arg =~ /^--skip-mount$/){
+      @waitEvents = ("start");
     }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
