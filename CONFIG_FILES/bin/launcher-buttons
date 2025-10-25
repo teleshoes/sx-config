@@ -470,6 +470,7 @@ sub createAndroidDesktopFiles(){
     for my $iconFile(glob "$aliendalvikSrcAppIconDir/*.png"){
       if($iconFile =~ /apkd_launcher_(\w+)-(.+).png/){
         my ($pkgNameFmt, $intentFmt) = ($1, $2);
+        $pkgNameFmt =~ s/__/_/g;
         $$adIcons{$pkgNameFmt} = $iconFile;
       }
     }
@@ -664,6 +665,7 @@ sub createAppDesktopFiles(@){
     for my $appName(sort keys %androidLaunchers){
       my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
       my $pkgNameFmt = $pkg;
+      $pkgNameFmt =~ s/_/__/g;
       $pkgNameFmt =~ s/\W/_/g;
       my @launchers = glob "$userDir/apkd_launcher_$pkgNameFmt-*.desktop";
       for my $launcher(@launchers){
