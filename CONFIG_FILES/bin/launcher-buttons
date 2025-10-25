@@ -311,6 +311,15 @@ my $usage = "Usage:
     print a list of all app names from all desktop files
       in $allDir and $activeDir
 
+  $0 --missing-config
+    -get active desktop files from:
+      $activeDir
+      $userDir
+    -do not include empty files (user dir placeholders)
+    -do not include desktop files that are in config
+    -do not include desktop files that are marked extra (no launchers)
+    -print the remaining desktop files that would be removed by rearrange
+
   $0 --inactive
     -get all desktop files from:
       $allDir
@@ -326,6 +335,8 @@ sub main(@){
     $cmd = "get";
   }elsif(@_ == 1 and $_[0] =~ /^(--inactive)$/){
     $cmd = "inactive";
+  }elsif(@_ == 1 and $_[0] =~ /^(--missing-config)$/){
+    $cmd = "missing-config";
   }elsif(@_ == 0){
     $cmd = "rearrange";
   }else{
@@ -351,6 +362,32 @@ sub main(@){
 
     print "\n\ninactive launchers:\n";
     print map {"$_\n"} @inactive;
+  }elsif($cmd eq "missing-config"){
+    my @configItems = @config;
+    my @validAppNames = getValidAppNames();
+    @configItems = applyConfigReplacements \@configItems, \@validAppNames;
+    @configItems = addMissingPrefixes([@configItems], [@validAppNames]);
+    my %okConfigAppNames = map {$_ => 1} @configItems;
+
+    my @extraAppNames = map {$_ =~ s/\.desktop$//; $_} @extraIncludePatterns;
+    my %okExtraAppNames = map {$_ => 1} @extraAppNames;
+
+    my @activeAppNames = getAppNamesInDir $activeDir;
+
+    my @nonEmptyUserLaunchers = grep {not -z $_} glob "$userDir/*.desktop";
+    my @nonEmptyUserAppNames = map {
+      $_ =~ s/$userDir\///;
+      $_ =~ s/\.desktop$//;
+      $_
+    } @nonEmptyUserLaunchers;
+
+
+    my @missingAppNames = (@activeAppNames, @nonEmptyUserAppNames);
+    @missingAppNames = grep {not defined $okConfigAppNames{$_}} @missingAppNames;
+    @missingAppNames = grep {not defined $okExtraAppNames{$_}} @missingAppNames;
+
+    print "\n\nmissing config entries:\n";
+    print map {"$_\n"} @missingAppNames;
   }elsif($cmd eq "rearrange"){
     rearrangeLauncherButtons();
   }else{
