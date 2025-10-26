@@ -11,8 +11,6 @@ sub stopDbus();
 sub restartDbus();
 sub sendDbusStartStop($);
 sub systemctlCmd($);
-sub waitForAndroidStart($$);
-sub waitForAndroidStop($$);
 sub waitForAndroidEvents($$@);
 sub isAliendalvikRunning();
 sub launchIntent($);
@@ -632,17 +630,6 @@ sub systemctlCmd($){
   }else{
     die "ERROR: user '$ENV{USER}' must be $USER or root\n";
   }
-}
-
-sub waitForAndroidStart($$){
-  my ($opts, $waitTimeoutSeconds) = @_;
-  my @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT);
-  return waitForAndroidEvents($opts, $waitTimeoutSeconds, @events);
-}
-sub waitForAndroidStop($$){
-  my ($opts, $waitTimeoutSeconds) = @_;
-  my @events = ($EVENT_ANDROID_STOP);
-  return waitForAndroidEvents($opts, $waitTimeoutSeconds, @events);
 }
 
 sub waitForAndroidEvents($$@){
