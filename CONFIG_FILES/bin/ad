@@ -547,14 +547,6 @@ sub main(@){
   }elsif($mode eq $MODE_WAIT){
     $waitTimeoutSeconds = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $waitTimeoutSeconds;
 
-    @waitEvents = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT) if @waitEvents == 0;
-
-    for my $event(@waitEvents){
-      if($event !~ /^($EVENT_ANDROID_START|$EVENT_ANDROID_STOP|$EVENT_ANDROID_MOUNT)$/){
-        die "ERROR: unknown event '$event'\n";
-      }
-    }
-
     if(waitForAndroidEvents($opts, $waitTimeoutSeconds, @waitEvents)){
       exit 0;
     }else{
@@ -653,6 +645,15 @@ sub waitForAndroidStop($$){
 
 sub waitForAndroidEvents($$@){
   my ($opts, $waitTimeoutSeconds, @events) = @_;
+
+  @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT) if @events == 0;
+
+  for my $event(@events){
+    if($event !~ /^($EVENT_ANDROID_START|$EVENT_ANDROID_STOP|$EVENT_ANDROID_MOUNT)$/){
+      die "ERROR: unknown event '$event'\n";
+    }
+  }
+
   my $waitTimeoutMillis = $waitTimeoutSeconds * 1000;
   my $start = nowMillis();
   my $sdcardsConf = readSdcardsConf();
