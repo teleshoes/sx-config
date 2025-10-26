@@ -296,7 +296,7 @@ my $MODE_CHECK_RUNNING = "check-running";
 my $MODE_CHECK_SDCARDS = "check-sdcards";
 
 my $OK_OPTS = join "|", qw(
-  -q --quiet -v --verbose -n --notify
+  -q --quiet -v --verbose -n --notify --events --skip-mount
 );
 
 sub main(@){
@@ -330,6 +330,11 @@ sub main(@){
     }elsif($opt =~ /^--notify=(.+)$/){
       $$opts{useNotify} = 1;
       $$opts{notifyMsg} = $1;
+    }elsif($opt =~ /^--events=(.+)$/){
+      my $eventCsv = $1;
+      @waitEvents = map {lc $_} split(/,/, $eventCsv);
+    }elsif($opt =~ /^--skip-mount$/){
+      @waitEvents = ($EVENT_ANDROID_START);
     }else{
       die "$USAGE\nERROR: unknown opt $opt\n";
     }
@@ -408,11 +413,6 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(--wait)=(\d+)$/){
       $mode = $MODE_WAIT;
       $waitTimeoutSeconds = $1;
-    }elsif($arg =~ /^--events=(.+)$/){
-      my $eventCsv = $1;
-      @waitEvents = map {lc $_} split(/,/, $eventCsv);
-    }elsif($arg =~ /^--skip-mount$/){
-      @waitEvents = ($EVENT_ANDROID_START);
     }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
