@@ -600,7 +600,8 @@ sub stopDbus(){
 sub restartDbus(){
   my $opts = {};
   sendDbusStartStop(0);
-  waitForAndroidStop($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS);
+  my @waitEvents = ($EVENT_ANDROID_STOP);
+  waitForAndroidEvents($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS, @waitEvents);
   sleep 3;
   sendDbusStartStop(1);
 }
