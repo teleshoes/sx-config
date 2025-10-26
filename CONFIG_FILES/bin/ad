@@ -87,18 +87,18 @@ my $USAGE = "Usage:
   $EXEC systemctl|--systemctl SERVICE_CMD
     run as $USER: systemctl --user SERVICE_CMD $SYSTEMD_SERVICE
 
-  $EXEC [OPTS] init|--init [INIT_CMD INIT_CMD...]
+  $EXEC [OPTS] init|--init
     -ensure aliendalvik is running and sdcards+home are mounted
       -if not running, start it
       -wait up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s for it to start and mount sdcards+home
     -retry check+start+wait one more time, again up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s
     -if aliendalvik is running with sdcards+home mounted:
-      -run each INIT_CMD, in order, waiting for each to finish
+      -exit with status 0
+    -if timeout occurs:
+      -exit with status 1
     similar to:
-      $EXEC --check-running || $EXEC start
-      $EXEC --wait
-      $EXEC --check-running || $EXEC start
-      $EXEC --wait && sh -c 'INIT_CMD ; INIT_CMD ; INIT_CMD'
+      $EXEC --check-running || $EXEC start ; $EXEC --wait
+      $EXEC --check-running || $EXEC start ; $EXEC --wait
 
   $EXEC app|--app APP_NAME INTENT
     same as: $EXEC --init --notify=APP_NAME && $EXEC --launch INTENT
@@ -302,7 +302,6 @@ my $OK_OPTS = join "|", qw(
 sub main(@){
   my $mode = $MODE_SHELL;
   my $serviceCmd;
-  my @initCmds;
   my @cmdArgs;
   my @apkFileArgs;
   my $intent;
@@ -416,8 +415,6 @@ sub main(@){
     }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
-    }elsif($mode eq $MODE_INIT){
-      push @initCmds, $arg;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
     }elsif($mode eq $MODE_VIEW){
@@ -456,10 +453,6 @@ sub main(@){
     systemctlCmd($serviceCmd);
   }elsif($mode eq $MODE_INIT){
     initAndroid($opts, @waitEvents);
-
-    for my $cmd(@initCmds){
-      system $cmd;
-    }
   }elsif($mode eq $MODE_APP){
     initAndroid($opts, @waitEvents);
     launchIntent($intent);
