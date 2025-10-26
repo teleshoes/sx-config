@@ -82,7 +82,7 @@ my $USAGE = "Usage:
     call system dbus method $DBUS_CONTROL_METHOD false $USER
   $EXEC restart|--restart
     -stop android as in: $EXEC --stop
-    -wait for android to be stopped as in: $EXEC --wait --events=stop
+    -wait for android to be stopped as in: $EXEC --wait --events=$EVENT_ANDROID_STOP
     -sleep 3s
     -start android as in: $EXEC --stop
 
@@ -219,16 +219,17 @@ my $USAGE = "Usage:
     wait until android events occur
     default is android started and sdcards+home mounted)
          e.g.: $EXEC --start && $EXEC --wait 30 && echo OK || echo FAIL
-    -parse EVENTS_CSV into EVENTS 'start', 'stop', 'mount'
-      -default is 'start,mount'
+    -parse EVENTS_CSV into EVENTS
+         EVENTS = '$EVENT_ANDROID_START', '$EVENT_ANDROID_STOP', '$EVENT_ANDROID_MOUNT'
+      -default is '$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT'
     -every 1s, check if *all* event conditions are met:
       -check each event given, in order
-        start: android is running
-                 as in: `$EXEC --check-running`
-        stop:  android is NOT running
-                 as in: `sh -c '$EXEC --check-running && exit 1 || exit 0'`
-        mount: sdcards+home are mounted
-                 as in: `$EXEC --check-sdcards`
+        $EVENT_ANDROID_START  = android is running
+          as in: `$EXEC --check-running`
+        $EVENT_ANDROID_STOP   = android is NOT running
+          as in: `sh -c '$EXEC --check-running && exit 1 || exit 0'`
+        $EVENT_ANDROID_MOUNT  = sdcards+home are mounted
+          as in: `$EXEC --check-sdcards`
       -if *all* event conditions are met:
         -exit with exit code 0
       -if TIMEOUT_SECONDS has transpired:
@@ -259,14 +260,14 @@ my $USAGE = "Usage:
     -v | --verbose
       print shell commands before running them
     --events=EVENTS_CSV
-      in --wait, wait for these events before success instead of start and mount
-      default: --events=start,mount
+      in --wait, wait for these events before success instead of the default
+      default: --events=$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT
         EVENTS_CSV = EVENT,EVENT,EVENT
-        EVENT      = one of 'start', 'stop', 'mount'
+        EVENT      = one of $EVENT_ANDROID_START,$EVENT_ANDROID_STOP,$EVENT_ANDROID_MOUNT
       e.g.: `ad stop && ad --wait --events=stop` to ensure android is not running
     --skip-mount
       skip checking sdcards+home mounted during --wait
-      same as: --events=start
+      same as: --events=$EVENT_ANDROID_START
     -n MSG
     --notify MSG
     --notify=MSG
@@ -413,7 +414,7 @@ sub main(@){
       my $eventCsv = $1;
       @waitEvents = map {lc $_} split(/,/, $eventCsv);
     }elsif($arg =~ /^--skip-mount$/){
-      @waitEvents = ("start");
+      @waitEvents = ($EVENT_ANDROID_START);
     }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
