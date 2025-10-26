@@ -5,7 +5,7 @@ use Cwd qw(abs_path);
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
-sub initAndroid($);
+sub initAndroid($@);
 sub startDbus();
 sub stopDbus();
 sub restartDbus();
@@ -456,13 +456,13 @@ sub main(@){
   }elsif($mode eq $MODE_SYSTEMCTL){
     systemctlCmd($serviceCmd);
   }elsif($mode eq $MODE_INIT){
-    initAndroid($opts);
+    initAndroid($opts, @waitEvents);
 
     for my $cmd(@initCmds){
       system $cmd;
     }
   }elsif($mode eq $MODE_APP){
-    initAndroid($opts);
+    initAndroid($opts, @waitEvents);
     launchIntent($intent);
   }elsif($mode eq $MODE_SHELL){
     lxcShell($opts, @cmdArgs);
@@ -574,8 +574,8 @@ sub main(@){
   }
 }
 
-sub initAndroid($){
-  my ($opts) = @_;
+sub initAndroid($@){
+  my ($opts, @waitEvents) = @_;
   my $attempts = 2;
   while(1){
     $attempts--;
@@ -584,7 +584,7 @@ sub initAndroid($){
     if(not isAliendalvikRunning()){
       startDbus();
     }
-    if(waitForAndroidStart($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS)){
+    if(waitForAndroidEvents($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS, @waitEvents)){
       last;
     }
   }
