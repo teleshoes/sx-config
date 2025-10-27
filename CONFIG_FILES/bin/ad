@@ -11,7 +11,7 @@ sub stopDbus();
 sub restartDbus($);
 sub sendDbusStartStop($);
 sub systemctlCmd($);
-sub waitForAndroidEvents($$@);
+sub waitForAndroidEvents($@);
 sub isAliendalvikRunning($);
 sub launchIntent($);
 sub readSdcardsConf();
@@ -80,7 +80,9 @@ my $USAGE = "Usage:
     call system dbus method $DBUS_CONTROL_METHOD false $USER
   $EXEC restart|--restart
     -stop android as in: $EXEC --stop
-    -wait for android to be stopped as in: $EXEC --wait --events=$EVENT_ANDROID_STOP
+    -wait for android to be stopped as in:
+      $EXEC --wait --events=$EVENT_ANDROID_STOP
+      (see --timeout and --events)
     -sleep 3s
     -start android as in: $EXEC --stop
 
@@ -91,6 +93,7 @@ my $USAGE = "Usage:
     -ensure aliendalvik is running and sdcards+home are mounted
       -if not running, start it
       -wait up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s for it to start and mount sdcards+home
+        (see --timeout and --events)
     -retry check+start+wait one more time, again up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s
     -if aliendalvik is running with sdcards+home mounted:
       -exit with status 0
@@ -102,6 +105,7 @@ my $USAGE = "Usage:
 
   $EXEC app|--app APP_NAME INTENT
     same as: $EXEC --init --notify=APP_NAME && $EXEC --launch INTENT
+    (see --timeout and --events)
 
   $EXEC
   $EXEC -x|x
@@ -257,9 +261,10 @@ my $USAGE = "Usage:
     -v | --verbose
       print shell commands before running them
     --timeout=TIMEOUT_SECONDS
-      timeout in seconds when waiting for android events in --wait
+      timeout in seconds when waiting for android events in --wait/--init/--app/--restart
     --events=EVENTS_CSV
-      in --wait, wait for these events before success instead of the default
+      list of events to include when waiting for android events in --wait/--init/--app
+        -each event must have its conditions met before waiting is filled
       default: --events=$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT
         EVENTS_CSV = EVENT,EVENT,EVENT
         EVENT      = one of $EVENT_ANDROID_START,$EVENT_ANDROID_STOP,$EVENT_ANDROID_MOUNT
@@ -311,11 +316,11 @@ sub main(@){
     useNotify       => 0,
     notifyMsg       => undef,
     shellEnvWrapper => 1,
+    waitTimeoutS    => undef,
   };
   my ($tapXpos, $tapYpos);
   my $orientArg;
   my @mediaFiles;
-  my $waitTimeoutSeconds;
   my @waitEvents;
 
   while(@_ > 0 and $_[0] =~ /^($OK_OPTS)(?:=.+)?$/){
@@ -431,13 +436,15 @@ sub main(@){
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
     }elsif($mode eq $MODE_WAIT and $arg =~ /^--timeout=(\d+)$/){
-      $waitTimeoutSeconds = $arg;
-    }elsif($mode eq $MODE_WAIT and not defined $waitTimeoutSeconds and $arg =~ /^\d+$/){
-      $waitTimeoutSeconds = $arg;
+      $$opts{waitTimeoutS} = $1;
+    }elsif($mode eq $MODE_WAIT and not defined $$opts{waitTimeoutS} and $arg =~ /^\d+$/){
+      $$opts{waitTimeoutS} = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
   }
+
+  $$opts{waitTimeoutS} = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $$opts{waitTimeoutS};
 
   if($mode eq $MODE_SERVICE){
     if($serviceCmd eq "start"){
@@ -537,13 +544,11 @@ sub main(@){
     die "ERROR: missing intent\n" if not defined $intent;
     launchIntent($intent);
   }elsif($mode eq $MODE_WAIT){
-    $waitTimeoutSeconds = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $waitTimeoutSeconds;
-
-    if(waitForAndroidEvents($opts, $waitTimeoutSeconds, @waitEvents)){
+    if(waitForAndroidEvents($opts, @waitEvents)){
       exit 0;
     }else{
       printf STDERR "ERROR: aliendalvik did not start and mount sdcards+home in %ds\n",
-        $waitTimeoutSeconds;
+        $$opts{waitTimeoutS};
       exit 1;
     }
   }elsif($mode eq $MODE_CHECK_RUNNING){
@@ -576,7 +581,7 @@ sub initAndroid($@){
     if(not isAliendalvikRunning($opts)){
       startDbus();
     }
-    if(waitForAndroidEvents($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS, @waitEvents)){
+    if(waitForAndroidEvents($opts, @waitEvents)){
       last;
     }
   }
@@ -592,7 +597,7 @@ sub restartDbus($){
   my ($opts) = @_;
   sendDbusStartStop(0);
   my @waitEvents = ($EVENT_ANDROID_STOP);
-  waitForAndroidEvents($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS, @waitEvents);
+  waitForAndroidEvents($opts, @waitEvents);
   sleep 3;
   sendDbusStartStop(1);
 }
@@ -625,8 +630,8 @@ sub systemctlCmd($){
   }
 }
 
-sub waitForAndroidEvents($$@){
-  my ($opts, $waitTimeoutSeconds, @events) = @_;
+sub waitForAndroidEvents($@){
+  my ($opts, @events) = @_;
 
   @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT) if @events == 0;
 
@@ -636,7 +641,9 @@ sub waitForAndroidEvents($$@){
     }
   }
 
-  my $waitTimeoutMillis = $waitTimeoutSeconds * 1000;
+  my $waitTimeoutS = defined $$opts{waitTimeoutS} ?
+    $$opts{waitTimeoutS} : $DEFAULT_WAIT_TIMEOUT_SECONDS;
+  my $waitTimeoutMillis = $waitTimeoutS * 1000;
   my $start = nowMillis();
   my $sdcardsConf = readSdcardsConf();
   my $notifiedWaiting = 0;
