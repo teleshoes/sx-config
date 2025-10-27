@@ -18,7 +18,7 @@ my @config = qw(
 
   qtbtn-klomp
   bromite
-  opencamera-wrapper
+  opencamera
   jolla-settings
 
   harbour-pure-maps
@@ -150,7 +150,6 @@ my @unused = qw(
   vanced-microg
   ivona-tts
   ivona-tts-amy
-  opencamera
 );
 
 ########################################################
