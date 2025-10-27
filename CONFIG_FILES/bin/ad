@@ -5,7 +5,7 @@ use Cwd qw(abs_path);
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
-sub initAndroid($@);
+sub initAndroid($);
 sub startDbus();
 sub stopDbus();
 sub restartDbus($);
@@ -285,6 +285,7 @@ my $USAGE = "Usage:
     --events=EVENTS_CSV
       list of events to include when waiting for android events in --wait/--init/--app
         -each event must have its conditions met before waiting is filled
+        NOTE: ignored by --restart, always uses $EVENT_ANDROID_STOP
       default: --events=$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT
         EVENTS_CSV = EVENT,EVENT,EVENT
         EVENT      = one of $EVENT_ANDROID_START,$EVENT_ANDROID_STOP,$EVENT_ANDROID_MOUNT
@@ -333,11 +334,11 @@ sub main(@){
     notifyMsg       => undef,
     shellEnvWrapper => 1,
     waitTimeoutS    => undef,
+    waitEvents      => [],
   };
   my ($tapXpos, $tapYpos);
   my $orientArg;
   my @mediaFiles;
-  my @waitEvents;
 
   while(@_ > 0){
     my $arg = shift @_;
@@ -358,9 +359,9 @@ sub main(@){
       $$opts{waitTimeoutS} = $1;
     }elsif($arg =~ /^--events=(.+)$/){
       my $eventCsv = $1;
-      @waitEvents = map {lc $_} split(/,/, $eventCsv);
+      $$opts{waitEvents} = [map {lc $_} split(/,/, $eventCsv)];
     }elsif($arg =~ /^--skip-mount$/){
-      @waitEvents = ($EVENT_ANDROID_START);
+      $$opts{waitEvents} = [$EVENT_ANDROID_START];
     }elsif(not defined $mode and $arg =~ /^(--)?(start)$/){
       $mode = $MODE_SERVICE;
       $serviceCmd = "start";
@@ -482,9 +483,9 @@ sub main(@){
   }elsif($mode eq $MODE_SYSTEMCTL){
     systemctlCmd($serviceCmd);
   }elsif($mode eq $MODE_INIT){
-    initAndroid($opts, @waitEvents);
+    initAndroid($opts);
   }elsif($mode eq $MODE_APP){
-    initAndroid($opts, @waitEvents);
+    initAndroid($opts);
     launchIntent($intent);
   }elsif($mode eq $MODE_SHELL){
     lxcShell($opts, @cmdArgs);
@@ -567,6 +568,7 @@ sub main(@){
     die "ERROR: missing intent\n" if not defined $intent;
     launchIntent($intent);
   }elsif($mode eq $MODE_WAIT){
+    my @waitEvents = @{$$opts{waitEvents}};
     if(waitForAndroidEvents($opts, @waitEvents)){
       exit 0;
     }else{
@@ -594,9 +596,10 @@ sub main(@){
   }
 }
 
-sub initAndroid($@){
-  my ($opts, @waitEvents) = @_;
+sub initAndroid($){
+  my ($opts) = @_;
   my $attempts = 2;
+  my @waitEvents = @{$$opts{waitEvents}};
   while(1){
     $attempts--;
     die "ERROR: android failed to start and mount sdcards+home\n" if $attempts < 0;
