@@ -74,11 +74,11 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC start|--start
+  $EXEC [OPTS] start|--start
     call system dbus method $DBUS_CONTROL_METHOD true $USER
-  $EXEC stop|--stop
+  $EXEC [OPTS] stop|--stop
     call system dbus method $DBUS_CONTROL_METHOD false $USER
-  $EXEC restart|--restart
+  $EXEC [OPTS] restart|--restart
     -stop android as in: $EXEC --stop
     -wait for android to be stopped as in:
       $EXEC --wait --events=$EVENT_ANDROID_STOP
@@ -86,7 +86,7 @@ my $USAGE = "Usage:
     -sleep 3s
     -start android as in: $EXEC --stop
 
-  $EXEC systemctl|--systemctl SERVICE_CMD
+  $EXEC [OPTS] systemctl|--systemctl SERVICE_CMD
     run as $USER: systemctl --user SERVICE_CMD $SYSTEMD_SERVICE
 
   $EXEC [OPTS] init|--init
@@ -103,13 +103,13 @@ my $USAGE = "Usage:
       $EXEC --check-running || $EXEC start ; $EXEC --wait
       $EXEC --check-running || $EXEC start ; $EXEC --wait
 
-  $EXEC app|--app APP_NAME INTENT
+  $EXEC [OPTS] app|--app APP_NAME INTENT
     same as: $EXEC --init --notify=APP_NAME && $EXEC --launch INTENT
     (see --timeout and --events)
 
-  $EXEC
-  $EXEC -x|x
-  $EXEC --shell|shell
+  $EXEC [OPTS]
+  $EXEC [OPTS] -x|x
+  $EXEC [OPTS] --shell|shell
     run: sudo LXC_ATTACH_CMD
 
   $EXEC [OPTS] -x|x CMD_ARG CMD_ARG
@@ -121,20 +121,20 @@ my $USAGE = "Usage:
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
 
-  $EXEC fuse|remount-fuse|--fuse|--remount-fuse
+  $EXEC [OPTS] fuse|remount-fuse|--fuse|--remount-fuse
     remount all fuse filesystems in android container
     fixes out-of-sync /storage mounts for home+android_storage and external sdcards
     (and symlinks like /sdcard)
       -same as: $EXEC --shell 'mount -a -t fuse -o remount'
 
-  $EXEC res|--res
+  $EXEC [OPTS] res|--res
     -get window info as in: $EXEC --shell dumpsys window
     -parse DisplayInfo.real
       e.g.: DisplayInfo{app 2394 x 1080, real 2520 x 1080, ... }
     -print WIDTHxHEIGHT
 
-  $EXEC tap|--tap XPOS YPOS
-  $EXEC --tap=XPOSxYPOS
+  $EXEC [OPTS] tap|--tap XPOS YPOS
+  $EXEC [OPTS] --tap=XPOSxYPOS
     run 'input tap' with args as if device is in portrait mode
       (rotate args if device is in landscape)
     -get screen <SCREEN_WIDTH> and <SCREEN_HEIGHT> as in $EXEC --get-res
@@ -158,8 +158,8 @@ my $USAGE = "Usage:
       position along wide edge, measured from top-left corner in portrait mode
       can be integer number of px, or real number followed by '%'
 
-  $EXEC orient|--orient ORIENT_ARG
-  $EXEC --orient=ORIENT_ARG
+  $EXEC [OPTS] orient|--orient ORIENT_ARG
+  $EXEC [OPTS] --orient=ORIENT_ARG
     run:
       $EXEC settings put system accelerometer_rotation ACCEL_VAL
       $EXEC settings put system user_rotation USER_VAL
@@ -172,20 +172,20 @@ my $USAGE = "Usage:
       portrait-inverted | pi | 2        =  ACCEL_VAL=0   USER_VAL=2
       landscape-inverted | li | 3       =  ACCEL_VAL=0   USER_VAL=3
 
-  $EXEC --view MEDIA_FILE [MEDIA_FILE MEDIA_FILE ..]
+  $EXEC [OPTS] --view MEDIA_FILE [MEDIA_FILE MEDIA_FILE ..]
     -get TYPE with: file -b --mime-type MEDIA_FILE
     -calculate ANDROID_MEDIA_FILE:
       -take absolute path of MEDIA_FILE
       -replace prefix: '/home/nemo/android_storage' with '/sdcard'
       -replace prefix: '/media/sdcard/phone' with '/sdcard/SDCARD'
     -run: $EXEC am start android.intent.action.VIEW -d file://ANDROID_MEDIA_FILE
-  $EXEC MEDIA_FILE_WITH_EXT [MEDIA_FILE MEDIA_FILE ..]
+  $EXEC [OPTS] MEDIA_FILE_WITH_EXT [MEDIA_FILE MEDIA_FILE ..]
     same as: $EXEC --view MEDIA_FILE_WITH_EXT MEDIA_FILE MEDIA_FILE
     MEDIA_FILE_WITH_EXT must end with extension:
       @MEDIA_EXTS
 
-  $EXEC -i|i|--install|install APK_FILE APK_FILE...
-  $EXEC --install=APK_FILE
+  $EXEC [OPTS] -i|i|--install|install APK_FILE APK_FILE...
+  $EXEC [OPTS] --install=APK_FILE
     run: apkd-install-preload -i $CONTAINER_NAME APK_FILE APK_FILE...
          apkd-install -i $CONTAINER_NAME APK_FILE APK_FILE...
 
@@ -194,22 +194,22 @@ my $USAGE = "Usage:
       e.g.: /tmp/abc.apk  => /tmp/abc.apk
             coolreader-   => $APK_DIR/coolreader-*.apk
 
-  $EXEC -u|u|--uninstall|uninstall APK_FILE APK_FILE...
-  $EXEC --uninstall=APK_FILE
+  $EXEC [OPTS] -u|u|--uninstall|uninstall APK_FILE APK_FILE...
+  $EXEC [OPTS] --uninstall=APK_FILE
     for each APK_FILE:
       get the PACKAGE_NAME with `apk-info --package`
       run: $EXEC pm uninstall PACKAGE_NAME
 
-  $EXEC -l|l|--launch|launch|--launch-intent|launch-intent INTENT
-  $EXEC --launch=INTENT
-  $EXEC --launch-intent=INTENT
+  $EXEC [OPTS] -l|l|--launch|launch|--launch-intent|launch-intent INTENT
+  $EXEC [OPTS] --launch=INTENT
+  $EXEC [OPTS] --launch-intent=INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
       -if ACTIVITY starts with a '.', PKG_NAME will be prepended
     -run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
     e.g.: $EXEC -l org.coolreader/.CoolReader
           => apkd-launcher org.coolreader.apk org.coolreader/org.coolreader.CoolReader
 
-  $EXEC settings|--settings
+  $EXEC [OPTS] settings|--settings
     same as: $EXEC --intent=com.android.settings/.Settings
     NOTE: args to settings treated as '$EXEC shell settings ARG ARG..'
 
@@ -239,13 +239,13 @@ my $USAGE = "Usage:
       -otherwise:
         sleep for 1s and retry
 
-  $EXEC --check-running
+  $EXEC [OPTS] --check-running
     check if aliendalvik is running with `LXC_ATTACH_CMD`
     run: `LXC_ATTACH_CMD echo ok 2>/dev/null`
       -if response is ok, exit with exit code 0
       -otherwise, print error message and exit with exit code 1
 
-  $EXEC --check-sdcard | --check-sdcards
+  $EXEC [OPTS] --check-sdcard | --check-sdcards
     check if sailfish home and android sdcards in /etc/sdcards.conf are mounted
       -parse $SDCARDS_CONF_FILE
       -extract UUID '<NAME>.uuid' of any sdcard with android true '<NAME>.android=true'
