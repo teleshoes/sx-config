@@ -79,11 +79,11 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC [OPTS] start|--start
+  $EXEC [OPTS] --start|start
     call system dbus method $DBUS_CONTROL_METHOD true $USER
-  $EXEC [OPTS] stop|--stop
+  $EXEC [OPTS] --stop|stop
     call system dbus method $DBUS_CONTROL_METHOD false $USER
-  $EXEC [OPTS] restart|--restart
+  $EXEC [OPTS] --restart|restart
     -stop android as in: $EXEC --stop
     -wait for android to be stopped as in:
       $EXEC --wait --events=$EVENT_ANDROID_STOP
@@ -91,10 +91,10 @@ my $USAGE = "Usage:
     -sleep 3s
     -start android as in: $EXEC --stop
 
-  $EXEC [OPTS] systemctl|--systemctl SERVICE_CMD
+  $EXEC [OPTS] --systemctl|systemctl SERVICE_CMD
     run as $USER: systemctl --user SERVICE_CMD $SYSTEMD_SERVICE
 
-  $EXEC [OPTS] init|--init
+  $EXEC [OPTS] --init|init
     -ensure aliendalvik is running and sdcards+home are mounted
       -if not running, start it
       -wait up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s for it to start and mount sdcards+home
@@ -108,7 +108,7 @@ my $USAGE = "Usage:
       $EXEC --check-running || $EXEC start ; $EXEC --wait
       $EXEC --check-running || $EXEC start ; $EXEC --wait
 
-  $EXEC [OPTS] app|--app APP_NAME INTENT
+  $EXEC [OPTS] --app|app APP_NAME INTENT
     same as: $EXEC --init --notify=APP_NAME && $EXEC --launch INTENT
     (see --timeout and --events)
 
@@ -135,20 +135,21 @@ my $USAGE = "Usage:
     SHELL_COMMAND_FAVORITE is one of:
       @SHELL_CMD_FAVORITES
 
-  $EXEC [OPTS] fuse|remount-fuse|--fuse|--remount-fuse
+  $EXEC [OPTS] --fuse|fuse
+  $EXEC [OPTS] --remount-fuse|remount-fuse
     remount all fuse filesystems in android container
     fixes out-of-sync /storage mounts for home+android_storage and external sdcards
     (and symlinks like /sdcard)
       -same as: $EXEC --shell 'mount -a -t fuse -o remount'
 
-  $EXEC [OPTS] res|--res
+  $EXEC [OPTS] --res|res
     -get window info as in: $EXEC --shell dumpsys window
     -parse DisplayInfo.real
       e.g.: DisplayInfo{app 2394 x 1080, real 2520 x 1080, ... }
     -print WIDTHxHEIGHT
 
-  $EXEC [OPTS] tap|--tap XPOS YPOS
-  $EXEC [OPTS] tap|--tap XPOSxYPOS
+  $EXEC [OPTS] --tap|tap XPOS YPOS
+  $EXEC [OPTS] --tap|tap XPOSxYPOS
     run 'input tap' with args as if device is in portrait mode
       (rotate args if device is in landscape)
     -get screen <SCREEN_WIDTH> and <SCREEN_HEIGHT> as in $EXEC --get-res
@@ -172,7 +173,7 @@ my $USAGE = "Usage:
       position along wide edge, measured from top-left corner in portrait mode
       can be integer number of px, or real number followed by '%'
 
-  $EXEC [OPTS] orient|--orient ORIENT_ARG
+  $EXEC [OPTS] --orient|orient ORIENT_ARG
     run:
       $EXEC settings put system accelerometer_rotation ACCEL_VAL
       $EXEC settings put system user_rotation USER_VAL
@@ -185,7 +186,7 @@ my $USAGE = "Usage:
       portrait-inverted | pi | 2        =  ACCEL_VAL=0   USER_VAL=2
       landscape-inverted | li | 3       =  ACCEL_VAL=0   USER_VAL=3
 
-  $EXEC [OPTS] --view MEDIA_FILE [MEDIA_FILE MEDIA_FILE ..]
+  $EXEC [OPTS] --view|view MEDIA_FILE [MEDIA_FILE MEDIA_FILE ..]
     -get TYPE with: file -b --mime-type MEDIA_FILE
     -calculate ANDROID_MEDIA_FILE:
       -take absolute path of MEDIA_FILE
@@ -198,7 +199,8 @@ my $USAGE = "Usage:
     MEDIA_FILE_WITH_EXT must exist and end with extension:
       @MEDIA_EXTS
 
-  $EXEC [OPTS] -i|i|--install|install APK_FILE_ARG APK_FILE_ARG..
+  $EXEC [OPTS] -i|i APK_FILE_ARG APK_FILE_ARG..
+  $EXEC [OPTS] --install|install APK_FILE_ARG APK_FILE_ARG..
     -get list of APK_FILEs from APK_FILE_ARGs
       -for each APK_FILE_ARG:
         -if APK_FILE_ARG is a file, use as APK_FILE
@@ -209,13 +211,16 @@ my $USAGE = "Usage:
     run: apkd-install-preload -i $CONTAINER_NAME APK_FILE APK_FILE..
          apkd-install -i $CONTAINER_NAME APK_FILE APK_FILE..
 
-  $EXEC [OPTS] -u|u|--uninstall|uninstall APK_FILE_ARG APK_FILE_ARG..
+  $EXEC [OPTS] -u|u APK_FILE_ARG APK_FILE_ARG..
+  $EXEC [OPTS] --uninstall|uninstall APK_FILE_ARG APK_FILE_ARG..
     -get APK_FILEs as in --install
     -for each APK_FILE:
       -get the PACKAGE_NAME with `apk-info --package APK_FILE`
       -same as: $EXEC --shell 'pm uninstall PACKAGE_NAME'
 
-  $EXEC [OPTS] -l|l|--launch|launch|--launch-intent|launch-intent INTENT
+  $EXEC [OPTS] -l|l INTENT
+  $EXEC [OPTS] --launch|launch INTENT
+  $EXEC [OPTS] --launch-intent|launch-intent INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
       -if ACTIVITY starts with a '.', PKG_NAME will be prepended
     -run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
@@ -225,10 +230,12 @@ my $USAGE = "Usage:
   $EXEC [OPTS] --settings|settings
     same as: $EXEC --intent=com.android.settings/.Settings
 
-  $EXEC [OPTS] -w|w|--wait TIMEOUT_SECONDS [--events=EVENTS_CSV]
+  $EXEC [OPTS] -w|w TIMEOUT_SECONDS [--events=EVENTS_CSV]
+  $EXEC [OPTS] --wait|wait TIMEOUT_SECONDS [--events=EVENTS_CSV]
     same as: $EXEC --wait --timeout=TIMEOUT_SECONDS --events=EVENTS_CSV
 
-  $EXEC [OPTS] -w|w|--wait [--timeout=TIMEOUT_SECONDS] [--events=EVENTS_CSV]
+  $EXEC [OPTS] -w|w [--timeout=TIMEOUT_SECONDS] [--events=EVENTS_CSV]
+  $EXEC [OPTS] --wait|wait [--timeout=TIMEOUT_SECONDS] [--events=EVENTS_CSV]
     wait until android events occur
     default is android started and sdcards+home mounted)
          e.g.: $EXEC --start && $EXEC --wait 30 && echo OK || echo FAIL
@@ -251,13 +258,14 @@ my $USAGE = "Usage:
       -otherwise:
         sleep for 1s and retry
 
-  $EXEC [OPTS] --check-running
+  $EXEC [OPTS] --check-running|check-running
     check if aliendalvik is running with `LXC_ATTACH_CMD`
     run: `LXC_ATTACH_CMD echo ok 2>/dev/null`
       -if response is ok, exit with exit code 0
       -otherwise, print error message and exit with exit code 1
 
-  $EXEC [OPTS] --check-sdcard|--check-sdcards
+  $EXEC [OPTS] --check-sdcard|check-sdcard
+  $EXEC [OPTS] --check-sdcards|check-sdcards
     check if sailfish home and android sdcards in /etc/sdcards.conf are mounted
       -parse $SDCARDS_CONF_FILE
       -extract UUID '<NAME>.uuid' of any sdcard with android true '<NAME>.android=true'
@@ -353,15 +361,21 @@ sub main(@){
       @waitEvents = map {lc $_} split(/,/, $eventCsv);
     }elsif($arg =~ /^--skip-mount$/){
       @waitEvents = ($EVENT_ANDROID_START);
-    }elsif(not defined $mode and $arg =~ /^(?:--)?(start|stop|restart)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(start)$/){
       $mode = $MODE_SERVICE;
-      $serviceCmd = $1;
-    }elsif(not defined $mode and $arg =~ /^(?:--)?(systemctl)$/ and @_ >= 1){
+      $serviceCmd = "start";
+    }elsif(not defined $mode and $arg =~ /^(--)?(stop)$/){
+      $mode = $MODE_SERVICE;
+      $serviceCmd = "stop";
+    }elsif(not defined $mode and $arg =~ /^(--)?(restart)$/){
+      $mode = $MODE_SERVICE;
+      $serviceCmd = "restart";
+    }elsif(not defined $mode and $arg =~ /^(--)?(systemctl)$/ and @_ >= 1){
       $mode = $MODE_SYSTEMCTL;
       $serviceCmd = shift @_;
-    }elsif(not defined $mode and $arg =~ /^(?:--)?(init)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(init)$/){
       $mode = $MODE_INIT;
-    }elsif(not defined $mode and $arg =~ /^(?:--)?(app)$/ and @_ >= 2){
+    }elsif(not defined $mode and $arg =~ /^(--)?(app)$/ and @_ >= 2){
       $mode = $MODE_APP;
       $$opts{useNotify} = 1;
       $$opts{notifyMsg} = shift @_;
@@ -371,7 +385,7 @@ sub main(@){
       $$opts{shellEnvWrapper} = 0;
       @cmdArgs = @_;
       @_ = ();
-    }elsif(not defined $mode and $arg =~ /^(--shell|shell)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(shell)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
       @cmdArgs = @_;
@@ -381,26 +395,26 @@ sub main(@){
       $$opts{shellEnvWrapper} = 1;
       @cmdArgs = ($arg, @_);
       @_ = ();
-    }elsif(not defined $mode and $arg =~ /^(fuse|--fuse|remount-fuse|--remount-fuse)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(fuse|remount-fuse)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
       @cmdArgs = ("mount -a -t fuse -o remount");
-    }elsif(not defined $mode and $arg =~ /^(res|--res)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(res)$/){
       $mode = $MODE_RES;
-    }elsif(not defined $mode and $arg =~ /^(tap|--tap)$/ and @_ >= 1
+    }elsif(not defined $mode and $arg =~ /^(--)?(tap)$/ and @_ >= 1
            and $_[0] =~ /^(\d+)x(\d+)$/){
       $mode = $MODE_TAP;
       ($tapXpos, $tapYpos) = ($1, $2);
       shift @_;
-    }elsif(not defined $mode and $arg =~ /^(tap|--tap)$/ and @_ >= 2
+    }elsif(not defined $mode and $arg =~ /^(--)?(tap)$/ and @_ >= 2
            and $_[0] =~ /^(\d+)$/ and $_[1] =~ /^(\d+)$/){
       $mode = $MODE_TAP;
       $tapXpos = shift @_;
       $tapYpos = shift @_;
-    }elsif(not defined $mode and $arg =~ /^(orient|--orient)$/ and @_ >= 1){
+    }elsif(not defined $mode and $arg =~ /^(--)?(orient)$/ and @_ >= 1){
       $mode = $MODE_ORIENT;
       $orientArg = shift @_;
-    }elsif(not defined $mode and $arg =~ /^--view$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(view)$/){
       $mode = $MODE_VIEW;
       @mediaFiles = (@_);
       @_ = ();
@@ -408,29 +422,29 @@ sub main(@){
       $mode = $MODE_VIEW;
       @mediaFiles = ($arg, @_);
       @_ = ();
-    }elsif(not defined $mode and $arg =~ /^(-i|i|(?:--)?(install))$/){
+    }elsif(not defined $mode and $arg =~ /^(-i|i|(--)?(install))$/){
       $mode = $MODE_INSTALL;
       @apkFileArgs = @_;
       @_ = ();
-    }elsif(not defined $mode and $arg =~ /^(-u|u|(?:--)?(uninstall))$/){
+    }elsif(not defined $mode and $arg =~ /^(-u|u|(--)?(uninstall))$/){
       $mode = $MODE_UNINSTALL;
       @apkFileArgs = @_;
       @_ = ();
-    }elsif(not defined $mode and $arg =~ /^(-l|l|(?:--)?(launch|launch-intent))$/){
+    }elsif(not defined $mode and $arg =~ /^(-l|l|(--)?(launch|launch-intent))$/){
       $mode = $MODE_LAUNCH;
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
-    }elsif(not defined $mode and $arg =~ /^(settings|--settings)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(settings)$/){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
-    }elsif(not defined $mode and $arg =~ /^(-w|w|--wait)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
+    }elsif(not defined $mode and $arg =~ /^(-w|w|(--)?(wait))$/ and @_ > 0 and $_[0] =~ /^\d+$/){
       $mode = $MODE_WAIT;
       $$opts{waitTimeoutS} = shift @_;
-    }elsif(not defined $mode and $arg =~ /^(-w|w|--wait)$/){
+    }elsif(not defined $mode and $arg =~ /^(-w|w|(--)?(wait))$/){
       $mode = $MODE_WAIT;
-    }elsif(not defined $mode and $arg =~ /^(--check-running)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(check-running)$/){
       $mode = $MODE_CHECK_RUNNING;
-    }elsif(not defined $mode and $arg =~ /^(--check-sdcards?)$/){
+    }elsif(not defined $mode and $arg =~ /^(--)?(check-sdcards?)$/){
       $mode = $MODE_CHECK_SDCARDS;
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
