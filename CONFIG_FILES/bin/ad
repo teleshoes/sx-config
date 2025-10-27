@@ -70,6 +70,11 @@ my $DBUS_DEST_SERVICE_NAME = "com.jolla.apkd.control";
 my $DBUS_PATH = "/com/jolla/apkd";
 my $DBUS_CONTROL_METHOD = "com.jolla.apkd.control.controlService";
 
+my @SHELL_CMD_FAVORITES = qw(
+  am echo env find logcat ls mount pm ps sh stat test time timeout which whoami
+);
+my $SHELL_CMD_FAVORITES_REGEX = join("|", @SHELL_CMD_FAVORITES);
+
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
@@ -115,11 +120,15 @@ my $USAGE = "Usage:
   $EXEC [OPTS] -x|x CMD_ARG CMD_ARG
     run: sudo LXC_ATTACH_CMD -- CMD_ARG CMD_ARG CMD_ARG..
 
-  $EXEC [OPTS] CMD_ARG CMD_ARG...
   $EXEC [OPTS] --shell|shell CMD_ARG CMD_ARG...
     run: sudo LXC_ATTACH_CMD -- sh -c '
             $SHELL_ENV_VARS_USAGE_FMT \\
             CMD_ARG CMD_ARG CMD_ARG..'
+
+  $EXEC [OPTS] SHELL_COMMAND_FAVORITE [CMD_ARG CMD_ARG ..]
+    same as: $EXEC --shell COMMAND CMD_ARG CMD_ARG..
+    SHELL_COMMAND_FAVORITE is one of:
+      @SHELL_CMD_FAVORITES
 
   $EXEC [OPTS] fuse|remount-fuse|--fuse|--remount-fuse
     remount all fuse filesystems in android container
@@ -208,7 +217,6 @@ my $USAGE = "Usage:
 
   $EXEC [OPTS] --settings|settings
     same as: $EXEC --intent=com.android.settings/.Settings
-    NOTE: args to settings treated as '$EXEC shell settings ARG ARG..'
 
   $EXEC [OPTS] -w|w|--wait TIMEOUT_SECONDS [--events=EVENTS_CSV]
     same as: $EXEC --wait --timeout=TIMEOUT_SECONDS --events=EVENTS_CSV
@@ -303,7 +311,7 @@ my $OK_OPTS = join "|", qw(
 );
 
 sub main(@){
-  my $mode = $MODE_SHELL;
+  my $mode = undef;
   my $serviceCmd;
   my @cmdArgs;
   my @apkFileArgs;
@@ -406,6 +414,9 @@ sub main(@){
     }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
+    }elsif(not defined $mode and $arg =~ /^($SHELL_CMD_FAVORITES_REGEX)$/){
+      $mode = $MODE_SHELL;
+      push @cmdArgs, $arg;
     }elsif($mode eq $MODE_SHELL){
       push @cmdArgs, $arg;
     }elsif($mode eq $MODE_VIEW){
@@ -431,6 +442,8 @@ sub main(@){
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
   }
+
+  $mode = $MODE_SHELL if not defined $mode;
 
   $$opts{waitTimeoutS} = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $$opts{waitTimeoutS};
 
