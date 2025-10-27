@@ -13,6 +13,7 @@ sub sendDbusStartStop($);
 sub systemctlCmd($);
 sub waitForAndroidEvents($@);
 sub isAliendalvikRunning($);
+sub isAndroidBooted($);
 sub launchIntent($);
 sub extractLaunchIntent($$$);
 sub readIntentFromPkgName($$);
@@ -56,6 +57,7 @@ my $SYSTEMD_SERVICE = "appsupport";
 
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
 
+my $EVENT_ANDROID_BOOTED = "booted";
 my $EVENT_ANDROID_START = "start";
 my $EVENT_ANDROID_STOP = "stop";
 my $EVENT_ANDROID_MOUNT = "mount";
@@ -276,6 +278,7 @@ my $USAGE = "Usage:
          e.g.: $EXEC --start && $EXEC --wait 30 && echo OK || echo FAIL
     -parse EVENTS_CSV into EVENTS
          EVENTS = "
+                  . "'$EVENT_ANDROID_BOOTED', "
                   . "'$EVENT_ANDROID_START', "
                   . "'$EVENT_ANDROID_STOP', "
                   . "'$EVENT_ANDROID_MOUNT'"
@@ -283,6 +286,8 @@ my $USAGE = "Usage:
       -default is '$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT'
     -every 1s, check if *all* event conditions are met:
       -check each event given, in order
+        $EVENT_ANDROID_BOOTED  = android booted, sys.boot_completed=1
+          as in: `sh -c '$EXEC --shell getprop sys.boot_completed | grep 1 >/dev/null'`
         $EVENT_ANDROID_START  = android is running
           as in: `$EXEC --check-running`
         $EVENT_ANDROID_STOP   = android is NOT running
@@ -328,6 +333,7 @@ my $USAGE = "Usage:
       default: --events=$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT
         EVENTS_CSV = EVENT,EVENT,..EVENT
         EVENT      = one of "
+                            . "$EVENT_ANDROID_BOOTED, "
                             . "$EVENT_ANDROID_START, "
                             . "$EVENT_ANDROID_STOP, "
                             . "$EVENT_ANDROID_MOUNT"
@@ -725,6 +731,7 @@ sub waitForAndroidEvents($@){
   @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT) if @events == 0;
 
   my $eventRegex = join "|", (
+    $EVENT_ANDROID_BOOTED,
     $EVENT_ANDROID_START,
     $EVENT_ANDROID_STOP,
     $EVENT_ANDROID_MOUNT,
@@ -755,7 +762,9 @@ sub waitForAndroidEvents($@){
 
     my $isSuccess = 1;
     for my $event(@events){
-      if($event eq $EVENT_ANDROID_START){
+      if($event eq $EVENT_ANDROID_BOOTED){
+        $isSuccess = isAndroidBooted($opts);
+      }elsif($event eq $EVENT_ANDROID_START){
         $isSuccess = isAliendalvikRunning($opts);
       }elsif($event eq $EVENT_ANDROID_STOP){
         $isSuccess = not isAliendalvikRunning($opts);
@@ -786,6 +795,16 @@ sub isAliendalvikRunning($){
   my ($opts) = @_;
   my $out = lxcReadProc $opts, "echo", "ok";
   if($out =~ /^ok$/){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+sub isAndroidBooted($){
+  my ($opts) = @_;
+  my $out = lxcReadProc $opts, "getprop", "sys.boot_completed";
+  if($out =~ /^1$/){
     return 1;
   }else{
     return 0;
