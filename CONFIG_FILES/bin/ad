@@ -57,7 +57,7 @@ my $SYSTEMD_SERVICE = "appsupport";
 
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
 
-my $EVENT_ANDROID_BOOTED = "booted";
+my $EVENT_ANDROID_START = "start";
 my $EVENT_ANDROID_STOP = "stop";
 my $EVENT_ANDROID_MOUNT = "mount";
 my $EVENT_ANDROID_LXC = "lxc";
@@ -278,15 +278,15 @@ my $USAGE = "Usage:
          e.g.: $EXEC --start && $EXEC --wait 30 && echo OK || echo FAIL
     -parse EVENTS_CSV into EVENTS
          EVENTS = "
-                  . "'$EVENT_ANDROID_BOOTED', "
+                  . "'$EVENT_ANDROID_START', "
                   . "'$EVENT_ANDROID_STOP', "
                   . "'$EVENT_ANDROID_MOUNT', "
                   . "'$EVENT_ANDROID_LXC'"
                   . "
-      -default is '$EVENT_ANDROID_BOOTED,$EVENT_ANDROID_MOUNT'
+      -default is '$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT'
     -every 1s, check if *all* event conditions are met:
       -check each event given, in order
-        $EVENT_ANDROID_BOOTED  = android booted, sys.boot_completed=1
+        $EVENT_ANDROID_START  = android booted, sys.boot_completed=1
           as in: `sh -c '$EXEC --shell getprop sys.boot_completed | grep 1 >/dev/null'`
         $EVENT_ANDROID_STOP   = android container is NOT running
           as in: `sh -c '$EXEC --check-running && exit 1 || exit 0'`
@@ -330,10 +330,10 @@ my $USAGE = "Usage:
       list of events to include when waiting for android events in --wait/--init/--app
         -each event must have its conditions met before waiting is filled
         NOTE: ignored by --restart, always uses $EVENT_ANDROID_STOP
-      default: --events=$EVENT_ANDROID_BOOTED,$EVENT_ANDROID_MOUNT
+      default: --events=$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT
         EVENTS_CSV = EVENT,EVENT,..EVENT
         EVENT      = one of "
-                            . "$EVENT_ANDROID_BOOTED, "
+                            . "$EVENT_ANDROID_START, "
                             . "$EVENT_ANDROID_STOP, "
                             . "$EVENT_ANDROID_MOUNT, "
                             . "$EVENT_ANDROID_LXC"
@@ -341,7 +341,7 @@ my $USAGE = "Usage:
       e.g.: `ad stop && ad --wait --events=stop` to ensure android is not running
     --skip-mount
       skip checking sdcards+home mounted during --wait
-      same as: --events=$EVENT_ANDROID_BOOTED
+      same as: --events=$EVENT_ANDROID_START
     -n MSG
     --notify MSG
     --notify=MSG
@@ -415,7 +415,7 @@ sub main(@){
       my $eventCsv = $1;
       $$opts{waitEvents} = [map {lc $_} split(/,/, $eventCsv)];
     }elsif($arg =~ /^--skip-mount$/){
-      $$opts{waitEvents} = [$EVENT_ANDROID_BOOTED];
+      $$opts{waitEvents} = [$EVENT_ANDROID_START];
     }elsif(not defined $mode and $arg =~ /^(--)?(start)$/){
       $mode = $MODE_SERVICE;
       $serviceCmd = "start";
@@ -728,10 +728,10 @@ sub systemctlCmd($){
 sub waitForAndroidEvents($@){
   my ($opts, @events) = @_;
 
-  @events = ($EVENT_ANDROID_BOOTED, $EVENT_ANDROID_MOUNT) if @events == 0;
+  @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT) if @events == 0;
 
   my $eventRegex = join "|", (
-    $EVENT_ANDROID_BOOTED,
+    $EVENT_ANDROID_START,
     $EVENT_ANDROID_STOP,
     $EVENT_ANDROID_MOUNT,
     $EVENT_ANDROID_LXC,
@@ -762,7 +762,7 @@ sub waitForAndroidEvents($@){
 
     my $isSuccess = 1;
     for my $event(@events){
-      if($event eq $EVENT_ANDROID_BOOTED){
+      if($event eq $EVENT_ANDROID_START){
         $isSuccess = isAndroidBooted($opts);
       }elsif($event eq $EVENT_ANDROID_STOP){
         $isSuccess = not isAliendalvikRunning($opts);
