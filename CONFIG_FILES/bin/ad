@@ -14,6 +14,7 @@ sub systemctlCmd($);
 sub waitForAndroidEvents($@);
 sub isAliendalvikRunning($);
 sub launchIntent($);
+sub extractLaunchIntent($$$);
 sub readSdcardsConf();
 sub isSdcardsMounted($$);
 sub isUUIDMounted($$);
@@ -108,8 +109,8 @@ my $USAGE = "Usage:
       $EXEC --check-running || $EXEC start ; $EXEC --wait
       $EXEC --check-running || $EXEC start ; $EXEC --wait
 
-  $EXEC [OPTS] --app|app APP_NAME INTENT
-    same as: $EXEC --init --notify=APP_NAME && $EXEC --launch INTENT
+  $EXEC [OPTS] --app|app APP_NAME LAUNCH_ARG
+    same as: $EXEC --init --notify=APP_NAME && $EXEC --launch LAUNCH_ARG
     (see --timeout and --events)
 
   $EXEC [OPTS]
@@ -218,17 +219,20 @@ my $USAGE = "Usage:
       -get the PACKAGE_NAME with `apk-info --package APK_FILE`
       -same as: $EXEC --shell 'pm uninstall PACKAGE_NAME'
 
-  $EXEC [OPTS] -l|l INTENT
-  $EXEC [OPTS] --launch|launch INTENT
+  $EXEC [OPTS] -l|l LAUNCH_ARG
+  $EXEC [OPTS] --launch|launch LAUNCH_ARG
+    -if LAUNCH_ARG matches INTENT formatted '*.*.*/*':
+      -same as: $EXEC --launch-intent INTENT
+
   $EXEC [OPTS] --launch-intent|launch-intent INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
       -if ACTIVITY starts with a '.', PKG_NAME will be prepended
     -run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
-    e.g.: $EXEC -l org.coolreader/.CoolReader
+    e.g.: $EXEC --launch-intent org.coolreader/.CoolReader
           => apkd-launcher org.coolreader.apk org.coolreader/org.coolreader.CoolReader
 
   $EXEC [OPTS] --settings|settings
-    same as: $EXEC --intent=com.android.settings/.Settings
+    same as: $EXEC --launch-intent com.android.settings/.Settings
 
   $EXEC [OPTS] -w|w TIMEOUT_SECONDS [--events=EVENTS_CSV]
   $EXEC [OPTS] --wait|wait TIMEOUT_SECONDS [--events=EVENTS_CSV]
@@ -322,12 +326,15 @@ my $MODE_WAIT = "wait";
 my $MODE_CHECK_RUNNING = "check-running";
 my $MODE_CHECK_SDCARDS = "check-sdcards";
 
+my $LAUNCH_TYPE_INTENT = "intent";
+
 sub main(@){
   my $mode = undef;
   my $serviceCmd;
   my @cmdArgs;
   my @apkFileArgs;
-  my $intent;
+  my $launchArg = undef;
+  my $launchType = undef;
   my $opts = {
     verbose         => 0,
     useNotify       => 0,
@@ -380,7 +387,8 @@ sub main(@){
       $mode = $MODE_APP;
       $$opts{useNotify} = 1;
       $$opts{notifyMsg} = shift @_;
-      $intent = shift @_;
+      $launchArg = shift @_;
+      $launchType = undef;
     }elsif(not defined $mode and $arg =~ /^(-x|x|(--)?(lxc))$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 0;
@@ -431,12 +439,18 @@ sub main(@){
       $mode = $MODE_UNINSTALL;
       @apkFileArgs = @_;
       @_ = ();
-    }elsif(not defined $mode and $arg =~ /^(-l|l|(--)?(launch|launch-intent))$/ and @_ >= 1){
+    }elsif(not defined $mode and $arg =~ /^(-l|l|(--)?(launch))$/ and @_ >= 1){
       $mode = $MODE_LAUNCH;
-      $intent = shift @_;
+      $launchArg = shift @_;
+      $launchType = undef;
+    }elsif(not defined $mode and $arg =~ /^(--)?(launch-intent)$/ and @_ >= 1){
+      $mode = $MODE_LAUNCH;
+      $launchArg = shift @_;
+      $launchType = $LAUNCH_TYPE_INTENT;
     }elsif(not defined $mode and $arg =~ /^(--)?(settings)$/){
       $mode = $MODE_LAUNCH;
-      $intent = 'com.android.settings/.Settings';
+      $launchArg = 'com.android.settings/.Settings';
+      $launchType = $LAUNCH_TYPE_INTENT;
     }elsif(not defined $mode and $arg =~ /^(-w|w|(--)?(wait))$/ and @_ > 0 and $_[0] =~ /^\d+$/){
       $mode = $MODE_WAIT;
       $$opts{waitTimeoutS} = shift @_;
@@ -485,6 +499,7 @@ sub main(@){
     initAndroid($opts);
   }elsif($mode eq $MODE_APP){
     initAndroid($opts);
+    my $intent = extractLaunchIntent($opts, $launchArg, $launchType);
     launchIntent($intent);
   }elsif($mode eq $MODE_SHELL){
     lxcShell($opts, @cmdArgs);
@@ -564,7 +579,7 @@ sub main(@){
       lxcShell $opts, @cmd;
     }
   }elsif($mode eq $MODE_LAUNCH){
-    die "ERROR: missing intent\n" if not defined $intent;
+    my $intent = extractLaunchIntent($opts, $launchArg, $launchType);
     launchIntent($intent);
   }elsif($mode eq $MODE_WAIT){
     my @waitEvents = @{$$opts{waitEvents}};
@@ -738,6 +753,28 @@ sub launchIntent($){
   my $apk = "$pkgName.apk";
   my @cmd = ("apkd-launcher", $apk, "$pkgName/$activity");
   exec @cmd;
+}
+
+sub extractLaunchIntent($$$){
+  my ($opts, $launchArg, $launchType) = @_;
+  if(not defined $launchType){
+    if($launchArg =~ /^\w+\.(\w+\.)+\w+\/(.*)$/){
+      $launchType = $LAUNCH_TYPE_INTENT;
+    }
+  }
+
+  if(not defined $launchType){
+    die "ERROR: could not infer launch type from $launchArg\n";
+  }
+
+  my $intent;
+  if($launchType eq $LAUNCH_TYPE_INTENT){
+    $intent = $launchArg;
+  }else{
+    die "ERROR: unknown LAUNCH_TYPE $launchType\n";
+  }
+
+  return $intent;
 }
 
 sub readSdcardsConf(){
