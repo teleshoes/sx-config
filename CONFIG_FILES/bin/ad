@@ -359,9 +359,18 @@ sub main(@){
     }elsif(not defined $mode and $arg =~ /^(-x|x)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 0;
+      @cmdArgs = @_;
+      @_ = ();
     }elsif(not defined $mode and $arg =~ /^(--shell|shell)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
+      @cmdArgs = @_;
+      @_ = ();
+    }elsif(not defined $mode and $arg =~ /^($SHELL_CMD_FAVORITES_REGEX)$/){
+      $mode = $MODE_SHELL;
+      $$opts{shellEnvWrapper} = 1;
+      @cmdArgs = ($arg, @_);
+      @_ = ();
     }elsif(not defined $mode and $arg =~ /^(fuse|--fuse|remount-fuse|--remount-fuse)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
@@ -383,10 +392,20 @@ sub main(@){
       $orientArg = shift @_;
     }elsif(not defined $mode and $arg =~ /^--view$/){
       $mode = $MODE_VIEW;
+      @mediaFiles = (@_);
+      @_ = ();
+    }elsif(not defined $mode and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
+      $mode = $MODE_VIEW;
+      @mediaFiles = ($arg, @_);
+      @_ = ();
     }elsif(not defined $mode and $arg =~ /^(-i|i|(?:--)?(install))$/){
       $mode = $MODE_INSTALL;
+      @apkFileArgs = @_;
+      @_ = ();
     }elsif(not defined $mode and $arg =~ /^(-u|u|(?:--)?(uninstall))$/){
       $mode = $MODE_UNINSTALL;
+      @apkFileArgs = @_;
+      @_ = ();
     }elsif(not defined $mode and $arg =~ /^(-l|l|(?:--)?(launch|launch-intent))$/){
       $mode = $MODE_LAUNCH;
     }elsif(not defined $mode and $arg =~ /^(settings|--settings)$/){
@@ -401,18 +420,6 @@ sub main(@){
       $mode = $MODE_CHECK_RUNNING;
     }elsif(not defined $mode and $arg =~ /^(--check-sdcards?)$/){
       $mode = $MODE_CHECK_SDCARDS;
-    }elsif(not defined $mode and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
-      $mode = $MODE_VIEW;
-      push @mediaFiles, $arg;
-    }elsif(not defined $mode and $arg =~ /^($SHELL_CMD_FAVORITES_REGEX)$/){
-      $mode = $MODE_SHELL;
-      push @cmdArgs, $arg;
-    }elsif($mode eq $MODE_SHELL){
-      push @cmdArgs, $arg;
-    }elsif($mode eq $MODE_VIEW){
-      push @mediaFiles, $arg;
-    }elsif($mode =~ /^($MODE_INSTALL|$MODE_UNINSTALL)$/){
-      push @apkFileArgs, $arg;
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
     }elsif($mode eq $MODE_WAIT and $arg =~ /^--timeout=(\d+)$/){
