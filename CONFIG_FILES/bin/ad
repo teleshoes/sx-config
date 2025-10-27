@@ -143,7 +143,7 @@ my $USAGE = "Usage:
     -print WIDTHxHEIGHT
 
   $EXEC [OPTS] tap|--tap XPOS YPOS
-  $EXEC [OPTS] --tap=XPOSxYPOS
+  $EXEC [OPTS] tap|--tap XPOSxYPOS
     run 'input tap' with args as if device is in portrait mode
       (rotate args if device is in landscape)
     -get screen <SCREEN_WIDTH> and <SCREEN_HEIGHT> as in $EXEC --get-res
@@ -384,10 +384,21 @@ sub main(@){
       $mode = $MODE_RES;
     }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-2){
       $mode = $MODE_TAP;
-      ($tapXpos, $tapYpos) = ($_[++$i], $_[++$i]);
-    }elsif($isFirstArg and $arg =~ /^--tap=(.+)x(.+)$/){
+      my $tapArgX = $_[++$i];
+      my $tapArgY = $_[++$i];
+      if($tapArgX =~ /^\d+$/ and $tapArgY =~ /^\d+$/){
+        ($tapXpos, $tapYpos) = ($tapArgX, $tapArgY);
+      }else{
+        die "ERROR: invalid args to --tap: $tapArgX $tapArgY\n";
+      }
+    }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-1){
       $mode = $MODE_TAP;
-      ($tapXpos, $tapYpos) = ($1, $2);
+      my $tapArg = $_[++$i];
+      if($tapArg =~ /^(\d+)x(\d+)$/){
+        ($tapXpos, $tapYpos) = ($1, $2);
+      }else{
+        die "ERROR: invalid args to --tap: $tapArg\n";
+      }
     }elsif($isFirstArg and $arg =~ /^(orient|--orient)$/ and $i == $#_-1){
       $mode = $MODE_ORIENT;
       $orientArg = $_[++$i];
