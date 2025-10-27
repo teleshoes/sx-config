@@ -305,10 +305,6 @@ my $MODE_WAIT = "wait";
 my $MODE_CHECK_RUNNING = "check-running";
 my $MODE_CHECK_SDCARDS = "check-sdcards";
 
-my $OK_OPTS = join "|", qw(
-  -q --quiet -v --verbose -n --notify --events --skip-mount
-);
-
 sub main(@){
   my $mode = undef;
   my $serviceCmd;
@@ -327,9 +323,12 @@ sub main(@){
   my @mediaFiles;
   my @waitEvents;
 
-  while(@_ > 0 and $_[0] =~ /^($OK_OPTS)(?:=.+)?$/){
+  while(@_ > 0){
     my $arg = shift @_;
-    if($arg =~ /^(-q|--quiet)$/){
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-q|--quiet)$/){
       $$opts{verbose} = 0;
     }elsif($arg =~ /^(-v|--verbose)$/){
       $$opts{verbose} = 1;
@@ -344,16 +343,6 @@ sub main(@){
       @waitEvents = map {lc $_} split(/,/, $eventCsv);
     }elsif($arg =~ /^--skip-mount$/){
       @waitEvents = ($EVENT_ANDROID_START);
-    }else{
-      die "$USAGE\nERROR: unknown arg $arg\n";
-    }
-  }
-
-  while(@_ > 0){
-    my $arg = shift @_;
-    if($arg =~ /^(-h|--help)$/){
-      print $USAGE;
-      exit 0;
     }elsif(not defined $mode and $arg =~ /^(?:--)?(start|stop|restart)$/){
       $mode = $MODE_SERVICE;
       $serviceCmd = $1;
