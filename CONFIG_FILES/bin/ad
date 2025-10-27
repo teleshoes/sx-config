@@ -113,20 +113,23 @@ my $USAGE = "Usage:
     (see --timeout and --events)
 
   $EXEC [OPTS]
+    same as: $EXEC -x
+
   $EXEC [OPTS] -x|x
-  $EXEC [OPTS] --shell|shell
     run: sudo LXC_ATTACH_CMD
 
-  $EXEC [OPTS] -x|x CMD_ARG CMD_ARG
-    run: sudo LXC_ATTACH_CMD -- CMD_ARG CMD_ARG CMD_ARG..
+  $EXEC [OPTS] -x|x CMD_ARG CMD_ARG..
+    run: sudo LXC_ATTACH_CMD -- CMD_ARG CMD_ARG..
 
-  $EXEC [OPTS] --shell|shell CMD_ARG CMD_ARG...
-    run: sudo LXC_ATTACH_CMD -- sh -c '
-            $SHELL_ENV_VARS_USAGE_FMT \\
-            CMD_ARG CMD_ARG CMD_ARG..'
+  $EXEC [OPTS] --shell|shell
+    same as: $EXEC -x
+  $EXEC [OPTS] --shell|shell CMD_ARG CMD_ARG..
+    same as: $EXEC -x sh -c '
+               $SHELL_ENV_VARS_USAGE_FMT \\
+               CMD_ARG CMD_ARG..'
 
   $EXEC [OPTS] SHELL_COMMAND_FAVORITE [CMD_ARG CMD_ARG ..]
-    same as: $EXEC --shell COMMAND CMD_ARG CMD_ARG..
+    same as: $EXEC --shell SHELL_COMMAND_FAVORITE CMD_ARG CMD_ARG..
     SHELL_COMMAND_FAVORITE is one of:
       @SHELL_CMD_FAVORITES
 
