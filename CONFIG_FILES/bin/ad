@@ -179,9 +179,10 @@ my $USAGE = "Usage:
       -replace prefix: '/home/nemo/android_storage' with '/sdcard'
       -replace prefix: '/media/sdcard/phone' with '/sdcard/SDCARD'
     -run: $EXEC am start android.intent.action.VIEW -d file://ANDROID_MEDIA_FILE
+
   $EXEC [OPTS] MEDIA_FILE_WITH_EXT [MEDIA_FILE MEDIA_FILE ..]
     same as: $EXEC --view MEDIA_FILE_WITH_EXT MEDIA_FILE MEDIA_FILE
-    MEDIA_FILE_WITH_EXT must end with extension:
+    MEDIA_FILE_WITH_EXT must exist and end with extension:
       @MEDIA_EXTS
 
   $EXEC [OPTS] -i|i|--install|install APK_FILE APK_FILE...
@@ -196,7 +197,7 @@ my $USAGE = "Usage:
   $EXEC [OPTS] -u|u|--uninstall|uninstall APK_FILE APK_FILE...
     for each APK_FILE:
       get the PACKAGE_NAME with `apk-info --package`
-      run: $EXEC pm uninstall PACKAGE_NAME
+      same as: $EXEC --shell 'pm uninstall PACKAGE_NAME'
 
   $EXEC [OPTS] -l|l|--launch|launch|--launch-intent|launch-intent INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
@@ -205,7 +206,7 @@ my $USAGE = "Usage:
     e.g.: $EXEC -l org.coolreader/.CoolReader
           => apkd-launcher org.coolreader.apk org.coolreader/org.coolreader.CoolReader
 
-  $EXEC [OPTS] settings|--settings
+  $EXEC [OPTS] --settings|settings
     same as: $EXEC --intent=com.android.settings/.Settings
     NOTE: args to settings treated as '$EXEC shell settings ARG ARG..'
 
@@ -241,7 +242,7 @@ my $USAGE = "Usage:
       -if response is ok, exit with exit code 0
       -otherwise, print error message and exit with exit code 1
 
-  $EXEC [OPTS] --check-sdcard | --check-sdcards
+  $EXEC [OPTS] --check-sdcard|--check-sdcards
     check if sailfish home and android sdcards in /etc/sdcards.conf are mounted
       -parse $SDCARDS_CONF_FILE
       -extract UUID '<NAME>.uuid' of any sdcard with android true '<NAME>.android=true'
