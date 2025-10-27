@@ -168,7 +168,6 @@ my $USAGE = "Usage:
       can be integer number of px, or real number followed by '%'
 
   $EXEC [OPTS] orient|--orient ORIENT_ARG
-  $EXEC [OPTS] --orient=ORIENT_ARG
     run:
       $EXEC settings put system accelerometer_rotation ACCEL_VAL
       $EXEC settings put system user_rotation USER_VAL
@@ -402,9 +401,6 @@ sub main(@){
     }elsif($isFirstArg and $arg =~ /^(orient|--orient)$/ and $i == $#_-1){
       $mode = $MODE_ORIENT;
       $orientArg = $_[++$i];
-    }elsif($isFirstArg and $arg =~ /^--orient=(.+)$/){
-      $mode = $MODE_ORIENT;
-      $orientArg = $1;
     }elsif($isFirstArg and $arg =~ /^--view$/){
       $mode = $MODE_VIEW;
     }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
