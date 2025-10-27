@@ -185,7 +185,6 @@ my $USAGE = "Usage:
       @MEDIA_EXTS
 
   $EXEC [OPTS] -i|i|--install|install APK_FILE APK_FILE...
-  $EXEC [OPTS] --install=APK_FILE
     run: apkd-install-preload -i $CONTAINER_NAME APK_FILE APK_FILE...
          apkd-install -i $CONTAINER_NAME APK_FILE APK_FILE...
 
@@ -195,14 +194,11 @@ my $USAGE = "Usage:
             coolreader-   => $APK_DIR/coolreader-*.apk
 
   $EXEC [OPTS] -u|u|--uninstall|uninstall APK_FILE APK_FILE...
-  $EXEC [OPTS] --uninstall=APK_FILE
     for each APK_FILE:
       get the PACKAGE_NAME with `apk-info --package`
       run: $EXEC pm uninstall PACKAGE_NAME
 
   $EXEC [OPTS] -l|l|--launch|launch|--launch-intent|launch-intent INTENT
-  $EXEC [OPTS] --launch=INTENT
-  $EXEC [OPTS] --launch-intent=INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
       -if ACTIVITY starts with a '.', PKG_NAME will be prepended
     -run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
@@ -393,19 +389,10 @@ sub main(@){
       $mode = $MODE_VIEW;
     }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
       $mode = $MODE_INSTALL;
-    }elsif($isFirstArg and $arg =~ /^(--install)=(.+)$/){
-      $mode = $MODE_INSTALL;
-      push @apkFileArgs, $2;
     }elsif($isFirstArg and $arg =~ /^(-u|u|--uninstall|uninstall)$/){
       $mode = $MODE_UNINSTALL;
-    }elsif($isFirstArg and $arg =~ /^(--uninstall)=(.+)$/){
-      $mode = $MODE_UNINSTALL;
-      push @apkFileArgs, $2;
     }elsif($isFirstArg and $arg =~ /^(-l|l|--launch|launch|--launch-intent|launch-intent)$/){
       $mode = $MODE_LAUNCH;
-    }elsif($isFirstArg and $arg =~ /^(--launch|--launch-intent)=(.+)$/){
-      $mode = $MODE_LAUNCH;
-      $intent = $2;
     }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/ and $isLastArg){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
