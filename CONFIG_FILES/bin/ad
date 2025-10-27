@@ -408,6 +408,8 @@ sub main(@){
       @_ = ();
     }elsif(not defined $mode and $arg =~ /^(-l|l|(?:--)?(launch|launch-intent))$/){
       $mode = $MODE_LAUNCH;
+    }elsif($mode eq $MODE_LAUNCH and not defined $intent){
+      $intent = $arg;
     }elsif(not defined $mode and $arg =~ /^(settings|--settings)$/){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
@@ -420,8 +422,6 @@ sub main(@){
       $mode = $MODE_CHECK_RUNNING;
     }elsif(not defined $mode and $arg =~ /^(--check-sdcards?)$/){
       $mode = $MODE_CHECK_SDCARDS;
-    }elsif($mode eq $MODE_LAUNCH and not defined $intent){
-      $intent = $arg;
     }elsif($mode eq $MODE_WAIT and $arg =~ /^--timeout=(\d+)$/){
       $$opts{waitTimeoutS} = $1;
     }else{
