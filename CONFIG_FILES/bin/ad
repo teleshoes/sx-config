@@ -803,7 +803,7 @@ sub extractLaunchIntent($$$){
       $launchType = $LAUNCH_TYPE_INTENT;
     }elsif($launchArg =~ /^\w+\.(\w+\.)+\w+$/){
       $launchType = $LAUNCH_TYPE_PKG;
-    }elsif(-f $launchArg and $launchArg =~ /\.apk$/i){
+    }elsif(-f $launchArg and $launchArg =~ /\.apk[m]?$/i){
       $launchType = $LAUNCH_TYPE_APK;
     }else{
       my @apkPrefixFiles = getApksForPrefix($launchArg);
@@ -986,7 +986,7 @@ sub lxcReadProc($@){
 sub getApksForPrefix($){
   my ($prefix) = @_;
   my @files = glob "$APK_DIR/$prefix*";
-  @files = grep {/\.apk$/i} grep {-f $_} @files;
+  @files = grep {/\.apk[m]?$/i} grep {-f $_} @files;
   return @files;
 }
 
