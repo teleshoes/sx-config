@@ -209,11 +209,10 @@ my $USAGE = "Usage:
     same as: $EXEC --intent=com.android.settings/.Settings
     NOTE: args to settings treated as '$EXEC shell settings ARG ARG..'
 
-  $EXEC -w|w|--wait [--events=EVENTS_CSV]
-    same as: $EXEC --wait=$DEFAULT_WAIT_TIMEOUT_SECONDS
+  $EXEC [OPTS] -w|w|--wait TIMEOUT_SECONDS [--events=EVENTS_CSV]
+    same as: $EXEC --wait --timeout=TIMEOUT_SECONDS --events=EVENTS_CSV
 
-  $EXEC -w|w|--wait TIMEOUT_SECONDS [--events=EVENTS_CSV]
-  $EXEC --wait=TIMEOUT_SECONDS [--events=EVENTS_CSV]
+  $EXEC [OPTS] -w|w|--wait [--timeout=TIMEOUT_SECONDS] [--events=EVENTS_CSV]
     wait until android events occur
     default is android started and sdcards+home mounted)
          e.g.: $EXEC --start && $EXEC --wait 30 && echo OK || echo FAIL
@@ -257,6 +256,8 @@ my $USAGE = "Usage:
       do not print shell commands before running them (this is the default)
     -v | --verbose
       print shell commands before running them
+    --timeout=TIMEOUT_SECONDS
+      timeout in seconds when waiting for android events in --wait
     --events=EVENTS_CSV
       in --wait, wait for these events before success instead of the default
       default: --events=$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT
@@ -409,9 +410,6 @@ sub main(@){
       $mode = $MODE_CHECK_RUNNING;
     }elsif($isFirstArg and $arg =~ /^(--check-sdcards?)$/){
       $mode = $MODE_CHECK_SDCARDS;
-    }elsif($isFirstArg and $arg =~ /^(--wait)=(\d+)$/){
-      $mode = $MODE_WAIT;
-      $waitTimeoutSeconds = $1;
     }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
@@ -432,6 +430,8 @@ sub main(@){
       }
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
+    }elsif($mode eq $MODE_WAIT and $arg =~ /^--timeout=(\d+)$/){
+      $waitTimeoutSeconds = $arg;
     }elsif($mode eq $MODE_WAIT and not defined $waitTimeoutSeconds and $arg =~ /^\d+$/){
       $waitTimeoutSeconds = $arg;
     }else{
