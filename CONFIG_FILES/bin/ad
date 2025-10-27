@@ -8,16 +8,16 @@ use Time::HiRes qw(time);
 sub initAndroid($@);
 sub startDbus();
 sub stopDbus();
-sub restartDbus();
+sub restartDbus($);
 sub sendDbusStartStop($);
 sub systemctlCmd($);
 sub waitForAndroidEvents($$@);
-sub isAliendalvikRunning();
+sub isAliendalvikRunning($);
 sub launchIntent($);
 sub readSdcardsConf();
-sub isSdcardsMounted($);
-sub isUUIDMounted($);
-sub isHomeMounted();
+sub isSdcardsMounted($$);
+sub isUUIDMounted($$);
+sub isHomeMounted($);
 sub lxcWrapCmd($@);
 sub lxcShell($@);
 sub lxcReadProc($@);
@@ -445,7 +445,7 @@ sub main(@){
     }elsif($serviceCmd eq "stop"){
       stopDbus();
     }elsif($serviceCmd eq "restart"){
-      restartDbus();
+      restartDbus($opts);
     }else{
       die "ERROR: unknown service cmd $serviceCmd\n";
     }
@@ -547,7 +547,7 @@ sub main(@){
       exit 1;
     }
   }elsif($mode eq $MODE_CHECK_RUNNING){
-    if(isAliendalvikRunning()){
+    if(isAliendalvikRunning($opts)){
       exit 0;
     }else{
       print STDERR "ERROR: aliendalvik is not running\n";
@@ -555,7 +555,7 @@ sub main(@){
     }
   }elsif($mode eq $MODE_CHECK_SDCARDS){
     my $sdcardsConf = readSdcardsConf();
-    if(isSdcardsMounted($sdcardsConf) && isHomeMounted()){
+    if(isSdcardsMounted($opts, $sdcardsConf) && isHomeMounted($opts)){
       exit 0;
     }else{
       print STDERR "ERROR: sdcards+home are not mounted\n";
@@ -573,7 +573,7 @@ sub initAndroid($@){
     $attempts--;
     die "ERROR: android failed to start and mount sdcards+home\n" if $attempts < 0;
 
-    if(not isAliendalvikRunning()){
+    if(not isAliendalvikRunning($opts)){
       startDbus();
     }
     if(waitForAndroidEvents($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS, @waitEvents)){
@@ -588,8 +588,8 @@ sub startDbus(){
 sub stopDbus(){
   sendDbusStartStop(0);
 }
-sub restartDbus(){
-  my $opts = {};
+sub restartDbus($){
+  my ($opts) = @_;
   sendDbusStartStop(0);
   my @waitEvents = ($EVENT_ANDROID_STOP);
   waitForAndroidEvents($opts, $DEFAULT_WAIT_TIMEOUT_SECONDS, @waitEvents);
@@ -655,11 +655,11 @@ sub waitForAndroidEvents($$@){
     my $isSuccess = 1;
     for my $event(@events){
       if($event eq $EVENT_ANDROID_START){
-        $isSuccess = isAliendalvikRunning();
+        $isSuccess = isAliendalvikRunning($opts);
       }elsif($event eq $EVENT_ANDROID_STOP){
-        $isSuccess = not isAliendalvikRunning();
+        $isSuccess = not isAliendalvikRunning($opts);
       }elsif($event eq $EVENT_ANDROID_MOUNT){
-        $isSuccess = isSdcardsMounted($sdcardsConf) && isHomeMounted();
+        $isSuccess = isSdcardsMounted($opts, $sdcardsConf) && isHomeMounted($opts);
       }else{
         die "ERROR: unknown event $event\n";
       }
@@ -681,8 +681,8 @@ sub waitForAndroidEvents($$@){
   }
 }
 
-sub isAliendalvikRunning(){
-  my $opts = {};
+sub isAliendalvikRunning($){
+  my ($opts) = @_;
   my $out = lxcReadProc $opts, "echo", "ok";
   if($out =~ /^ok$/){
     return 1;
@@ -726,8 +726,8 @@ sub readSdcardsConf(){
   return $entries;
 }
 
-sub isSdcardsMounted($){
-  my ($sdcardsConf) = @_;
+sub isSdcardsMounted($$){
+  my ($opts, $sdcardsConf) = @_;
   for my $name(sort keys %$sdcardsConf){
     my $isAndroid = $$sdcardsConf{$name}{android};
     $isAndroid = "" if not defined $isAndroid;
@@ -736,7 +736,7 @@ sub isSdcardsMounted($){
       if(not defined $uuid){
         die "ERROR: failed to parse UUID in $SDCARDS_CONF_FILE\n";
       }
-      if(not isUUIDMounted($uuid)){
+      if(not isUUIDMounted($opts, $uuid)){
         print "sdcard '$name' is not mounted\n";
         return 0;
       }
@@ -745,9 +745,8 @@ sub isSdcardsMounted($){
   return 1;
 }
 
-sub isUUIDMounted($){
-  my ($uuid) = @_;
-  my $opts = {};
+sub isUUIDMounted($$){
+  my ($opts, $uuid) = @_;
   my $dir = "/storage/$uuid";
   my $out = lxcReadProc $opts, "mountpoint", $dir;
   if($out =~ /^$dir is a mountpoint$/){
@@ -757,8 +756,8 @@ sub isUUIDMounted($){
   }
 }
 
-sub isHomeMounted(){
-  my $opts = {};
+sub isHomeMounted($){
+  my ($opts) = @_;
   my $out = lxcReadProc $opts, "mount";
 
   my $homeUUID;
