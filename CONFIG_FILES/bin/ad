@@ -58,9 +58,9 @@ my $SYSTEMD_SERVICE = "appsupport";
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
 
 my $EVENT_ANDROID_BOOTED = "booted";
-my $EVENT_ANDROID_START = "start";
 my $EVENT_ANDROID_STOP = "stop";
 my $EVENT_ANDROID_MOUNT = "mount";
+my $EVENT_ANDROID_LXC = "lxc";
 
 my @MEDIA_EXTS = qw(
   jpg jpeg png gif mpo webm
@@ -279,21 +279,21 @@ my $USAGE = "Usage:
     -parse EVENTS_CSV into EVENTS
          EVENTS = "
                   . "'$EVENT_ANDROID_BOOTED', "
-                  . "'$EVENT_ANDROID_START', "
                   . "'$EVENT_ANDROID_STOP', "
-                  . "'$EVENT_ANDROID_MOUNT'"
+                  . "'$EVENT_ANDROID_MOUNT', "
+                  . "'$EVENT_ANDROID_LXC'"
                   . "
       -default is '$EVENT_ANDROID_BOOTED,$EVENT_ANDROID_MOUNT'
     -every 1s, check if *all* event conditions are met:
       -check each event given, in order
         $EVENT_ANDROID_BOOTED  = android booted, sys.boot_completed=1
           as in: `sh -c '$EXEC --shell getprop sys.boot_completed | grep 1 >/dev/null'`
-        $EVENT_ANDROID_START  = android is running
-          as in: `$EXEC --check-running`
         $EVENT_ANDROID_STOP   = android is NOT running
           as in: `sh -c '$EXEC --check-running && exit 1 || exit 0'`
         $EVENT_ANDROID_MOUNT  = sdcards+home are mounted
           as in: `$EXEC --check-sdcards`
+        $EVENT_ANDROID_LXC  = android is running
+          as in: `$EXEC --check-running`
       -if *all* event conditions are met:
         -exit with exit code 0
       -if TIMEOUT_SECONDS has transpired:
@@ -334,9 +334,9 @@ my $USAGE = "Usage:
         EVENTS_CSV = EVENT,EVENT,..EVENT
         EVENT      = one of "
                             . "$EVENT_ANDROID_BOOTED, "
-                            . "$EVENT_ANDROID_START, "
                             . "$EVENT_ANDROID_STOP, "
-                            . "$EVENT_ANDROID_MOUNT"
+                            . "$EVENT_ANDROID_MOUNT, "
+                            . "$EVENT_ANDROID_LXC"
                             . "
       e.g.: `ad stop && ad --wait --events=stop` to ensure android is not running
     --skip-mount
@@ -732,9 +732,9 @@ sub waitForAndroidEvents($@){
 
   my $eventRegex = join "|", (
     $EVENT_ANDROID_BOOTED,
-    $EVENT_ANDROID_START,
     $EVENT_ANDROID_STOP,
     $EVENT_ANDROID_MOUNT,
+    $EVENT_ANDROID_LXC,
   );
   for my $event(@events){
     if($event !~ /^($eventRegex)$/){
@@ -764,12 +764,12 @@ sub waitForAndroidEvents($@){
     for my $event(@events){
       if($event eq $EVENT_ANDROID_BOOTED){
         $isSuccess = isAndroidBooted($opts);
-      }elsif($event eq $EVENT_ANDROID_START){
-        $isSuccess = isAliendalvikRunning($opts);
       }elsif($event eq $EVENT_ANDROID_STOP){
         $isSuccess = not isAliendalvikRunning($opts);
       }elsif($event eq $EVENT_ANDROID_MOUNT){
         $isSuccess = isSdcardsMounted($opts, $sdcardsConf) && isHomeMounted($opts);
+      }elsif($event eq $EVENT_ANDROID_LXC){
+        $isSuccess = isAliendalvikRunning($opts);
       }else{
         die "ERROR: unknown event $event\n";
       }
