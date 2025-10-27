@@ -412,16 +412,7 @@ sub main(@){
     }elsif($mode eq $MODE_VIEW){
       push @mediaFiles, $arg;
     }elsif($mode =~ /^($MODE_INSTALL|$MODE_UNINSTALL)$/){
-      if(-f $arg){
-        push @apkFileArgs, $arg;
-      }else{
-        my @apkPrefixFiles = getApksForPrefix($arg);
-        if(@apkPrefixFiles == 0){
-          die "$USAGE\nERROR: no APK files found for prefix $arg\n";
-        }
-        print "$arg => \n" . join '', map {"  $_\n"} @apkPrefixFiles;
-        @apkFileArgs = (@apkFileArgs, @apkPrefixFiles);
-      }
+      push @apkFileArgs, $arg;
     }elsif($mode eq $MODE_LAUNCH and not defined $intent){
       $intent = $arg;
     }elsif($mode eq $MODE_WAIT and $arg =~ /^--timeout=(\d+)$/){
@@ -434,6 +425,20 @@ sub main(@){
   $mode = $MODE_SHELL if not defined $mode;
 
   $$opts{waitTimeoutS} = $DEFAULT_WAIT_TIMEOUT_SECONDS if not defined $$opts{waitTimeoutS};
+
+  my @apkFiles;
+  for my $arg(@apkFileArgs){
+    if(-f $arg){
+      push @apkFiles, $arg;
+    }else{
+      my @apkPrefixFiles = getApksForPrefix($arg);
+      if(@apkPrefixFiles == 0){
+        die "$USAGE\nERROR: no APK files found for prefix $arg\n";
+      }
+      print "$arg => \n" . join '', map {"  $_\n"} @apkPrefixFiles;
+      @apkFiles = (@apkFiles, @apkPrefixFiles);
+    }
+  }
 
   if($mode eq $MODE_SERVICE){
     if($serviceCmd eq "start"){
@@ -455,12 +460,12 @@ sub main(@){
   }elsif($mode eq $MODE_SHELL){
     lxcShell($opts, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
-    die "$USAGE\nError: no APK_FILE to install\n" if @apkFileArgs == 0;
-    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install-preload -i $CONTAINER_NAME @apkFileArgs";
-    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install -i $CONTAINER_NAME @apkFileArgs";
+    die "$USAGE\nError: no APK_FILE to install\n" if @apkFiles == 0;
+    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install-preload -i $CONTAINER_NAME @apkFiles";
+    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install -i $CONTAINER_NAME @apkFiles";
   }elsif($mode eq $MODE_UNINSTALL){
-    die "$USAGE\nError: no APK_FILE to uninstall\n" if @apkFileArgs == 0;
-    for my $apkFile(@apkFileArgs){
+    die "$USAGE\nError: no APK_FILE to uninstall\n" if @apkFiles == 0;
+    for my $apkFile(@apkFiles){
       my $pkgName = `apk-info --package $apkFile`;
       chomp $pkgName;
       my @cmd = ("pm", "uninstall", $pkgName);
