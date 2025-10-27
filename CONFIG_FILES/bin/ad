@@ -16,6 +16,7 @@ sub isAliendalvikRunning($);
 sub launchIntent($);
 sub extractLaunchIntent($$$);
 sub readIntentFromPkgName($$);
+sub aaptRun(@);
 sub readSdcardsConf();
 sub isSdcardsMounted($$);
 sub isUUIDMounted($$);
@@ -226,6 +227,8 @@ my $USAGE = "Usage:
       -same as: $EXEC --launch-intent INTENT
     -if LAUNCH_ARG matches PKG_NAME formatted '*.*.*':
       -same as: $EXEC --launch-pkg PKG_NAME
+    -if LAUNCH_ARG is an APK_FILE:
+      -same as: $EXEC --launch-apk APK_FILE
 
   $EXEC [OPTS] --launch-intent|launch-intent INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
@@ -237,6 +240,23 @@ my $USAGE = "Usage:
   $EXEC [OPTS] --launch-pkg|launch-pkg PKG_NAME
     -extract INTENT using package name:
       $EXEC --shell cmd package resolve-activity --brief PKG_NAME
+    -same as: $EXEC --launch-intent INTENT
+
+  $EXEC [OPTS] --launch-apk|launch-apk APK_FILE
+    -attempt to extract PKG_NAME from APK_FILE with aapt or parsing the filename
+      -run: `aapt dump badging APK_FILE`
+      -if 'package.name' PACKAGE_NAME_AAPT is present:
+        -use PKG_NAME=PACKAGE_NAME_AAPT
+      -otherwise:
+        -if file matches '<APP_NAME>_<PKG_NAME_FILE>_*'
+          -use PKG_NAME=PKG_NAME_FILE
+    -attempt to extract INTENT from APK_FILE with aapt or resolve-activity
+      -run: `aapt dump badging APK_FILE`
+      -if 'launchable-activity.name' ACTIVITY_AAPT is present:
+        -use INTENT=PKG_NAME/ACTIVITY_AAPT
+      -otherwise:
+        -extract INTENT using package name:
+          $EXEC --shell cmd package resolve-activity --brief PKG_NAME
     -same as: $EXEC --launch-intent INTENT
 
   $EXEC [OPTS] --settings|settings
@@ -336,6 +356,7 @@ my $MODE_CHECK_SDCARDS = "check-sdcards";
 
 my $LAUNCH_TYPE_INTENT = "intent";
 my $LAUNCH_TYPE_PKG = "pkg";
+my $LAUNCH_TYPE_APK = "apk";
 
 sub main(@){
   my $mode = undef;
@@ -460,6 +481,10 @@ sub main(@){
       $mode = $MODE_LAUNCH;
       $launchArg = shift @_;
       $launchType = $LAUNCH_TYPE_PKG;
+    }elsif(not defined $mode and $arg =~ /^(--)?(launch-apk)$/ and @_ >= 1){
+      $mode = $MODE_LAUNCH;
+      $launchArg = shift @_;
+      $launchType = $LAUNCH_TYPE_APK;
     }elsif(not defined $mode and $arg =~ /^(--)?(settings)$/){
       $mode = $MODE_LAUNCH;
       $launchArg = 'com.android.settings/.Settings';
@@ -775,6 +800,8 @@ sub extractLaunchIntent($$$){
       $launchType = $LAUNCH_TYPE_INTENT;
     }elsif($launchArg =~ /^\w+\.(\w+\.)+\w+$/){
       $launchType = $LAUNCH_TYPE_PKG;
+    }elsif(-f $launchArg and $launchArg =~ /\.apk$/i){
+      $launchType = $LAUNCH_TYPE_APK;
     }
   }
 
@@ -787,6 +814,28 @@ sub extractLaunchIntent($$$){
     $intent = $launchArg;
   }elsif($launchType eq $LAUNCH_TYPE_PKG){
     $intent = readIntentFromPkgName($opts, $launchArg);
+  }elsif($launchType eq $LAUNCH_TYPE_APK){
+    my $apkFile = $launchArg;
+    my $badging = aaptRun("dump", "badging", $apkFile);
+    my $pkgName;
+    if($badging =~ /package: name='([^']+)'/){
+      $pkgName = $1;
+    }
+    my $activity;
+    if($badging =~ /launchable-activity: name='([^']+)'/){
+      $activity = $1;
+    }
+
+    if(not defined $pkgName and $apkFile =~ /^(?:.+\/)?\w+_(\w+\.(?:\w+\.)+\w+)_.*/){
+      $pkgName = $1;
+    }
+    die "ERROR: could not extract PKG_NAME from $apkFile\n" if not defined $pkgName;
+
+    if(defined $activity){
+      $intent = "$pkgName/$activity";
+    }else{
+      $intent = readIntentFromPkgName($opts, $pkgName);
+    }
   }else{
     die "ERROR: unknown LAUNCH_TYPE $launchType\n";
   }
@@ -801,6 +850,21 @@ sub readIntentFromPkgName($$){
     return $1;
   }else{
     die "ERROR: could not read main activity of pkg $pkgName\n";
+  }
+}
+
+sub aaptRun(@){
+  my (@args) = @_;
+  $ENV{ANDROID_DATA} = "/data";
+  $ENV{ANDROID_ROOT} = "/system";
+  my @cmd = ("aapt", @args);
+  open my $cmdH, "-|", @cmd or die "ERROR: could not run @cmd\n$!\n";
+  my @lines = <$cmdH>;
+  close $cmdH;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
   }
 }
 
