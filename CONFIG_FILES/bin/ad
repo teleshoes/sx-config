@@ -229,6 +229,9 @@ my $USAGE = "Usage:
       -same as: $EXEC --launch-pkg PKG_NAME
     -if LAUNCH_ARG is an APK_FILE:
       -same as: $EXEC --launch-apk APK_FILE
+    -if LAUNCH_ARG matches exactly one APK_FILE:
+      $APK_DIR/LAUNCH_ARG*.apk*
+      -same as: $EXEC --launch-apk APK_FILE
 
   $EXEC [OPTS] --launch-intent|launch-intent INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
@@ -802,6 +805,15 @@ sub extractLaunchIntent($$$){
       $launchType = $LAUNCH_TYPE_PKG;
     }elsif(-f $launchArg and $launchArg =~ /\.apk$/i){
       $launchType = $LAUNCH_TYPE_APK;
+    }else{
+      my @apkPrefixFiles = getApksForPrefix($launchArg);
+      if(@apkPrefixFiles > 1){
+        die "ERROR: too many apks match '$launchArg'\n@apkPrefixFiles\n";
+      }
+      if(@apkPrefixFiles == 1){
+        $launchArg = $apkPrefixFiles[0];
+        $launchType = $LAUNCH_TYPE_APK;
+      }
     }
   }
 
