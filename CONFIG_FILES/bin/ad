@@ -15,6 +15,7 @@ sub waitForAndroidEvents($@);
 sub isAliendalvikRunning($);
 sub launchIntent($);
 sub extractLaunchIntent($$$);
+sub readIntentFromPkgName($$);
 sub readSdcardsConf();
 sub isSdcardsMounted($$);
 sub isUUIDMounted($$);
@@ -223,6 +224,8 @@ my $USAGE = "Usage:
   $EXEC [OPTS] --launch|launch LAUNCH_ARG
     -if LAUNCH_ARG matches INTENT formatted '*.*.*/*':
       -same as: $EXEC --launch-intent INTENT
+    -if LAUNCH_ARG matches PKG_NAME formatted '*.*.*':
+      -same as: $EXEC --launch-pkg PKG_NAME
 
   $EXEC [OPTS] --launch-intent|launch-intent INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
@@ -230,6 +233,11 @@ my $USAGE = "Usage:
     -run: apkd-launcher PKG_NAME.apk PKG_NAME/ACTIVITY
     e.g.: $EXEC --launch-intent org.coolreader/.CoolReader
           => apkd-launcher org.coolreader.apk org.coolreader/org.coolreader.CoolReader
+
+  $EXEC [OPTS] --launch-pkg|launch-pkg PKG_NAME
+    -extract INTENT using package name:
+      $EXEC --shell cmd package resolve-activity --brief PKG_NAME
+    -same as: $EXEC --launch-intent INTENT
 
   $EXEC [OPTS] --settings|settings
     same as: $EXEC --launch-intent com.android.settings/.Settings
@@ -327,6 +335,7 @@ my $MODE_CHECK_RUNNING = "check-running";
 my $MODE_CHECK_SDCARDS = "check-sdcards";
 
 my $LAUNCH_TYPE_INTENT = "intent";
+my $LAUNCH_TYPE_PKG = "pkg";
 
 sub main(@){
   my $mode = undef;
@@ -447,6 +456,10 @@ sub main(@){
       $mode = $MODE_LAUNCH;
       $launchArg = shift @_;
       $launchType = $LAUNCH_TYPE_INTENT;
+    }elsif(not defined $mode and $arg =~ /^(--)?(launch-pkg)$/ and @_ >= 1){
+      $mode = $MODE_LAUNCH;
+      $launchArg = shift @_;
+      $launchType = $LAUNCH_TYPE_PKG;
     }elsif(not defined $mode and $arg =~ /^(--)?(settings)$/){
       $mode = $MODE_LAUNCH;
       $launchArg = 'com.android.settings/.Settings';
@@ -760,6 +773,8 @@ sub extractLaunchIntent($$$){
   if(not defined $launchType){
     if($launchArg =~ /^\w+\.(\w+\.)+\w+\/(.*)$/){
       $launchType = $LAUNCH_TYPE_INTENT;
+    }elsif($launchArg =~ /^\w+\.(\w+\.)+\w+$/){
+      $launchType = $LAUNCH_TYPE_PKG;
     }
   }
 
@@ -770,11 +785,23 @@ sub extractLaunchIntent($$$){
   my $intent;
   if($launchType eq $LAUNCH_TYPE_INTENT){
     $intent = $launchArg;
+  }elsif($launchType eq $LAUNCH_TYPE_PKG){
+    $intent = readIntentFromPkgName($opts, $launchArg);
   }else{
     die "ERROR: unknown LAUNCH_TYPE $launchType\n";
   }
 
   return $intent;
+}
+
+sub readIntentFromPkgName($$){
+  my ($opts, $pkgName) = @_;
+  my $out = lxcReadProc($opts, "cmd", "package", "resolve-activity", "--brief", $pkgName);
+  if($out =~ /^($pkgName\/.+)$/m){
+    return $1;
+  }else{
+    die "ERROR: could not read main activity of pkg $pkgName\n";
+  }
 }
 
 sub readSdcardsConf(){
