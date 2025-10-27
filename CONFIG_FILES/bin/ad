@@ -328,24 +328,24 @@ sub main(@){
   my @waitEvents;
 
   while(@_ > 0 and $_[0] =~ /^($OK_OPTS)(?:=.+)?$/){
-    my $opt = shift @_;
-    if($opt =~ /^(-q|--quiet)$/){
+    my $arg = shift @_;
+    if($arg =~ /^(-q|--quiet)$/){
       $$opts{verbose} = 0;
-    }elsif($opt =~ /^(-v|--verbose)$/){
+    }elsif($arg =~ /^(-v|--verbose)$/){
       $$opts{verbose} = 1;
-    }elsif($opt =~ /^(-n|--notify)$/ and @_ > 0){
+    }elsif($arg =~ /^(-n|--notify)$/ and @_ > 0){
       $$opts{useNotify} = 1;
       $$opts{notifyMsg} = shift @_;
-    }elsif($opt =~ /^--notify=(.+)$/){
+    }elsif($arg =~ /^--notify=(.+)$/){
       $$opts{useNotify} = 1;
       $$opts{notifyMsg} = $1;
-    }elsif($opt =~ /^--events=(.+)$/){
+    }elsif($arg =~ /^--events=(.+)$/){
       my $eventCsv = $1;
       @waitEvents = map {lc $_} split(/,/, $eventCsv);
-    }elsif($opt =~ /^--skip-mount$/){
+    }elsif($arg =~ /^--skip-mount$/){
       @waitEvents = ($EVENT_ANDROID_START);
     }else{
-      die "$USAGE\nERROR: unknown opt $opt\n";
+      die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
 
