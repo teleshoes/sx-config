@@ -431,10 +431,9 @@ sub main(@){
       $mode = $MODE_UNINSTALL;
       @apkFileArgs = @_;
       @_ = ();
-    }elsif(not defined $mode and $arg =~ /^(-l|l|(--)?(launch|launch-intent))$/){
+    }elsif(not defined $mode and $arg =~ /^(-l|l|(--)?(launch|launch-intent))$/ and @_ >= 1){
       $mode = $MODE_LAUNCH;
-    }elsif($mode eq $MODE_LAUNCH and not defined $intent){
-      $intent = $arg;
+      $intent = shift @_;
     }elsif(not defined $mode and $arg =~ /^(--)?(settings)$/){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
