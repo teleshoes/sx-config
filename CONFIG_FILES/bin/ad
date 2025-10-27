@@ -288,11 +288,11 @@ my $USAGE = "Usage:
       -check each event given, in order
         $EVENT_ANDROID_BOOTED  = android booted, sys.boot_completed=1
           as in: `sh -c '$EXEC --shell getprop sys.boot_completed | grep 1 >/dev/null'`
-        $EVENT_ANDROID_STOP   = android is NOT running
+        $EVENT_ANDROID_STOP   = android container is NOT running
           as in: `sh -c '$EXEC --check-running && exit 1 || exit 0'`
         $EVENT_ANDROID_MOUNT  = sdcards+home are mounted
           as in: `$EXEC --check-sdcards`
-        $EVENT_ANDROID_LXC  = android is running
+        $EVENT_ANDROID_LXC  = android container is running
           as in: `$EXEC --check-running`
       -if *all* event conditions are met:
         -exit with exit code 0
