@@ -831,9 +831,9 @@ sub launchIntent($){
 sub extractLaunchIntent($$$){
   my ($opts, $launchArg, $launchType) = @_;
   if(not defined $launchType){
-    if($launchArg =~ /^\w+\.(\w+\.)+\w+\/(.*)$/){
+    if($launchArg =~ /^\w+\.(\w+\.)*\w+\/(.*)$/){
       $launchType = $LAUNCH_TYPE_INTENT;
-    }elsif($launchArg =~ /^\w+\.(\w+\.)+\w+$/){
+    }elsif($launchArg =~ /^\w+\.(\w+\.)*\w+$/){
       $launchType = $LAUNCH_TYPE_PKG;
     }elsif(-f $launchArg and $launchArg =~ /\.apk[m]?$/i){
       $launchType = $LAUNCH_TYPE_APK;
