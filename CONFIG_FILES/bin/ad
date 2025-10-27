@@ -113,18 +113,20 @@ my $USAGE = "Usage:
     (see --timeout and --events)
 
   $EXEC [OPTS]
-    same as: $EXEC -x
+    same as: $EXEC --shell
 
   $EXEC [OPTS] -x|x
+  $EXEC [OPTS] --lxc|lxc
     run: sudo LXC_ATTACH_CMD
 
   $EXEC [OPTS] -x|x CMD_ARG CMD_ARG..
+  $EXEC [OPTS] --lxc|lxc CMD_ARG CMD_ARG..
     run: sudo LXC_ATTACH_CMD -- CMD_ARG CMD_ARG..
 
   $EXEC [OPTS] --shell|shell
-    same as: $EXEC -x
+    same as: $EXEC --lxc
   $EXEC [OPTS] --shell|shell CMD_ARG CMD_ARG..
-    same as: $EXEC -x sh -c '
+    same as: $EXEC --lxc sh -c '
                $SHELL_ENV_VARS_USAGE_FMT \\
                CMD_ARG CMD_ARG..'
 
@@ -361,7 +363,7 @@ sub main(@){
       $$opts{useNotify} = 1;
       $$opts{notifyMsg} = shift @_;
       $intent = shift @_;
-    }elsif(not defined $mode and $arg =~ /^(-x|x)$/){
+    }elsif(not defined $mode and $arg =~ /^(-x|x|(--)?(lxc))$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 0;
       @cmdArgs = @_;
