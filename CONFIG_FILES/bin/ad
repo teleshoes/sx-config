@@ -198,19 +198,22 @@ my $USAGE = "Usage:
     MEDIA_FILE_WITH_EXT must exist and end with extension:
       @MEDIA_EXTS
 
-  $EXEC [OPTS] -i|i|--install|install APK_FILE APK_FILE...
-    run: apkd-install-preload -i $CONTAINER_NAME APK_FILE APK_FILE...
-         apkd-install -i $CONTAINER_NAME APK_FILE APK_FILE...
+  $EXEC [OPTS] -i|i|--install|install APK_FILE_ARG APK_FILE_ARG..
+    -get list of APK_FILEs from APK_FILE_ARGs
+      -for each APK_FILE_ARG:
+        -if APK_FILE_ARG is a file, use as APK_FILE
+        -if APK_FILE_ARG is a prefix of files in $APK_DIR/
+          -add all matching files as APK_FILE
+        e.g.: '/tmp/abc.apk'  => /tmp/abc.apk
+              'coolreader-'   => $APK_DIR/coolreader-*.apk
+    run: apkd-install-preload -i $CONTAINER_NAME APK_FILE APK_FILE..
+         apkd-install -i $CONTAINER_NAME APK_FILE APK_FILE..
 
-    APK_FILE
-      an .apk file, OR a prefix of .apk files in $APK_DIR
-      e.g.: /tmp/abc.apk  => /tmp/abc.apk
-            coolreader-   => $APK_DIR/coolreader-*.apk
-
-  $EXEC [OPTS] -u|u|--uninstall|uninstall APK_FILE APK_FILE...
-    for each APK_FILE:
-      get the PACKAGE_NAME with `apk-info --package`
-      same as: $EXEC --shell 'pm uninstall PACKAGE_NAME'
+  $EXEC [OPTS] -u|u|--uninstall|uninstall APK_FILE_ARG APK_FILE_ARG..
+    -get APK_FILEs as in --install
+    -for each APK_FILE:
+      -get the PACKAGE_NAME with `apk-info --package APK_FILE`
+      -same as: $EXEC --shell 'pm uninstall PACKAGE_NAME'
 
   $EXEC [OPTS] -l|l|--launch|launch|--launch-intent|launch-intent INTENT
     -parse INTENT into: PKG_NAME/ACTIVITY
