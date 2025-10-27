@@ -349,76 +349,70 @@ sub main(@){
     }
   }
 
-  for(my $i=0; $i<@_; $i++){
-    my $arg = $_[$i];
-    my $isFirstArg = $i == 0 ? 1 : 0;
-    my $isLastArg = $i == $#_ ? 1 : 0;
-    if($isFirstArg and $arg =~ /^(-h|--help)$/){
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($isFirstArg and $arg =~ /^(?:--)?(start|stop|restart)$/ and $isLastArg){
+    }elsif(not defined $mode and $arg =~ /^(?:--)?(start|stop|restart)$/){
       $mode = $MODE_SERVICE;
       $serviceCmd = $1;
-    }elsif($isFirstArg and $arg =~ /^(?:--)?(systemctl)$/ and $i == $#_-1){
+    }elsif(not defined $mode and $arg =~ /^(?:--)?(systemctl)$/ and @_ >= 1){
       $mode = $MODE_SYSTEMCTL;
-      $serviceCmd = $_[++$i];
-    }elsif($isFirstArg and $arg =~ /^(?:--)?(init)$/){
+      $serviceCmd = shift @_;
+    }elsif(not defined $mode and $arg =~ /^(?:--)?(init)$/){
       $mode = $MODE_INIT;
-    }elsif($isFirstArg and $arg =~ /^(?:--)?(app)$/ and $i == $#_-2){
+    }elsif(not defined $mode and $arg =~ /^(?:--)?(app)$/ and @_ >= 2){
       $mode = $MODE_APP;
       $$opts{useNotify} = 1;
-      $$opts{notifyMsg} = $_[++$i];
-      $intent = $_[++$i];
-    }elsif($isFirstArg and $arg =~ /^(-x|x)$/){
+      $$opts{notifyMsg} = shift @_;
+      $intent = shift @_;
+    }elsif(not defined $mode and $arg =~ /^(-x|x)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 0;
-    }elsif($isFirstArg and $arg =~ /^(--shell|shell)$/){
+    }elsif(not defined $mode and $arg =~ /^(--shell|shell)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
-    }elsif($isFirstArg and $arg =~ /^(fuse|--fuse|remount-fuse|--remount-fuse)$/){
+    }elsif(not defined $mode and $arg =~ /^(fuse|--fuse|remount-fuse|--remount-fuse)$/){
       $mode = $MODE_SHELL;
       $$opts{shellEnvWrapper} = 1;
       @cmdArgs = ("mount -a -t fuse -o remount");
-    }elsif($isFirstArg and $arg =~ /^(res|--res)$/){
+    }elsif(not defined $mode and $arg =~ /^(res|--res)$/){
       $mode = $MODE_RES;
-    }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-2){
+    }elsif(not defined $mode and $arg =~ /^(tap|--tap)$/ and @_ >= 1
+           and $_[0] =~ /^(\d+)x(\d+)$/){
       $mode = $MODE_TAP;
-      my $tapArgX = $_[++$i];
-      my $tapArgY = $_[++$i];
-      if($tapArgX =~ /^\d+$/ and $tapArgY =~ /^\d+$/){
-        ($tapXpos, $tapYpos) = ($tapArgX, $tapArgY);
-      }else{
-        die "ERROR: invalid args to --tap: $tapArgX $tapArgY\n";
-      }
-    }elsif($isFirstArg and $arg =~ /^(tap|--tap)$/ and $i == $#_-1){
+      ($tapXpos, $tapYpos) = ($1, $2);
+      shift @_;
+    }elsif(not defined $mode and $arg =~ /^(tap|--tap)$/ and @_ >= 2
+           and $_[0] =~ /^(\d+)$/ and $_[1] =~ /^(\d+)$/){
       $mode = $MODE_TAP;
-      my $tapArg = $_[++$i];
-      if($tapArg =~ /^(\d+)x(\d+)$/){
-        ($tapXpos, $tapYpos) = ($1, $2);
-      }else{
-        die "ERROR: invalid args to --tap: $tapArg\n";
-      }
-    }elsif($isFirstArg and $arg =~ /^(orient|--orient)$/ and $i == $#_-1){
+      $tapXpos = shift @_;
+      $tapYpos = shift @_;
+    }elsif(not defined $mode and $arg =~ /^(orient|--orient)$/ and @_ >= 1){
       $mode = $MODE_ORIENT;
-      $orientArg = $_[++$i];
-    }elsif($isFirstArg and $arg =~ /^--view$/){
+      $orientArg = shift @_;
+    }elsif(not defined $mode and $arg =~ /^--view$/){
       $mode = $MODE_VIEW;
-    }elsif($isFirstArg and $arg =~ /^(-i|i|--install|install)$/){
+    }elsif(not defined $mode and $arg =~ /^(-i|i|(?:--)?(install))$/){
       $mode = $MODE_INSTALL;
-    }elsif($isFirstArg and $arg =~ /^(-u|u|--uninstall|uninstall)$/){
+    }elsif(not defined $mode and $arg =~ /^(-u|u|(?:--)?(uninstall))$/){
       $mode = $MODE_UNINSTALL;
-    }elsif($isFirstArg and $arg =~ /^(-l|l|--launch|launch|--launch-intent|launch-intent)$/){
+    }elsif(not defined $mode and $arg =~ /^(-l|l|(?:--)?(launch|launch-intent))$/){
       $mode = $MODE_LAUNCH;
-    }elsif($isFirstArg and $arg =~ /^(settings|--settings)$/ and $isLastArg){
+    }elsif(not defined $mode and $arg =~ /^(settings|--settings)$/){
       $mode = $MODE_LAUNCH;
       $intent = 'com.android.settings/.Settings';
-    }elsif($isFirstArg and $arg =~ /^(-w|w|--wait)$/){
+    }elsif(not defined $mode and $arg =~ /^(-w|w|--wait)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
       $mode = $MODE_WAIT;
-    }elsif($isFirstArg and $arg =~ /^(--check-running)$/){
+      $$opts{waitTimeoutS} = shift @_;
+    }elsif(not defined $mode and $arg =~ /^(-w|w|--wait)$/){
+      $mode = $MODE_WAIT;
+    }elsif(not defined $mode and $arg =~ /^(--check-running)$/){
       $mode = $MODE_CHECK_RUNNING;
-    }elsif($isFirstArg and $arg =~ /^(--check-sdcards?)$/){
+    }elsif(not defined $mode and $arg =~ /^(--check-sdcards?)$/){
       $mode = $MODE_CHECK_SDCARDS;
-    }elsif($isFirstArg and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
+    }elsif(not defined $mode and -f $arg and $arg =~ /\.$OK_MEDIA_EXTS$/i){
       $mode = $MODE_VIEW;
       push @mediaFiles, $arg;
     }elsif(not defined $mode and $arg =~ /^($SHELL_CMD_FAVORITES_REGEX)$/){
@@ -443,8 +437,6 @@ sub main(@){
       $intent = $arg;
     }elsif($mode eq $MODE_WAIT and $arg =~ /^--timeout=(\d+)$/){
       $$opts{waitTimeoutS} = $1;
-    }elsif($mode eq $MODE_WAIT and not defined $$opts{waitTimeoutS} and $arg =~ /^\d+$/){
-      $$opts{waitTimeoutS} = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
