@@ -71,7 +71,7 @@ my $DBUS_PATH = "/com/jolla/apkd";
 my $DBUS_CONTROL_METHOD = "com.jolla.apkd.control.controlService";
 
 my @SHELL_CMD_FAVORITES = qw(
-  am echo env find logcat ls mount pm ps sh stat test time timeout which whoami
+  am cmd echo env find logcat ls mount pm ps sh stat test time timeout which whoami
 );
 my $SHELL_CMD_FAVORITES_REGEX = join("|", @SHELL_CMD_FAVORITES);
 
