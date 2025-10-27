@@ -338,6 +338,8 @@ sub main(@){
     }elsif($arg =~ /^--notify=(.+)$/){
       $$opts{useNotify} = 1;
       $$opts{notifyMsg} = $1;
+    }elsif($arg =~ /^--timeout=(\d+)$/){
+      $$opts{waitTimeoutS} = $1;
     }elsif($arg =~ /^--events=(.+)$/){
       my $eventCsv = $1;
       @waitEvents = map {lc $_} split(/,/, $eventCsv);
@@ -422,8 +424,6 @@ sub main(@){
       $mode = $MODE_CHECK_RUNNING;
     }elsif(not defined $mode and $arg =~ /^(--check-sdcards?)$/){
       $mode = $MODE_CHECK_SDCARDS;
-    }elsif($mode eq $MODE_WAIT and $arg =~ /^--timeout=(\d+)$/){
-      $$opts{waitTimeoutS} = $1;
     }else{
       die "$USAGE\nERROR: unknown arg '$arg'\n";
     }
