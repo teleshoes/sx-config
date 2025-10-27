@@ -100,9 +100,9 @@ my $USAGE = "Usage:
     run as $USER: systemctl --user SERVICE_CMD $SYSTEMD_SERVICE
 
   $EXEC [OPTS] --init|init
-    -ensure aliendalvik is running and sdcards+home are mounted
+    -ensure aliendalvik is booted and sdcards+home are mounted
       -if not running, start it
-      -wait up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s for it to start and mount sdcards+home
+      -wait up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s for it to boot and mount sdcards+home
         (see --timeout and --events)
     -retry check+start+wait one more time, again up to ${DEFAULT_WAIT_TIMEOUT_SECONDS}s
     -if aliendalvik is running with sdcards+home mounted:
@@ -274,7 +274,7 @@ my $USAGE = "Usage:
   $EXEC [OPTS] -w|w [--timeout=TIMEOUT_SECONDS] [--events=EVENTS_CSV]
   $EXEC [OPTS] --wait|wait [--timeout=TIMEOUT_SECONDS] [--events=EVENTS_CSV]
     wait until android events occur
-    default is android started and sdcards+home mounted)
+    (default is android booted and sdcards+home mounted)
          e.g.: $EXEC --start && $EXEC --wait 30 && echo OK || echo FAIL
     -parse EVENTS_CSV into EVENTS
          EVENTS = "
@@ -283,7 +283,7 @@ my $USAGE = "Usage:
                   . "'$EVENT_ANDROID_STOP', "
                   . "'$EVENT_ANDROID_MOUNT'"
                   . "
-      -default is '$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT'
+      -default is '$EVENT_ANDROID_BOOTED,$EVENT_ANDROID_MOUNT'
     -every 1s, check if *all* event conditions are met:
       -check each event given, in order
         $EVENT_ANDROID_BOOTED  = android booted, sys.boot_completed=1
@@ -330,7 +330,7 @@ my $USAGE = "Usage:
       list of events to include when waiting for android events in --wait/--init/--app
         -each event must have its conditions met before waiting is filled
         NOTE: ignored by --restart, always uses $EVENT_ANDROID_STOP
-      default: --events=$EVENT_ANDROID_START,$EVENT_ANDROID_MOUNT
+      default: --events=$EVENT_ANDROID_BOOTED,$EVENT_ANDROID_MOUNT
         EVENTS_CSV = EVENT,EVENT,..EVENT
         EVENT      = one of "
                             . "$EVENT_ANDROID_BOOTED, "
@@ -341,7 +341,7 @@ my $USAGE = "Usage:
       e.g.: `ad stop && ad --wait --events=stop` to ensure android is not running
     --skip-mount
       skip checking sdcards+home mounted during --wait
-      same as: --events=$EVENT_ANDROID_START
+      same as: --events=$EVENT_ANDROID_BOOTED
     -n MSG
     --notify MSG
     --notify=MSG
@@ -415,7 +415,7 @@ sub main(@){
       my $eventCsv = $1;
       $$opts{waitEvents} = [map {lc $_} split(/,/, $eventCsv)];
     }elsif($arg =~ /^--skip-mount$/){
-      $$opts{waitEvents} = [$EVENT_ANDROID_START];
+      $$opts{waitEvents} = [$EVENT_ANDROID_BOOTED];
     }elsif(not defined $mode and $arg =~ /^(--)?(start)$/){
       $mode = $MODE_SERVICE;
       $serviceCmd = "start";
@@ -728,7 +728,7 @@ sub systemctlCmd($){
 sub waitForAndroidEvents($@){
   my ($opts, @events) = @_;
 
-  @events = ($EVENT_ANDROID_START, $EVENT_ANDROID_MOUNT) if @events == 0;
+  @events = ($EVENT_ANDROID_BOOTED, $EVENT_ANDROID_MOUNT) if @events == 0;
 
   my $eventRegex = join "|", (
     $EVENT_ANDROID_BOOTED,
