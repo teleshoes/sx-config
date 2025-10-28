@@ -187,8 +187,8 @@ my $USAGE = "USAGE:
     run all rsyncs
 
   $0 [OPTS] RSYNC_NAME_REGEX
-    match all RSYNC_NAME entries against RSYNC_NAME_REGEX,
-    including only those entries that match (case-insensitive) the regex
+    only include RSYNC_NAME entries that match RSYNC_NAME_REGEX (case-insensitive)
+      -RSYNC_NAME_REGEX cannot start with '-'
 
   RSYNC_NAME
     one of: @RSYNC_NAME_ORDER
@@ -210,7 +210,7 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-n|-s|--dry-run|--simulate)$/){
       $$opts{simulate} = 1;
-    }elsif(not defined $$opts{rsyncNameRegex}){
+    }elsif($arg !~ /^-/ and not defined $$opts{rsyncNameRegex}){
       $$opts{rsyncNameRegex} = $arg;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
