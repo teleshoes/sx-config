@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+
+my @DEFAULT_FILTERS = qw(
+  qcom_rpmh
+  kernel.*rpmh_
+  msm_vidc:
+  binder:
+  IPHD.*alarm.*timed
+);
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC [STR STR STR..]
+    run `journalctl -f`, removing output that matches the default filters and STR
+    i.e.: sudo journalctl -f | grep -v '"
+      . join("\\|", @DEFAULT_FILTERS, "STR", "STR", "STR")
+      . "'
+";
+
+sub main(@){
+  my @filters = (@DEFAULT_FILTERS);
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg !~ /^-/){
+      push @filters, $arg;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  my $grepPtrn = join "\\|", @filters;
+
+  print "filters: @filters\n";
+  exec "sudo journalctl -f | grep -v '$grepPtrn'";
+}
+
+&main(@ARGV);
