@@ -179,17 +179,24 @@ my $USAGE = "Usage:
       can be integer number of px, or real number followed by '%'
 
   $EXEC [OPTS] --orient|orient ORIENT_ARG
-    run:
-      $EXEC settings put system accelerometer_rotation ACCEL_VAL
-      $EXEC settings put system user_rotation USER_VAL
-    (both are run twice because sometimes 'inverted' is ignored)
+    -calculate LOCK_OR_FREE and ORIENT_DIR from ORIENT_ARG
+    -if LOCK_OR_FREE = 'free':
+      -run:
+        $EXEC timeout -k 0.01 0.2 wm set-fix-to-user-rotation enabled
+        $EXEC timeout -k 0.01 0.2 wm set-user-rotation free
+        $EXEC timeout -k 0.01 0.2 wm set-fix-to-user-rotation disabled
+    -else:
+      -run:
+        $EXEC timeout -k 0.01 0.2 wm set-fix-to-user-rotation disabled
+        $EXEC timeout -k 0.01 0.2 wm set-user-rotation lock ORIENT_DIR
+        $EXEC timeout -k 0.01 0.2 wm set-fix-to-user-rotation enabled
 
     ORIENT_ARG
-      dynamic | auto | none | d | a | n =  ACCEL_VAL=1   USER_VAL=0
-      portrait | p | 0                  =  ACCEL_VAL=0   USER_VAL=0
-      landscape | l | 1                 =  ACCEL_VAL=0   USER_VAL=1
-      portrait-inverted | pi | 2        =  ACCEL_VAL=0   USER_VAL=2
-      landscape-inverted | li | 3       =  ACCEL_VAL=0   USER_VAL=3
+      dynamic | auto | none | d | a | n =  LOCK_OR_FREE=free   ORIENT_VAL=0
+      portrait | p | 0                  =  LOCK_OR_FREE=lock   ORIENT_VAL=0
+      landscape | l | 1                 =  LOCK_OR_FREE=lock   ORIENT_VAL=1
+      portrait-inverted | pi | 2        =  LOCK_OR_FREE=lock   ORIENT_VAL=2
+      landscape-inverted | li | 3       =  LOCK_OR_FREE=lock   ORIENT_VAL=3
 
   $EXEC [OPTS] --view|view MEDIA_FILE [MEDIA_FILE MEDIA_FILE ..]
     -get TYPE with: file -b --mime-type MEDIA_FILE
@@ -595,25 +602,28 @@ sub main(@){
     print "tapping ${realX}x${realY}\n";
     lxcShell $opts, "input", "tap", $realX, $realY;
   }elsif($mode eq $MODE_ORIENT){
-    my ($accelVal, $userVal);
+    my ($lockOrFree, $orientVal);
     if($orientArg =~ /^(dynamic|auto|none|d|a|n)$/){
-      ($accelVal, $userVal) = (1, 0);
+      ($lockOrFree, $orientVal) = ("free", 0);
     }elsif($orientArg =~ /^(portrait|p|0)$/){
-      ($accelVal, $userVal) = (0, 0);
+      ($lockOrFree, $orientVal) = ("lock", 0);
     }elsif($orientArg =~ /^(landscape|l|1)$/){
-      ($accelVal, $userVal) = (0, 1);
+      ($lockOrFree, $orientVal) = ("lock", 1);
     }elsif($orientArg =~ /^(portrait-inverted|pi|2)$/){
-      ($accelVal, $userVal) = (0, 2);
+      ($lockOrFree, $orientVal) = ("lock", 2);
     }elsif($orientArg =~ /^(landscape-inverted|li|3)$/){
-      ($accelVal, $userVal) = (0, 3);
+      ($lockOrFree, $orientVal) = ("lock", 3);
     }
 
-    lxcShell $opts, ("settings", "put", "system", "accelerometer_rotation", "$accelVal");
-    lxcShell $opts, ("settings", "put", "system", "user_rotation", "$userVal");
-
-    #twice because sometimes inverted is ignored the first time
-    lxcShell $opts, ("settings", "put", "system", "accelerometer_rotation", "$accelVal");
-    lxcShell $opts, ("settings", "put", "system", "user_rotation", "$userVal");
+    if($lockOrFree eq "free"){
+      lxcShell $opts, ("timeout", "-k", "0.01", "0.2", "wm", "set-fix-to-user-rotation", "enabled");
+      lxcShell $opts, ("timeout", "-k", "0.01", "0.2", "wm", "set-user-rotation", "free");
+      lxcShell $opts, ("timeout", "-k", "0.01", "0.2", "wm", "set-fix-to-user-rotation", "disabled");
+    }else{
+      lxcShell $opts, ("timeout", "-k", "0.01", "0.2", "wm", "set-fix-to-user-rotation", "disabled");
+      lxcShell $opts, ("timeout", "-k", "0.01", "0.2", "wm", "set-user-rotation", "lock", $orientVal);
+      lxcShell $opts, ("timeout", "-k", "0.01", "0.2", "wm", "set-fix-to-user-rotation", "enabled");
+    }
   }elsif($mode eq $MODE_VIEW){
     for my $file(@mediaFiles){
       my $mimeType = `file -b --mime-type "$file"`;
