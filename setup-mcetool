@@ -29,6 +29,9 @@ my @cmds = (
   "mcetool --set-exception-length-volume=0",            #Display on at volume button
   "mcetool --set-exception-length-activity=2000",       #Display on activity extension
 
+  #this doesnt seem to work
+  #"mcetool --set-display-off-override=disabled",        #necessary to prevent display-on at charge
+
   "mcetool > /tmp/mcetool-after",
   "diff /tmp/mcetool-before /tmp/mcetool-after",
   "rm /tmp/mcetool-before /tmp/mcetool-after",
