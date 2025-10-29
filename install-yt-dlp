@@ -33,13 +33,7 @@ sub main(@){
 
   run "rsync", "-avP", $tmpFile, "root\@$host:$DEST_BIN_DIR/yt-dlp";
 
-  print "\n=====LOCAL\n";
-  run $tmpFile, "--version";
-  print "=====\n";
-
-  print "\n=====REMOTE:\n";
   run "ipmagic", $IPMAGIC_NAME, "yt-dlp", "--version";
-  print "=====\n";
 
   run "rm", "-f", $tmpFile;
 }
