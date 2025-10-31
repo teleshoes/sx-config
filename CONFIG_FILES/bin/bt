@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub setControllerMode($);
 sub fix();
 sub setPowered($);
 sub getPowered();
@@ -100,17 +101,22 @@ sub main(@){
     if(not defined $targetControllerMode){
       die "$USAGE\nERROR: missing CONTROLLER_MODE\n";
     }
-    my $old = `grep ControllerMode $BT_CONF_FILE`;
-    my $conf = readFile $BT_CONF_FILE;
-    if($conf !~ s/^\s*#?\s*ControllerMode\s*=.+$/ControllerMode = $targetControllerMode/m){
-      die "ERROR: could not find ControllerMode in $BT_CONF_FILE\n";
-    }
-    writeFile $BT_CONF_FILE, $conf;
-    my $new = `grep ControllerMode $BT_CONF_FILE`;
-    print "$old=>\n$new";
+    setControllerMode($targetControllerMode);
   }else{
     die "ERROR: unknown command $cmd\n";
   }
+}
+
+sub setControllerMode($){
+  my ($targetControllerMode) = @_;
+  my $old = `grep ControllerMode $BT_CONF_FILE`;
+  my $conf = readFile $BT_CONF_FILE;
+  if($conf !~ s/^\s*#?\s*ControllerMode\s*=.+$/ControllerMode = $targetControllerMode/m){
+    die "ERROR: could not find ControllerMode in $BT_CONF_FILE\n";
+  }
+  writeFile $BT_CONF_FILE, $conf;
+  my $new = `grep ControllerMode $BT_CONF_FILE`;
+  print "$old=>\n$new";
 }
 
 sub fix(){
