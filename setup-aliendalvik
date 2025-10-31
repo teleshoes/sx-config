@@ -160,7 +160,7 @@ sub main(@){
     }
   }
   $permCmd .= " && echo %SUCCESS% || echo %FAILURE%";
-  my $result = `ipmagic $IPMAGIC_NAME "ad '$permCmd'"`;
+  my $result = `ipmagic $IPMAGIC_NAME "ad shell '$permCmd'"`;
   print $result;
   if($result !~ /^start.*%SUCCESS%$/s){
     die "ERROR: could not set perms\n$permCmd\n";
