@@ -194,3 +194,6 @@ pubkeys
 #     -run: bt car
 # -mms size => large (mms-msg-size isnt working, missing /imsi conf dir)
 # -open maps
+# -open opencamera
+#   -select storage access framework, select sd2:DCIM/OpenCamera
+#   -select camera2api
