@@ -49,9 +49,9 @@
 
 ./set-host
 
-./set-resolv #necessary for some inexplicable reason sometimes
-
-./setup-dns #dnsmasq is probably the culprit, so disable it forever
+#havent been necessary recently
+#./set-resolv #necessary for some inexplicable reason sometimes
+#./setup-dns #dnsmasq is probably the culprit, so disable it forever
 
 ./install-packages removals #for GNU bash immediately
 ./install-packages removals #twice, sometimes fails instead of suggesting gnu
