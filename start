@@ -188,6 +188,7 @@ pubkeys
 #     -log into Google Account
 #     -enable device-registration (digits definitely runs checkin)
 #     -enable cloud-messaging (digits definitely uses GCM)
+#   -it works when installed from aurora store
 # -bluetooth
 #   -for car:
 #     -run: bt car
