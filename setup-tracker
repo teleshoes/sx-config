@@ -11,8 +11,15 @@ my $IPMAGIC_NAME = "sx";
 my $EXEC_TRACKER_MINER_FS = "/usr/libexec/tracker-miner-fs";
 my $EXEC_TRACKER_MINER_FS_DISABLED = "/usr/libexec/tracker-miner-fs-disabled";
 
+my @TRACKER_INDEX_DIRS = qw(
+);
+
 sub main(@){
   print "NOT disabling tracker-miner-fs, isolating sdcards fixes main cpu problem\n";
+
+  for my $dir(@TRACKER_INDEX_DIRS){
+    run "ipmagic", "sx", "-s", "tracker3", "index", "--add", $dir;
+  }
 }
 
 sub disableTrackerMiner(){
