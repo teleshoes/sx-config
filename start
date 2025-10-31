@@ -187,6 +187,4 @@ pubkeys
 #     -enable cloud-messaging (digits definitely uses GCM)
 # -bluetooth
 #   -for car:
-#     -run: bt off && bt mode bredr && bt on
-#     -pair car in ui, allow connections, name=CAR, type=Toy
-#     -run: bt off && bt mode dual && bt on
+#     -run: bt car
