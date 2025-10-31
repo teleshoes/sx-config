@@ -164,6 +164,7 @@ ipmagic sx okboard-toggle --init-default
 #commands and alarms
 ipmagic sx timed-cmd --apply-config
 
+#open K2C once, wait until title screen
 ./sync-games --restore
 
 ./restore-klomp-lists
