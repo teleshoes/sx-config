@@ -2,12 +2,18 @@
 use strict;
 use warnings;
 
+sub disableTrackerMiner();
+
 my $IPMAGIC_NAME = "sx";
 
 my $EXEC_TRACKER_MINER_FS = "/usr/libexec/tracker-miner-fs";
 my $EXEC_TRACKER_MINER_FS_DISABLED = "/usr/libexec/tracker-miner-fs-disabled";
 
 sub main(@){
+  disableTrackerMiner();
+}
+
+sub disableTrackerMiner(){
   system "ipmagic", $IPMAGIC_NAME, "-u", "root", ""
     . "if [ -e $EXEC_TRACKER_MINER_FS ]; then"
     . "  echo moving $EXEC_TRACKER_MINER_FS to $EXEC_TRACKER_MINER_FS_DISABLED;"
