@@ -117,6 +117,8 @@ my %packages = (
     harbour-advanced-camera
     harbour-pure-maps
 
+    stellarium
+
     waydroid
     waydroid-runner
   )],
