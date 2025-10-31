@@ -17,6 +17,8 @@ my $BT_CONF_FILE = "/etc/bluetooth/main.conf";
 my @CONTROLLER_MODES = qw(dual bredr le);
 my $OK_CONTROLLER_MODES = join "|", @CONTROLLER_MODES;
 
+my $CAR_MSG_FMT = "pair car in ui, allow connections, name=CAR, type=Toy and press enter";
+
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
@@ -43,6 +45,12 @@ my $USAGE = "Usage:
     edit $BT_CONF_FILE, setting ControllerMode = CONTROLLER_MODE
     CONTROLLER_MODE
       one of: @CONTROLLER_MODES
+
+  $EXEC car | --car
+    -run: $EXEC off && $EXEC mode bredr && $EXEC on
+    -wait for input after successfully pairing and allowing connections
+      -$CAR_MSG_FMT
+    -run: $EXEC off && $EXEC mode dual && $EXEC on
 ";
 
 my $CMD_GET = "get";
@@ -50,6 +58,7 @@ my $CMD_ON = "on";
 my $CMD_OFF = "off";
 my $CMD_TOGGLE = "toggle";
 my $CMD_MODE = "mode";
+my $CMD_CAR = "car";
 
 sub main(@){
   my $cmd = $CMD_GET;
@@ -72,6 +81,8 @@ sub main(@){
       $targetControllerMode = $2;
     }elsif($arg =~ /^(--set-mode|--set-controller-mode|mode)$/){
       $cmd = $CMD_MODE;
+    }elsif($arg =~ /^(car|--car)$/){
+      $cmd = $CMD_CAR;
     }elsif($arg =~ /^($OK_CONTROLLER_MODES)$/ and $cmd eq $CMD_MODE){
       $targetControllerMode = $1;
     }else{
@@ -102,6 +113,17 @@ sub main(@){
       die "$USAGE\nERROR: missing CONTROLLER_MODE\n";
     }
     setControllerMode($targetControllerMode);
+  }elsif($cmd eq $CMD_CAR){
+    setPowered(0);
+    setControllerMode("bredr");
+    setPowered(1);
+    print "\n";
+    print "$CAR_MSG_FMT\n";
+    <STDIN>;
+    print "\n";
+    setPowered(0);
+    setControllerMode("dual");
+    setPowered(1);
   }else{
     die "ERROR: unknown command $cmd\n";
   }
