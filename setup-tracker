@@ -10,7 +10,7 @@ my $EXEC_TRACKER_MINER_FS = "/usr/libexec/tracker-miner-fs";
 my $EXEC_TRACKER_MINER_FS_DISABLED = "/usr/libexec/tracker-miner-fs-disabled";
 
 sub main(@){
-  disableTrackerMiner();
+  print "NOT disabling tracker-miner-fs, isolating sdcards fixes main cpu problem\n";
 }
 
 sub disableTrackerMiner(){
