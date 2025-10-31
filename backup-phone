@@ -57,6 +57,7 @@ sub main(@){
   backup "backup-home";
   backup "backup-notes";
   backup "backup-klomp-lists";
+  backup "sync-games --backup";
   backup "cleanup-backups" unless $$opts{quick};
   backup "backup-tmobile-digits";
   backup "sync-home-config" unless $$opts{quick};
