@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub fix();
+sub setPowered($);
 sub getPowered();
 sub readFile($);
 sub writeFile($$);
