@@ -193,3 +193,4 @@ pubkeys
 #   -for car:
 #     -run: bt car
 # -mms size => large (mms-msg-size isnt working, missing /imsi conf dir)
+# -open maps
