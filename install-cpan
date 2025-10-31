@@ -51,7 +51,7 @@ sub main(@){
   setupCpanConfig();
 
   run "ipmagic", $ipmagicName, "-u", $USER,
-    "perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
+    "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
 
   setupCpanConfig();
 
@@ -65,7 +65,7 @@ sub main(@){
     my $cpanInstallArgStr = join ", ", map {"'$_'"} @cpanInstallArgs;
 
     run "ipmagic", $ipmagicName, "-u", $USER,
-      "perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
+      "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
   }
 
   #build encodings after install
