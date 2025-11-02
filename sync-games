@@ -11,6 +11,7 @@ my $DIR_BACKUP = "$DIR_BASE/backup";
 
 my $IPMAGIC_NAME = "sx";
 my $IPMAGIC_USER = "nemo";
+my $IPMAGIC_ROOT_USER = "root";
 
 my $DIR_NESOID_LAST_BACKUP = "$DIR_BACKUP/games/nesoid-saves/last-backup";
 my $DIR_NESOID_BY_MTIME = "$DIR_BACKUP/games/nesoid-saves/saves-by-mtime";
@@ -79,7 +80,7 @@ sub main(@){
 
     backupSnes9xExSaves();
 
-    if(ipmagicTest $IPMAGIC_NAME, "root", "-d", $DIR_KINGDOM_REMOTE_SAVE){
+    if(ipmagicTest $IPMAGIC_NAME, $IPMAGIC_ROOT_USER, "-d", $DIR_KINGDOM_REMOTE_SAVE){
       fetchKingdomSave();
       cacheKingdomSave();
     }else{
@@ -92,7 +93,7 @@ sub main(@){
     setupSnes9xEx();
     restoreSnes9xExSaves();
 
-    if(ipmagicTest $IPMAGIC_NAME, "root", "-d", $DIR_KINGDOM_REMOTE_ANDROID_FILES){
+    if(ipmagicTest $IPMAGIC_NAME, $IPMAGIC_ROOT_USER, "-d", $DIR_KINGDOM_REMOTE_ANDROID_FILES){
       overwriteRemoteKingdomSave();
     }else{
       print "skipping kingdom restore (must run android app once first)\n";
@@ -171,7 +172,7 @@ sub restoreSnes9xExSaves(){
 }
 
 sub fetchKingdomSave(){
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_ROOT_USER, "--rsync",
     "-avP",
     "--del",
     ":$DIR_KINGDOM_REMOTE_SAVE/",
@@ -186,7 +187,7 @@ sub cacheKingdomSave(){
   ;
 }
 sub overwriteRemoteKingdomSave(){
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_ROOT_USER, "--rsync",
     "-avP",
     "--del",
     "$DIR_KINGDOM_LATEST_BACKUP/",
@@ -194,7 +195,7 @@ sub overwriteRemoteKingdomSave(){
   ;
 
   #chown the save dir to the parent's owner+group
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "-s",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_ROOT_USER, "-s",
     "chown",
     "-R",
     "$DIR_KINGDOM_REMOTE_SAVE/",
@@ -203,7 +204,7 @@ sub overwriteRemoteKingdomSave(){
 }
 
 sub setupNesoid(){
-  run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_NESOID_DATA";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "mkdir -p $DIR_DEST_NESOID_DATA";
   run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
@@ -215,7 +216,7 @@ sub setupNesoid(){
 }
 
 sub setupSnes9xEx(){
-  run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_SNES9XEX_DATA";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "mkdir -p $DIR_DEST_SNES9XEX_DATA";
   run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
