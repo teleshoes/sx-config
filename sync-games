@@ -101,15 +101,13 @@ sub main(@){
 }
 
 sub backupNesoidSaves(){
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
   run "mkdir", "-p", $DIR_NESOID_LAST_BACKUP, $DIR_NESOID_BY_MTIME;
 
-  run "rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
-    "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/", "$DIR_NESOID_LAST_BACKUP/",
+    ":$DIR_DEST_NESOID_DATA/",
+    "$DIR_NESOID_LAST_BACKUP/",
     "--exclude=*.nes";
 
   for my $file(glob "$DIR_NESOID_LAST_BACKUP/*"){
@@ -129,15 +127,13 @@ sub backupNesoidSaves(){
 }
 
 sub backupSnes9xExSaves(){
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
   run "mkdir", "-p", $DIR_SNES9XEX_LAST_BACKUP, $DIR_SNES9XEX_BY_MTIME;
 
-  run "rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
-    "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/", "$DIR_SNES9XEX_LAST_BACKUP/",
+    ":$DIR_DEST_SNES9XEX_DATA/",
+    "$DIR_SNES9XEX_LAST_BACKUP/",
     "--exclude=*.smc";
 
   for my $file(glob "$DIR_SNES9XEX_LAST_BACKUP/*"){
@@ -157,26 +153,20 @@ sub backupSnes9xExSaves(){
 }
 
 sub restoreNesoidSaves(){
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
-  run "rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
     "$DIR_NESOID_LAST_BACKUP/",
-    "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/",
+    ":$DIR_DEST_NESOID_DATA/",
     "--exclude=*.nes";
 }
 
 sub restoreSnes9xExSaves(){
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
-  run "rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
     "$DIR_SNES9XEX_LAST_BACKUP/",
-    "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/",
+    ":$DIR_DEST_SNES9XEX_DATA/",
     "--exclude=*.smc";
 }
 
@@ -213,31 +203,25 @@ sub overwriteRemoteKingdomSave(){
 }
 
 sub setupNesoid(){
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
   run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_NESOID_DATA";
-  run "rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
     "--copy-links",
     "$DIR_SRC_NES_FAV_ROMS/",
-    "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/",
+    ":$DIR_DEST_NESOID_DATA/",
     "--exclude=*.ss*",
   ;
 }
 
 sub setupSnes9xEx(){
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
-
   run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_SNES9XEX_DATA";
-  run "rsync",
+  run "ipmagic", $IPMAGIC_NAME, "-u", $IPMAGIC_USER, "--rsync",
     "-avP",
     "--del",
     "--copy-links",
     "$DIR_SRC_SNES_FAV_ROMS/",
-    "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/",
+    ":$DIR_DEST_SNES9XEX_DATA/",
     "--exclude=*.s96",
   ;
 }
