@@ -18,11 +18,10 @@ my $DIR_NESOID_BY_MTIME = "$DIR_BACKUP/games/nesoid-saves/saves-by-mtime";
 my $DIR_SNES9XEX_LAST_BACKUP = "$DIR_BACKUP/games/snes9xex-saves/last-backup";
 my $DIR_SNES9XEX_BY_MTIME = "$DIR_BACKUP/games/snes9xex-saves/saves-by-mtime";
 
-my $DIR_SRC_NES_ROMS = "$ENV{HOME}/Games/nes";
+my $DIR_SRC_NES_FAV_ROMS = "$ENV{HOME}/Games/nes/fav_roms";
 my $DIR_DEST_NESOID_DATA = "/media/sdcard/phone/Games/nesoid";
 
-my $DIR_SRC_SNES_ROMS = "$ENV{HOME}/Games/snes/roms/main";
-my $DIR_SRC_SNES_ROMS_ALT = "$ENV{HOME}/Games/snes/roms/collections/extra_roms";
+my $DIR_SRC_SNES_FAV_ROMS = "$ENV{HOME}/Games/snes/fav_roms";
 my $DIR_DEST_SNES9XEX_DATA = "/media/sdcard/phone/Games/snes9xex";
 
 my $DIR_KINGDOM_LATEST_BACKUP = "$DIR_BACKUP/games/kingdom-save";
@@ -38,8 +37,6 @@ sub cacheKingdomSave();
 sub overwriteRemoteKingdomSave();
 sub setupNesoid();
 sub setupSnes9xEx();
-sub getNesRoms();
-sub getSnesRoms();
 
 sub checksumMatches($$);
 sub sha1sum($);
@@ -219,169 +216,30 @@ sub setupNesoid(){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
-  my $tmpDir = "/tmp/nes-roms-" . nowMillis();
-  run "mkdir", "-p", $tmpDir;
-
-  my %nesRoms = %{getNesRoms()};
-  for my $romName(sort keys %nesRoms){
-    my $romFileName = $nesRoms{$romName};
-    run "cp -ar \"$DIR_SRC_NES_ROMS/$romFileName\" \"$tmpDir/$romName.nes\"";
-  }
-
   run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_NESOID_DATA";
-  run "rsync", "-avP", "--del",
-    "$tmpDir/",
+  run "rsync",
+    "-avP",
+    "--del",
+    "--copy-links",
+    "$DIR_SRC_NES_FAV_ROMS/",
     "$IPMAGIC_USER\@$host:$DIR_DEST_NESOID_DATA/",
     "--exclude=*.ss*",
-    ;
-
-  run "rm", "-rf", "$tmpDir/";
+  ;
 }
 
 sub setupSnes9xEx(){
   my $host = `ipmagic $IPMAGIC_NAME`;
   chomp $host;
 
-  my $tmpDir = "/tmp/snes-roms-" . nowMillis();
-  run "mkdir", "-p", $tmpDir;
-
-  my %snesRoms = %{getSnesRoms()};
-  for my $romName(sort keys %snesRoms){
-    my $romFileName = $snesRoms{$romName};
-    if(-e "$DIR_SRC_SNES_ROMS/$romFileName"){
-      run "cp -ar \"$DIR_SRC_SNES_ROMS/$romFileName\" \"$tmpDir/$romName.smc\"";
-    }elsif(-e "$DIR_SRC_SNES_ROMS_ALT/$romFileName"){
-      run "cp -ar \"$DIR_SRC_SNES_ROMS_ALT/$romFileName\" \"$tmpDir/$romName.smc\"";
-    }else{
-      die "ERROR: missing rom $DIR_SRC_SNES_ROMS/$romFileName\n";
-    }
-  }
-
   run "ipmagic", $IPMAGIC_NAME, "mkdir -p $DIR_DEST_SNES9XEX_DATA";
-  run "rsync", "-avP", "--del",
-    "$tmpDir/",
+  run "rsync",
+    "-avP",
+    "--del",
+    "--copy-links",
+    "$DIR_SRC_SNES_FAV_ROMS/",
     "$IPMAGIC_USER\@$host:$DIR_DEST_SNES9XEX_DATA/",
     "--exclude=*.s96",
-    ;
-
-  run "rm", "-rf", "$tmpDir/";
-}
-
-sub getNesRoms(){
-  return {
-    back_to_the_future                             => "Back to the Future (U).nes",
-    back_to_the_future_2_and_3                     => "Back to the Future II & III (U).nes",
-    base_wars                                      => "Base Wars (U).nes",
-    battletoads                                    => "Battletoads (U).nes",
-    blades_of_steel                                => "Blades of Steel (U).nes",
-    blaster_master                                 => "Blaster Master (U).nes",
-    bonks_adventure                                => "Bonk's Adventure (U).nes",
-    castlevania                                    => "Castlevania (U) (PRG1).nes",
-    castlevania2_simons_quest                      => "Castlevania II - Simon's Quest (U).nes",
-    clash_at_demonhead                             => "Clash at Demonhead (U).nes",
-    cobra_triangle                                 => "Cobra Triangle (U).nes",
-    contra                                         => "Contra (U) [!].nes",
-    double_dragon                                  => "Double Dragon (U).nes",
-    dr_mario                                       => "Dr. Mario (JU).nes",
-    dragon_spirit_the_new_legend                   => "Dragon Spirit - The New Legend (U).nes",
-    dragons_lair                                   => "Dragon's Lair (U).nes",
-    duck_hunt                                      => "Duck Hunt (JUE) [!].nes",
-    duck_tales                                     => "Duck Tales (U).nes",
-    final_fantasy                                  => "Final Fantasy (U) [!].nes",
-    gauntlet2                                      => "Gauntlet II (U).nes",
-    ghostbusters                                   => "Ghostbusters (U).nes",
-    ghostbusters_2                                 => "Ghostbusters 2 (U).nes",
-    golgo_13_top_secret_episode                    => "Golgo 13 - Top Secret Episode (U).nes",
-    jackal                                         => "Jackal (U).nes",
-    karate_kid                                     => "Karate Kid, The (U).nes",
-    legend_of_zelda                                => "Legend of Zelda, The (U) (PRG0).nes",
-    lion_king                                      => "Lion King, The (Unl).nes",
-    mad_max                                        => "Mad Max (U) [!].nes",
-    mario_bros                                     => "Mario Bros. (JU) [!].nes",
-    mega_man                                       => "Mega Man (U).nes",
-    mega_man_2                                     => "Mega Man 2 (U).nes",
-    mega_man_3                                     => "Mega Man 3 (U) [!].nes",
-    mega_man_4                                     => "Mega Man 4 (U).nes",
-    mega_man_5                                     => "Mega Man 5 (U).nes",
-    mega_man_6                                     => "Mega Man 6 (U).nes",
-    metal_gear                                     => "Metal Gear (U).nes",
-    metroid                                        => "Metroid (U) [!].nes",
-    ninja_gaiden                                   => "Ninja Gaiden (U) [!].nes",
-    ninja_gaiden_2_the_dark_sword_of_chaos         => "Ninja Gaiden 2 - The Dark Sword of Chaos (U).nes",
-    ninja_gaiden_3_the_ancient_ship_of_doom        => "Ninja Gaiden 3 - The Ancient Ship of Doom (U) [!].nes",
-    pac_man                                        => "Pac-Man (U) (Namco).nes",
-    pinball                                        => "Pinball (JU).nes",
-    punch_out                                      => "Punch-Out!! (U).nes",
-    simpsons_bart_vs_the_space_mutants             => "Simpsons, The - Bart Vs. the Space Mutants (U).nes",
-    simpsons_bart_vs_the_world                     => "Simpsons, The - Bart Vs. the World (U).nes",
-    simpsons_bartman_meets_radioactive_man         => "Simpsons, The - Bartman Meets Radioactive Man (U).nes",
-    skate_or_die                                   => "Skate or Die! (U).nes",
-    solstice                                       => "Solstice (U).nes",
-    startropics                                    => "Startropics (U).nes",
-    startropics_2_zodas_revenge                    => "Startropics 2 - Zoda's Revenge (U).nes",
-    super_glove_ball                               => "Super Glove Ball (U).nes",
-    super_mario_bros                               => "Super Mario Bros. (JU) (PRG1).nes",
-    super_mario_bros_2                             => "Super Mario Bros. 2 (U) (PRG0) [!].nes",
-    super_mario_bros_3                             => "Super Mario Bros. 3 (U) (PRG0) [!].nes",
-    super_mario_bros_altlevels                     => "Super Mario Bros. (JU) (Alt Levels) [p2][!].nes",
-    super_mario_bros_and_duck_hunt                 => "Super Mario Bros. + Duck Hunt (U).nes",
-    tetris                                         => "Tetris (Unl).nes",
-    tiger_heli                                     => "Tiger-Heli (U).nes",
-    tiny_toon_adventures                           => "Tiny Toon Adventures (U).nes",
-    to_the_earth                                   => "To The Earth (U).nes",
-    top_gun                                        => "Top Gun (U) (PRG0).nes",
-    wizardry_proving_grounds_of_the_mad_overlord   => "Wizardry - Proving Grounds of the Mad Overlord (U).nes",
-    wurm                                           => "Wurm (U).nes",
-    zelda2_the_adventure_of_link                   => "Zelda II - The Adventure of Link (U).nes",
-  };
-}
-
-sub getSnesRoms(){
-  return {
-    aaahh_real_monsters                              => "AAAHH!!! Real Monsters (U) [!].smc",
-    aero_the_acro_bat                                => "Aero the Acro-Bat (U) [!].smc",
-    aladdin                                          => "Aladdin (U) [!].smc",
-    doom                                             => "Doom (U) [!].smc",
-    dragons_lair                                     => "Dragon's Lair (U) [!].smc",
-    final_fantasy_4_10th_anniversary_edition         => "Final Fantasy 4 - 10th Anniversary Edition (ENG) # SNES.smc",
-    final_fantasy_6                                  => "Final Fantasy 6 (ENG) # SNES.smc",
-    final_fantasy_3                                  => "Final Fantasy III (U) (V1.1) [!].smc",
-    final_fantasy_2                                  => "Final Fantasy II (U) (V1.1).smc",
-    gradius_3                                        => "Gradius III (U) [!].smc",
-    jrr_tolkiens_the_lord_of_the_rings_volume_1      => "JRR Tolkien's The Lord of the Rings - Volume 1 (U) [!].smc",
-    legend_of_zelda_the_a_link_to_the_past           => "Legend of Zelda, The - A Link to the Past (U) [!].smc",
-    lion_king_the                                    => "Lion King, The (U).smc",
-    mario_paint                                      => "Mario Paint (JU) [!].smc",
-    mega_man_7                                       => "Mega Man VII (U).smc",
-    mega_man_x_2                                     => "Mega Man X 2 (U) [!].smc",
-    mega_man_x_3                                     => "Mega Man X 3 (U) [!].smc",
-    mega_man_x                                       => "Mega Man X (U) (V1.1) [!].smc",
-    mortal_kombat_3                                  => "Mortal Kombat 3 (U) [!].smc",
-    mortal_kombat_2                                  => "Mortal Kombat II (U) (V1.1).smc",
-    mortal_kombat                                    => "Mortal Kombat (U) [!].smc",
-    ninja_gaiden_trilogy                             => "Ninja Gaiden Trilogy (U) [!].smc",
-    prince_of_persia_2_the_shadow_and_the_flame      => "Prince of Persia 2 - The Shadow & The Flame (U).smc",
-    prince_of_persia                                 => "Prince of Persia (U).smc",
-    sailor_moon                                      => "Sailor-Moon (ENG) # SNES.smc",
-    sonic_the_hedgehog                               => "Sonic the Hedgehog (Unl).smc",
-    super_mario_all_stars                            => "Super Mario All-Stars (U) [!].smc",
-    super_mario_kart                                 => "Super Mario Kart (U) [!].smc",
-    super_mario_rpg_legend_of_the_seven_stars        => "Super Mario RPG - Legend of the Seven Stars (U) [!].smc",
-    super_mario_world_2_yoshis_island                => "Super Mario World 2 - Yoshi's Island (U) (M3) (V1.1).smc",
-    super_mario_world                                => "Super Mario World (U) [!].smc",
-    super_metroid                                    => "Super Metroid (JU) [!].smc",
-    super_star_wars_return_of_the_jedi               => "Super Star Wars - Return of the Jedi (U) (V1.1) [!].smc",
-    super_star_wars_the_empire_strikes_back          => "Super Star Wars - The Empire Strikes Back (U) (V1.1) [!].smc",
-    super_star_wars                                  => "Super Star Wars (U) (V1.1) [!].smc",
-    super_street_fighter_2_the_new_challengers       => "Super Street Fighter II - The New Challengers (U).smc",
-    tetris_2                                         => "Tetris 2 (U) (V1.1) [!].smc",
-    tetris_attack                                    => "Tetris Attack (U) [!].smc",
-    tetris_and_dr_mario                              => "Tetris & Dr. Mario (U) [!].smc",
-    toy_story                                        => "Toy Story (U) [!].smc",
-    warios_woods                                     => "Wario's Woods (U) [!].smc",
-    wizardry_v_heart_of_the_maelstrom                => "Wizardry V - Heart of the Maelstrom (U) [!].smc",
-    zombies_ate_my_neighbors                         => "Zombies Ate My Neighbors (U) [!].smc",
-  };
+  ;
 }
 
 sub checksumMatches($$){
