@@ -61,7 +61,7 @@ sub main(@){
 
   ###
 
-  if(not ipmagicTest $IPMAGIC_NAME, "root", "-d", $BACKUP_DIGITS_ATT_FILES_REPO_DIR){
+  if(not ipmagicTest $IPMAGIC_NAME, "root", "-d", $REMOTE_DIGITS_ATT_FILES_DIR){
     print STDERR "\n\n\n!!!!! SKIPPING T-MOBILE DIGITS ATTS BACKUP\n\n\n";
     print "WARNING: $REMOTE_DIGITS_DB_FILE does not exist\n";
     exit 0;
