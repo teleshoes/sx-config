@@ -18,7 +18,6 @@ my $USAGE = "Usage:
     -q | --quick | quick
       skip maintenance backups and run backups only
         -skip backup-comm apply and cleanup (still include fetch)
-        -skip cleanup-connman
         -skip check-missing in dcim-backup
         -skip sync-pixmirror
         -skip cleanup-backups
@@ -47,7 +46,6 @@ sub main(@){
 
   backup "backup-comm", "--cleanup-only" unless $$opts{quick};
   backup "backup-comm", "--fetch-only";
-  backup "cleanup-connman" unless $$opts{quick};
   backup "dcim-backup", ($$opts{quick} ? ("--quick") : ());
   backup "sync-pixmirror" unless $$opts{quick};
   #backup "sync-android-apps --backup"; WAYDROID
