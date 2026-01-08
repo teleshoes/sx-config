@@ -352,10 +352,12 @@ sub checkMissing($$){
       }
     }
 
+    my $emptyMsg = $size == 0 ? " (remote file is empty)" : "";
+
     if(@infos == 0){
-      $$fileErrors{$file} = "no local file matching key $key found";
+      $$fileErrors{$file} = "no local file matching key $key found$emptyMsg";
     }elsif(not $infoFound){
-      $$fileErrors{$file} = "mismatched mtime/size for key $key";
+      $$fileErrors{$file} = "mismatched mtime/size for key $key$emptyMsg";
     }
   }
 
