@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+use Time::HiRes qw(time);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $EXEC = basename $0;
+
+my $PYTHON_RELEASE = "python-full-3.13.9-linux-aarch64";
+my $PORTABLE_PYTHON_URL = "https://github.com/bjia56/portable-python/releases/download/cpython-v3.13.9-build.0/$PYTHON_RELEASE.zip";
+my $VENV_NAME = "pylitterbot-venv";
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+    -install cpython 3.13
+      from:
+        $PORTABLE_PYTHON_URL
+      to:
+        /opt/$PYTHON_RELEASE
+    -create venv using /opt/$PYTHON_RELEASE/bin/python
+      /opt/$VENV_NAME
+    -install pylitterbot and tzdata with venv pip
+";
+
+sub nowMillis();
+
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  system "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+    set -x
+    rm -rf /opt/$PYTHON_RELEASE /opt/$VENV_NAME /tmp/$PYTHON_RELEASE.zip
+    wget '$PORTABLE_PYTHON_URL' -O /tmp/$PYTHON_RELEASE.zip
+    unzip /tmp/$PYTHON_RELEASE.zip -d /opt
+    rm /tmp/$PYTHON_RELEASE.zip
+    /opt/$PYTHON_RELEASE/bin/python -m venv /opt/$VENV_NAME
+    /opt/$VENV_NAME/bin/pip install pylitterbot
+    /opt/$VENV_NAME/bin/pip install tzdata
+  ";
+}
+
+&main(@ARGV);
