@@ -127,6 +127,8 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 
 ./install-yt-dlp
 
+./install-pylitterbot
+
 ./config-files #to overwrite files from installs (e.g.: launchers)
 
 ./setup-meecast
