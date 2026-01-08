@@ -52,6 +52,7 @@ my %packages = (
     autoconf automake pkgconfig
     make cmake gcc gcc-c++
     pcre-devel sqlite sqlite-devel
+    python3-devel
     python3-pip
     cairo-devel pango-devel
   )],
