@@ -64,6 +64,7 @@ my @HOME_BIN_EXCLUDES = qw(
   bat
   brightness
   chromium
+  feh
   touchClick
 );
 
