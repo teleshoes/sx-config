@@ -11,6 +11,7 @@ sub stopDbus();
 sub restartDbus($);
 sub sendDbusStartStop($);
 sub systemctlCmd($);
+sub systemctlUser($$);
 sub waitForAndroidEvents($@);
 sub isAliendalvikRunning($);
 sub isAndroidBooted($);
@@ -726,10 +727,15 @@ sub sendDbusStartStop($){
 
 sub systemctlCmd($){
   my ($serviceCmd) = @_;
+  systemctlUser($serviceCmd, $SYSTEMD_SERVICE);
+}
+
+sub systemctlUser($$){
+  my ($service, $serviceCmd) = @_;
   if($ENV{USER} eq $USER){
-    system "$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE";
+    system "$DBUS_ENV systemctl --user $serviceCmd $service";
   }elsif($ENV{USER} eq "root"){
-    system "runuser -l $USER -c '$DBUS_ENV systemctl --user $serviceCmd $SYSTEMD_SERVICE'";
+    system "runuser -l $USER -c '$DBUS_ENV systemctl --user $serviceCmd $service'";
   }else{
     die "ERROR: user '$ENV{USER}' must be $USER or root\n";
   }
