@@ -55,6 +55,7 @@ my @LXC_PATHS = qw(
 );
 
 my $SYSTEMD_SERVICE = "appsupport";
+my $APKD_BRIDGE_SERVICE = "apkd-bridge";
 
 my $DEFAULT_WAIT_TIMEOUT_SECONDS = 60;
 
@@ -94,6 +95,7 @@ my $USAGE = "Usage:
     -wait for android to be stopped as in:
       $EXEC --wait --events=$EVENT_ANDROID_STOP
       (see --timeout and --events)
+    -restart $APKD_BRIDGE_SERVICE service
     -sleep 3s
     -start android as in: $EXEC --stop
 
@@ -704,6 +706,7 @@ sub restartDbus($){
   sendDbusStartStop(0);
   my @waitEvents = ($EVENT_ANDROID_STOP);
   waitForAndroidEvents($opts, @waitEvents);
+  systemctlUser($APKD_BRIDGE_SERVICE, "restart");
   sleep 3;
   sendDbusStartStop(1);
 }
