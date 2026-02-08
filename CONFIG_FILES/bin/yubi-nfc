@@ -27,6 +27,9 @@ sub main(@){
 
   print STDERR "key: $key\n";
 
+  print "copying to clipboard\n";
+  system "clipboard", $key;
+
   print "$key\n";
 }
 
