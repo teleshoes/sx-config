@@ -29,10 +29,15 @@ sub main(@){
 
   print STDERR "key: $key\n";
 
-  print "copying to clipboard\n";
-  system "clipboard", $key;
-
   print "$key\n";
+
+  print "copy to clipboard (dismiss dialog first) [Y/n] ";
+  my $response = <STDIN>;
+  print "\n";
+
+  if($response !~ /n/i){
+    system "qclipboard-set", $key;
+  }
 }
 
 #2021-01-18 21:08:57 [nfc-core] URI Record: https://my.yubico.com/neo/vvfrdlirctnrditnblkncnbjbilukhijdflnrnvefbgt
