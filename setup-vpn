@@ -3,12 +3,12 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
-my $SRC_OPENVPN_DIR = "$ENV{HOME}/openvpn";
-my $DEST_OPENVPN_DIR = "/root/openvpn";
-
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 my $ROOT = "root";
+
+my $SRC_OPENVPN_DIR = "$ENV{HOME}/openvpn";
+my $DEST_OPENVPN_DIR = "/home/$USER/openvpn";
 
 my $DELAY_MILLIS = 10000;
 
@@ -22,6 +22,12 @@ sub main(@){
   run "rsync", "-avP", "--del", "--no-owner", "--no-group",
     "--exclude=status", "--exclude=*.log",
     "$SRC_OPENVPN_DIR/", "$ROOT\@$host:$DEST_OPENVPN_DIR/";
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT, "echo setup symlink"
+    . " && rm -f /root/openvpn"
+    . " && rm -rf /root/openvpn/"
+    . " && ln -s $DEST_OPENVPN_DIR /root/openvpn"
+  ;
 
   run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT,
     "perl -i -p -e 's!$SRC_OPENVPN_DIR!$DEST_OPENVPN_DIR!g' $DEST_OPENVPN_DIR/*.conf";
