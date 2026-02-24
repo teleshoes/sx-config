@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+my $EXEC = basename $0;
+my $EXEC_LOCK = "lock";
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+  $EXEC -g | g | --get | get
+    run: $EXEC_LOCK --is-lpm-enabled
+
+  $EXEC -e | e | --enable | enable | --on | on
+    run: $EXEC_LOCK --lpm-enable
+
+  $EXEC -d | d | --disable | disable | --off | off
+    run: $EXEC_LOCK --lpm-disable
+
+  $EXEC -t | t | --toggle | toggle
+    run: $EXEC_LOCK --lpm-toggle
+
+  $EXEC -r | r | --refresh | refresh
+    run: $EXEC_LOCK --lpm-refresh
+";
+
+sub main(@){
+  my $lockArg = "--is-lpm-enabled";
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-g|g|--get|get)$/){
+      $lockArg = "--is-lpm-enabled";
+    }elsif($arg =~ /^(-e|e|--enable|enable|--on|on)$/){
+      $lockArg = "--lpm-enable";
+    }elsif($arg =~ /^(-d|d|--disable|disable|--off|off)$/){
+      $lockArg = "--lpm-disable";
+    }elsif($arg =~ /^(-t|t|--toggle|toggle)$/){
+      $lockArg = "--lpm-toggle";
+    }elsif($arg =~ /^(-r|r|--refresh|refresh)$/){
+      $lockArg = "--lpm-refresh";
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  exec $EXEC_LOCK, $lockArg;
+}
+
+&main(@ARGV);
