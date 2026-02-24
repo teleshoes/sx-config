@@ -72,8 +72,8 @@ my $USAGE = "Usage:
   $EXEC --lpm-toggle | --toggle-lpm
     -toggle lpm enabled state
     -same as: if [ `$EXEC --is-lpm-enabled` == enabled ]
-              then $EXEC --lpm-disabledunlock
-              else $EXEC --lock
+              then $EXEC --lpm-disable
+              else $EXEC --lpm-enable
               fi
 ";
 
