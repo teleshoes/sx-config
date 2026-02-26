@@ -11,12 +11,23 @@ Item {
     width: content.width
     height: content.height
 
+    property var customLockItemFile: "/tmp/custom-lock-item.txt"
+
     Connections {
         target: Lipstick.compositor
         onDisplayAboutToBeOn: update()
     }
 
     function update() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "file://" + customLockItemFile);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                var fileContents = xhr.responseText
+                content.text = fileContents
+            }
+        };
+        xhr.send();
     }
 
     Text {
