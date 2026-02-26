@@ -40,8 +40,11 @@ my $USAGE = "Usage:
     -same as: if [ `$EXEC --get` == locked ]; then $EXEC --unlock; else $EXEC --lock; fi
 
   $EXEC -r | r | --lpm-refresh
-    -refresh LPM display if device is locked (do nothing if not locked)
-    -same as: if [ `$EXEC --get` == locked ]; then $EXEC --lpm-lock; fi
+    -if screen is locked but LPM is not visible, unblank and blank the screen
+      -same as:
+        if [ `$EXEC --get` == locked ] && `$EXEC --is-lpm-visible` == false ]; then
+          $EXEC --lpm-lock;
+        fi
     -refresh LPM display with dbus if screen is locked
 
   $EXEC -l | l | lock | --lock
@@ -115,7 +118,7 @@ sub main(@){
   }elsif($cmd eq $CMD_TOGGLE){
     setLocked(isLocked() ? 0 : 1);
   }elsif($cmd eq $CMD_LPM_REFRESH){
-    if(isLocked()){
+    if(isLocked() and !isLPMVisible()){
       unblankAndBlankLPM();
     }
     dbusRefreshLPM();
@@ -234,7 +237,7 @@ sub enableLPM(){
 
   run "mcetool", "--set-doubletap-mode=disabled";
 
-  if(isLocked()){
+  if(isLocked() and !isLPMVisible()){
     unblankAndBlankLPM();
   }
   dbusRefreshLPM();
