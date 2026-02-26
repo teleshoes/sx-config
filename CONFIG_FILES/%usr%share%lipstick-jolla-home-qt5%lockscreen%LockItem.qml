@@ -118,6 +118,24 @@ SilicaFlickable {
         onClicked: hintEdges()
     }
 
+    DBusAdaptor {
+        id: dbusAdaptor
+        service: "org.nemomobile.lpm"
+        path: "/org/nemomobile/lpm"
+        iface: "org.nemomobile.lpm"
+        xml: '
+                <interface name="org.nemomobile.lpm">
+                    <method name="refresh">
+                    </method>
+                </interface>
+        '
+
+        function refresh(){
+            clock.update()
+        }
+    }
+
+
     ContrastBackground {
         id: centerBackground
 
