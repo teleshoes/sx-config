@@ -26,6 +26,10 @@ Item {
     height: timeText.font.pixelSize + weekday.font.pixelSize + month.font.pixelSize + Theme.paddingMedium
     baselineOffset: timeText.y + timeText.baselineOffset
 
+    function update() {
+        timeText.forceUpdate()
+    }
+
     ClockItem {
         id: timeText
 
