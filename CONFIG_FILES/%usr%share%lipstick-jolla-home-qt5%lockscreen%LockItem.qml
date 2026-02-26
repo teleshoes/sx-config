@@ -132,6 +132,8 @@ SilicaFlickable {
 
         function refresh(){
             clock.update()
+            //weather is refreshed automatically
+            customLockItem.update()
         }
     }
 
