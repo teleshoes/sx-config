@@ -127,6 +127,10 @@ SilicaFlickable {
                 <interface name="org.nemomobile.lpm">
                     <method name="refresh">
                     </method>
+                    <method name="get_visible">
+                        <arg name="is_visible" direction="out" type="s">
+                        </arg>
+                    </method>
                 </interface>
         '
 
@@ -134,6 +138,13 @@ SilicaFlickable {
             clock.update()
             //weather is refreshed automatically
             customLockItem.update()
+        }
+        function get_visible(){
+            if (clock.visible) {
+                return "true"
+            }else{
+                return "false"
+            }
         }
     }
 
