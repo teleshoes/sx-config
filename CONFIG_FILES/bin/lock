@@ -15,7 +15,6 @@ sub run(@);
 my $CMD_GET = "get";
 my $CMD_TOGGLE = "toggle";
 my $CMD_LPM_REFRESH = "lpm-refresh";
-my $CMD_LPM_LOCK = "lpm-lock";
 my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
 my $CMD_DIM = "dim";
@@ -42,11 +41,6 @@ my $USAGE = "Usage:
   $EXEC -r | r | --lpm-refresh
     -refresh LPM display if device is locked (do nothing if not locked)
     -same as: if [ `$EXEC --get` == locked ]; then $EXEC --lpm-lock; fi
-
-  $EXEC --lpm-lock
-    -enter LPM mode, refreshing the LPM display if already locked
-      (unblank+dim the screen, then lock + blank the screen, entering LPM if enabled)
-    -same as: $EXEC --dim && $EXEC --lock
 
   $EXEC -l | l | lock | --lock
     -use mcetool to set lock screen and blank display
@@ -90,8 +84,6 @@ sub main(@){
       $cmd = $CMD_TOGGLE;
     }elsif($arg =~ /^(-r|r|--lpm-refresh)$/){
       $cmd = $CMD_LPM_REFRESH;
-    }elsif($arg =~ /^(--lpm-lock)$/){
-      $cmd = $CMD_LPM_LOCK;
     }elsif($arg =~ /^(-l|l|lock|--lock)$/){
       $cmd = $CMD_LOCK;
     }elsif($arg =~ /^(-u|u|unlock|--unlock)$/){
@@ -119,8 +111,6 @@ sub main(@){
     if(isLocked()){
       unblankAndBlankLPM();
     }
-  }elsif($cmd eq $CMD_LPM_LOCK){
-    unblankAndBlankLPM();
   }elsif($cmd eq $CMD_LOCK){
     setLocked 1;
   }elsif($cmd eq $CMD_UNLOCK){
