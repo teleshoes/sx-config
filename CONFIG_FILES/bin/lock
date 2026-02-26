@@ -19,6 +19,7 @@ my $CMD_LOCK = "lock";
 my $CMD_UNLOCK = "unlock";
 my $CMD_DIM = "dim";
 my $CMD_IS_LPM_ENABLED = "is-lpm-enabled";
+my $CMD_IS_LPM_VISIBLE = "is-lpm-visible";
 my $CMD_LPM_ENABLE = "lpm-enable";
 my $CMD_LPM_DISABLE = "lpm-disable";
 my $CMD_LPM_TOGGLE = "lpm-toggle";
@@ -58,6 +59,9 @@ my $USAGE = "Usage:
     -if 'enabled':  print enabled
     -if 'disabled': print disabled
 
+  $EXEC --is-lpm-visible
+    -read LPM visible status with dbus method: org.nemomobile.lpm.get_visible
+
   $EXEC --lpm-enable | --enable-lpm
     -use mcetool to enable low power mode and associated settings
     -also does --lpm-refresh to switch from lockscreen to LPM
@@ -92,6 +96,8 @@ sub main(@){
       $cmd = $CMD_DIM;
     }elsif($arg =~ /^(--is-lpm-enabled)$/){
       $cmd = $CMD_IS_LPM_ENABLED;
+    }elsif($arg =~ /^(--is-lpm-visible)$/){
+      $cmd = $CMD_IS_LPM_VISIBLE;
     }elsif($arg =~ /^(--lpm-enable|--enable-lpm)$/){
       $cmd = $CMD_LPM_ENABLE;
     }elsif($arg =~ /^(--lpm-disable|--disable-lpm)$/){
@@ -119,6 +125,8 @@ sub main(@){
     dimScreen();
   }elsif($cmd eq $CMD_IS_LPM_ENABLED){
     print isLPMEnabled() ? "enabled\n" : "disabled\n";
+  }elsif($cmd eq $CMD_IS_LPM_VISIBLE){
+    print isLPMVisible() ? "true\n" : "false\n";
   }elsif($cmd eq $CMD_LPM_ENABLE){
     enableLPM();
   }elsif($cmd eq $CMD_LPM_DISABLE){
@@ -155,6 +163,34 @@ sub isLocked(){
     return 1;
   }else{
     die "could not read display status with @cmd\n";
+  }
+}
+
+sub isLPMVisible(){
+  my @cmd = qw(
+    dbus-send
+      --session
+      --dest=org.nemomobile.lpm
+      --print-reply
+      --type=method_call
+      /org/nemomobile/lpm
+      org.nemomobile.lpm.get_visible
+  );
+  open CMD, "-|", @cmd or die "could not run @cmd\n$!\n";
+  my $out = join '', <CMD>;
+  close CMD;
+
+  my $isVisible = "";
+  if($out =~ /^method.*\n\s*string\s*['"](true|false)['"]\s*$/){
+    $isVisible = $1;
+  }
+
+  if($isVisible eq "true"){
+    return 1;
+  }elsif($isVisible eq "false"){
+    return 0;
+  }else{
+    die "ERROR: could not read LPM visible status with @cmd\n";
   }
 }
 
