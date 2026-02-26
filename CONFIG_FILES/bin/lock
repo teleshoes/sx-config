@@ -42,6 +42,7 @@ my $USAGE = "Usage:
   $EXEC -r | r | --lpm-refresh
     -refresh LPM display if device is locked (do nothing if not locked)
     -same as: if [ `$EXEC --get` == locked ]; then $EXEC --lpm-lock; fi
+    -refresh LPM display with dbus if screen is locked
 
   $EXEC -l | l | lock | --lock
     -use mcetool to set lock screen and blank display
@@ -117,6 +118,7 @@ sub main(@){
     if(isLocked()){
       unblankAndBlankLPM();
     }
+    dbusRefreshLPM();
   }elsif($cmd eq $CMD_LOCK){
     setLocked 1;
   }elsif($cmd eq $CMD_UNLOCK){
@@ -235,6 +237,7 @@ sub enableLPM(){
   if(isLocked()){
     unblankAndBlankLPM();
   }
+  dbusRefreshLPM();
 }
 
 sub disableLPM(){
@@ -243,6 +246,19 @@ sub disableLPM(){
   run "mcetool", "--set-powerkey-blanking=off";
 
   run "mcetool", "--set-doubletap-mode=disabled";
+}
+
+sub dbusRefreshLPM(){
+  my @cmd = qw(
+    dbus-send
+      --session
+      --dest=org.nemomobile.lpm
+      --type=method_call
+      /org/nemomobile/lpm
+      org.nemomobile.lpm.refresh
+  );
+
+  system @cmd;
 }
 
 sub run(@){
