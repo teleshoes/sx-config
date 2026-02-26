@@ -146,8 +146,8 @@ SilicaFlickable {
         x: twoColumnMode ? screenY : (lockItem.width - width) / 2
         y: twoColumnMode ? ((Screen.width - height) / 2)
                          : screenY
-        width: Math.max(clock.width, weatherIndicator.width)
-        height: clock.height + weatherIndicator.height
+        width: Math.max(clock.width, weatherIndicator.width, customLockItem.width)
+        height: clock.height + weatherIndicator.height + customLockItem.height
 
         opacity: Math.min(clock.transitionOpacity, clock.unlockOpacity)
 
@@ -246,6 +246,14 @@ SilicaFlickable {
             }
             temperatureFontPixelSize: clock.weekdayFont.pixelSize
             active: visible
+        }
+
+        CustomLockItem {
+            id: customLockItem
+            anchors {
+                top: weatherIndicator.bottom
+                left: parent.left
+            }
         }
     }
 
