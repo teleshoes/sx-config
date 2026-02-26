@@ -201,7 +201,7 @@ sub isLPMEnabled(){
 
 sub enableLPM(){
   run "mcetool", "--set-low-power-mode=enabled";
-  run "mcetool", "--set-blank-from-lpm-on-timeout=130";
+  run "mcetool", "--set-blank-from-lpm-on-timeout=259200"; # 3 days
   run "mcetool", "--set-powerkey-blanking=lpm";
 
   run "mcetool", "--set-doubletap-mode=disabled";
