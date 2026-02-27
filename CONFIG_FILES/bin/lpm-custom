@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub formatEvent($);
+sub getUnreadEvents();
+sub parseEventType($$$);
 sub readFile($);
 sub writeFile($$);
 
@@ -14,6 +17,8 @@ my $EXEC_LOCK = "lock";
 
 my $FILE_CUSTOM_TEXT = "/tmp/custom-lock-item.txt";
 
+my $COMMHISTORY_DB = "/home/$USER/.local/share/commhistory/commhistory.db";
+
 my $EMAIL_STATUS_LINE_FILE = "/home/$USER/.cache/email/status-line";
 
 my $USAGE = "Usage:
@@ -24,6 +29,12 @@ my $USAGE = "Usage:
     -generate $FILE_CUSTOM_TEXT
     -run: $EXEC_UDO $EXEC_LOCK --lpm-refresh
 ";
+
+my $EVENT_CALL_INBOUND_MISSED = "call-inbound-missed";
+my $EVENT_CALL_INBOUND = "call-inbound";
+my $EVENT_CALL_OUTBOUND = "call-outbound";
+my $EVENT_SMS_INBOUND = "sms-inbound";
+my $EVENT_SMS_OUTBOUND = "sms-outbound";
 
 sub main(@){
   while(@_ > 0){
@@ -42,11 +53,68 @@ sub main(@){
     $contents .= readFile $EMAIL_STATUS_LINE_FILE;
   }
 
+  for my $event(getUnreadEvents()){
+    $contents .= formatEvent($event);
+  }
+
   $contents .= `date +'%s.%3N'`;
 
   writeFile($FILE_CUSTOM_TEXT, $contents);
 
   system $EXEC_UDO, $EXEC_LOCK, "--lpm-refresh";
+}
+
+sub formatEvent($){
+  my ($event) = @_;
+  return "$$event{eventType} $$event{num}\n";
+}
+
+sub getUnreadEvents(){
+  my $sql = ""
+     . " SELECT"
+     . "   type,"
+     . "   direction,"
+     . "   isMissedCall,"
+     . "   remoteUid,"
+     . "   freeText"
+     . " FROM Events"
+     . " WHERE isRead=0;"
+  ;
+  my @lines = `sqlite3 --csv $COMMHISTORY_DB "$sql"`;
+
+  my @events;
+  for my $line(@lines){
+    if($line =~ /^(\d+),(\d+),(\d+),([0-9\+]+),(.*)$/){
+      my ($type, $dir, $isMissedCall, $phone, $text) = ($1, $2, $3, $4, $5);
+
+      $phone = $1 if $phone =~ /^\+1(\d\d\d\d\d\d\d\d\d\d)$/;
+      push @events, {
+        num       => $phone,
+        eventType => parseEventType($type, $dir, $isMissedCall),
+        text      => $text,
+      };
+    }else{
+      die "ERROR: malformed query output $line\n";
+    }
+  }
+  return @events;
+}
+
+sub parseEventType($$$){
+  my ($type, $direction, $isMissedCall) = @_;
+  if($type == 3 and $direction == 1 and $isMissedCall == 1){
+    return $EVENT_CALL_INBOUND_MISSED;
+  }elsif($type == 3 and $direction == 1 and $isMissedCall == 0){
+    return $EVENT_CALL_INBOUND;
+  }elsif($type == 3 and $direction == 2){
+    return $EVENT_CALL_OUTBOUND;
+  }elsif($type == 2 and $direction == 1){
+    return $EVENT_SMS_INBOUND;
+  }elsif($type == 2 and $direction == 2){
+    return $EVENT_SMS_OUTBOUND;
+  }else{
+    return undef;
+  }
 }
 
 sub readFile($){
