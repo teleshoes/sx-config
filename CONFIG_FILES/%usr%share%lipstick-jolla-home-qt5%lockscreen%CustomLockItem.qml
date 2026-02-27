@@ -35,7 +35,7 @@ Item {
 
         color: Theme.primaryColor
         font {
-            pixelSize: largeScreen ? Theme.fontSizeLarge : Math.round(40 * Screen.widthRatio)
+            pixelSize: Theme.fontSizeMedium
             family: "monospace"
         }
     }
