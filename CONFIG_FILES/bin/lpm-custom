@@ -82,7 +82,15 @@ sub formatEvent($){
   if($contact !~ /\w/){
     $contact = $$event{num};
   }
-  return "$$event{eventType} $contact\n";
+
+  my $msg = $$event{text};
+  $msg = "" if not defined $msg;
+  $msg =~ s/^"//;
+  $msg =~ s/"$//;
+
+  $msg = "MISSED CALL" if $$event{eventType} eq $EVENT_CALL_INBOUND_MISSED;
+
+  return "$contact: $msg\n";
 }
 
 sub getUnreadEvents(){
