@@ -55,6 +55,7 @@ sub main(@){
       }elsif($state eq "off"){
         my $isLpmEnabled = `lock --is-lpm-enabled`;
         if($isLpmEnabled =~ /enabled/){
+          run "lpm-custom";
           if(not -f $PREV_BRIGHTNESS_STATE_FILE){
             runQuiet "sh -c '
               curBrightness=`brightness -g`
