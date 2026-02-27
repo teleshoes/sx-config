@@ -78,7 +78,7 @@ sub main(@){
 
 sub run(@){
   print "@_\n";
-  runQuiet();
+  runQuiet(@_);
 }
 sub runQuiet(@){
   system @_;
