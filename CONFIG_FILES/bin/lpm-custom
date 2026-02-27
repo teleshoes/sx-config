@@ -69,6 +69,11 @@ sub main(@){
 
 sub formatEvent($){
   my ($event) = @_;
+
+  #skip all unread calls except for missed inbound calls
+  return "" if $$event{eventType} eq $EVENT_CALL_INBOUND;
+  return "" if $$event{eventType} eq $EVENT_CALL_OUTBOUND;
+
   my $contact = $$event{name};
   $contact = "" if not defined $contact;
   if($contact !~ /\w/){
