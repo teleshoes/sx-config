@@ -7,11 +7,14 @@ sub readFile($);
 sub writeFile($$);
 
 my $EXEC = basename $0;
+my $USER = "nemo";
 
 my $EXEC_UDO = "udo";
 my $EXEC_LOCK = "lock";
 
 my $FILE_CUSTOM_TEXT = "/tmp/custom-lock-item.txt";
+
+my $EMAIL_STATUS_LINE_FILE = "/home/$USER/.cache/email/status-line";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -34,6 +37,8 @@ sub main(@){
   }
 
   my $contents = "";
+
+  $contents .= readFile $EMAIL_STATUS_LINE_FILE;
 
   $contents .= `date +'%s.%3N'`;
 
