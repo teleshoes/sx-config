@@ -118,7 +118,7 @@ sub main(@){
     }
     runQuiet "apk-name", $apkFile;
     if($? != 0){
-      die "ERROR: apk-name failed for $apkFile\n";
+      print STDERR "WARNING: apk-name failed for $apkFile\n";
     }
   }
 
