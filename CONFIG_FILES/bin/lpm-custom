@@ -6,6 +6,7 @@ use File::Basename qw(basename);
 sub formatEvent($);
 sub getUnreadEvents();
 sub parseEventType($$$);
+sub getContacts();
 sub readFile($);
 sub writeFile($$);
 
@@ -18,6 +19,8 @@ my $EXEC_LOCK = "lock";
 my $FILE_CUSTOM_TEXT = "/tmp/custom-lock-item.txt";
 
 my $COMMHISTORY_DB = "/home/$USER/.local/share/commhistory/commhistory.db";
+my $CONTACTS_DB =
+  "/home/$USER/.local/share/system/privileged/Contacts/qtcontacts-sqlite/contacts.db";
 
 my $EMAIL_STATUS_LINE_FILE = "/home/$USER/.cache/email/status-line";
 
@@ -66,7 +69,12 @@ sub main(@){
 
 sub formatEvent($){
   my ($event) = @_;
-  return "$$event{eventType} $$event{num}\n";
+  my $contact = $$event{name};
+  $contact = "" if not defined $contact;
+  if($contact !~ /\w/){
+    $contact = $$event{num};
+  }
+  return "$$event{eventType} $contact\n";
 }
 
 sub getUnreadEvents(){
@@ -81,6 +89,7 @@ sub getUnreadEvents(){
      . " WHERE isRead=0;"
   ;
   my @lines = `sqlite3 --csv $COMMHISTORY_DB "$sql"`;
+  my $contacts = getContacts();
 
   my @events;
   for my $line(@lines){
@@ -89,6 +98,7 @@ sub getUnreadEvents(){
 
       $phone = $1 if $phone =~ /^\+1(\d\d\d\d\d\d\d\d\d\d)$/;
       push @events, {
+        name      => $$contacts{$phone},
         num       => $phone,
         eventType => parseEventType($type, $dir, $isMissedCall),
         text      => $text,
@@ -115,6 +125,35 @@ sub parseEventType($$$){
   }else{
     return undef;
   }
+}
+
+sub getContacts(){
+  my $sql = ""
+    . " SELECT distinct"
+    . "   p.phonenumber"
+    . "   || ','"
+    . "   || ifnull(n.firstName, '') || ' ' || ifnull(n.lastName, '')"
+    . " from names n"
+    . "   join phonenumbers p"
+    . "   on n.contactid = p.contactid"
+  ;
+
+  my @lines = `sudo sqlite3 $CONTACTS_DB "$sql"`;
+
+  my $contacts = {};
+  for my $line(@lines){
+    if($line =~ /^([^,]+),(.+)$/){
+      my ($num, $name) = ($1, $2);
+      $num =~ s/[\-\(\)]//g;
+      $num =~ s/^\+1//g;
+      $num =~ s/[^0-9]+//g;
+      $name =~ s/^\s+//;
+      $name =~ s/\s+$//;
+      $$contacts{$num} = $name;
+    }
+  }
+
+  return $contacts;
 }
 
 sub readFile($){
