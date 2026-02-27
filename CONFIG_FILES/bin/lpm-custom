@@ -60,8 +60,6 @@ sub main(@){
     $contents .= formatEvent($event);
   }
 
-  $contents .= `date +'%s.%3N'`;
-
   writeFile($FILE_CUSTOM_TEXT, $contents);
 
   system $EXEC_UDO, $EXEC_LOCK, "--lpm-refresh";
