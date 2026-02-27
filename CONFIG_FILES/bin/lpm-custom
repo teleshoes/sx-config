@@ -8,6 +8,7 @@ sub writeFile($$);
 
 my $EXEC = basename $0;
 
+my $EXEC_UDO = "udo";
 my $EXEC_LOCK = "lock";
 
 my $FILE_CUSTOM_TEXT = "/tmp/custom-lock-item.txt";
@@ -18,7 +19,7 @@ my $USAGE = "Usage:
 
   $EXEC
     -generate $FILE_CUSTOM_TEXT
-    -run: $EXEC_LOCK --lpm-refresh
+    -run: $EXEC_UDO $EXEC_LOCK --lpm-refresh
 ";
 
 sub main(@){
@@ -38,7 +39,7 @@ sub main(@){
 
   writeFile($FILE_CUSTOM_TEXT, $contents);
 
-  system $EXEC_LOCK, "--lpm-refresh";
+  system $EXEC_UDO, $EXEC_LOCK, "--lpm-refresh";
 }
 
 sub readFile($){
