@@ -38,7 +38,9 @@ sub main(@){
 
   my $contents = "";
 
-  $contents .= readFile $EMAIL_STATUS_LINE_FILE;
+  if(-e $EMAIL_STATUS_LINE_FILE){
+    $contents .= readFile $EMAIL_STATUS_LINE_FILE;
+  }
 
   $contents .= `date +'%s.%3N'`;
 
