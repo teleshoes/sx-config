@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
-sub getEmail($);
+sub getEmailFmt($);
 sub formatEvent($);
 sub getUnreadEvents();
 sub parseEventType($$$);
@@ -53,7 +53,7 @@ sub main(@){
 
   my $contents = "";
 
-  my $email = getEmail();
+  my $email = getEmailFmt(28);
 
   $contents .= "$email\n";
 
@@ -66,7 +66,8 @@ sub main(@){
   system $EXEC_UDO, $EXEC_LOCK, "--lpm-refresh";
 }
 
-sub getEmail(){
+sub getEmailFmt($){
+  my ($len) = @_;
   my $email;
   if(-e $EMAIL_STATUS_LINE_FILE){
     $email = readFile $EMAIL_STATUS_LINE_FILE;
@@ -75,7 +76,8 @@ sub getEmail(){
     $email = "";
   }
 
-  return $email;
+  $email = substr $email, 0, $len;
+  return sprintf "%-${len}s", $email;
 }
 
 sub formatEvent($){
