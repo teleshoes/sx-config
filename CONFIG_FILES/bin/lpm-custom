@@ -25,6 +25,8 @@ my $CONTACTS_DB =
 
 my $EMAIL_STATUS_LINE_FILE = "/home/$USER/.cache/email/status-line";
 
+my $MAX_LINE_LEN = 28;
+
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
@@ -53,12 +55,12 @@ sub main(@){
 
   my $contents = "";
 
-  my $email = getEmailFmt(28);
+  my $email = getEmailFmt($MAX_LINE_LEN);
 
   $contents .= "$email\n";
 
   for my $event(getUnreadEvents()){
-    $contents .= formatEvent($event, 28);
+    $contents .= formatEvent($event, $MAX_LINE_LEN);
   }
 
   writeFile($FILE_CUSTOM_TEXT, $contents);
