@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub getEmail($);
 sub formatEvent($);
 sub getUnreadEvents();
 sub parseEventType($$$);
@@ -52,9 +53,9 @@ sub main(@){
 
   my $contents = "";
 
-  if(-e $EMAIL_STATUS_LINE_FILE){
-    $contents .= readFile $EMAIL_STATUS_LINE_FILE;
-  }
+  my $email = getEmail();
+
+  $contents .= "$email\n";
 
   for my $event(getUnreadEvents()){
     $contents .= formatEvent($event);
@@ -63,6 +64,18 @@ sub main(@){
   writeFile($FILE_CUSTOM_TEXT, $contents);
 
   system $EXEC_UDO, $EXEC_LOCK, "--lpm-refresh";
+}
+
+sub getEmail(){
+  my $email;
+  if(-e $EMAIL_STATUS_LINE_FILE){
+    $email = readFile $EMAIL_STATUS_LINE_FILE;
+    chomp $email;
+  }else{
+    $email = "";
+  }
+
+  return $email;
 }
 
 sub formatEvent($){
