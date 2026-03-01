@@ -4,6 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 sub getEmailFmt($);
+sub getBatteryFmt($);
 sub formatEvent($$);
 sub getUnreadEvents();
 sub parseEventType($$$);
@@ -55,9 +56,10 @@ sub main(@){
 
   my $contents = "";
 
-  my $email = getEmailFmt($MAX_LINE_LEN);
+  my $email = getEmailFmt($MAX_LINE_LEN - 5);
+  my $bat = getBatteryFmt(4);
 
-  $contents .= "$email\n";
+  $contents .= "$email|$bat\n";
 
   for my $event(getUnreadEvents()){
     $contents .= formatEvent($event, $MAX_LINE_LEN);
@@ -80,6 +82,17 @@ sub getEmailFmt($){
 
   $email = substr $email, 0, $len;
   return sprintf "%-${len}s", $email;
+}
+
+sub getBatteryFmt($){
+  my ($len) = @_;
+
+  my $bat = `bat --get 2>/dev/null`;
+  chomp $bat;
+  $bat = "???" if $bat !~ /^\d+$/;
+  $bat = "$bat%";
+  $bat = substr $bat, 0, $len;
+  return sprintf "%${len}s", $bat;
 }
 
 sub formatEvent($$){
