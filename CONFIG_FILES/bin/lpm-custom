@@ -4,7 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 
 sub getEmailFmt($);
-sub formatEvent($);
+sub formatEvent($$);
 sub getUnreadEvents();
 sub parseEventType($$$);
 sub getContacts();
@@ -58,7 +58,7 @@ sub main(@){
   $contents .= "$email\n";
 
   for my $event(getUnreadEvents()){
-    $contents .= formatEvent($event);
+    $contents .= formatEvent($event, 28);
   }
 
   writeFile($FILE_CUSTOM_TEXT, $contents);
@@ -80,8 +80,8 @@ sub getEmailFmt($){
   return sprintf "%-${len}s", $email;
 }
 
-sub formatEvent($){
-  my ($event) = @_;
+sub formatEvent($$){
+  my ($event, $len) = @_;
 
   #skip all unread calls except for missed inbound calls
   return "" if $$event{eventType} eq $EVENT_CALL_INBOUND;
@@ -104,7 +104,7 @@ sub formatEvent($){
   $msg = "MISSED CALL" if $$event{eventType} eq $EVENT_CALL_INBOUND_MISSED;
 
   my $maxContactLen = 10;
-  my $maxMsgLen = 16;
+  my $maxMsgLen = $len - $maxContactLen - 2;
 
   $contact = substr $contact, 0, $maxContactLen;
   $msg = substr $msg, 0, $maxMsgLen;
