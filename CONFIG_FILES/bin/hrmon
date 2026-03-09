@@ -83,17 +83,21 @@ my $USAGE = "Usage:
       -print '<STATUS>'
 
   $EXEC --last | last
+    search for latest log line '$LOG_FIELD_HEART_RATE'
+      -same as: $EXEC --last-log-field '$LOG_FIELD_HEART_RATE'
+
+  $EXEC --last-log-entry LOG_FIELD
     -get all log files at:
       $LOG_DIR/*.log*
-    -search for the string 'Heart rate'
+    -search for the string <LOG_FIELD>
     -use xzgrep to select the latest file (last sorted by filename) that matches
     -select the last line that matches
     -if no line in any file matches:
       -print 'none'
     -otherwise, ensure selected line is formatted:
-      '<DATETIME_FMT>  Heart rate: <HEARTRATE>'
+      '<DATETIME_FMT>  <LOG_FIELD>: <VALUE>'
       where <DATETIME_FMT> is the date/time formatted 'YYYY-mm-dd HH:MM:SS,NNN'
-        and <HEARTRATE> is a non-negative integer
+        and <VALUE> is a non-negative integer
     -format the selected line:
       -parse the DATETIME_FMT, compare to current time and get ELAPSED_TIME_S
       -format ELAPSED_TIME_S as value ELAPSED_TIME_FMT with optional units days/hours/minutes
@@ -104,7 +108,7 @@ my $USAGE = "Usage:
       -calculate DIRECTION
         -if DATETIME_FMT is in the past (should always be the case): 'ago'
         -otherwise: 'in the future'
-      -print '<HEARTRATE_FMT> (<ELAPSED_TIME_FMT> <DIRECTION>)'
+      -print '<VALUE> (<ELAPSED_TIME_FMT> <DIRECTION>)'
         e.g.: 90 (3d04h22m3s ago)
 
   $EXEC --rotate-logs | rotate-logs | logs
@@ -128,6 +132,7 @@ my $CMD_ROTATE_LOGS = "rotate-logs";
 
 sub main(@){
   my $cmd = $CMD_ENSURE_ATTACH;
+  my $logField = undef;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -147,6 +152,10 @@ sub main(@){
       $cmd = $CMD_STATUS;
     }elsif($arg =~ /^(--last|last)$/){
       $cmd = $CMD_LAST;
+      $logField = $LOG_FIELD_HEART_RATE;
+    }elsif($arg =~ /^(--last-log-entry)$/ and @_ > 0){
+      $cmd = $CMD_LAST;
+      $logField = shift @_;
     }elsif($arg =~ /^(--get|get|-g|g)$/){
       $cmd = $CMD_GET;
     }elsif($arg =~ /^(--rotate-logs|rotate-logs|logs)$/){
@@ -185,7 +194,7 @@ sub main(@){
   }elsif($cmd eq $CMD_STATUS){
     run "screen-daemon", "hrmon", "--status";
   }elsif($cmd eq $CMD_LAST){
-    my ($hr, $epoch) = getLastLogEntry($LOG_FIELD_HEART_RATE);
+    my ($hr, $epoch) = getLastLogEntry($logField);
     if(not defined $hr){
       print "none\n";
     }else{
