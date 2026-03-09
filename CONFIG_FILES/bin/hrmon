@@ -27,6 +27,7 @@ my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/hrmon";
 my $LOG_FIELD_HEART_RATE = "Heart rate";
+my $LOG_FIELD_BATTERY_LEVEL = "Battery level";
 
 my $EXEC = basename $0;
 
@@ -85,6 +86,10 @@ my $USAGE = "Usage:
   $EXEC --last | last
     search for latest log line '$LOG_FIELD_HEART_RATE'
       -same as: $EXEC --last-log-field '$LOG_FIELD_HEART_RATE'
+
+  $EXEC --bat | --battery | bat | battery
+    search for latest log line '$LOG_FIELD_BATTERY_LEVEL'
+      -same as: $EXEC --last-log-field '$LOG_FIELD_BATTERY_LEVEL'
 
   $EXEC --last-log-entry LOG_FIELD
     -get all log files at:
@@ -153,6 +158,9 @@ sub main(@){
     }elsif($arg =~ /^(--last|last)$/){
       $cmd = $CMD_LAST;
       $logField = $LOG_FIELD_HEART_RATE;
+    }elsif($arg =~ /^(--bat|--battery|bat|battery)$/){
+      $cmd = $CMD_LAST;
+      $logField = $LOG_FIELD_BATTERY_LEVEL;
     }elsif($arg =~ /^(--last-log-entry)$/ and @_ > 0){
       $cmd = $CMD_LAST;
       $logField = shift @_;
