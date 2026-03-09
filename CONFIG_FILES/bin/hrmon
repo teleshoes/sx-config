@@ -339,7 +339,7 @@ sub formatRelativeTime($){
   }elsif($m > 0){
     $fmt = sprintf "%dm%02ds", $m, $s;
   }else{
-    $fmt = sprintf "%dds", $m, $s;
+    $fmt = sprintf "%ds", $s;
   }
 
   my $direction = $isNegative ? "in the future" : "ago";
