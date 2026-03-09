@@ -4,6 +4,7 @@ use warnings;
 use Date::Parse qw(str2time);
 use File::Basename qw(basename);
 
+sub detectMAC();
 sub getLastLogFile();
 sub getLastHeartrateLogEntry();
 sub formatRelativeTime($);
@@ -15,10 +16,14 @@ my $DEVICES = [
   {devType => "H10", mac => "A0:9E:1A:D0:56:2E", readHandle=>"0x0010", ctlHandle=>"0x0011"},
   {devType => "H7",  mac => "00:22:D0:44:94:5A", readHandle=>undef,    ctlHandle=>undef},
 ];
+my @ALL_MACS = map {$$_{mac}} @$DEVICES;
 my $DEVICE = $$DEVICES[0];
 
 my $ELAPSED_TIME_THRESHOLD_SECONDS = 60;
+my $BT_DETECT_TIMEOUT = 5;
+my $MAX_ELAPSED_BT_DETECT = 30;
 
+my $BT_DETECT_EXEC = "bt-detect";
 my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/hrmon";
@@ -45,6 +50,15 @@ my $USAGE = "Usage:
         -print 'waiting'
       -if STATUS is 'on' and ELAPSED_TIME_S < ${ELAPSED_TIME_THRESHOLD_SECONDS}s:
         -print '<HEARTRATE>' (e.g.: '120')
+
+  $EXEC --mac | --dev | --detect-mac | --detect-dev
+    scan for BLE devices among known MACS with bluetoothctl + expect
+      -repeatedly run:
+        `$BT_DETECT_EXEC --ble -t $BT_DETECT_TIMEOUT @ALL_MACS`
+        -repeat until output 'FOUND=<MAC>' or ${MAX_ELAPSED_BT_DETECT}s elapses
+      -select the device with the found <MAC> if 'FOUND=<MAC>'
+      -select the first device if no <MAC> is found
+      -print device information associated with the selected device
 
   $EXEC --run | run
     kill any $BLE_HRL_EXEC procs and run $BLE_HRL_EXEC
@@ -100,6 +114,7 @@ my $USAGE = "Usage:
 ";
 
 my $CMD_ENSURE_ATTACH = "ensure-attach";
+my $CMD_DETECT_DEV = "detect-dev";
 my $CMD_RUN = "run";
 my $CMD_START = "start";
 my $CMD_STOP = "stop";
@@ -117,6 +132,8 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(--screen-daemon|--ensure-attach|ensure-attach)$/){
       $cmd = $CMD_ENSURE_ATTACH;
+    }elsif($arg =~ /^(--mac|--dev|--detect-dev|--detect-mac)$/){
+      $cmd = $CMD_DETECT_DEV;
     }elsif($arg =~ /^(--run|run)$/){
       $cmd = $CMD_RUN;
     }elsif($arg =~ /^(--start|start)$/){
@@ -138,6 +155,13 @@ sub main(@){
 
   if($cmd eq $CMD_ENSURE_ATTACH){
     exec "screen-daemon", "hrmon", "--ensure-attach";
+  }elsif($cmd eq $CMD_DETECT_DEV){
+    my $dev = detectDevice();
+    my @args;
+    @args = (@args, defined $$dev{readHandle} ? ("-H", $$dev{readHandle}) : ());
+    @args = (@args, defined $$dev{ctlHandle} ? ("-C", $$dev{ctlHandle}) : ());
+
+    print "$$dev{devType}: | $$dev{mac} | args: (@args)\n";
   }elsif($cmd eq $CMD_RUN){
     my $mac = $$DEVICE{mac};
     my @readHandleArg = defined $$DEVICE{readHandle} ? ("-H", $$DEVICE{readHandle}) : ();
@@ -204,6 +228,37 @@ sub main(@){
   }else{
     die "ERROR: unknown cmd $cmd\n"
   }
+}
+
+sub detectDevice(){
+  die "ERROR: no MACs found\n" if @ALL_MACS == 0;
+  my $mac = undef;
+  my $defaultMac = $ALL_MACS[0];
+  my $start = time;
+  my $h2 = "[0-9a-f][0-9a-f]";
+  print "SEARCHING FOR MAC\n";
+  while(time - $start < $MAX_ELAPSED_BT_DETECT){
+    my $out = `$BT_DETECT_EXEC -v --ble -t $BT_DETECT_TIMEOUT @ALL_MACS`;
+    if($out =~ /FOUND=($h2:$h2:$h2:$h2:$h2:$h2)/i){
+      my $macFound = $1;
+      print "  device detected: $macFound\n";
+      $mac = $macFound;
+      last;
+    }
+  }
+  if(not defined $mac){
+    print "search timeout, using default $defaultMac\n";
+    $mac = $defaultMac;
+  }
+
+  for my $dev(@$DEVICES){
+    if($$dev{mac} =~ /$mac/i){
+      return $dev;
+    }
+  }
+  die "ERROR: no device found\n";
+
+  return $defaultMac;
 }
 
 sub getLastLogFile(){
