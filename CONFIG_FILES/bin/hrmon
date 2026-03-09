@@ -270,7 +270,7 @@ sub getLastLogFile(){
 
 sub getLastHeartrateLogEntry(){
   my $logFile = getLastLogFile();
-  my @cmd = ("sh", "-c", "xzgrep 'Heart rate' '$logFile' | tail -1");
+  my @cmd = ("sh", "-c", "tac '$logFile' | xzgrep -m 1 'Heart rate'");
 
   my $out = readProc @cmd;
   if($out =~ /^\s*$/){
