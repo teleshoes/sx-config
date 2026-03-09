@@ -270,18 +270,7 @@ sub getLastLogFile(){
 
 sub getLastHeartrateLogEntry(){
   my $logFile = getLastLogFile();
-  my @cmd;
-  if($logFile =~ /\.log$/){
-    @cmd = ("sh", "-c", "grep 'Heart rate' '$logFile' | tail -1");
-  }elsif($logFile =~ /\.log\.gz$/){
-    @cmd = ("sh", "-c", "zgrep 'Heart rate' '$logFile' | tail -1");
-  }elsif($logFile =~ /\.log\.xz$/){
-    @cmd = ("sh", "-c", "xz -d -c '$logFile' | grep 'Heart rate' | tail -1");
-  }elsif($logFile =~ /\.log\.bz2$/){
-    @cmd = ("sh", "-c", "bzip2 -d -c '$logFile' | grep 'Heart rate' | tail -1");
-  }else{
-    die "ERROR: unrecognized log file format '$logFile'\n";
-  }
+  my @cmd = ("sh", "-c", "xzgrep 'Heart rate' '$logFile' | tail -1");
 
   my $out = readProc @cmd;
   if($out =~ /^\s*$/){
