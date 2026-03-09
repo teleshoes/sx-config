@@ -49,7 +49,7 @@ SettingsToggle {
       curState = curState.replace(/(\n|\r)+$/, '');
       console.log(curState);
 
-      var ptrn = /^(off|waiting|[0-9]+)$/;
+      var ptrn = /^(off|waiting|[0-9]+!?)$/;
       var match = curState.match(ptrn);
       if(match){
         hrmonState = match[0];
