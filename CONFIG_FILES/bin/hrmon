@@ -6,7 +6,7 @@ use File::Basename qw(basename);
 
 sub detectMAC();
 sub getLogFiles();
-sub getLastHeartrateLogEntry();
+sub getLastLogEntry($);
 sub formatRelativeTime($);
 sub readProc(@);
 sub stopHrmon();
@@ -26,6 +26,7 @@ my $BT_DETECT_EXEC = "bt-detect";
 my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/hrmon";
+my $LOG_FIELD_HEART_RATE = "Heart rate";
 
 my $EXEC = basename $0;
 
@@ -184,7 +185,7 @@ sub main(@){
   }elsif($cmd eq $CMD_STATUS){
     run "screen-daemon", "hrmon", "--status";
   }elsif($cmd eq $CMD_LAST){
-    my ($hr, $epoch) = getLastHeartrateLogEntry();
+    my ($hr, $epoch) = getLastLogEntry($LOG_FIELD_HEART_RATE);
     if(not defined $hr){
       print "none\n";
     }else{
@@ -195,7 +196,7 @@ sub main(@){
     if($status =~ /^off$/){
       print "off\n";
     }elsif($status =~ /^on$/){
-      my ($hr, $epoch) = getLastHeartrateLogEntry();
+      my ($hr, $epoch) = getLastLogEntry($LOG_FIELD_HEART_RATE);
       my $diff = time - $epoch;
       $diff = 0-$diff if $diff < 0; #allow 'recent' future values, just in case
       if($diff < $ELAPSED_TIME_THRESHOLD_SECONDS){
@@ -267,12 +268,13 @@ sub getLogFiles(){
   return reverse sort grep {-f $_} glob "$LOG_DIR/*.log*";
 }
 
-sub getLastHeartrateLogEntry(){
+sub getLastLogEntry($){
+  my ($logField) = @_;
   my $foundLine = undef;
   my $foundLogFile = undef;
   for my $logFile(getLogFiles()){
-    my $line = readProc "sh", "-c", "tac '$logFile' | xzgrep -m 1 'Heart rate'";
-    if($line =~ /Heart rate/){
+    my $line = readProc "sh", "-c", "tac '$logFile' | xzgrep -m 1 '$logField'";
+    if($line =~ /$logField/){
       $foundLine = $line;
       $foundLogFile = $logFile;
       last;
@@ -281,10 +283,10 @@ sub getLastHeartrateLogEntry(){
 
   if(not defined $foundLine){
     return (undef, undef);
-  }elsif($foundLine =~ /^(\d\d\d\d-\d\d-\d\d) (\d\d:\d\d:\d\d),(\d\d\d)\s+Heart rate:\s*(\d+)$/){
-    my ($ymd, $hms, $millis, $heartrate) = ($1, $2, $3, $4);
+  }elsif($foundLine =~ /^(\d\d\d\d-\d\d-\d\d) (\d\d:\d\d:\d\d),(\d\d\d)\s+$logField:\s*(\d+)$/){
+    my ($ymd, $hms, $millis, $value) = ($1, $2, $3, $4);
     my $epoch = str2time "${ymd}T${hms}";
-    return ($heartrate, $epoch);
+    return ($value, $epoch);
   }else{
     die "ERROR: invalid log line format in $foundLogFile:\n$foundLine\n";
   }
