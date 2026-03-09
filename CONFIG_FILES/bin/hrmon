@@ -25,6 +25,8 @@ my $MAX_ELAPSED_BT_DETECT = 30;
 my $BT_DETECT_EXEC = "bt-detect";
 my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
+my $WARN_BATTERY_THRESHOLD = 30;
+
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/hrmon";
 my $LOG_FIELD_HEART_RATE = "Heart rate";
 my $LOG_FIELD_BATTERY_LEVEL = "Battery level";
@@ -44,13 +46,17 @@ my $USAGE = "Usage:
   $EXEC --get | get
     print either the heartrate if its very recent, or 'waiting', or 'off'
       -get the <STATUS> as in: `$EXEC --status`
-      -get the <ELAPSED_TIME_S> and HEARTRATE as in: `$EXEC --last`
+      -get the <HR_ELAPSED_TIME_S> and HEARTRATE as in: `$EXEC --last`
+      -get the <BATTERY_LEVEL> as in: `$EXEC --battery`
       -if STATUS is 'off':
         -print 'off'
-      -if STATUS is 'on' and ELAPSED_TIME_S >= ${ELAPSED_TIME_THRESHOLD_SECONDS}s:
+      -if STATUS is 'on' and HR_ELAPSED_TIME_S >= ${ELAPSED_TIME_THRESHOLD_SECONDS}s:
         -print 'waiting'
-      -if STATUS is 'on' and ELAPSED_TIME_S < ${ELAPSED_TIME_THRESHOLD_SECONDS}s:
-        -print '<HEARTRATE>' (e.g.: '120')
+      -if STATUS is 'on' and HR_ELAPSED_TIME_S < ${ELAPSED_TIME_THRESHOLD_SECONDS}s:
+        -if <BATTERY_LEVEL> is found and is more than $WARN_BATTERY_THRESHOLD:
+          -print '<HEARTRATE>' (e.g.: '120')
+        -otherwise:
+          -print '<HEARTRATE>!' (e.g.: '120!')
 
   $EXEC --mac | --dev | --detect-mac | --detect-dev
     scan for BLE devices among known MACS with bluetoothctl + expect
@@ -217,7 +223,12 @@ sub main(@){
       my $diff = time - $epoch;
       $diff = 0-$diff if $diff < 0; #allow 'recent' future values, just in case
       if($diff < $ELAPSED_TIME_THRESHOLD_SECONDS){
-        print "$hr\n";
+        my ($bat, $batEpoch) = getLastLogEntry($LOG_FIELD_BATTERY_LEVEL);
+        if(defined $bat and $bat >= $WARN_BATTERY_THRESHOLD){
+          print "$hr\n";
+        }else{
+          print "$hr!\n";
+        }
       }else{
         print "waiting\n";
       }
