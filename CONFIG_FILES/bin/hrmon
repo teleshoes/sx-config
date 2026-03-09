@@ -5,7 +5,7 @@ use Date::Parse qw(str2time);
 use File::Basename qw(basename);
 
 sub detectMAC();
-sub getLastLogFile();
+sub getLogFiles();
 sub getLastHeartrateLogEntry();
 sub formatRelativeTime($);
 sub readProc(@);
@@ -82,27 +82,29 @@ my $USAGE = "Usage:
       -print '<STATUS>'
 
   $EXEC --last | last
-    print the last 'Heart rate' line of the last log file (decompress gz/bz2/xz if necessary)
-      -fetch latest log file as in: `ls $LOG_DIR/*.log* | sort | tail -1`
-      -if compressed, decompress in memory
-      -find the last line, if any, that matches:
-        '<DATETIME_FMT>  Heart rate: <HEARTRATE>'
-          where <DATETIME_FMT> is the date/time formatted 'YYYY-mm-dd HH:MM:SS,NNN'
-            and <HEARTRATE> is a non-negative integer
-      -if no line matches:
-        -print 'none'
-      -otherwise:
-        -parse the DATETIME_FMT, compare to current time and get ELAPSED_TIME_S
-        -format ELAPSED_TIME_S as value ELAPSED_TIME_FMT with optional units days/hours/minutes
-                      '#s'
-                   '#m##s'
-                '#h##m##s'
-             '#d##h##m##s'
-        -calculate DIRECTION
-          -if DATETIME_FMT is in the past (should always be the case): 'ago'
-          -otherwise: 'in the future'
-        -print '<HEARTRATE_FMT> (<ELAPSED_TIME_FMT> <DIRECTION>)'
-          e.g.: 90 (3d04h22m3s ago)
+    -get all log files at:
+      $LOG_DIR/*.log*
+    -search for the string 'Heart rate'
+    -use xzgrep to select the latest file (last sorted by filename) that matches
+    -select the last line that matches
+    -if no line in any file matches:
+      -print 'none'
+    -otherwise, ensure selected line is formatted:
+      '<DATETIME_FMT>  Heart rate: <HEARTRATE>'
+      where <DATETIME_FMT> is the date/time formatted 'YYYY-mm-dd HH:MM:SS,NNN'
+        and <HEARTRATE> is a non-negative integer
+    -format the selected line:
+      -parse the DATETIME_FMT, compare to current time and get ELAPSED_TIME_S
+      -format ELAPSED_TIME_S as value ELAPSED_TIME_FMT with optional units days/hours/minutes
+                    '#s'
+                 '#m##s'
+              '#h##m##s'
+           '#d##h##m##s'
+      -calculate DIRECTION
+        -if DATETIME_FMT is in the past (should always be the case): 'ago'
+        -otherwise: 'in the future'
+      -print '<HEARTRATE_FMT> (<ELAPSED_TIME_FMT> <DIRECTION>)'
+        e.g.: 90 (3d04h22m3s ago)
 
   $EXEC --rotate-logs | rotate-logs | logs
     stop monitoring, compress all logs, and restart if was running
@@ -261,27 +263,31 @@ sub detectDevice(){
   return $defaultMac;
 }
 
-sub getLastLogFile(){
-  my @logFiles = sort glob "$LOG_DIR/*.log*";
-  die "ERROR: no log files available in $LOG_DIR\n" if @logFiles == 0;
-  my $lastLogFile = $logFiles[-1];
-  return $lastLogFile;
+sub getLogFiles(){
+  return reverse sort grep {-f $_} glob "$LOG_DIR/*.log*";
 }
 
 sub getLastHeartrateLogEntry(){
-  my $logFile = getLastLogFile();
-  my @cmd = ("sh", "-c", "tac '$logFile' | xzgrep -m 1 'Heart rate'");
+  my $foundLine = undef;
+  my $foundLogFile = undef;
+  for my $logFile(getLogFiles()){
+    my $line = readProc "sh", "-c", "tac '$logFile' | xzgrep -m 1 'Heart rate'";
+    if($line =~ /Heart rate/){
+      $foundLine = $line;
+      $foundLogFile = $logFile;
+      last;
+    }
+  }
 
-  my $out = readProc @cmd;
-  if($out =~ /^\s*$/){
+  if(not defined $foundLine){
     return (undef, undef);
+  }elsif($foundLine =~ /^(\d\d\d\d-\d\d-\d\d) (\d\d:\d\d:\d\d),(\d\d\d)\s+Heart rate:\s*(\d+)$/){
+    my ($ymd, $hms, $millis, $heartrate) = ($1, $2, $3, $4);
+    my $epoch = str2time "${ymd}T${hms}";
+    return ($heartrate, $epoch);
+  }else{
+    die "ERROR: invalid log line format in $foundLogFile:\n$foundLine\n";
   }
-  if($out !~ /^(\d\d\d\d-\d\d-\d\d) (\d\d:\d\d:\d\d),(\d\d\d)\s+Heart rate:\s*(\d+)$/){
-    die "ERROR: invalid log line format in $logFile:\n$out\n";
-  }
-  my ($ymd, $hms, $millis, $heartrate) = ($1, $2, $3, $4);
-  my $epoch = str2time "${ymd}T${hms}";
-  return ($heartrate, $epoch);
 }
 
 sub formatRelativeTime($){
