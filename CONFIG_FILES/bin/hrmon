@@ -11,12 +11,13 @@ sub readProc(@);
 sub stopHrmon();
 sub run(@);
 
-my $MAC_H10 = 'A0:9E:1A:D0:56:2E';
-my $MAC_H7 = '00:22:D0:44:94:5A';
+my $DEVICES = [
+  {dev => "H10", mac => "A0:9E:1A:D0:56:2E", readHandle=>"0x0010", ctlHandle=>"0x0011"},
+  {dev => "H7",  mac => "00:22:D0:44:94:5A", readHandle=>"0x0010", ctlHandle=>"0x0011"},
+];
+my $DEVICE = $$DEVICES[0];
 
 my $ELAPSED_TIME_THRESHOLD_SECONDS = 60;
-
-my $MAC = $MAC_H10;
 
 my $BLE_HRL_EXEC = "BLEHeartRateLogger.py";
 
@@ -138,13 +139,16 @@ sub main(@){
   if($cmd eq $CMD_ENSURE_ATTACH){
     exec "screen-daemon", "hrmon", "--ensure-attach";
   }elsif($cmd eq $CMD_RUN){
+    my $mac = $$DEVICE{mac};
+    my @readHandleArg = defined $$DEVICE{readHandle} ? ("-H", $$DEVICE{readHandle}) : ();
+    my @ctlHandleArg = defined $$DEVICE{ctlHandle} ? ("-C", $$DEVICE{ctlHandle}) : ();
     exec $BLE_HRL_EXEC,
-      "-b",            #display battery
-      "-v",            #display rr
-      "-H", "0x0010",  #use handle 0x0010 to read BLE hr values
-      "-C", "0x0011",  #use handle 0x0011 to request BLE hr values
-      "-t", "public",  #pass '-t public' to gatttool instead of '-t random'
-      "-m", $MAC,      #device bt mac
+      "-b",             #display battery
+      "-v",             #display rr
+      @readHandleArg,   #override auto-detect of gatttool handle for hr notify
+      @ctlHandleArg,    #override auto-detect of gatttool handle for hr request
+      "-t", "public",   #pass '-t public' to gatttool instead of '-t random'
+      "-m", $mac,       #device bt mac
     ;
   }elsif($cmd eq $CMD_START){
     stopHrmon();
