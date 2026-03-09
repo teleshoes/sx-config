@@ -13,7 +13,7 @@ sub run(@);
 
 my $DEVICES = [
   {dev => "H10", mac => "A0:9E:1A:D0:56:2E", readHandle=>"0x0010", ctlHandle=>"0x0011"},
-  {dev => "H7",  mac => "00:22:D0:44:94:5A", readHandle=>"0x0010", ctlHandle=>"0x0011"},
+  {dev => "H7",  mac => "00:22:D0:44:94:5A", readHandle=>undef,    ctlHandle=>undef},
 ];
 my $DEVICE = $$DEVICES[0];
 
