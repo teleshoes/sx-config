@@ -13,6 +13,7 @@ sub stopHrmon();
 sub run(@);
 
 my $DEVICES = [
+  {devType => "H10", mac => "A0:9E:1A:5F:59:D7", readHandle=>"0x0010", ctlHandle=>"0x0011"},
   {devType => "H10", mac => "A0:9E:1A:D0:56:2E", readHandle=>"0x0010", ctlHandle=>"0x0011"},
   {devType => "H7",  mac => "00:22:D0:44:94:5A", readHandle=>undef,    ctlHandle=>undef},
 ];
