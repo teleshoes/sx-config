@@ -2,6 +2,7 @@
 <config xmlns="http://omweather.garage.maemo.org/schemas">
  <base>/usr/share/harbour-meecast/</base>
  <iconset>Meecast</iconset>
+ <screen_orienation>automatic</screen_orienation>
  <temperature_unit>F</temperature_unit>
  <wind_speed_unit>mph</wind_speed_unit>
  <pressure_unit>mbar</pressure_unit>
@@ -25,9 +26,10 @@
   <station_id>USNY0330</station_id>
   <country>United States of America</country>
   <region>New York</region>
-  <file_name>/home/nemo/.config/harbour-meecast/weather.com_USNY0330</file_name>
+  <file_name>/home/nemo/.config/org.meecast/MeeCast/weather.com_USNY0715</file_name>
   <forecast_url>https://weather.com/en-GB/weather/today/l/USNY0330</forecast_url>
   <cookie></cookie>
+  <user_agent></user_agent>
   <latitude>40.69</latitude>
   <longitude>-73.4</longitude>
   <map_url>http://mapserver.weather.com/MapServer/map?layers=sat&amp;lat=40.690000&amp;lng=-73.400000&amp;bpp=8&amp;fmt=png&amp;w=1000&amp;h=580&amp;zoom=5&amp;base=msve-hyb&amp;g=1.5&amp;tx=0.7</map_url>
