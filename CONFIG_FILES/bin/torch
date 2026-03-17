@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+sub toggleFlashlight();
+sub isFlashlightOn();
+
+my $EXEC = basename $0;
+
+my $DBUS_SERVICE = "com.jolla.settings.system.flashlight";
+my $DBUS_PATH = "/com/jolla/settings/system/flashlight";
+my $DBUS_METHOD_TOGGLE = "com.jolla.settings.system.flashlight.toggleFlashlight";
+my $DBUS_METHOD_GET = "org.freedesktop.DBus.Properties.Get";
+my $DBUS_PROPERTY_FLASHLIGHT_ON = "flashlightOn";
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+    same as: $EXEC --toggle
+
+  $EXEC g | -g | get | --get
+    -read dbus property $DBUS_PROPERTY_FLASHLIGHT_ON from $DBUS_SERVICE
+    -print 'on' or 'off'
+
+  $EXEC t | -t | toggle | --toggle
+    -call method $DBUS_METHOD_TOGGLE in $DBUS_SERVICE
+
+  $EXEC on | --on
+    -if `$EXEC --get` returns 'off':
+      -same as $EXEC --toggle
+    -otherwise, do nothing
+
+  $EXEC off | --off
+    -if `$EXEC --get` returns 'on':
+      -same as $EXEC --toggle
+    -otherwise, do nothing
+";
+
+my $MODE_TOGGLE = "toggle";
+my $MODE_GET = "get";
+my $MODE_ON = "on";
+my $MODE_OFF = "off";
+
+sub main(@){
+  my $mode = $MODE_TOGGLE;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(g|-g|get|--get)$/){
+      $mode = $MODE_GET;
+    }elsif($arg =~ /^(t|-t|toggle|--toggle)$/){
+      $mode = $MODE_TOGGLE;
+    }elsif($arg =~ /^(on|--on)$/){
+      $mode = $MODE_ON;
+    }elsif($arg =~ /^(off|--off)$/){
+      $mode = $MODE_OFF;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($mode eq $MODE_GET){
+    print isFlashlightOn() ? "on\n" : "off\n";
+  }elsif($mode eq $MODE_TOGGLE){
+    toggleFlashlight();
+  }elsif($mode eq $MODE_ON){
+    if(not isFlashlightOn()){
+      toggleFlashlight();
+    }
+  }elsif($mode eq $MODE_OFF){
+    if(isFlashlightOn()){
+      toggleFlashlight();
+    }
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub toggleFlashlight(){
+  my @cmd = ("dbus-send",
+    "--print-reply",
+    "--dest=$DBUS_SERVICE",
+    "$DBUS_PATH",
+    "$DBUS_METHOD_TOGGLE",
+  );
+
+  system "@cmd >/dev/null";
+}
+
+sub isFlashlightOn(){
+  my @cmd = ("dbus-send",
+    "--print-reply",
+    "--dest=$DBUS_SERVICE",
+    "$DBUS_PATH",
+    "$DBUS_METHOD_GET",
+    "string:$DBUS_SERVICE",
+    "string:$DBUS_PROPERTY_FLASHLIGHT_ON",
+  );
+
+  my $out = `@cmd`;
+  if($out =~ /^\s*variant\s+boolean\s+(true|false)$/m){
+    my $val = $1;
+    return $val eq "true" ? 1 : 0;
+  }else{
+    die "ERROR: could not parse property $DBUS_PROPERTY_FLASHLIGHT_ON in $DBUS_SERVICE\n$out";
+  }
+}
+
+&main(@ARGV);
