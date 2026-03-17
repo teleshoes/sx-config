@@ -301,7 +301,11 @@ sub updateMd5sums($){
 
   my $out;
   for my $file(sort keys %newByFile){
-    if(-e "$localDCIM/$file"){
+    my $localFile = "$localDCIM/$file";
+    if(-e $localFile){
+      $out .= "$newByFile{$file}  $file\n";
+    }elsif(-l $localFile){
+      print "\nWARNING: keeping MD5 for broken symlink \"$localFile\"\n";
       $out .= "$newByFile{$file}  $file\n";
     }else{
       print "removing md5sum for $file\n";
