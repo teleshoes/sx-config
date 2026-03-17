@@ -160,7 +160,9 @@ sub dcimBackup($$$$){
   print "===all:\n" . join "", @remoteMd5sums;
   print "===\n\n";
 
-  $$localInfo{filesByMd5sum} = updateMd5sums($localDCIM);
+  if(not defined $$localInfo{filesByMd5sum}){
+    $$localInfo{filesByMd5sum} = updateMd5sums($localDCIM);
+  }
 
   my ($remoteByMd5sum, $remoteByFile) = md5sumMaps @remoteMd5sums;
 
