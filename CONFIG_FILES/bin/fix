@@ -29,7 +29,7 @@ my %FIX_ALIASES = map {$$_[0] => $$_[1]} @$FIX_ARR;
 my $FIX_USAGE_FORMAT = join '', map {
   my $name = $_;
   my @aliases = join ' | ', ($name, @{$FIX_ALIASES{$name}});
-  "\n    @aliases\n      run: `$FIX_COMMANDS{$name}`";
+  "\n    @aliases\n      run: `@{$FIX_COMMANDS{$name}}`";
 } @FIX_NAMES;
 
 my $NOTIFY_TIMEOUT = 2;
