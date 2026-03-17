@@ -93,9 +93,14 @@ sub main(@){
   tryrunQuiet("sshc", "--close", "$host");
   tryrunQuiet("sshc", "--close", "$USER\@$host");
 
+  my $localInfo = {
+    dir           => $LOCAL_DIR,
+    filesByMd5sum => undef,
+  };
+
   for my $backup(@BACKUPS){
     my ($reqType, $checkType, $remoteDCIM, $backupSuffix) = @$backup;
-    dcimBackup($reqType, $LOCAL_DIR, $remoteDCIM, $backupSuffix);
+    dcimBackup($reqType, $localInfo, $remoteDCIM, $backupSuffix);
   }
 
   for my $backup(@BACKUPS){
@@ -121,7 +126,9 @@ sub main(@){
 }
 
 sub dcimBackup($$$$){
-  my ($reqType, $localDCIM, $remoteDCIM, $backupSuffix) = @_;
+  my ($reqType, $localInfo, $remoteDCIM, $backupSuffix) = @_;
+
+  my $localDCIM = $$localInfo{dir};
 
   my $isFailure = 0;
   my $failureMsg = undef;
@@ -153,14 +160,14 @@ sub dcimBackup($$$$){
   print "===all:\n" . join "", @remoteMd5sums;
   print "===\n\n";
 
-  my $localByMd5sum = updateMd5sums($localDCIM);
+  $$localInfo{filesByMd5sum} = updateMd5sums($localDCIM);
 
   my ($remoteByMd5sum, $remoteByFile) = md5sumMaps @remoteMd5sums;
 
   my (@backedUp, @needsBackUp);
   for my $md5sum(keys %$remoteByMd5sum){
     my $file = $$remoteByMd5sum{$md5sum};
-    if(defined $$localByMd5sum{$md5sum}){
+    if(defined $$localInfo{filesByMd5sum}{$md5sum}){
       push @backedUp, $file;
     }else{
       push @needsBackUp, $file;
@@ -168,7 +175,7 @@ sub dcimBackup($$$$){
   }
 
   reorganizeBackedUpRemotes($remoteDCIM, \@backedUp,
-    $localByMd5sum, $remoteByMd5sum, $remoteByFile);
+    $$localInfo{filesByMd5sum}, $remoteByMd5sum, $remoteByFile);
 
   print "\n\n===NEEDS BACKUP:\n" . join "\n", sort @needsBackUp;
   print "===\n\n";
@@ -193,10 +200,10 @@ sub dcimBackup($$$$){
     }
 
     print "updating local md5sums again and re-reorganizing remote\n";
-    $localByMd5sum = updateMd5sums($localDCIM);
+    $$localInfo{filesByMd5sum} = updateMd5sums($localDCIM);
 
     reorganizeBackedUpRemotes($remoteDCIM, \@needsBackUp,
-      $localByMd5sum, $remoteByMd5sum, $remoteByFile);
+      $$localInfo{filesByMd5sum}, $remoteByMd5sum, $remoteByFile);
   }
 }
 
