@@ -17,7 +17,6 @@ my @config = qw(
   sailfish-browser
 
   qtbtn-klomp
-  bromite
   opencamera
   jolla-settings
 
@@ -119,6 +118,7 @@ my @config = qw(
   aurora-store
   axs
   band-chat
+  bromite
   cavestory
   chess
   ge-ac
