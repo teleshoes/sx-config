@@ -17,6 +17,7 @@ my @config = qw(
   sailfish-browser
 
   qtbtn-klomp
+  brave
   opencamera
   jolla-settings
 
@@ -179,6 +180,7 @@ my %androidLaunchers = (
   "aurora-store"       => [0, "com.aurora.store",                          ".MainActivity",                                                   undef],
   "axs"                => [0, "com.axs.android",                           ".ui.content.main.MainActivity",                                   undef],
   "band-chat"          => [0, "com.nhn.android.band",                      ".SplashActivity",                                                 undef],
+  "brave"              => [0, "com.brave.browser",                         "com.google.android.apps.chrome.Main",                             undef],
   "bromite"            => [0, "org.bromite.bromite",                       "com.google.android.apps.chrome.Main",                             undef],
   "cavestory"          => [0, "io.github.doukutsu_rs",                     ".MainActivity",                                                   undef],
   "chess"              => [0, "jwtc.android.chess",                        ".start",                                                          undef],
