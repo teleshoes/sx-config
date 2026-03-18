@@ -146,6 +146,8 @@ ipmagic sx okboard-toggle --init-default
 #  wd init
 #  wd install
 
+./setup-libs
+
 ./install-apks
 
 ./sync-android-apps --restore
