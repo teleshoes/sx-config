@@ -2,10 +2,14 @@
 use strict;
 use warnings;
 
+sub updateDroidmediaSymlink($);
 sub editCamOverridesFile($);
 sub readFile($);
 sub writeFileSudo($$);
 sub run(@);
+
+my $DIR_HYBRIS_LIB = "/usr/libexec/droid-hybris/system/lib64";
+my $LIBDROIDMEDIA_SO = "libdroidmedia.so";
 
 my @KILL_CAMERA_CMDS = (
   [qw(sudo pkill jolla-camera)],
@@ -26,6 +30,20 @@ my $USAGE = "Usage:
   $0 f | -f | fix | --fix
   $0 k | -k | kill | --kill
     run:\n" . join("\n", map {"      @$_"} @KILL_CAMERA_CMDS) . "
+
+  $0 cam2 | --cam2 | camera2 | --camera2
+    same as: $0 --droidmedia camera2
+
+  $0 orig | --orig | cam1 | --cam1 | camera1 | --camera1
+    same as: $0 --droidmedia orig
+
+  $0 --droidmedia NAME
+    update symlink for $LIBDROIDMEDIA_SO
+      -ensure that $DIR_HYBRIS_LIB/$LIBDROIDMEDIA_SO.<NAME> exists
+      -ensure that $DIR_HYBRIS_LIB/$LIBDROIDMEDIA_SO is a symlink
+      -if $LIBDROIDMEDIA_SO.<NAME> exists and $LIBDROIDMEDIA_SO is a symlink:
+        -run: rm -f $DIR_HYBRIS_LIB/$LIBDROIDMEDIA_SO
+        -run: ln -s $LIBDROIDMEDIA_SO.<NAME> $DIR_HYBRIS_LIB/$LIBDROIDMEDIA_SO
 
   $0 g | -g | get | --get
     -read $MULTI_ENABLE_KEY from
@@ -52,6 +70,7 @@ my $USAGE = "Usage:
       set $MULTI_ENABLE_KEY=FALSE
 ";
 
+my $MODE_DROIDMEDIA = "droidmedia";
 my $MODE_KILL = "kill";
 my $MODE_GET_MULTI = "get-multi";
 my $MODE_SET_MULTI = "set-multi";
@@ -59,6 +78,7 @@ my $MODE_SET_MULTI = "set-multi";
 sub main(@){
   my $mode = $MODE_KILL;
   my $multiVal = undef;
+  my $droidmediaName = undef;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
@@ -68,6 +88,15 @@ sub main(@){
       $mode = $MODE_KILL;
     }elsif($arg =~ /^(k|-k|kill|--kill)$/){
       $mode = $MODE_KILL;
+    }elsif($arg =~ /^(cam2|--cam2|camera2|--camera2)$/){
+      $mode = $MODE_DROIDMEDIA;
+      $droidmediaName = "camera2";
+    }elsif($arg =~ /^(orig|--orig|cam1|--cam1|camera1|--camera1)$/){
+      $mode = $MODE_DROIDMEDIA;
+      $droidmediaName = "orig";
+    }elsif($arg =~ /^(--droidmedia)$/ and @_ > 0){
+      $mode = $MODE_DROIDMEDIA;
+      $droidmediaName = shift @_;
     }elsif($arg =~ /^(g|-g|get|--get)$/){
       $mode = $MODE_GET_MULTI;
     }elsif($arg =~ /^(m|-m|multi|--multi)$/){
@@ -87,7 +116,9 @@ sub main(@){
     }
   }
 
-  if($mode eq $MODE_KILL){
+  if($mode eq $MODE_DROIDMEDIA){
+    updateDroidmediaSymlink($droidmediaName);
+  }elsif($mode eq $MODE_KILL){
     run @$_ foreach @KILL_CAMERA_CMDS;
   }elsif($mode eq $MODE_GET_MULTI){
     if(-f $CAM_OVERRIDES_FILE){
@@ -107,6 +138,22 @@ sub main(@){
     run @$_ foreach @KILL_CAMERA_CMDS;
   }else{
     die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub updateDroidmediaSymlink($){
+  my ($droidmediaName) = @_;
+  my $libSymlink = "$DIR_HYBRIS_LIB/$LIBDROIDMEDIA_SO";
+  my $symlinkTarget = "$LIBDROIDMEDIA_SO.$droidmediaName";
+
+  if(not -l $libSymlink){
+    die "ERROR: droidmedia lib is not a symlink:\n$libSymlink\n";
+  }elsif(not -e "$DIR_HYBRIS_LIB/$symlinkTarget"){
+    die "ERROR: target droidmedia lib does not exist:\n$DIR_HYBRIS_LIB/$symlinkTarget\n";
+  }else{
+    run "sudo", "rm", $libSymlink;
+    run "sudo", "ln", "-s", $symlinkTarget, $libSymlink;
+    run "sudo", "touch", "-h", $libSymlink, "-r", "$DIR_HYBRIS_LIB/$symlinkTarget";
   }
 }
 
