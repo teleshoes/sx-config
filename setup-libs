@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+use File::Basename qw(basename);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $DIR_BASE = "$ENV{HOME}/Code/sx";
+my $DIR_BIN_FILES = "$DIR_BASE/backup/binary-files";
+
+my $LIBDROIDMEDIA_REMOTE_PATH = "/usr/libexec/droid-hybris/system/lib64/libdroidmedia.so";
+my $LIBDROIDMEDIA_CAMERA2_LOCAL = "$DIR_BIN_FILES/libdroidmedia.so.xqbt52.camera2";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h | --help
+    show this message
+
+  $EXEC
+    -backup remote libdroidmedia.so and replace it with a symlink to the backup:
+      -if $LIBDROIDMEDIA_REMOTE_PATH is a symlink, remove it
+      -if $LIBDROIDMEDIA_REMOTE_PATH exists:
+        -move it to: $LIBDROIDMEDIA_REMOTE_PATH.orig
+        -replace with a symlink to: libdroidmedia.so.orig
+    -copy custom built libdroidmedia.so.camera2:
+      -if $LIBDROIDMEDIA_REMOTE_PATH.camera2 does not exist:
+        -copy:
+          localhost:$LIBDROIDMEDIA_CAMERA2_LOCAL
+          to
+          $IPMAGIC_NAME:$LIBDROIDMEDIA_REMOTE_PATH.camera2
+";
+
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  my $tmpFile = "/tmp/libdroidmedia.so.camera2-" . nowMillis();
+
+  run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP", $LIBDROIDMEDIA_CAMERA2_LOCAL, ":$tmpFile";
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
+    if [ -L $LIBDROIDMEDIA_REMOTE_PATH ]; then
+      (set -x; /bin/rm $LIBDROIDMEDIA_REMOTE_PATH)
+    fi
+    if [ -e $LIBDROIDMEDIA_REMOTE_PATH ]; then
+      (set -x; mv --no-clobber $LIBDROIDMEDIA_REMOTE_PATH $LIBDROIDMEDIA_REMOTE_PATH.orig)
+    fi
+    if [ ! -e $LIBDROIDMEDIA_REMOTE_PATH ]; then
+      (set -x; ln -s libdroidmedia.so.orig $LIBDROIDMEDIA_REMOTE_PATH)
+      (set -x; touch -h $LIBDROIDMEDIA_REMOTE_PATH -r $LIBDROIDMEDIA_REMOTE_PATH.orig)
+    fi
+    if [ ! -e $LIBDROIDMEDIA_REMOTE_PATH.camera2 ]; then
+      (set -x; cp -ar $tmpFile $LIBDROIDMEDIA_REMOTE_PATH.camera2)
+    fi
+    (set -x; /bin/rm $tmpFile)
+  ";
+}
+
+&main(@ARGV);
