@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 
 sub killFlashlight();
 sub forceFlashlightOn();
+sub closeOpenCamera();
 sub restartCameraWithCamera1Api();
 sub toggleFlashlight();
 sub isFlashlightOn();
@@ -42,6 +43,8 @@ my $USAGE = "Usage:
     -ensure camera1 api in droidmedia
       -run: `cam --camera1`
       -if camera2 was in place, run: `cam --kill && sleep 2`
+    -close opencamera app if it is on top or screen is locked
+      -run: `cam --kill-cmd opencamera`
     -run `$EXEC --dbus-toggle`
 
   $EXEC off | --off
@@ -118,6 +121,14 @@ sub forceFlashlightOn(){
   restartCameraWithCamera1Api();
   killFlashlight();
   toggleFlashlight();
+}
+
+sub closeOpenCamera(){
+  #open camera blocks flash if its the top-level app even if locked
+  my $winTitle = `cat /tmp/lipstick-window-title 2>/dev/null`;
+  if($winTitle =~ /^(Lock Screen|net.sourceforge.opencamera)$/){
+    system "cam", "--kill-cmd", "opencamera";
+  }
 }
 
 sub restartCameraWithCamera1Api(){
