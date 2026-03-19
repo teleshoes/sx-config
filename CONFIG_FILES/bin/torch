@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub killFlashlight();
 sub toggleFlashlight();
 sub isFlashlightOn();
 
@@ -25,22 +26,28 @@ my $USAGE = "Usage:
     -read dbus property $DBUS_PROPERTY_FLASHLIGHT_ON from $DBUS_SERVICE
     -print 'on' or 'off'
 
-  $EXEC t | -t | toggle | --toggle
+  $EXEC --dbus-toggle
     -call method $DBUS_METHOD_TOGGLE in $DBUS_SERVICE
 
+  $EXEC t | -t | toggle | --toggle
+    -read STATUS as in '$EXEC --get'
+    -if <STATUS> is 'on':  same as '$EXEC --off'
+    -if <STATUS> is 'off': same as '$EXEC --on'
+
   $EXEC on | --on
-    -if `$EXEC --get` returns 'off':
-      -same as $EXEC --toggle
-    -otherwise, do nothing
+    -run: '$EXEC --off'
+    -kill jolla-settings-system-flashlight
+    -run `$EXEC --dbus-toggle`
 
   $EXEC off | --off
-    -if `$EXEC --get` returns 'on':
-      -same as $EXEC --toggle
-    -otherwise, do nothing
+    -read STATUS with: `$EXEC --get`
+    -if <STATUS> is 'on', run: `$EXEC --dbus-toggle`
+    -kill jolla-settings-system-flashlight
 ";
 
-my $MODE_TOGGLE = "toggle";
 my $MODE_GET = "get";
+my $MODE_DBUS_TOGGLE = "dbus-toggle";
+my $MODE_TOGGLE = "toggle";
 my $MODE_ON = "on";
 my $MODE_OFF = "off";
 
@@ -55,6 +62,8 @@ sub main(@){
       $mode = $MODE_GET;
     }elsif($arg =~ /^(t|-t|toggle|--toggle)$/){
       $mode = $MODE_TOGGLE;
+    }elsif($arg =~ /^(--dbus-toggle)$/){
+      $mode = $MODE_DBUS_TOGGLE;
     }elsif($arg =~ /^(on|--on)$/){
       $mode = $MODE_ON;
     }elsif($arg =~ /^(off|--off)$/){
@@ -64,21 +73,40 @@ sub main(@){
     }
   }
 
+  my $wasOn = isFlashlightOn();
+
   if($mode eq $MODE_GET){
-    print isFlashlightOn() ? "on\n" : "off\n";
-  }elsif($mode eq $MODE_TOGGLE){
+    print $wasOn ? "on\n" : "off\n";
+  }elsif($mode eq $MODE_DBUS_TOGGLE){
     toggleFlashlight();
+  }elsif($mode eq $MODE_TOGGLE){
+    if($wasOn){
+      toggleFlashlight();
+    }
+    killFlashlight();
+
+    if(not $wasOn){
+      toggleFlashlight();
+    }
   }elsif($mode eq $MODE_ON){
-    if(not isFlashlightOn()){
+    if($wasOn){
       toggleFlashlight();
     }
+    killFlashlight();
+
+    toggleFlashlight();
   }elsif($mode eq $MODE_OFF){
-    if(isFlashlightOn()){
+    if($wasOn){
       toggleFlashlight();
     }
+    killFlashlight();
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub killFlashlight(){
+  system "pkill", "-f", "-9", "jolla-settings-system-flashlight";
 }
 
 sub toggleFlashlight(){
