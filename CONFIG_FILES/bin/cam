@@ -11,13 +11,17 @@ sub run(@);
 my $DIR_HYBRIS_LIB = "/usr/libexec/droid-hybris/system/lib64";
 my $LIBDROIDMEDIA_SO = "libdroidmedia.so";
 
-my @KILL_CAMERA_CMDS = (
-  [qw(sudo pkill jolla-camera)],
-  [qw(sudo pkill -f ^/usr/bin/harbour-advanced-camera)],
-  [qw(sudo pkill -f ^net.sourceforge.opencamera)],
-  [qw(sudo pkill -f -9 ^/vendor/bin/hw/android.hardware.camera.provider)],
-  [qw(sudo pkill -9 cameraserver)],
+my @KILL_CMDS_ARR = (
+  jollacamera  => [qw(sudo pkill jolla-camera)],
+  advcamera    => [qw(sudo pkill -f ^/usr/bin/harbour-advanced-camera)],
+  opencamera   => [qw(sudo pkill -f ^net.sourceforge.opencamera)],
+  hwcameraprov => [qw(sudo pkill -f -9 ^/vendor/bin/hw/android.hardware.camera.provider)],
+  cameraserver => [qw(sudo pkill -9 cameraserver)],
 );
+my %KILL_CMDS_BY_NAME = @KILL_CMDS_ARR;
+my @KILL_CMD_NAMES = map {$KILL_CMDS_ARR[$_]} grep {$_ % 2 == 0} (0..$#KILL_CMDS_ARR);
+my @KILL_CMDS = map {$KILL_CMDS_BY_NAME{$_}} @KILL_CMD_NAMES;
+my $KILL_CMD_REGEX = join "|", @KILL_CMD_NAMES;
 
 my $CAM_OVERRIDES_FILE = "/vendor/etc/camera/camxoverridesettings.txt";
 my $MULTI_ENABLE_KEY = "multiCameraEnable";
@@ -29,7 +33,7 @@ my $USAGE = "Usage:
   $0
   $0 f | -f | fix | --fix
   $0 k | -k | kill | --kill
-    run:\n" . join("\n", map {"      @$_"} @KILL_CAMERA_CMDS) . "
+    run:\n" . join("\n", map {"      @$_"} @KILL_CMDS) . "
 
   $0 cam2 | --cam2 | camera2 | --camera2
     same as: $0 --droidmedia camera2
@@ -119,7 +123,7 @@ sub main(@){
   if($mode eq $MODE_DROIDMEDIA){
     updateDroidmediaSymlink($droidmediaName);
   }elsif($mode eq $MODE_KILL){
-    run @$_ foreach @KILL_CAMERA_CMDS;
+    run @$_ foreach @KILL_CMDS;
   }elsif($mode eq $MODE_GET_MULTI){
     if(-f $CAM_OVERRIDES_FILE){
       my $contents = readFile $CAM_OVERRIDES_FILE;
@@ -135,7 +139,7 @@ sub main(@){
     }
   }elsif($mode eq $MODE_SET_MULTI){
     editCamOverridesFile({$MULTI_ENABLE_KEY => $multiVal});
-    run @$_ foreach @KILL_CAMERA_CMDS;
+    run @$_ foreach @KILL_CMDS;
   }else{
     die "ERROR: unknown mode $mode\n";
   }
