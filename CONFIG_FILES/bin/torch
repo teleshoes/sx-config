@@ -4,6 +4,8 @@ use warnings;
 use File::Basename qw(basename);
 
 sub killFlashlight();
+sub forceFlashlightOn();
+sub restartCameraWithCamera1Api();
 sub toggleFlashlight();
 sub isFlashlightOn();
 
@@ -37,6 +39,9 @@ my $USAGE = "Usage:
   $EXEC on | --on
     -run: '$EXEC --off'
     -kill jolla-settings-system-flashlight
+    -ensure camera1 api in droidmedia
+      -run: `cam --camera1`
+      -if camera2 was in place, run: `cam --kill && sleep 2`
     -run `$EXEC --dbus-toggle`
 
   $EXEC off | --off
@@ -86,7 +91,7 @@ sub main(@){
     killFlashlight();
 
     if(not $wasOn){
-      toggleFlashlight();
+      forceFlashlightOn();
     }
   }elsif($mode eq $MODE_ON){
     if($wasOn){
@@ -94,7 +99,7 @@ sub main(@){
     }
     killFlashlight();
 
-    toggleFlashlight();
+    forceFlashlightOn();
   }elsif($mode eq $MODE_OFF){
     if($wasOn){
       toggleFlashlight();
@@ -107,6 +112,26 @@ sub main(@){
 
 sub killFlashlight(){
   system "pkill", "-f", "-9", "jolla-settings-system-flashlight";
+}
+sub forceFlashlightOn(){
+  closeOpenCamera();
+  restartCameraWithCamera1Api();
+  killFlashlight();
+  toggleFlashlight();
+}
+
+sub restartCameraWithCamera1Api(){
+  my $prevLink = readlink "/usr/libexec/droid-hybris/system/lib64/libdroidmedia.so";
+  #ensure camera1 unless link was already in place
+  if($prevLink !~ /libdroidmedia\.so\.orig/){
+    system "cam", "--camera1";
+  }
+
+  #additionally restart cameras if camera2 api droidmedia was in place
+  if($prevLink =~ /camera2/){
+    system "cam", "--kill";
+    system "sleep", 2;
+  }
 }
 
 sub toggleFlashlight(){
