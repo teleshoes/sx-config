@@ -9,7 +9,8 @@ sub isAnyDaemonEnabled();
 sub isPSM();
 sub setPSM($);
 
-my $CAPACITY_DEV = "/sys/class/power_supply/battery/capacity";
+my $DIR_BAT_DEV = "/sys/class/power_supply/battery";
+my $DEV_CAPACITY = "$DIR_BAT_DEV/capacity";
 
 my $EXEC = basename $0;
 
@@ -48,7 +49,7 @@ my $USAGE = "Usage:
 
   $EXEC
   $EXEC -g | --get
-    show the current battery capacity from $CAPACITY_DEV
+    show the current battery capacity from $DEV_CAPACITY
 
   $EXEC -d get | --daemons get | daemons get
     print status of each battery-consuming daemon,
@@ -171,12 +172,12 @@ sub main(@){
 }
 
 sub readCapacity(){
-  my $out = `cat $CAPACITY_DEV 2>/dev/null`;
+  my $out = `cat $DEV_CAPACITY 2>/dev/null`;
   chomp $out;
   if($out =~ /^(\d+)$/){
     return $1;
   }else{
-    die "ERROR: could not read $CAPACITY_DEV\n";
+    die "ERROR: could not read $DEV_CAPACITY\n";
   }
 }
 
