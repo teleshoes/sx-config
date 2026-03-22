@@ -56,8 +56,8 @@ sub main(@){
 
   my $contents = "";
 
-  my $email = getEmailFmt($MAX_LINE_LEN - 5);
-  my $bat = getBatteryFmt(4);
+  my $email = getEmailFmt($MAX_LINE_LEN - 6);
+  my $bat = getBatteryFmt(5);
 
   $contents .= "$email|$bat\n";
 
@@ -90,17 +90,22 @@ sub getBatteryFmt($){
   my $bat = `bat --get 2>/dev/null`;
   chomp $bat;
 
-  my ($cap, $status);
+  my ($cap, $status, $icon);
   if($bat =~ /^(\d+) (\w+)$/){
     ($cap, $status) = ($1, $2);
+    if($status =~ /^(charging|full)$/){
+      $icon = "⚡";
+    }else{
+      $icon = " ";
+    }
   }else{
-    ($cap, $status) = ("???", "");
+    ($cap, $status, $icon) = ("???", "", "");
   }
 
-  my $capLen = $len - 1;
+  my $capLen = $len - 2;
   $cap = sprintf "%${capLen}s", $cap;
 
-  return "$cap%";
+  return "$icon$cap%";
 }
 
 sub formatEvent($$){
