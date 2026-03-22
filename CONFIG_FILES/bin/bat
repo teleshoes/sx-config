@@ -12,6 +12,7 @@ sub readFile($);
 
 my $DIR_BAT_DEV = "/sys/class/power_supply/battery";
 my $DEV_CAPACITY = "$DIR_BAT_DEV/capacity";
+my $DEV_STATUS = "$DIR_BAT_DEV/status";
 
 my $EXEC = basename $0;
 
@@ -51,6 +52,16 @@ my $USAGE = "Usage:
   $EXEC
   $EXEC -g | --get
     show the current battery capacity from $DEV_CAPACITY
+
+  $EXEC -s | --status
+    -read the current battery status from $DEV_STATUS
+    -fail if status is not one of the following:
+      'Charging', 'Discharging',  'Full', 'Not charging'
+    -format as a single lower-case word, one of the following:
+      charging
+      discharging
+      full
+      not_charging
 
   $EXEC -d get | --daemons get | daemons get
     print status of each battery-consuming daemon,
@@ -103,6 +114,8 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-g|--get)$/){
       $cmd = $CMD_GET;
+    }elsif($arg =~ /^(-s|--status)$/){
+      $cmd = $CMD_GET_STATUS;
     }elsif($arg =~ /^(-d|--daemons|daemons)$/){
       if(@_ > 0 and $_[0] =~ /^($ACTION_GET|$ACTION_ON|$ACTION_OFF|$ACTION_TOGGLE)$/){
         $actionArg = shift @_;
@@ -134,6 +147,8 @@ sub main(@){
 
   if($cmd eq $CMD_GET){
     print readCapacity() . "\n";
+  }elsif($cmd eq $CMD_GET_STATUS){
+    print readStatus() . "\n";
   }elsif($cmd eq $CMD_DAEMONS_GET){
     for my $daemonName(sort keys %DAEMONS){
       my $isEnabled = fetchDaemonEnabled($daemonName);
@@ -178,6 +193,18 @@ sub readCapacity(){
     return $1;
   }else{
     die "ERROR: invalid value '$val' from $DEV_CAPACITY\n";
+  }
+}
+
+sub readStatus(){
+  my $val = readFile $DEV_STATUS;
+  if($val =~ /^(Charging|Discharging|Full|Not charging)$/i){
+    my $status = $1;
+    $status = lc $status;
+    $status =~ s/\W+/_/g;
+    return $status;
+  }else{
+    die "ERROR: invalid value '$val' from $DEV_STATUS\n";
   }
 }
 
