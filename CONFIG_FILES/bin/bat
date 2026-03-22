@@ -51,6 +51,12 @@ my $USAGE = "Usage:
 
   $EXEC
   $EXEC -g | --get
+    get and format current battery cacity and status as in:
+      CAPACITY=`$EXEC --capacity`
+      STATUS=`$EXEC --capacity`
+      echo \"\$CAPACITY \$STATUS\"
+
+  $EXEC -c | --capacity
     show the current battery capacity from $DEV_CAPACITY
 
   $EXEC -s | --status
@@ -99,6 +105,8 @@ my $USAGE = "Usage:
 ";
 
 my $CMD_GET = "get";
+my $CMD_GET_CAPACITY = "get-capacity";
+my $CMD_GET_STATUS = "get-status";
 my $CMD_DAEMONS_GET = "daemons-get";
 my $CMD_DAEMONS_SET = "daemons-set";
 my $CMD_PSM_GET = "psm-get";
@@ -114,6 +122,8 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(-g|--get)$/){
       $cmd = $CMD_GET;
+    }elsif($arg =~ /^(-c|--capacity)$/){
+      $cmd = $CMD_GET_CAPACITY;
     }elsif($arg =~ /^(-s|--status)$/){
       $cmd = $CMD_GET_STATUS;
     }elsif($arg =~ /^(-d|--daemons|daemons)$/){
@@ -146,6 +156,10 @@ sub main(@){
   }
 
   if($cmd eq $CMD_GET){
+    my $capacity = readCapacity();
+    my $status = readStatus();
+    print "$capacity $status\n";
+  }elsif($cmd eq $CMD_GET_CAPACITY){
     print readCapacity() . "\n";
   }elsif($cmd eq $CMD_GET_STATUS){
     print readStatus() . "\n";
