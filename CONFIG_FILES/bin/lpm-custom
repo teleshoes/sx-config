@@ -89,10 +89,18 @@ sub getBatteryFmt($){
 
   my $bat = `bat --get 2>/dev/null`;
   chomp $bat;
-  $bat = "???" if $bat !~ /^\d+$/;
-  $bat = "$bat%";
-  $bat = substr $bat, 0, $len;
-  return sprintf "%${len}s", $bat;
+
+  my ($cap, $status);
+  if($bat =~ /^(\d+) (\w+)$/){
+    ($cap, $status) = ($1, $2);
+  }else{
+    ($cap, $status) = ("???", "");
+  }
+
+  my $capLen = $len - 1;
+  $cap = sprintf "%${capLen}s", $cap;
+
+  return "$cap%";
 }
 
 sub formatEvent($$){
