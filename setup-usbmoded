@@ -21,7 +21,7 @@ my @MODE_CFG_ARR = (
 my @MODE_NAMES = map {$MODE_CFG_ARR[$_]} grep {$_ % 2 == 0} (0..$#MODE_CFG_ARR);
 my %MODE_LINES_BY_NAME = @MODE_CFG_ARR;
 
-my $DEFAULT_MODE_NAME = "ask";
+my $DEFAULT_MODE_NAME = "charging";
 
 my $EXEC = basename $0;
 
