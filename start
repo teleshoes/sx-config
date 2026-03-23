@@ -111,6 +111,8 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 ./setup-camera
 ./setup-meegotouch-icons
 
+./setup-usbmoded
+
 ./setup-vpn
 
 ./install-cpan
