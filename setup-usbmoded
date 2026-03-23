@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+use File::Basename qw(basename);
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $USB_MODED_INI = "/var/lib/usb-moded/usb-moded.ini";
+
+my @MODE_CFG_ARR = (
+  ask      => "",
+  tether   => "mode=connection_sharing",
+  devMode  => "mode=developer_mode",
+  mtp      => "mode=mtp_mode",
+  charging => "mode=charging_only",
+);
+
+my @MODE_NAMES = map {$MODE_CFG_ARR[$_]} grep {$_ % 2 == 0} (0..$#MODE_CFG_ARR);
+my %MODE_LINES_BY_NAME = @MODE_CFG_ARR;
+
+my $DEFAULT_MODE_NAME = "ask";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h | --help
+    show this message
+
+  $EXEC
+    same as: $EXEC $DEFAULT_MODE_NAME
+
+  $EXEC MODE_NAME
+    set default USB mode to MODE in $USB_MODED_INI
+      -get MODE_LINE by MODE_NAME as below
+      -remove any line formatted 'mode=.*' from $USB_MODED_INI
+      -add MODE_LINE after '[usbmode]' line in $USB_MODED_INI
+
+    MODE_NAME  = 'MODE_LINE'\n" . join("",
+      map { sprintf "      %-8s = '%s'\n", $_, $MODE_LINES_BY_NAME{$_} } @MODE_NAMES
+    ) . "
+";
+
+sub main(@){
+  my $modeName = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif(not defined $modeName and $arg =~ /^\w+$/){
+      $modeName = $arg;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  $modeName = $DEFAULT_MODE_NAME if not defined $modeName;
+
+  my $modeLine = $MODE_LINES_BY_NAME{$modeName};
+  if(not defined $modeLine){
+    die "ERROR: unknown MODE_NAME '$modeName'\n";
+  }
+
+  my $cmd = "";
+  $cmd .= "sed -i '/^mode=/d' $USB_MODED_INI;\n";
+  if(defined $modeLine and length $modeLine > 0){
+    $cmd .= "sed -i '/\\[usbmode\\]/a$modeLine' $USB_MODED_INI;\n";
+  }
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", $cmd;
+}
+
+&main(@ARGV);
