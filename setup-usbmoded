@@ -64,10 +64,12 @@ sub main(@){
     die "ERROR: unknown MODE_NAME '$modeName'\n";
   }
 
-  my $cmd = "";
-  $cmd .= "sed -i '/^mode=/d' $USB_MODED_INI;\n";
+  print "setting mode => $modeName\n";
+
+  my $cmd = "\n";
+  $cmd .= "  sed -i '/^mode=/d' $USB_MODED_INI;\n";
   if(defined $modeLine and length $modeLine > 0){
-    $cmd .= "sed -i '/\\[usbmode\\]/a$modeLine' $USB_MODED_INI;\n";
+    $cmd .= "  sed -i '/\\[usbmode\\]/a$modeLine' $USB_MODED_INI;\n";
   }
 
   run "ipmagic", $IPMAGIC_NAME, "-u", "root", $cmd;
