@@ -13,6 +13,8 @@ my $DEST_MNT_BASE_DIR = "/media/sdcard";
 
 my $SDCARDS_CONF_FILE = "/etc/sdcards.conf";
 
+my %SDCARD_CONF_LIST_FIELDS = map {$_ => 1} qw(bind);
+
 my $CMD_APPLY = "apply";
 
 my $EXEC = basename $0;
@@ -90,7 +92,12 @@ sub readConf(){
       if($line =~ /^\s*(\w+)\.(\w+)\s*=\s*(.*)?\s*$/){
         my ($name, $field, $val) = ($1, $2, $3);
         $$entries{$name} = {} if not defined $$entries{$name};
-        $$entries{$name}{$field} = $val;
+        if(defined $SDCARD_CONF_LIST_FIELDS{$field}){
+          $$entries{$name}{$field} = [] if not defined $$entries{$name}{$field};
+          push @{$$entries{$name}{$field}}, $val;
+        }else{
+          $$entries{$name}{$field} = $val;
+        }
       }
     }
   }
