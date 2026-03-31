@@ -152,13 +152,15 @@ sub dcimBackup($$$$){
 
   chdir $localDCIM;
   print "\n\n===============\n";
-  print "Fetching remote md5sums: $remoteDCIM\n";
+  print "Fetching remote md5sums + chown/chmod: $remoteDCIM\n";
   my @remoteMd5sums = readProcLinesRetry(3600,
     "ipmagic", $IPMAGIC_NAME, "-u", "root", "--ssh-exec", "sshc", "-s",
       ( "find"
         . " $remoteDCIM/"
         . " -maxdepth 1"
         . " -type f"
+        . " -exec chown $USER {} \\; "
+        . " -exec chmod a+r {} \\; "
         . " -exec md5sum {} \\; "
       ),
   );
