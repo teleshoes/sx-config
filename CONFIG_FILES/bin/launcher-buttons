@@ -32,7 +32,6 @@ my @config = qw(
   qtemail
 
   jolla-calculator
-  harbour-advanced-camera
   jolla-calendar
   waydroid-wd
 
@@ -115,6 +114,7 @@ my @config = qw(
   audio-output
 
   sailfish-filemanager
+  harbour-advanced-camera
 
   aurora-store
   axs
