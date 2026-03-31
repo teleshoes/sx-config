@@ -213,6 +213,7 @@ my %androidLaunchers = (
   "riot"               => [0, "im.vector.alpha",                           "im.vector.activity.LauncherActivity",                             undef],
   "runpee"             => [0, "air.RunPee",                                "io.flutter.embedding.android.FlutterActivity",                    undef],
   "seatgeek"           => [0, "com.seatgeek.android",                      ".ui.activities.SplashActivity",                                   undef],
+  "sgcam"              => [1, "com.shamim.cam",                            "com.android.camera.CameraLauncher",                               undef],
   "snes9x"             => [0, "com.explusalpha.Snes9xPlus",                "com.imagine.BaseActivity",                                        undef],
   "stubhub"            => [0, "com.stubhub",                               ".MainActivity",                                                   undef],
   "textfree"           => [0, "com.pinger.textfree",                       ".call.activities.TFSplash",                                       undef],
