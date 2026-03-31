@@ -154,7 +154,12 @@ sub dcimBackup($$$$){
   print "Fetching remote md5sums: $remoteDCIM\n";
   my @remoteMd5sums = readProcLinesRetry(3600,
     "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--ssh-exec", "sshc", "-s",
-      "find $remoteDCIM/ -maxdepth 1 -type f -exec md5sum {} \\;",
+      ( "find"
+        . " $remoteDCIM/"
+        . " -maxdepth 1"
+        . " -type f"
+        . " -exec md5sum {} \\; "
+      ),
   );
 
   print "===all:\n" . join "", @remoteMd5sums;
