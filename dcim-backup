@@ -92,6 +92,7 @@ sub main(@){
   print "closing sshc sessions\n";
   tryrunQuiet("sshc", "--close", "$host");
   tryrunQuiet("sshc", "--close", "$USER\@$host");
+  tryrunQuiet("sshc", "--close", "root\@$host");
 
   my $localInfo = {
     dir           => $LOCAL_DIR,
@@ -153,7 +154,7 @@ sub dcimBackup($$$$){
   print "\n\n===============\n";
   print "Fetching remote md5sums: $remoteDCIM\n";
   my @remoteMd5sums = readProcLinesRetry(3600,
-    "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--ssh-exec", "sshc", "-s",
+    "ipmagic", $IPMAGIC_NAME, "-u", "root", "--ssh-exec", "sshc", "-s",
       ( "find"
         . " $remoteDCIM/"
         . " -maxdepth 1"
