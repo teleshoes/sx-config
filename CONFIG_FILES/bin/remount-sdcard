@@ -5,6 +5,7 @@ use File::Basename qw(basename dirname);
 
 sub readConf();
 sub applySdcardConf($);
+sub bindMountpoint($$);
 sub run(@);
 
 my $USER = "nemo";
@@ -43,6 +44,21 @@ my $USAGE = "Usage:
           -do nothing
         -otherwise:
           -remove <DEST_MOUNT_POINT> and replace with a symlink to <SRC_MOUNT_POINT>
+      -for each '<SDCARD_NAME>.bind' entry:
+        -parse entry as '<DEST_SDCARD_REL_DIR>:<MOUNTPOINT_DIR>'
+        -calculate <DEST_ABS_DIR> as:
+          $DEST_MNT_BASE_DIR/<SDCARD_NAME>/<DEST_SDCARD_REL_DIR>
+        -calculate <MOUNTPOINT_ABS_DIR> by replacing vars in <MOUNTPOINT_DIR>:
+          '\$HOME'            => /home/$USER
+        -if <MOUNTPOINT_ABS_DIR> exists and is a mountpoint:
+          -do nothing
+        -if <MOUNTPOINT_ABS_DIR> is not a mountpoint and is an empty directory:
+          -remove <MOUNTPOINT_ABS_DIR>
+        -if <MOUNTPOINT_ABS_DIR> exists:
+          -fail with an error message
+        -otherwise:
+          -create <MOUNTPOINT_ABS_DIR> with same owner as parent '<MOUNTPOINT_ABS_DIR>/..'
+          -run: mount --bind <DEST_ABS_DIR> <MOUNTPOINT_ABS_DIR>
 
   $EXEC --loop
     -perform `$EXEC --apply` every 30s
@@ -108,8 +124,10 @@ sub applySdcardConf($){
   my ($entries) = @_;
   for my $name(sort keys %$entries){
     print "\n$name\n";
+    my @bindEntries;
     my $uuid = $$entries{$name}{uuid};
     my $mode = $$entries{$name}{mode};
+    @bindEntries = @{$$entries{$name}{bind}} if defined $$entries{$name}{bind};
     if(not defined $uuid or not defined $mode){
       die "ERROR: malformed/missing config for $name\n"
     }
@@ -156,6 +174,35 @@ sub applySdcardConf($){
       }
     }else{
       die "ERROR: unknown mode $mode\n";
+    }
+
+    for my $bindEntry(@bindEntries){
+      if($bindEntry =~ /^([^:]+):([^:]+)$/){
+        my ($sdcardRelDir, $mountpoint) = ($1, $2);
+        $mountpoint =~ s/\$HOME/\/home\/$USER/g;
+        bindMountpoint("$destMountPoint/$sdcardRelDir", $mountpoint);
+      }else{
+        die "ERROR: could not parse bind entry '$bindEntry' for $name\n";
+      }
+    }
+  }
+}
+
+sub bindMountpoint($$){
+  my ($srcAbsDir, $destMountPoint) = @_;
+  my $isDestMountpoint = `mountpoint '$destMountPoint' 2>/dev/null`;
+  if(not -l $destMountPoint and $isDestMountpoint =~ /is a mountpoint/){
+    print "skipping bind $destMountPoint, already a mountpoint\n";
+  }else{
+    if(-d $destMountPoint){
+      system "rmdir", $destMountPoint;
+    }
+    if(-e $destMountPoint){
+      print STDERR "WARNING: cannot mount $destMountPoint, exists and is unremovable\n";
+    }else{
+      run "sudo", "mkdir", "-p", $destMountPoint;
+      run "sudo", "chown", $destMountPoint, "--reference", "$destMountPoint/..";
+      run "sudo", "mount", "--bind", $srcAbsDir, $destMountPoint;
     }
   }
 }
