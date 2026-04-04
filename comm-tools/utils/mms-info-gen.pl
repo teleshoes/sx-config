@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Time::HiRes qw(time);
 
-my $BACKUP_DIR = "$ENV{HOME}/Code/s5/backup";
+my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup";
 my $MMS_REPO = "$BACKUP_DIR/backup-mms/repo";
 my $MY_NUMBER = `cat $BACKUP_DIR/my_number`;
 chomp $MY_NUMBER;
