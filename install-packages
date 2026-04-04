@@ -73,6 +73,7 @@ my %packages = (
     harbour-mimer
     harbour-mlsmanager
     harbour-modrana
+    harbour-sailtrix
     harbour-sfos-forum-viewer
     harbour-storeman
     harbour-timeline
@@ -163,6 +164,7 @@ my @openrepos = qw(
   gexc
   halftux
   hbp
+  HengYeDev
   HuyliGun
   krnlyng
   llelectronics
