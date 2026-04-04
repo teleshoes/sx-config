@@ -21,7 +21,7 @@ my @config = qw(
   sgcam
   jolla-settings
 
-  harbour-pure-maps
+
   tmobile-digits
   gpsinfo
   coolreader
@@ -34,12 +34,12 @@ my @config = qw(
   jolla-calculator
   opencamera
   jolla-calendar
-  waydroid-wd
+
 
   jolla-gallery
-  unplayer
+
   filetug
-  screenshot
+
 
   facebook
   google-maps
@@ -47,11 +47,20 @@ my @config = qw(
   jolla-camera
 
 
-
   sailfish-office
-  jolla-notes
+
   retrofit-barcode
+
+
+
+  jolla-notes
+  screenshot
+  unplayer
+  waydroid-wd
+
+  harbour-pure-maps
   kill-lipstick2vnc
+
 
   okboard
   qtscreen-daemon
