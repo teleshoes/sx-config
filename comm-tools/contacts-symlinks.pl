@@ -253,7 +253,7 @@ sub main(@){
     my $timestampFmt;
     if(defined $$srcFileEntry{timestamp}){
       my $timestampSex = int($$srcFileEntry{timestamp} / 1000.0);
-      $timestampFmt = time2str "%Y%m%d-%H%M%S", $timestampSex;
+      $timestampFmt = time2str "%Y-%m-%d_%H%M%S", $timestampSex;
       chomp $timestampFmt;
     }else{
       $timestampFmt = undef;
