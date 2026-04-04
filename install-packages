@@ -84,6 +84,7 @@ my %packages = (
     jolla-notes
     jolla-calendar
     libvncserver
+    perl-Image-ExifTool
     python2-dbus
     sailfish-audiorecorder
     sailfish-office
