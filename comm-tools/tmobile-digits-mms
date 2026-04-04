@@ -444,7 +444,11 @@ sub handleMMS($$$$){
     die "ERROR: invalid MMS hash from $SMS_DB_IMPORTER in:\n$srcDescription\n";
   }
 
-  my $mmsRepoDir = "$MMS_REPO/${msgDateMillis}_${otherNumFmt}_${dir}_${checksum}";
+  my $epoch = int($msgDateMillis / 1000.0);
+  my $dtmFmt = `date --date='\@$epoch' '+%Y-%m-%d_%H%M%S'`;
+  chomp $dtmFmt;
+
+  my $mmsRepoDir = "$MMS_REPO/${dtmFmt}_${msgDateMillis}_${otherNumFmt}_${dir}_${checksum}";
   run "mkdir", "-p", $mmsRepoDir unless $$opts{dryRun};
 
   for my $attFile(@attFileList){
