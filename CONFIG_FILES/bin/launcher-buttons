@@ -43,7 +43,7 @@ my @config = qw(
 
   facebook
   google-maps
-  element
+  sailtrix
   jolla-camera
 
 
@@ -117,7 +117,7 @@ my @config = qw(
   sailfish-filemanager
   harbour-advanced-camera
   brave
-  sailtrix
+  element
 
   aurora-store
   axs
