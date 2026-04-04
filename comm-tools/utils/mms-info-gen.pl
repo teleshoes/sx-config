@@ -21,10 +21,11 @@ sub main(@){
   my $toFieldByMsgDir = getHardcodedToFieldByMsgDir();
   my $dateSentByMsgDir = getHardcodedDateSentByMsgDir();
   my @entries;
+  my $reDtmFmt = '\d\d\d\d-\d\d-\d\d_\d\d\d\d\d\d';
   for my $msgDir(`ls $MMS_REPO`){
     chomp $msgDir;
     next unless -d "$MMS_REPO/$msgDir";
-    if($msgDir !~ /^(\d+)_/){
+    if($msgDir !~ /^(?:$reDtmFmt)_(\d+)_/){
       die "malformed dir: $msgDir\n";
     }
     my $mtime = $1;
