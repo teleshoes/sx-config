@@ -362,8 +362,8 @@ sub parseSMSCallsMMSIntoRepo($){
     $dirName =~ s/^$MMS_MSG_REPO\/?//;
     if($dirName =~ /\// or not -d "$MMS_MSG_REPO/$dirName"){
       die "\nERROR: failed parsing mms dir '$msgDir'\n";
-    }elsif($dirName =~ /^(\d{13})_/){
-      my $dateMillis = $1;
+    }elsif($dirName =~ /^(\d\d\d\d-\d\d-\d\d_\d\d\d\d\d\d)_(\d{13})_/){
+      my ($dateFmt, $dateMillis) = ($1, $2);
       my $dateFracS = sprintf "%.3f", $dateMillis/1000.0;
       tryrunQuiet "touch", $msgDir, "-d", "\@$dateFracS";
     }else{
