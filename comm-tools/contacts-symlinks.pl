@@ -189,7 +189,7 @@ sub main(@){
     }
   }elsif($cmdType eq $CMD_TYPE_MMS){
     my $reDtmFmt = '\d\d\d\d-\d\d-\d\d_\d\d\d\d\d\d';
-    for my $file(glob "$srcDir/*_*_*_*"){
+    for my $file(glob "$srcDir/*_*_*_*_*"){
       if($file =~ /^.*\/(?:$reDtmFmt)_(\d+)_([0-9+]*)(?:-[0-9+]+)*_(INC|OUT|NTF)_([0-9a-f]+)$/){
         my $srcFileEntry = {
           file => $file,
@@ -207,7 +207,7 @@ sub main(@){
     }
   }elsif($cmdType eq $CMD_TYPE_MMSPIX){
     my $reDtmFmt = '\d\d\d\d-\d\d-\d\d_\d\d\d\d\d\d';
-    for my $file(glob "$srcDir/*_*_*_*/*.*"){
+    for my $file(glob "$srcDir/*_*_*_*_*/*.*"){
       if($file =~ /^.*\/(?:$reDtmFmt)_(\d+)_([0-9+]*)(?:-[0-9+]+)*_(INC|OUT|NTF)_([0-9a-f]+)\/(.*)\.(.+)$/){
         my $srcFileEntry = {
           file => $file,
