@@ -585,7 +585,12 @@ class MMS:
       quit(1)
     return csum
   def getMsgDirName(self):
+    dir_dtm_format = time.strftime("%Y-%m-%d_%H%M%S",
+      time.localtime(self.date_millis/1000))
+
     dirName = ""
+    dirName += dir_dtm_format
+    dirName += "_"
     dirName += str(self.date_millis)
     dirName += "_"
     if self.isOutgoing():
