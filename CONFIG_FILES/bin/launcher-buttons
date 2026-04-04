@@ -17,7 +17,7 @@ my @config = qw(
   sailfish-browser
 
   qtbtn-klomp
-  brave
+  cromite
   sgcam
   jolla-settings
 
@@ -116,7 +116,7 @@ my @config = qw(
 
   sailfish-filemanager
   harbour-advanced-camera
-  cromite
+  brave
 
   aurora-store
   axs
