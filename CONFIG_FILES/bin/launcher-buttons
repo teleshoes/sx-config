@@ -117,6 +117,7 @@ my @config = qw(
   sailfish-filemanager
   harbour-advanced-camera
   brave
+  sailtrix
 
   aurora-store
   axs
