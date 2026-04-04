@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Cwd qw(abs_path);
 use Date::Format qw(time2str);
-use File::Spec qw(abs2rel);
+use File::Spec;
 
 sub relSymlink($$);
 sub getContactsFromVcf($);
