@@ -116,6 +116,7 @@ my @config = qw(
 
   sailfish-filemanager
   harbour-advanced-camera
+  cromite
 
   aurora-store
   axs
@@ -187,6 +188,7 @@ my %androidLaunchers = (
   "chess"              => [0, "jwtc.android.chess",                        ".start",                                                          undef],
   "chrome"             => [0, "com.android.chrome",                        "com.google.android.apps.chrome.Main",                             undef],
   "coolreader"         => [1, "org.coolreader",                            ".CoolReader",                                                     undef],
+  "cromite"            => [0, "org.cromite.cromite",                       "com.google.android.apps.chrome.Main",                             undef],
   "discord"            => [0, "com.discord",                               ".app.AppActivity\$Main",                                          undef],
   "element"            => [0, "im.vector.app",                             "im.vector.app.features.Alias",                                    undef],
   "facebook"           => [0, "com.facebook.katana",                       ".LoginActivity",                                                  undef],
