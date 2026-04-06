@@ -699,7 +699,7 @@ sub createAppDesktopFiles(@){
     run "chattr", "-i", @userLaunchers;
 
     for my $appName(sort keys %androidLaunchers){
-      my ($pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
+      my ($waitMount, $pkg, $intent, $iconPath) = @{$androidLaunchers{$appName}};
       my $pkgNameFmt = $pkg;
       $pkgNameFmt =~ s/_/__/g;
       $pkgNameFmt =~ s/\W/_/g;
