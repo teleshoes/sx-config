@@ -149,6 +149,7 @@ my @config = qw(
   tribit
   whisker
   flashlighttoggle
+  koreader
 );
 
 my @unused = qw(
@@ -214,6 +215,7 @@ my %androidLaunchers = (
   "ivona-tts-amy"      => [0, "com.ivona.tts.voicebeta.eng.gbr.amy",       ".IvonaVoice",                                                     undef],
   "jitsi"              => [0, "org.jitsi.meet",                            ".MainActivity",                                                   undef],
   "kingdom"            => [0, "com.rawfury.kingdom2crowns",                "com.unity3d.player.UnityPlayerActivity",                          undef],
+  "koreader"           => [1, "org.koreader.launcher",                     ".MainActivity",                                                   undef],
   "librera-fd-pdf"     => [0, "com.foobnix.pro.pdf.reader",                "com.foobnix.ui2.MainTabs2",                                       undef],
   "microg-settings"    => [0, "com.google.android.gms",                    "org.microg.gms.ui.SettingsActivity",                              undef],
   "midea"              => [0, "com.midea.aircondition.obm",                ".activity.LoginActivity",                                         undef],
