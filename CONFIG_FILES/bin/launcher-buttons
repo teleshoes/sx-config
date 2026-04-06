@@ -148,6 +148,7 @@ my @config = qw(
   ticketmaster
   tribit
   whisker
+  flashlighttoggle
 );
 
 my @unused = qw(
@@ -205,6 +206,7 @@ my %androidLaunchers = (
   "fairynest"          => [0, "com.spled.aicontrol",                       ".activity.main.MainActivity",                                     undef],
   "fbmessenger"        => [0, "com.facebook.orca",                         ".auth.StartScreenActivity",                                       undef],
   "fdroid"             => [0, "org.fdroid.fdroid",                         ".views.main.MainActivity",                                        undef],
+  "flashlighttoggle"   => [0, "com.nomadicratio.flashlighttoggle",         ".MainActivity",                                                   undef],
   "ge-ac"              => [0, "com.ge.kitchen",                            "com.ge.cafe.SplashActivity",                                      undef],
   "google-maps"        => [0, "com.google.android.apps.maps",              "com.google.android.maps.MapsActivity",                            undef],
   "google-tts"         => [0, "com.google.android.tts",                    "android.app.AppDetailsActivity",                                  undef],
