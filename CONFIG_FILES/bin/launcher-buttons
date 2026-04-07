@@ -11,6 +11,7 @@ sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
 sub getValidAppNames();
 sub createAppDesktopFiles(@);
+sub freezeAppDesktopFiles();
 sub writeLipstickConfig(@);
 sub run(@);
 
@@ -448,6 +449,7 @@ sub rearrangeLauncherButtons(){
 
   my %okAllAppNamesOld = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
   createAppDesktopFiles(@appNames);
+  freezeAppDesktopFiles();
   my %okAllAppNamesNew = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
 
   writeLipstickConfig(@configItems);
@@ -697,6 +699,10 @@ sub createAppDesktopFiles(@){
       run "cp", "-a", $file, $DIR_ACTIVE_LAUNCHERS_MAIN;
     }
   }
+}
+
+sub freezeAppDesktopFiles(){
+  #delete desktop files and prevent replacement with chattr +i
 
   if($USE_ALIENDALVIK){
     run "mkdir", "-p", $DIR_BAK_FROZEN_LAUNCHERS;
