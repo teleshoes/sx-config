@@ -30,7 +30,7 @@ my $DIR_BAK_ALL_LAUNCHERS = '/opt/app-launchers';
 my $DIR_ACTIVE_LAUNCHERS_HOME = "/home/$USER/.local/share/applications";
 my $DIR_BAK_FROZEN_LAUNCHERS = '/opt/app-launchers-user';
 my $DIR_LIPSTICK_FOLDER_MENU = "/home/$USER/.config/lipstick";
-my $FILE_LIPSTICK_MENU_CONF = "/home/$USER/.config/lipstick/applications.menu";
+my $FILE_LIPSTICK_MENU_CONF = "$DIR_LIPSTICK_FOLDER_MENU/applications.menu";
 
 my $DIR_WAYDROID_APP_ICON_SRC = "/home/waydroid/data/icons";
 my $DIR_WAYDROID_APP_ICON_BACKUP = "$DIR_SDCARD/android-app-icons-wd";
