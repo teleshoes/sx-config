@@ -53,8 +53,6 @@ my @config = qw(
 
 
 
-  notes
-  screenshot
   unplayer
   waydroid-wd
 
@@ -70,7 +68,6 @@ my @config = qw(
   mimer
   waydroid-runner
   mediaplayer
-  meecast
 
 
   kingdom
@@ -173,6 +170,10 @@ my @config = qw(
   dir%misc%custom-icon-folder-misc[
     qtscreen-daemon
     kill-lipstick2vnc
+
+    notes
+    screenshot
+    meecast
   ]
 );
 
