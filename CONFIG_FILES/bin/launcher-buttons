@@ -12,14 +12,14 @@ my $SDCARD_DIR = "/media/sdcard/phone";
 
 my @config = qw(
   voicecall-ui
-  jolla-messages
+  messages
   fingerterm
   sailfish-browser
 
   qtbtn-klomp
   cromite
   sgcam
-  jolla-settings
+  settings
 
 
   tmobile-digits
@@ -27,16 +27,16 @@ my @config = qw(
   coolreader
 
   stellarium
-  jolla-clock
-  jolla-contacts
+  clock
+  contacts
   qtemail
 
-  jolla-calculator
+  calculator
   opencamera
-  jolla-calendar
+  calendar
 
 
-  jolla-gallery
+  gallery
 
   filetug
 
@@ -44,7 +44,7 @@ my @config = qw(
   facebook
   google-maps
   sailtrix
-  jolla-camera
+  camera
 
 
   sailfish-office
@@ -53,7 +53,7 @@ my @config = qw(
 
 
 
-  jolla-notes
+  notes
   screenshot
   unplayer
   waydroid-wd
@@ -79,7 +79,7 @@ my @config = qw(
 
   mimer
   waydroid-runner
-  jolla-mediaplayer
+  mediaplayer
   meecast
 
   storeman
@@ -155,7 +155,7 @@ my @config = qw(
 );
 
 my @unused = qw(
-  jolla-email
+  email
   sailfish-weather
   sailfish-tutorial
   sailfish-archive
