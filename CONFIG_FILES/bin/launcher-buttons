@@ -59,18 +59,15 @@ my @config = qw(
 
 
 
+  mobile-sheets
+  qtbtn-lap
   jollacompass
   compass-calib
 
-  sailfish-audiorecorder
-
   mediaplayer
-  traintime
-
-  qtbtn-lap
-  mobile-sheets
+  sailfish-audiorecorder
   newpipe
-
+  traintime
 
   dir%stores%custom-icon-folder-stores[
     storeman
