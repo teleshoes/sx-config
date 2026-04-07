@@ -26,8 +26,11 @@ my @config = qw(
   opencamera
   sgcam
 
-  settings
+  documents
+  calculator
 
+
+  settings
 
   gpsinfo
   coolreader
@@ -36,7 +39,6 @@ my @config = qw(
   clock
   qtemail
 
-  calculator
   calendar
 
 
@@ -48,9 +50,6 @@ my @config = qw(
   facebook
   google-maps
   sailtrix
-
-
-  documents
 
   retrofit-barcode
   jitsi
