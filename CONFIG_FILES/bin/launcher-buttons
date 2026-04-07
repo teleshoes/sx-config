@@ -440,7 +440,10 @@ sub rearrangeLauncherButtons(){
 
   run "pkill -9 lipstick";
 
-  my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $activeDir;
+  my %okActiveAppNames = map {$_ => 1} (
+    getAppNamesInDir $activeDir,
+    getAppNamesInDir $userDir,
+  );
 
   my @unusedItems = @unused;
   @unusedItems = applyConfigReplacements \@unusedItems, \@validAppNames;
@@ -655,6 +658,7 @@ sub getValidAppNames(){
   my %okAppNames;
   %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $allDir);
   %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $activeDir);
+  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $userDir);
   return sort keys %okAppNames;
 }
 
