@@ -41,22 +41,22 @@ my @config = qw(
   clock
   qtemail
 
+  filetug
+  sailfish-filemanager
+  gallery
+  timeline
 
   stellarium
 
 
 
-  gallery
 
-  filetug
 
 
 
   retrofit-barcode
   mpv
   vlc
-  sailfish-filemanager
-  timeline
 
 
 
