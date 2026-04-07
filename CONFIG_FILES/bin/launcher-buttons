@@ -50,9 +50,12 @@ my @config = qw(
   documents
 
   retrofit-barcode
-
-
-
+  tor
+  jitsi
+  mpv
+  vlc
+  sailfish-filemanager
+  timeline
 
 
 
@@ -62,30 +65,12 @@ my @config = qw(
   sailfish-audiorecorder
 
   mediaplayer
-
-
-
-
-
-  tor
-
-  jitsi
-
   traintime
 
-  vlc
-
   qtbtn-lap
-
-
-  sailfish-filemanager
-
   mobile-sheets
-  mpv
   newpipe
 
-
-  timeline
 
   dir%stores%custom-icon-folder-stores[
     storeman
