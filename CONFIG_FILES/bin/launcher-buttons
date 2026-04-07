@@ -13,7 +13,9 @@ my $SDCARD_DIR = "/media/sdcard/phone";
 my @config = qw(
   phone
   messages
+  contacts
   fingerterm
+
   sailfish-browser
 
   qtbtn-klomp
@@ -28,7 +30,6 @@ my @config = qw(
 
   stellarium
   clock
-  contacts
   qtemail
 
   calculator
