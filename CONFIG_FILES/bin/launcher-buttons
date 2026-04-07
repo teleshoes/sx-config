@@ -204,7 +204,7 @@ my @CONFIG = qw(
 );
 
 my @UNUSED = qw(
-  email
+  jolla-email
   sailfish-weather
   sailfish-tutorial
   sailfish-archive
