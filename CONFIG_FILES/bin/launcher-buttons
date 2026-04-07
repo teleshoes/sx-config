@@ -31,6 +31,8 @@ my @config = qw(
   facebook
   coolreader
 
+  jitsi
+  sailtrix
 
   settings
 
@@ -49,10 +51,8 @@ my @config = qw(
 
 
   google-maps
-  sailtrix
 
   retrofit-barcode
-  jitsi
   mpv
   vlc
   sailfish-filemanager
