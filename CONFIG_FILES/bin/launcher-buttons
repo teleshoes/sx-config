@@ -1,7 +1,9 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use File::Basename;
+use File::Basename qw(basename);
+use File::Compare qw(compare);
+use Time::HiRes qw(time);
 
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
@@ -11,8 +13,9 @@ sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
 sub getValidAppNames();
 sub createAppDesktopFiles(@);
-sub freezeAppDesktopFiles();
+sub freezeAppDesktopFiles(@);
 sub writeLipstickConfig(@);
+sub nowMillis();
 sub run(@);
 
 #in case running in a gui terminal
@@ -298,7 +301,9 @@ my %ANDROID_LAUNCHERS = (
   "youtube-vanced-mgr" => [0, "com.vanced.manager",                        ".ui.MainActivity",                                                undef],
 );
 
-
+my @DESKTOP_FILE_FREEZE_PATTERNS = (
+  "apkd_launcher_*-*",
+);
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %REPLACEMENT_REGEXS_WAYDROID = map {$_ => "^android-wd-$_\$"} sort keys %ANDROID_LAUNCHERS;
@@ -449,7 +454,7 @@ sub rearrangeLauncherButtons(){
 
   my %okAllAppNamesOld = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
   createAppDesktopFiles(@appNames);
-  freezeAppDesktopFiles();
+  freezeAppDesktopFiles(@DESKTOP_FILE_FREEZE_PATTERNS);
   my %okAllAppNamesNew = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
 
   writeLipstickConfig(@configItems);
@@ -701,30 +706,53 @@ sub createAppDesktopFiles(@){
   }
 }
 
-sub freezeAppDesktopFiles(){
+sub freezeAppDesktopFiles(@){
+  my @desktopFilePatterns = @_;
   #delete desktop files and prevent replacement with chattr +i
 
-  if($USE_ALIENDALVIK){
-    run "mkdir", "-p", $DIR_BAK_FROZEN_LAUNCHERS;
+  my @allActiveDesktopFiles = grep {-f $_} (
+    glob("$DIR_ACTIVE_LAUNCHERS_MAIN/*.desktop"),
+    glob("$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop"),
+  );
+  if(@allActiveDesktopFiles > 0){
+    run "chattr", "-i", @allActiveDesktopFiles;
+  }
 
-    my @userLaunchers = glob "$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop";
-    run "chattr", "-i", @userLaunchers;
+  for my $ptrn(@desktopFilePatterns){
+    my @desktopFiles = grep {-f $_} (
+      glob("$DIR_ACTIVE_LAUNCHERS_MAIN/$ptrn.desktop"),
+      glob("$DIR_ACTIVE_LAUNCHERS_HOME/$ptrn.desktop"),
+    );
 
-    for my $appName(sort keys %ANDROID_LAUNCHERS){
-      my ($waitMount, $pkg, $intent, $iconPath) = @{$ANDROID_LAUNCHERS{$appName}};
-      my $pkgNameFmt = $pkg;
-      $pkgNameFmt =~ s/_/__/g;
-      $pkgNameFmt =~ s/\W/_/g;
-      my @launchers = glob "$DIR_ACTIVE_LAUNCHERS_HOME/apkd_launcher_$pkgNameFmt-*.desktop";
-      for my $launcher(@launchers){
-        if(not -z $launcher){
-          #backup desktop file, create empty placeholder, and prevent deletion
-          run "mv", "--no-clobber", $launcher, "$DIR_BAK_FROZEN_LAUNCHERS/";
-          run "rm", "-f", $launcher;
-          run "touch", $launcher;
-          run "chattr", "+i", $launcher;
+    for my $desktopFile(@desktopFiles){
+      my $fileName = undef;
+      $fileName = $2 if $desktopFile =~ /^(.*\/)([^\/]*\.desktop)$/;
+      die "ERROR: malformed desktop file $desktopFile\n" if not defined $fileName;
+
+      if(not -z $desktopFile){
+        #backup non-empty launcher files
+        my $bakFile = "$DIR_BAK_FROZEN_LAUNCHERS/$fileName";
+        if(-e $bakFile and compare($desktopFile, $bakFile) != 0){
+          #retain old backups as archive if different
+          my $archiveBakFile = "$bakFile.old." . nowMillis();
+          run "mv", "--no-clobber", $bakFile, $archiveBakFile;
+          if(-e $bakFile){
+            die "ERROR: could not backup $desktopFile, $bakFile exists\n";
+          }
+          run "mv", "--no-clobber", $desktopFile, $bakFile;
+          if(-e $desktopFile){
+            die "ERROR: could not backup $desktopFile\n";
+          }
         }
       }
+      run "rm", "-f", $desktopFile;
+      if(-e $desktopFile){
+        die "ERROR: could not remove $desktopFile\n";
+      }
+
+      #create empty placeholder and prevent deletion
+      run "touch", $desktopFile;
+      run "chattr", "+i", $desktopFile;
     }
   }
 }
@@ -772,6 +800,10 @@ sub writeLipstickConfig(@){
   open FH, "> $FILE_LIPSTICK_MENU_CONF" or die "Couldnt write to $FILE_LIPSTICK_MENU_CONF\n";
   print FH $xml;
   close FH;
+}
+
+sub nowMillis(){
+  return int(time * 1000.0 + 0.5);
 }
 
 sub run(@){
