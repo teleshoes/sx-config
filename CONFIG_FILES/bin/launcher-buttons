@@ -23,22 +23,22 @@ my $USE_ALIENDALVIK = 1;
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $SDCARD_DIR = "/media/sdcard/phone";
+my $DIR_SDCARD = "/media/sdcard/phone";
 
-my $ACTIVE_DIR = '/usr/share/applications';
-my $ALL_DIR = '/opt/app-launchers';
-my $USER_DIR = "/home/$USER/.local/share/applications";
-my $ORIG_LAUNCHERS_USER_DIR = '/opt/app-launchers-user';
-my $DIRECTORY_FILE_DIR = "/home/$USER/.config/lipstick";
-my $CONF_FILE_DEST = "/home/$USER/.config/lipstick/applications.menu";
+my $DIR_ACTIVE_LAUNCHERS_MAIN = '/usr/share/applications';
+my $DIR_BAK_ALL_LAUNCHERS = '/opt/app-launchers';
+my $DIR_ACTIVE_LAUNCHERS_HOME = "/home/$USER/.local/share/applications";
+my $DIR_BAK_FROZEN_LAUNCHERS = '/opt/app-launchers-user';
+my $DIR_LIPSTICK_FOLDER_MENU = "/home/$USER/.config/lipstick";
+my $FILE_LIPSTICK_MENU_CONF = "/home/$USER/.config/lipstick/applications.menu";
 
-my $WAYDROID_SRC_APP_ICON_DIR = "/home/waydroid/data/icons";
-my $WAYDROID_BACKUP_APP_ICON_DIR = "$SDCARD_DIR/android-app-icons-wd";
-my $WAYDROID_DEST_APP_ICON_DIR = "/usr/share/icons/waydroid";
+my $DIR_WAYDROID_APP_ICON_SRC = "/home/waydroid/data/icons";
+my $DIR_WAYDROID_APP_ICON_BACKUP = "$DIR_SDCARD/android-app-icons-wd";
+my $DIR_WAYDROID_APP_ICON_DEST = "/usr/share/icons/waydroid";
 
-my $ALIENDALVIK_SRC_APP_ICON_DIR = "/home/$USER/.local/share/apkd-bridge/launcherIcon";
-my $ALIENDALVIK_BACKUP_APP_ICON_DIR = "$SDCARD_DIR/android-app-icons-ad";
-my $ALIENDALVIK_DEST_APP_ICON_DIR = "/usr/share/icons/aliendalvik";
+my $DIR_ALIENDALVIK_APP_ICON_SRC = "/home/$USER/.local/share/apkd-bridge/launcherIcon";
+my $DIR_ALIENDALVIK_APP_ICON_BACKUP = "$DIR_SDCARD/android-app-icons-ad";
+my $DIR_ALIENDALVIK_APP_ICON_DEST = "/usr/share/icons/aliendalvik";
 
 my $DEFAULT_ICON_NAME = "icon-launcher-folder-14";
 
@@ -344,17 +344,17 @@ my @EXTRA_INCLUDE_PATTERNS = qw(
 my $USAGE = "Usage:
   $0
     re-arrange launcher buttons and launcher dirs, potentially removing some
-      backs up desktop files to $ALL_DIR
-      before changing $ACTIVE_DIR and lipstick
+      backs up desktop files to $DIR_BAK_ALL_LAUNCHERS
+      before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
 
   $0 -g
     print a list of all app names from all desktop files
-      in $ALL_DIR and $ACTIVE_DIR
+      in $DIR_BAK_ALL_LAUNCHERS and $DIR_ACTIVE_LAUNCHERS_MAIN
 
   $0 --missing-config
     -get active desktop files from:
-      $ACTIVE_DIR
-      $USER_DIR
+      $DIR_ACTIVE_LAUNCHERS_MAIN
+      $DIR_ACTIVE_LAUNCHERS_HOME
     -do not include empty files (user dir placeholders)
     -do not include desktop files that are in config
     -do not include desktop files that are marked extra (no launchers)
@@ -362,9 +362,9 @@ my $USAGE = "Usage:
 
   $0 --inactive
     -get all desktop files from:
-      $ALL_DIR
+      $DIR_BAK_ALL_LAUNCHERS
     -do not include desktop files that are in:
-      $ACTIVE_DIR
+      $DIR_ACTIVE_LAUNCHERS_MAIN
     -do not include desktop files that are specifically marked unused
     -print the remaining inactive desktop files
 ";
@@ -390,8 +390,8 @@ sub main(@){
   if($cmd eq "get"){
     print map {"$_\n"} getValidAppNames();
   }elsif($cmd eq "inactive"){
-    my @allAppNames = getAppNamesInDir $ALL_DIR;
-    my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $ACTIVE_DIR;
+    my @allAppNames = getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
+    my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN;
     my @inactive = grep {not defined $okActiveAppNames{$_}} @allAppNames;
 
     my @validAppNames = getValidAppNames();
@@ -411,11 +411,11 @@ sub main(@){
     my @extraAppNames = map {$_ =~ s/\.desktop$//; $_} @EXTRA_INCLUDE_PATTERNS;
     my %okExtraAppNames = map {$_ => 1} @extraAppNames;
 
-    my @activeAppNames = getAppNamesInDir $ACTIVE_DIR;
+    my @activeAppNames = getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN;
 
-    my @nonEmptyUserLaunchers = grep {not -z $_} glob "$USER_DIR/*.desktop";
+    my @nonEmptyUserLaunchers = grep {not -z $_} glob "$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop";
     my @nonEmptyUserAppNames = map {
-      $_ =~ s/$USER_DIR\///;
+      $_ =~ s/$DIR_ACTIVE_LAUNCHERS_HOME\///;
       $_ =~ s/\.desktop$//;
       $_
     } @nonEmptyUserLaunchers;
@@ -444,17 +444,17 @@ sub rearrangeLauncherButtons(){
 
   my @appNames = grep {$_ !~ /^(dir%.*%.*\[|\])$/} @configItems;
 
-  my %okAllAppNamesOld = map {$_ => 1} getAppNamesInDir $ALL_DIR;
+  my %okAllAppNamesOld = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
   createAppDesktopFiles(@appNames);
-  my %okAllAppNamesNew = map {$_ => 1} getAppNamesInDir $ALL_DIR;
+  my %okAllAppNamesNew = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
 
   writeLipstickConfig(@configItems);
 
   run "pkill -9 lipstick";
 
   my %okActiveAppNames = map {$_ => 1} (
-    getAppNamesInDir $ACTIVE_DIR,
-    getAppNamesInDir $USER_DIR,
+    getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN,
+    getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_HOME,
   );
 
   my @unusedItems = @UNUSED;
@@ -484,32 +484,32 @@ sub rearrangeLauncherButtons(){
 }
 
 sub createAndroidDesktopFiles(){
-  run "rm -f $ACTIVE_DIR/android-wd-*.desktop";
-  run "rm -f $ALL_DIR/android-wd-*.desktop";
+  run "rm -f $DIR_ACTIVE_LAUNCHERS_MAIN/android-wd-*.desktop";
+  run "rm -f $DIR_BAK_ALL_LAUNCHERS/android-wd-*.desktop";
 
-  run "rm -f $ACTIVE_DIR/android-ad-*.desktop";
-  run "rm -f $ALL_DIR/android-ad-*.desktop";
+  run "rm -f $DIR_ACTIVE_LAUNCHERS_MAIN/android-ad-*.desktop";
+  run "rm -f $DIR_BAK_ALL_LAUNCHERS/android-ad-*.desktop";
 
   if($USE_WAYDROID){
-    run "mkdir", "-p", $WAYDROID_BACKUP_APP_ICON_DIR;
+    run "mkdir", "-p", $DIR_WAYDROID_APP_ICON_BACKUP;
     run "rsync", "-avP",
-      "$WAYDROID_SRC_APP_ICON_DIR/",
-      "$WAYDROID_BACKUP_APP_ICON_DIR/",
+      "$DIR_WAYDROID_APP_ICON_SRC/",
+      "$DIR_WAYDROID_APP_ICON_BACKUP/",
     ;
-    run "mkdir", "-p", $WAYDROID_DEST_APP_ICON_DIR;
+    run "mkdir", "-p", $DIR_WAYDROID_APP_ICON_DEST;
     run "rsync", "-avP",
-      "$WAYDROID_BACKUP_APP_ICON_DIR/",
-      "$WAYDROID_DEST_APP_ICON_DIR/",
+      "$DIR_WAYDROID_APP_ICON_BACKUP/",
+      "$DIR_WAYDROID_APP_ICON_DEST/",
     ;
     run "chown",
       "-R",
-      "$WAYDROID_DEST_APP_ICON_DIR/",
-      "--reference=$WAYDROID_DEST_APP_ICON_DIR/../",
+      "$DIR_WAYDROID_APP_ICON_DEST/",
+      "--reference=$DIR_WAYDROID_APP_ICON_DEST/../",
     ;
   }
   if($USE_ALIENDALVIK){
     my $adIcons = {};
-    for my $iconFile(glob "$ALIENDALVIK_SRC_APP_ICON_DIR/*.png"){
+    for my $iconFile(glob "$DIR_ALIENDALVIK_APP_ICON_SRC/*.png"){
       if($iconFile =~ /apkd_launcher_(\w+)-(.+).png/){
         my ($pkgNameFmt, $intentFmt) = ($1, $2);
         $pkgNameFmt =~ s/__/_/g;
@@ -517,28 +517,28 @@ sub createAndroidDesktopFiles(){
       }
     }
 
-    run "mkdir", "-p", $ALIENDALVIK_BACKUP_APP_ICON_DIR;
+    run "mkdir", "-p", $DIR_ALIENDALVIK_APP_ICON_BACKUP;
     for my $appName(sort keys %ANDROID_LAUNCHERS){
       my ($isWaitMount, $pkg, $intent, $iconPath) = @{$ANDROID_LAUNCHERS{$appName}};
       my $pkgNameFmt = $pkg;
       $pkgNameFmt =~ s/\W/_/g;
       my $iconFile = $$adIcons{$pkgNameFmt};
       if(defined $iconFile){
-        run "cp", "-ar", "$iconFile", "$ALIENDALVIK_BACKUP_APP_ICON_DIR/$pkg.png";
+        run "cp", "-ar", "$iconFile", "$DIR_ALIENDALVIK_APP_ICON_BACKUP/$pkg.png";
       }else{
         print "\n\nWARNING: no aliendalvik icon found for $appName - $pkg\n";
       }
     }
 
-    run "mkdir", "-p", $ALIENDALVIK_DEST_APP_ICON_DIR;
+    run "mkdir", "-p", $DIR_ALIENDALVIK_APP_ICON_DEST;
     run "rsync", "-avP",
-      "$ALIENDALVIK_BACKUP_APP_ICON_DIR/",
-      "$ALIENDALVIK_DEST_APP_ICON_DIR/",
+      "$DIR_ALIENDALVIK_APP_ICON_BACKUP/",
+      "$DIR_ALIENDALVIK_APP_ICON_DEST/",
     ;
     run "chown",
       "-R",
-      "$ALIENDALVIK_DEST_APP_ICON_DIR/",
-      "--reference=$ALIENDALVIK_DEST_APP_ICON_DIR/../",
+      "$DIR_ALIENDALVIK_APP_ICON_DEST/",
+      "--reference=$DIR_ALIENDALVIK_APP_ICON_DEST/../",
     ;
   }
 
@@ -569,11 +569,11 @@ sub createAndroidDesktopFile($$){
     $cmd .= " --skip-mount" unless $isWaitMount;
     $cmd .= " --app $appName '$fullIntent'";
     $desktopFilePrefix = "android-ad";
-    $androidIconDir = $ALIENDALVIK_DEST_APP_ICON_DIR;
+    $androidIconDir = $DIR_ALIENDALVIK_APP_ICON_DEST;
   }elsif($androidEnvName eq "waydroid"){
     $cmd = "/usr/local/bin/udo wd --launch-intent=\"$fullIntent\"";
     $desktopFilePrefix = "android-wd";
-    $androidIconDir = $WAYDROID_DEST_APP_ICON_DIR;
+    $androidIconDir = $DIR_WAYDROID_APP_ICON_DEST;
   }else{
     die "ERROR: unknown android environment $androidEnvName\n";
   }
@@ -581,7 +581,7 @@ sub createAndroidDesktopFile($$){
   my $iconPath = "$androidIconDir/$pkg.png";
   $iconPath = $iconPathOverride if defined $iconPathOverride;
 
-  my $desktopFile = "$ACTIVE_DIR/$desktopFilePrefix-$appName.desktop";
+  my $desktopFile = "$DIR_ACTIVE_LAUNCHERS_MAIN/$desktopFilePrefix-$appName.desktop";
   my $desktopContents = ""
     . "[Desktop Entry]\n"
     . "Name=$appName\n"
@@ -673,33 +673,33 @@ sub getAppNamesInDir($){
 
 sub getValidAppNames(){
   my %okAppNames;
-  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $ALL_DIR);
-  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $ACTIVE_DIR);
-  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $USER_DIR);
+  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS);
+  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN);
+  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_HOME);
   return sort keys %okAppNames;
 }
 
 sub createAppDesktopFiles(@){
   my @appNames = @_;
-  run "mkdir", "-p", $ALL_DIR;
-  my @active = glob "$ACTIVE_DIR/*.desktop";
+  run "mkdir", "-p", $DIR_BAK_ALL_LAUNCHERS;
+  my @active = glob "$DIR_ACTIVE_LAUNCHERS_MAIN/*.desktop";
 
-  run "rsync", "-avP", "--ignore-existing", @active, $ALL_DIR;
-  run "rm -rf $ACTIVE_DIR";
-  run "mkdir", "-p", $ACTIVE_DIR;
+  run "rsync", "-avP", "--ignore-existing", @active, $DIR_BAK_ALL_LAUNCHERS;
+  run "rm -rf $DIR_ACTIVE_LAUNCHERS_MAIN";
+  run "mkdir", "-p", $DIR_ACTIVE_LAUNCHERS_MAIN;
   for my $app(@appNames){
-    run "cp", "-a", "$ALL_DIR/$app.desktop", $ACTIVE_DIR;
+    run "cp", "-a", "$DIR_BAK_ALL_LAUNCHERS/$app.desktop", $DIR_ACTIVE_LAUNCHERS_MAIN;
   }
   for my $pattern(@EXTRA_INCLUDE_PATTERNS){
-    for my $file(glob "$ALL_DIR/$pattern"){
-      run "cp", "-a", $file, $ACTIVE_DIR;
+    for my $file(glob "$DIR_BAK_ALL_LAUNCHERS/$pattern"){
+      run "cp", "-a", $file, $DIR_ACTIVE_LAUNCHERS_MAIN;
     }
   }
 
   if($USE_ALIENDALVIK){
-    run "mkdir", "-p", $ORIG_LAUNCHERS_USER_DIR;
+    run "mkdir", "-p", $DIR_BAK_FROZEN_LAUNCHERS;
 
-    my @userLaunchers = glob "$USER_DIR/*.desktop";
+    my @userLaunchers = glob "$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop";
     run "chattr", "-i", @userLaunchers;
 
     for my $appName(sort keys %ANDROID_LAUNCHERS){
@@ -707,11 +707,11 @@ sub createAppDesktopFiles(@){
       my $pkgNameFmt = $pkg;
       $pkgNameFmt =~ s/_/__/g;
       $pkgNameFmt =~ s/\W/_/g;
-      my @launchers = glob "$USER_DIR/apkd_launcher_$pkgNameFmt-*.desktop";
+      my @launchers = glob "$DIR_ACTIVE_LAUNCHERS_HOME/apkd_launcher_$pkgNameFmt-*.desktop";
       for my $launcher(@launchers){
         if(not -z $launcher){
           #backup desktop file, create empty placeholder, and prevent deletion
-          run "mv", "--no-clobber", $launcher, "$ORIG_LAUNCHERS_USER_DIR/";
+          run "mv", "--no-clobber", $launcher, "$DIR_BAK_FROZEN_LAUNCHERS/";
           run "rm", "-f", $launcher;
           run "touch", $launcher;
           run "chattr", "+i", $launcher;
@@ -734,7 +734,7 @@ sub writeLipstickConfig(@){
     if($configItem =~ /^dir%(.*)%(.*)\[$/){
       my ($dirName, $icon) = ($1, $2);
       $icon = $DEFAULT_ICON_NAME if $icon eq "";
-      my $dirFilePath = "$DIRECTORY_FILE_DIR/dir-$dirName.directory";
+      my $dirFilePath = "$DIR_LIPSTICK_FOLDER_MENU/dir-$dirName.directory";
       $xml .= "$indent<Menu>\n";
       $xml .= "$indent    <Name>$dirName</Name>\n";
       $xml .= "$indent    <Directory>$dirFilePath</Directory>\n";
@@ -751,7 +751,7 @@ sub writeLipstickConfig(@){
   }
   $xml .= "</Menu>\n";
 
-  run "rm -f $DIRECTORY_FILE_DIR/*.directory";
+  run "rm -f $DIR_LIPSTICK_FOLDER_MENU/*.directory";
   for my $dirFilePath(sort keys %dirs){
     my $icon = $dirs{$dirFilePath};
     my $content = "[Desktop Entry]\nIcon=$icon\n";
@@ -761,7 +761,7 @@ sub writeLipstickConfig(@){
     run "chown", "$USER.$USER", $dirFilePath;
   }
 
-  open FH, "> $CONF_FILE_DEST" or die "Couldnt write to $CONF_FILE_DEST\n";
+  open FH, "> $FILE_LIPSTICK_MENU_CONF" or die "Couldnt write to $FILE_LIPSTICK_MENU_CONF\n";
   print FH $xml;
   close FH;
 }
