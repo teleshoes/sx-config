@@ -56,13 +56,11 @@ my @config = qw(
 
 
 
-  okboard
   jollacompass
   compass-calib
 
   sailfish-audiorecorder
 
-  mimer
   mediaplayer
 
 
@@ -83,12 +81,9 @@ my @config = qw(
 
   vlc
 
-  android-settings
   qtbtn-lap
 
-  mlsmanager
   sfos-forum-viewer
-  audio-output
 
   sailfish-filemanager
   element
@@ -97,13 +92,11 @@ my @config = qw(
   cavestory
   chess
   librera-fd-pdf
-  microg-settings
   mobile-sheets
   mpv
   retro-fitness
   riot
   runpee
-  flashlighttoggle
   newpipe
   koreader
   lifefitness
@@ -178,6 +171,14 @@ my @config = qw(
     youtube
     youtube-music
     youtube-vanced-mgr
+
+    audio-output
+    okboard
+    microg-settings
+    android-settings
+    flashlighttoggle
+    mimer
+    mlsmanager
   ]
 );
 
