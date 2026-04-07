@@ -80,12 +80,10 @@ my @config = qw(
 
   sailfish-filemanager
 
-  librera-fd-pdf
   mobile-sheets
   mpv
   retro-fitness
   newpipe
-  koreader
   lifefitness
 
 
@@ -181,6 +179,9 @@ my @config = qw(
     kingdom
     nesoid
     snes9x
+
+    librera-fd-pdf
+    koreader
   ]
 );
 
