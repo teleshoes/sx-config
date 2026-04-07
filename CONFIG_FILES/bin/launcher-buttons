@@ -207,10 +207,6 @@ my @UNUSED = qw(
   jolla-email
   sailfish-weather
   sailfish-tutorial
-  sailfish-archive
-  sailfish-installationhandler
-  openconnect-import
-  vpnc-import
   google-tts
   vanced-microg
   ivona-tts
@@ -338,14 +334,18 @@ my @EXTRA_INCLUDE_PATTERNS = qw(
   l2tp-import.desktop
   new-mail.desktop
   open-url.desktop
+  openconnect-import
   ovpn-import.desktop
   pptp-import.desktop
+  sailfish-archive
   sailfish-captiveportal.desktop
+  sailfish-installationhandler
   sailfish-office-openfile.desktop
   sailfish-share.desktop
   simkit.desktop
   store-client-install.desktop
   voicecall-ui-openurl.desktop
+  vpnc-import
   webcal-import.desktop
 );
 
