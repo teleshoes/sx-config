@@ -653,26 +653,20 @@ sub getValidAppNames(){
 
 sub addMissingPrefixes($$){
   my ($apps, $validAppNames) = @_;
-  my %jollas;
-  my %harbours;
-  for my $valid(@$validAppNames){
-    if($valid =~ m/^jolla-(.*)$/){
-      $jollas{$1} = 1
-    }
-    if($valid =~ m/^harbour-(.*)$/){
-      $harbours{$1} = 1
+  my %prefixReplacements;
+  for my $appReal(@$validAppNames){
+    if($appReal =~ /^(jolla-|harbour-)(.+)$/){
+      $prefixReplacements{$2} = $appReal;
     }
   }
   my @newApps;
-  for my $app(@$apps){
-    if(defined $jollas{$app}){
-      $app = "jolla-$app";
-      print "prepending 'jolla-' to $app\n";
-    }elsif(defined $harbours{$app}){
-      $app = "harbour-$app";
-      print "prepending 'harbour-' to $app\n";
+  for my $appCfg(@$apps){
+    if(defined $prefixReplacements{$appCfg}){
+      print "added prefix: $appCfg => $prefixReplacements{$appCfg}\n";
+      push @newApps, $prefixReplacements{$appCfg};
+    }else{
+      push @newApps, $appCfg;
     }
-    push @newApps, $app;
   }
   return @newApps;
 }
