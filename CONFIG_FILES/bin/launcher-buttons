@@ -28,6 +28,7 @@ my @config = qw(
 
   documents
   calculator
+  facebook
 
 
   settings
@@ -47,7 +48,6 @@ my @config = qw(
   filetug
 
 
-  facebook
   google-maps
   sailtrix
 
