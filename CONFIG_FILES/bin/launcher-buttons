@@ -85,6 +85,8 @@ my @config = qw(
   newpipe
 
 
+  timeline
+
   dir%stores%custom-icon-folder-stores[
     storeman
     store-client
