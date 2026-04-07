@@ -58,7 +58,7 @@ my @config = qw(
   unplayer
   waydroid-wd
 
-  harbour-pure-maps
+  pure-maps
   kill-lipstick2vnc
 
 
@@ -118,13 +118,13 @@ my @config = qw(
   qtbtn-lap
   rheem
 
-  harbour-mlsmanager
+  mlsmanager
   sfos-forum-viewer
   amazfish-ui
   audio-output
 
   sailfish-filemanager
-  harbour-advanced-camera
+  advanced-camera
   brave
   element
 
