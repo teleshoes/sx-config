@@ -67,14 +67,6 @@ my @config = qw(
   jollacompass
   compass-calib
 
-  lirr_isp_pen
-  lirr_pen_isp
-  lirr_bab_pen
-  lirr_pen_bab
-
-  lirr_isp_gc
-  lirr_gc_isp
-  lirrgui
   sailfish-audiorecorder
 
   mimer
@@ -167,6 +159,14 @@ my @config = qw(
   ]
 
   dir%lirr%custom-icon-folder-lirr[
+    lirr_isp_pen
+    lirr_pen_isp
+    lirr_bab_pen
+    lirr_pen_bab
+
+    lirr_isp_gc
+    lirr_gc_isp
+    lirrgui
   ]
 
   dir%apkd-launchers%custom-icon-folder-apkd[
