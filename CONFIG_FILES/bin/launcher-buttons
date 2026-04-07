@@ -322,7 +322,6 @@ sub ensureExecScriptOnDevice(@);
 sub applyConfigReplacements($$);
 sub getAppNamesInDir($);
 sub getValidAppNames();
-sub addMissingPrefix($$);
 sub createAppDesktopFiles(@);
 sub writeLipstickConfig(@);
 sub run(@);
@@ -395,7 +394,6 @@ sub main(@){
     my @configItems = @config;
     my @validAppNames = getValidAppNames();
     @configItems = applyConfigReplacements \@configItems, \@validAppNames;
-    @configItems = addMissingPrefixes([@configItems], [@validAppNames]);
     my %okConfigAppNames = map {$_ => 1} @configItems;
 
     my @extraAppNames = map {$_ =~ s/\.desktop$//; $_} @extraIncludePatterns;
@@ -431,7 +429,6 @@ sub rearrangeLauncherButtons(){
 
   my @configItems = @config;
   @configItems = applyConfigReplacements \@configItems, \@validAppNames;
-  @configItems = addMissingPrefixes([@configItems], [@validAppNames]);
 
   my @appNames = grep {$_ !~ /^(dir%.*%.*\[|\])$/} @configItems;
 
@@ -624,10 +621,20 @@ sub applyConfigReplacements($$){
     }
   }
 
+  my %prefixReplacements;
+  for my $appReal(@$validAppNames){
+    if($appReal =~ /^(jolla-|harbour-)(.+)$/){
+      $prefixReplacements{$2} = $appReal;
+    }
+  }
+
   my @replacedConfigItems;
   for my $item(@$configItems){
     if($item =~ /^(dir%.*%\[|\])$/){ #dont replace dir start/end items
       push @replacedConfigItems, $item;
+    }elsif(defined $prefixReplacements{$item}){
+      print "added prefix: $item => $prefixReplacements{$item}\n";
+      push @replacedConfigItems, $prefixReplacements{$item};
     }else{
       my $replacementItem = $replacements{$item};
       push @replacedConfigItems, defined $replacementItem ? $replacementItem : $item;
@@ -649,29 +656,6 @@ sub getValidAppNames(){
   %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $allDir);
   %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $activeDir);
   return sort keys %okAppNames;
-}
-
-sub addMissingPrefixes($$){
-  my ($configItems, $validAppNames) = @_;
-
-  my %prefixReplacements;
-  for my $appReal(@$validAppNames){
-    if($appReal =~ /^(jolla-|harbour-)(.+)$/){
-      $prefixReplacements{$2} = $appReal;
-    }
-  }
-
-  my @replacedConfigItems;
-  for my $item(@$configItems){
-    if(defined $prefixReplacements{$item}){
-      print "added prefix: $item => $prefixReplacements{$item}\n";
-      push @replacedConfigItems, $prefixReplacements{$item};
-    }else{
-      push @replacedConfigItems, $item;
-    }
-  }
-
-  return @replacedConfigItems;
 }
 
 sub createAppDesktopFiles(@){
