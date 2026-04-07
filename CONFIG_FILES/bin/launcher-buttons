@@ -11,7 +11,7 @@ my $USE_ALIENDALVIK = 1;
 my $SDCARD_DIR = "/media/sdcard/phone";
 
 my @config = qw(
-  voicecall-ui
+  phone
   messages
   fingerterm
   sailfish-browser
@@ -262,6 +262,7 @@ my %replacementRegexsAliendalvik = map {$_ => "^android-ad-$_\$"} sort keys %and
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %replacementRegexs = (
+  'phone'            => qw/^voicecall-ui$/,
   'lirrgui'          => qw/^lirrtraintime$/,
 
   ($USE_WAYDROID ? %replacementRegexsWaydroid : ()),
