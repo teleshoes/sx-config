@@ -14,6 +14,9 @@ sub createAppDesktopFiles(@);
 sub writeLipstickConfig(@);
 sub run(@);
 
+#in case running in a gui terminal
+$SIG{HUP} = sub { print STDERR "Caught a sighup $!" };
+
 my $IPMAGIC_NAME = "sx";
 
 my $USE_WAYDROID = 0;
@@ -336,9 +339,6 @@ my $WAYDROID_DEST_APP_ICON_DIR = "/usr/share/icons/waydroid";
 my $ALIENDALVIK_SRC_APP_ICON_DIR = "/home/$USER/.local/share/apkd-bridge/launcherIcon";
 my $ALIENDALVIK_BACKUP_APP_ICON_DIR = "$SDCARD_DIR/android-app-icons-ad";
 my $ALIENDALVIK_DEST_APP_ICON_DIR = "/usr/share/icons/aliendalvik";
-
-#in case running in a gui terminal
-$SIG{HUP} = sub { print STDERR "Caught a sighup $!" };
 
 my $USAGE = "Usage:
   $0
