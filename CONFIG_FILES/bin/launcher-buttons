@@ -121,6 +121,7 @@ my @CONFIG = qw(
   ]
 
   dir%apkd-launchers%custom-icon-folder-apkd[
+    apkd_launcher_*
   ]
 
   dir%misc%custom-icon-folder-misc[
