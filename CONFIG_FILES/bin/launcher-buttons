@@ -3,6 +3,17 @@ use strict;
 use warnings;
 use File::Basename;
 
+sub rearrangeLauncherButtons();
+sub createAndroidDesktopFiles();
+sub createAndroidDesktopFile($$);
+sub ensureExecScriptOnDevice(@);
+sub applyConfigReplacements($$);
+sub getAppNamesInDir($);
+sub getValidAppNames();
+sub createAppDesktopFiles(@);
+sub writeLipstickConfig(@);
+sub run(@);
+
 my $ipmagicName = "sx";
 
 my $USE_WAYDROID = 0;
@@ -324,17 +335,6 @@ my $waydroidDestAppIconDir = "/usr/share/icons/waydroid";
 my $aliendalvikSrcAppIconDir = "/home/$user/.local/share/apkd-bridge/launcherIcon";
 my $aliendalvikBackupAppIconDir = "$SDCARD_DIR/android-app-icons-ad";
 my $aliendalvikDestAppIconDir = "/usr/share/icons/aliendalvik";
-
-sub rearrangeLauncherButtons();
-sub createAndroidDesktopFiles();
-sub createAndroidDesktopFile($$);
-sub ensureExecScriptOnDevice(@);
-sub applyConfigReplacements($$);
-sub getAppNamesInDir($);
-sub getValidAppNames();
-sub createAppDesktopFiles(@);
-sub writeLipstickConfig(@);
-sub run(@);
 
 #in case running in a gui terminal
 $SIG{HUP} = sub { print STDERR "Caught a sighup $!" };
