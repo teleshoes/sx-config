@@ -82,12 +82,7 @@ my @config = qw(
   mediaplayer
   meecast
 
-  storeman
-  store-client
-  sailfishos-chum-gui
-  aptoide
 
-  fdroid
   kingdom
   nesoid
   snes9x
@@ -128,7 +123,6 @@ my @config = qw(
   brave
   element
 
-  aurora-store
   axs
   band-chat
   bromite
@@ -155,6 +149,12 @@ my @config = qw(
 
 
   dir%stores%custom-icon-folder-stores[
+    storeman
+    store-client
+    sailfishos-chum-gui
+    aptoide
+    fdroid
+    aurora-store
   ]
 
   dir%browsers%custom-icon-folder-browsers[
