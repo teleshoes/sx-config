@@ -26,9 +26,11 @@ my $USER = "nemo";
 my $DIR_SDCARD = "/media/sdcard/phone";
 
 my $DIR_ACTIVE_LAUNCHERS_MAIN = '/usr/share/applications';
-my $DIR_BAK_ALL_LAUNCHERS = '/opt/app-launchers';
 my $DIR_ACTIVE_LAUNCHERS_HOME = "/home/$USER/.local/share/applications";
+
+my $DIR_BAK_ALL_LAUNCHERS = '/opt/app-launchers';
 my $DIR_BAK_FROZEN_LAUNCHERS = '/opt/app-launchers-user';
+
 my $DIR_LIPSTICK_FOLDER_MENU = "/home/$USER/.config/lipstick";
 my $FILE_LIPSTICK_MENU_CONF = "$DIR_LIPSTICK_FOLDER_MENU/applications.menu";
 
