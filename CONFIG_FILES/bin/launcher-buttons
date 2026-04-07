@@ -36,14 +36,14 @@ my @config = qw(
   google-maps
   gpsinfo
 
+  calendar
   settings
-
-
-  stellarium
   clock
   qtemail
 
-  calendar
+
+  stellarium
+
 
 
   gallery
