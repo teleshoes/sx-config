@@ -16,6 +16,7 @@ my @config = qw(
   contacts
   fingerterm
 
+  tmobile-digits
   sailfish-browser
 
   qtbtn-klomp
@@ -24,7 +25,6 @@ my @config = qw(
   settings
 
 
-  tmobile-digits
   gpsinfo
   coolreader
 
