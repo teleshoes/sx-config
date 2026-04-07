@@ -33,10 +33,11 @@ my @config = qw(
 
   jitsi
   sailtrix
+  google-maps
+  gpsinfo
 
   settings
 
-  gpsinfo
 
   stellarium
   clock
@@ -50,7 +51,6 @@ my @config = qw(
   filetug
 
 
-  google-maps
 
   retrofit-barcode
   mpv
