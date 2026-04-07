@@ -638,6 +638,11 @@ sub applyConfigReplacements($$){
     }elsif(defined $prefixReplacements{$item}){
       print "added prefix: $item => $prefixReplacements{$item}\n";
       push @replacedConfigItems, $prefixReplacements{$item};
+    }elsif($item =~ /\*/){
+      my $regex = $item;
+      $regex =~ s/\*/.*/g;
+      my @matchingApps = grep {/^$regex$/} @$validAppNames;
+      @replacedConfigItems = (@replacedConfigItems, @matchingApps);
     }else{
       my $replacementItem = $replacements{$item};
       push @replacedConfigItems, defined $replacementItem ? $replacementItem : $item;
