@@ -64,9 +64,6 @@ my @config = qw(
   mediaplayer
 
 
-  kingdom
-  nesoid
-  snes9x
 
 
 
@@ -83,8 +80,6 @@ my @config = qw(
 
   sailfish-filemanager
 
-  cavestory
-  chess
   librera-fd-pdf
   mobile-sheets
   mpv
@@ -180,6 +175,12 @@ my @config = qw(
     runpee
     sfos-forum-viewer
     fbmessenger
+
+    cavestory
+    chess
+    kingdom
+    nesoid
+    snes9x
   ]
 );
 
