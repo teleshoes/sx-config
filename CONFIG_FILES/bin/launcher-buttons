@@ -46,15 +46,8 @@ my @config = qw(
   gallery
   timeline
 
-  stellarium
-
-
-
-
-
-
-
   retrofit-barcode
+  stellarium
   mpv
   vlc
 
