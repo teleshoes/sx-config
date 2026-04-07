@@ -89,7 +89,6 @@ my @config = qw(
 
 
 
-  chrome
   tor
   discord
   fbmessenger
@@ -120,12 +119,10 @@ my @config = qw(
 
   sailfish-filemanager
   advanced-camera
-  brave
   element
 
   axs
   band-chat
-  bromite
   cavestory
   chess
   ge-ac
@@ -158,6 +155,9 @@ my @config = qw(
   ]
 
   dir%browsers%custom-icon-folder-browsers[
+    chrome
+    brave
+    bromite
   ]
 
   dir%tickets%custom-icon-folder-tickets[
