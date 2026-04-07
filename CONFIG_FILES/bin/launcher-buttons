@@ -55,7 +55,6 @@ my @config = qw(
 
   unplayer
 
-  pure-maps
 
 
   okboard
@@ -89,7 +88,6 @@ my @config = qw(
   youtube-vanced-mgr
 
   android-settings
-  modrana
   qtbtn-lap
 
   mlsmanager
@@ -175,6 +173,9 @@ my @config = qw(
 
     waydroid-wd
     waydroid-runner
+
+    pure-maps
+    modrana
   ]
 );
 
