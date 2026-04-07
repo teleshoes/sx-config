@@ -59,11 +59,9 @@ my @config = qw(
   waydroid-wd
 
   pure-maps
-  kill-lipstick2vnc
 
 
   okboard
-  qtscreen-daemon
   jollacompass
   compass-calib
 
@@ -173,6 +171,8 @@ my @config = qw(
   ]
 
   dir%misc%custom-icon-folder-misc[
+    qtscreen-daemon
+    kill-lipstick2vnc
   ]
 );
 
