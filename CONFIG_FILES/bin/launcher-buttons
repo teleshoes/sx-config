@@ -99,7 +99,6 @@ my @config = qw(
   jitsi
 
   textfree
-  tkts
   traintime
 
   vlc
@@ -121,7 +120,6 @@ my @config = qw(
   advanced-camera
   element
 
-  axs
   band-chat
   cavestory
   chess
@@ -134,9 +132,6 @@ my @config = qw(
   retro-fitness
   riot
   runpee
-  seatgeek
-  stubhub
-  ticketmaster
   tribit
   whisker
   flashlighttoggle
@@ -161,6 +156,11 @@ my @config = qw(
   ]
 
   dir%tickets%custom-icon-folder-tickets[
+    axs
+    seatgeek
+    stubhub
+    tkts
+    ticketmaster
   ]
 
   dir%devices%custom-icon-folder-devices[
