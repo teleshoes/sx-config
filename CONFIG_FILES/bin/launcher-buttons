@@ -71,32 +71,24 @@ my @config = qw(
 
 
   tor
-  discord
-  fbmessenger
 
   jitsi
 
-  textfree
   traintime
 
   vlc
 
   qtbtn-lap
 
-  sfos-forum-viewer
 
   sailfish-filemanager
-  element
 
-  band-chat
   cavestory
   chess
   librera-fd-pdf
   mobile-sheets
   mpv
   retro-fitness
-  riot
-  runpee
   newpipe
   koreader
   lifefitness
@@ -179,6 +171,15 @@ my @config = qw(
     flashlighttoggle
     mimer
     mlsmanager
+
+    element
+    riot
+    textfree
+    band-chat
+    discord
+    runpee
+    sfos-forum-viewer
+    fbmessenger
   ]
 );
 
