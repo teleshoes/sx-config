@@ -17,12 +17,30 @@ sub run(@);
 #in case running in a gui terminal
 $SIG{HUP} = sub { print STDERR "Caught a sighup $!" };
 
-my $IPMAGIC_NAME = "sx";
-
 my $USE_WAYDROID = 0;
 my $USE_ALIENDALVIK = 1;
 
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
 my $SDCARD_DIR = "/media/sdcard/phone";
+
+my $ACTIVE_DIR = '/usr/share/applications';
+my $ALL_DIR = '/opt/app-launchers';
+my $USER_DIR = "/home/$USER/.local/share/applications";
+my $ORIG_LAUNCHERS_USER_DIR = '/opt/app-launchers-user';
+my $DIRECTORY_FILE_DIR = "/home/$USER/.config/lipstick";
+my $CONF_FILE_DEST = "/home/$USER/.config/lipstick/applications.menu";
+
+my $WAYDROID_SRC_APP_ICON_DIR = "/home/waydroid/data/icons";
+my $WAYDROID_BACKUP_APP_ICON_DIR = "$SDCARD_DIR/android-app-icons-wd";
+my $WAYDROID_DEST_APP_ICON_DIR = "/usr/share/icons/waydroid";
+
+my $ALIENDALVIK_SRC_APP_ICON_DIR = "/home/$USER/.local/share/apkd-bridge/launcherIcon";
+my $ALIENDALVIK_BACKUP_APP_ICON_DIR = "$SDCARD_DIR/android-app-icons-ad";
+my $ALIENDALVIK_DEST_APP_ICON_DIR = "/usr/share/icons/aliendalvik";
+
+my $DEFAULT_ICON_NAME = "icon-launcher-folder-14";
 
 my @CONFIG = qw(
   phone
@@ -322,23 +340,6 @@ my @EXTRA_INCLUDE_PATTERNS = qw(
   voicecall-ui-openurl.desktop
   webcal-import.desktop
 );
-
-my $USER = "nemo";
-my $DEFAULT_ICON_NAME = "icon-launcher-folder-14";
-my $ACTIVE_DIR = '/usr/share/applications';
-my $ALL_DIR = '/opt/app-launchers';
-my $USER_DIR = "/home/$USER/.local/share/applications";
-my $ORIG_LAUNCHERS_USER_DIR = '/opt/app-launchers-user';
-my $DIRECTORY_FILE_DIR = "/home/$USER/.config/lipstick";
-my $CONF_FILE_DEST = "/home/$USER/.config/lipstick/applications.menu";
-
-my $WAYDROID_SRC_APP_ICON_DIR = "/home/waydroid/data/icons";
-my $WAYDROID_BACKUP_APP_ICON_DIR = "$SDCARD_DIR/android-app-icons-wd";
-my $WAYDROID_DEST_APP_ICON_DIR = "/usr/share/icons/waydroid";
-
-my $ALIENDALVIK_SRC_APP_ICON_DIR = "/home/$USER/.local/share/apkd-bridge/launcherIcon";
-my $ALIENDALVIK_BACKUP_APP_ICON_DIR = "$SDCARD_DIR/android-app-icons-ad";
-my $ALIENDALVIK_DEST_APP_ICON_DIR = "/usr/share/icons/aliendalvik";
 
 my $USAGE = "Usage:
   $0
