@@ -22,7 +22,10 @@ my @config = qw(
   cromite
 
   qtbtn-klomp
+  camera
+  opencamera
   sgcam
+
   settings
 
 
@@ -34,7 +37,6 @@ my @config = qw(
   qtemail
 
   calculator
-  opencamera
   calendar
 
 
@@ -46,7 +48,6 @@ my @config = qw(
   facebook
   google-maps
   sailtrix
-  camera
 
 
   documents
