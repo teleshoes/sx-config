@@ -53,7 +53,6 @@ my @config = qw(
 
 
 
-  unplayer
 
 
 
@@ -95,7 +94,6 @@ my @config = qw(
   audio-output
 
   sailfish-filemanager
-  advanced-camera
   element
 
   band-chat
@@ -176,6 +174,9 @@ my @config = qw(
 
     pure-maps
     modrana
+
+    advanced-camera
+    unplayer
   ]
 );
 
