@@ -54,7 +54,6 @@ my @config = qw(
 
 
   unplayer
-  waydroid-wd
 
   pure-maps
 
@@ -66,7 +65,6 @@ my @config = qw(
   sailfish-audiorecorder
 
   mimer
-  waydroid-runner
   mediaplayer
 
 
@@ -174,6 +172,9 @@ my @config = qw(
     notes
     screenshot
     meecast
+
+    waydroid-wd
+    waydroid-runner
   ]
 );
 
