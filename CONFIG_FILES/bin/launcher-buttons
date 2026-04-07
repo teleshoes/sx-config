@@ -302,7 +302,8 @@ my %ANDROID_LAUNCHERS = (
 );
 
 my @DESKTOP_FILE_FREEZE_PATTERNS = (
-  "apkd_launcher_*-*",
+  ### skip freezing apkd launchers, move to apkd dir instead
+  # "apkd_launcher_*-*",
 );
 
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
