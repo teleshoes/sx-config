@@ -210,7 +210,6 @@ my @UNUSED = qw(
   sailfish-archive
   sailfish-installationhandler
   openconnect-import
-  sailfish-captiveportal
   vpnc-import
   google-tts
   vanced-microg
