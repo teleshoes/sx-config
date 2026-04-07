@@ -82,9 +82,7 @@ my @config = qw(
 
   mobile-sheets
   mpv
-  retro-fitness
   newpipe
-  lifefitness
 
 
   dir%stores%custom-icon-folder-stores[
@@ -182,6 +180,9 @@ my @config = qw(
 
     librera-fd-pdf
     koreader
+
+    retro-fitness
+    lifefitness
   ]
 );
 
