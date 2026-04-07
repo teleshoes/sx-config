@@ -652,23 +652,26 @@ sub getValidAppNames(){
 }
 
 sub addMissingPrefixes($$){
-  my ($apps, $validAppNames) = @_;
+  my ($configItems, $validAppNames) = @_;
+
   my %prefixReplacements;
   for my $appReal(@$validAppNames){
     if($appReal =~ /^(jolla-|harbour-)(.+)$/){
       $prefixReplacements{$2} = $appReal;
     }
   }
-  my @newApps;
-  for my $appCfg(@$apps){
-    if(defined $prefixReplacements{$appCfg}){
-      print "added prefix: $appCfg => $prefixReplacements{$appCfg}\n";
-      push @newApps, $prefixReplacements{$appCfg};
+
+  my @replacedConfigItems;
+  for my $item(@$configItems){
+    if(defined $prefixReplacements{$item}){
+      print "added prefix: $item => $prefixReplacements{$item}\n";
+      push @replacedConfigItems, $prefixReplacements{$item};
     }else{
-      push @newApps, $appCfg;
+      push @replacedConfigItems, $item;
     }
   }
-  return @newApps;
+
+  return @replacedConfigItems;
 }
 
 sub createAppDesktopFiles(@){
