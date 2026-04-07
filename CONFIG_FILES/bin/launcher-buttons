@@ -93,9 +93,6 @@ my @config = qw(
   discord
   fbmessenger
 
-  fairynest
-  midea
-  mystrom
   jitsi
 
   textfree
@@ -109,11 +106,9 @@ my @config = qw(
   android-settings
   modrana
   qtbtn-lap
-  rheem
 
   mlsmanager
   sfos-forum-viewer
-  amazfish-ui
   audio-output
 
   sailfish-filemanager
@@ -123,17 +118,13 @@ my @config = qw(
   band-chat
   cavestory
   chess
-  ge-ac
   librera-fd-pdf
   microg-settings
   mobile-sheets
   mpv
-  petsafe
   retro-fitness
   riot
   runpee
-  tribit
-  whisker
   flashlighttoggle
   newpipe
   koreader
@@ -164,6 +155,15 @@ my @config = qw(
   ]
 
   dir%devices%custom-icon-folder-devices[
+    fairynest
+    midea
+    mystrom
+    rheem
+    ge-ac
+    petsafe
+    tribit
+    amazfish-ui
+    whisker
   ]
 
   dir%lirr%custom-icon-folder-lirr[
