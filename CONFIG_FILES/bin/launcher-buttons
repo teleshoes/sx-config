@@ -47,7 +47,7 @@ my @config = qw(
   camera
 
 
-  sailfish-office
+  documents
 
   retrofit-barcode
 
@@ -263,6 +263,7 @@ my %replacementRegexsAliendalvik = map {$_ => "^android-ad-$_\$"} sort keys %and
 # APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
 my %replacementRegexs = (
   'phone'            => qw/^voicecall-ui$/,
+  'documents'        => qw/^sailfish-office$/,
   'lirrgui'          => qw/^lirrtraintime$/,
 
   ($USE_WAYDROID ? %replacementRegexsWaydroid : ()),
