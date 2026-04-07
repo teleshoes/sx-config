@@ -18,9 +18,10 @@ my @config = qw(
 
   tmobile-digits
   sailfish-browser
+  tor
+  cromite
 
   qtbtn-klomp
-  cromite
   sgcam
   settings
 
@@ -51,7 +52,6 @@ my @config = qw(
   documents
 
   retrofit-barcode
-  tor
   jitsi
   mpv
   vlc
