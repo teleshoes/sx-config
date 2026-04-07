@@ -152,6 +152,28 @@ my @config = qw(
   newpipe
   koreader
   lifefitness
+
+
+  dir%stores%custom-icon-folder-stores[
+  ]
+
+  dir%browsers%custom-icon-folder-browsers[
+  ]
+
+  dir%tickets%custom-icon-folder-tickets[
+  ]
+
+  dir%devices%custom-icon-folder-devices[
+  ]
+
+  dir%lirr%custom-icon-folder-lirr[
+  ]
+
+  dir%apkd-launchers%custom-icon-folder-apkd[
+  ]
+
+  dir%misc%custom-icon-folder-misc[
+  ]
 );
 
 my @unused = qw(
