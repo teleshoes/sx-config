@@ -389,11 +389,15 @@ my $USAGE = "Usage:
     -print the remaining inactive desktop files
 
   OPTS
+    -k | --keep-lipstick | --no-restart-lipstick
+      do not kill lipstick
+      do not stop, start, or restart lipstick service
 ";
 
 sub main(@){
   my $mode = $MODE_REARRANGE;
   my $opts = {
+    restartLipstick => 1,
   };
   while(@_ > 0){
     my $arg = shift @_;
@@ -406,6 +410,8 @@ sub main(@){
       $mode = $MODE_INACTIVE;
     }elsif($arg =~ /^(--missing-config)$/){
       $mode = $MODE_MISSING_CONFIG;
+    }elsif($arg =~ /^(-k|--keep-lipstick|--no-restart-lipstick)$/){
+      $$opts{restartLipstick} = 0;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -456,9 +462,9 @@ sub main(@){
     print "\n\nmissing config entries:\n";
     print map {"$_\n"} @missingAppNames;
   }elsif($mode eq $MODE_REARRANGE){
-    stopLipstick();
+    stopLipstick() if $$opts{restartLipstick};
     rearrangeLauncherButtons();
-    startLipstick();
+    startLipstick() if $$opts{restartLipstick};
   }else{
     die "ERROR: unknown mode $mode\n";
   }
