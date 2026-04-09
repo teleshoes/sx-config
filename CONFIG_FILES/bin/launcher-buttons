@@ -305,20 +305,16 @@ my @DESKTOP_FILE_FREEZE_PATTERNS = (
   # "apkd_launcher_*-*",
 );
 
-# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
-my %REPLACEMENT_REGEXS_WAYDROID = map {$_ => "^android-wd-$_\$"} sort keys %ANDROID_LAUNCHERS;
-
-# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
-my %REPLACEMENT_REGEXS_ALIENDALVIK = map {$_ => "^android-ad-$_\$"} sort keys %ANDROID_LAUNCHERS;
-
-# APP_NAME_ALIAS => REAL_DESKTOP_FILE_REGEX
-my %REPLACEMENT_REGEXS = (
-  'phone'            => qw/^voicecall-ui$/,
-  'documents'        => qw/^sailfish-office$/,
-  'lirrgui'          => qw/^lirrtraintime$/,
-
-  ($USE_WAYDROID ? %REPLACEMENT_REGEXS_WAYDROID : ()),
-  ($USE_ALIENDALVIK ? %REPLACEMENT_REGEXS_ALIENDALVIK : ()),
+my @OPTIONAL_PREFIXES = qw(
+  jolla-
+  harbour-
+  android-wd-
+  android-ad-
+);
+my %PATTERN_SYNONYMS = (
+  phone     => "voicecall-ui",
+  documents => "sailfish-office",
+  lirrgui   => "lirrtraintime",
 );
 
 #desktop files with no launchers
@@ -661,25 +657,12 @@ sub ensureExecScriptOnDevice(){
 sub applyConfigReplacements($$){
   my ($configItems, $validAppNames) = @_;
 
-  my %replacements;
-  for my $fakeAppName(sort keys %REPLACEMENT_REGEXS){
-    my $regex = $REPLACEMENT_REGEXS{$fakeAppName};
-    my $found = 0;
-    for my $validAppName(@$validAppNames){
-      if($validAppName =~ /$regex/){
-        $replacements{$fakeAppName} = $validAppName;
-        $found = 1;
-      }
-    }
-    if(not $found){
-      $replacements{$fakeAppName} = $regex;
-    }
-  }
-
-  my %prefixReplacements;
-  for my $appReal(@$validAppNames){
-    if($appReal =~ /^(jolla-|harbour-)(.+)$/){
-      $prefixReplacements{$2} = $appReal;
+  my %prefixApps;
+  my $prefixRegex = join "|", @OPTIONAL_PREFIXES;
+  for my $appNameReal(@$validAppNames){
+    if($appNameReal =~ /^($prefixRegex)(.+)$/){
+      my $unprefixedAppName = $2;
+      $prefixApps{$unprefixedAppName} = $appNameReal;
     }
   }
 
@@ -687,17 +670,15 @@ sub applyConfigReplacements($$){
   for my $item(@$configItems){
     if($item =~ /^(dir%.*%\[|\])$/){ #dont replace dir start/end items
       push @replacedConfigItems, $item;
-    }elsif(defined $prefixReplacements{$item}){
-      print "added prefix: $item => $prefixReplacements{$item}\n";
-      push @replacedConfigItems, $prefixReplacements{$item};
     }elsif($item =~ /\*/){
       my $regex = $item;
       $regex =~ s/\*/.*/g;
       my @matchingApps = grep {/^$regex$/} @$validAppNames;
       @replacedConfigItems = (@replacedConfigItems, @matchingApps);
     }else{
-      my $replacementItem = $replacements{$item};
-      push @replacedConfigItems, defined $replacementItem ? $replacementItem : $item;
+      $item = $PATTERN_SYNONYMS{$item} if defined $PATTERN_SYNONYMS{$item};
+      $item = $prefixApps{$item} if defined $prefixApps{$item};
+      push @replacedConfigItems, $item;
     }
   }
 
