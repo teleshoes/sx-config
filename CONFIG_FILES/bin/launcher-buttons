@@ -376,12 +376,9 @@ my $USAGE = "Usage:
     -print the remaining desktop files that would be removed by rearrange
 
   $EXEC [OPTS] --inactive
-    -get all desktop files from:
-      $DIR_BAK_ALL_LAUNCHERS
-    -do not include desktop files that are in:
+    -list all *.desktop.disabled* files in:
       $DIR_ACTIVE_LAUNCHERS_MAIN
-    -do not include desktop files that are specifically marked unused
-    -print the remaining inactive desktop files
+      $DIR_ACTIVE_LAUNCHERS_HOME
 
   OPTS
     -k | --keep-lipstick | --no-restart-lipstick
@@ -419,18 +416,14 @@ sub main(@){
   if($mode eq $MODE_GET){
     print map {"$_\n"} getValidAppNames();
   }elsif($mode eq $MODE_INACTIVE){
-    my @allAppNames = getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
-    my %okActiveAppNames = map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN;
-    my @inactive = grep {not defined $okActiveAppNames{$_}} @allAppNames;
+    my @files;
+    for my $dir($DIR_ACTIVE_LAUNCHERS_MAIN, $DIR_ACTIVE_LAUNCHERS_HOME){
+      @files = (@files, grep {-f $_} glob "$dir/*.desktop.disabled*");
+    }
+    @files = sort @files;
 
-    my @validAppNames = getValidAppNames();
-    my @unusedItems = @DESKTOP_FILE_DISABLE_PATTERNS;
-    @unusedItems = applyConfigReplacements \@unusedItems, \@validAppNames;
-    my %okUnusedAppNames = map {$_ => 1} @unusedItems;
-    @inactive = grep {not defined $okUnusedAppNames{$_}} @inactive;
-
-    print "\n\ninactive launchers:\n";
-    print map {"$_\n"} @inactive;
+    print "\n\ndisabled launchers:\n";
+    print "$_\n" foreach @files;
   }elsif($mode eq $MODE_MISSING_CONFIG){
     my @configItems = @CONFIG;
     my @validAppNames = getValidAppNames();
