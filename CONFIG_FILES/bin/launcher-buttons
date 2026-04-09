@@ -450,6 +450,7 @@ sub startLipstick(){
   run "udo systemctl --user restart lipstick";
 }
 sub stopLipstick(){
+  run "udo systemctl --user stop lipstick &";
   run "pkill -9 lipstick";
 }
 
