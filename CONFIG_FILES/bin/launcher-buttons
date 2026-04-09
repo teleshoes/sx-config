@@ -19,6 +19,7 @@ sub writeLipstickConfig(@);
 sub nowMillis();
 sub readProc(@);
 sub run(@);
+sub runQuiet(@);
 
 #in case running in a gui terminal
 $SIG{HUP} = sub { print STDERR "Caught a sighup $!" };
@@ -778,6 +779,9 @@ sub readProc(@){
 
 sub run(@){
   print "@_\n";
+  runQuiet(@_);
+}
+sub runQuiet(@){
   system @_;
 }
 
