@@ -436,7 +436,9 @@ sub main(@){
     print "\n\nmissing config entries:\n";
     print map {"$_\n"} @missingAppNames;
   }elsif($cmd eq "rearrange"){
+    run "pkill -9 lipstick";
     rearrangeLauncherButtons();
+    run "udo systemctl --user restart lipstick";
   }else{
     die "invalid command: $cmd\n";
   }
@@ -458,8 +460,6 @@ sub rearrangeLauncherButtons(){
   my %okAllAppNamesNew = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
 
   writeLipstickConfig(@configItems);
-
-  run "pkill -9 lipstick";
 
   my %okActiveAppNames = map {$_ => 1} (
     getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN,
@@ -488,8 +488,6 @@ sub rearrangeLauncherButtons(){
 
   print "\n\nMISSING (not installed): @missing\n" if @missing > 0;
   print "\n\nREMOVED (newly installed): @removedNew\n" if @removedNew > 0;
-
-  run "udo systemctl --user restart lipstick";
 }
 
 sub createAndroidDesktopFiles(){
