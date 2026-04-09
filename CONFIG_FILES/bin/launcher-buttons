@@ -5,6 +5,8 @@ use File::Basename qw(basename);
 use File::Compare qw(compare);
 use Time::HiRes qw(time);
 
+sub startLipstick();
+sub stopLipstick();
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
 sub createAndroidDesktopFile($$);
@@ -436,12 +438,19 @@ sub main(@){
     print "\n\nmissing config entries:\n";
     print map {"$_\n"} @missingAppNames;
   }elsif($cmd eq "rearrange"){
-    run "pkill -9 lipstick";
+    stopLipstick();
     rearrangeLauncherButtons();
-    run "udo systemctl --user restart lipstick";
+    startLipstick();
   }else{
     die "invalid command: $cmd\n";
   }
+}
+
+sub startLipstick(){
+  run "udo systemctl --user restart lipstick";
+}
+sub stopLipstick(){
+  run "pkill -9 lipstick";
 }
 
 sub rearrangeLauncherButtons(){
