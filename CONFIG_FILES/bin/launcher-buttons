@@ -363,8 +363,8 @@ my $USAGE = "Usage:
       before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
 
   $EXEC [OPTS] -g
-    print a list of all app names from all desktop files
-      in $DIR_BAK_ALL_LAUNCHERS and $DIR_ACTIVE_LAUNCHERS_MAIN
+    print a list of all app names from all desktop files in:
+      $DIR_ACTIVE_LAUNCHERS_MAIN
 
   $EXEC [OPTS] --missing-config
     -get active desktop files from:
@@ -703,7 +703,6 @@ sub getAppNamesInDir($){
 
 sub getValidAppNames(){
   my %okAppNames;
-  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS);
   %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN);
   %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_HOME);
   return sort keys %okAppNames;
