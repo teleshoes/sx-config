@@ -207,7 +207,7 @@ my @CONFIG = qw(
   ]
 );
 
-my @UNUSED = qw(
+my @DESKTOP_FILE_DISABLE_PATTERNS = qw(
   jolla-email
   sailfish-weather
   sailfish-tutorial
@@ -429,7 +429,7 @@ sub main(@){
     my @inactive = grep {not defined $okActiveAppNames{$_}} @allAppNames;
 
     my @validAppNames = getValidAppNames();
-    my @unusedItems = @UNUSED;
+    my @unusedItems = @DESKTOP_FILE_DISABLE_PATTERNS;
     @unusedItems = applyConfigReplacements \@unusedItems, \@validAppNames;
     my %okUnusedAppNames = map {$_ => 1} @unusedItems;
     @inactive = grep {not defined $okUnusedAppNames{$_}} @inactive;
@@ -500,7 +500,7 @@ sub rearrangeLauncherButtons(){
     getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_HOME,
   );
 
-  my @unusedItems = @UNUSED;
+  my @unusedItems = @DESKTOP_FILE_DISABLE_PATTERNS;
   @unusedItems = applyConfigReplacements \@unusedItems, \@validAppNames;
   my %okUnusedAppNames = map {$_ => 1} @unusedItems;
 
