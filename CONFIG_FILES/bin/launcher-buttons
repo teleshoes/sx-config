@@ -508,10 +508,8 @@ sub rearrangeLauncherButtons(){
 
 sub createAndroidDesktopFiles(){
   run "rm -f $DIR_ACTIVE_LAUNCHERS_MAIN/android-wd-*.desktop";
-  run "rm -f $DIR_BAK_ALL_LAUNCHERS/android-wd-*.desktop";
 
   run "rm -f $DIR_ACTIVE_LAUNCHERS_MAIN/android-ad-*.desktop";
-  run "rm -f $DIR_BAK_ALL_LAUNCHERS/android-ad-*.desktop";
 
   if($USE_WAYDROID){
     run "mkdir", "-p", $DIR_WAYDROID_APP_ICON_BACKUP;
