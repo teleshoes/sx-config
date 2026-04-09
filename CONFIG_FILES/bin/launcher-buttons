@@ -314,38 +314,6 @@ my %PATTERN_SYNONYMS = (
   lirrgui   => "lirrtraintime",
 );
 
-#desktop files with no launchers
-my @EXTRA_INCLUDE_PATTERNS = qw(
-  apkd-mime-handler.desktop
-  csd.desktop
-  harbour-pure-maps-uri-handler.desktop
-  jolla-calendar-import.desktop
-  jolla-camera-lockscreen.desktop
-  jolla-camera-viewfinder.desktop
-  jolla-contacts-import.desktop
-  jolla-gallery-openfile.desktop
-  jolla-gallery-playvideostream.desktop
-  jolla-mediaplayer-openfile.desktop
-  jolla-messages-openurl.desktop
-  jolla-notes-import.desktop
-  l2tp-import.desktop
-  new-mail.desktop
-  open-url.desktop
-  openconnect-import
-  ovpn-import.desktop
-  pptp-import.desktop
-  sailfish-archive
-  sailfish-captiveportal.desktop
-  sailfish-installationhandler
-  sailfish-office-openfile.desktop
-  sailfish-share.desktop
-  simkit.desktop
-  store-client-install.desktop
-  voicecall-ui-openurl.desktop
-  vpnc-import
-  webcal-import.desktop
-);
-
 my $MODE_REARRANGE = "rearrange";
 my $MODE_GET = "get";
 my $MODE_INACTIVE = "inactive";
@@ -428,9 +396,6 @@ sub main(@){
     @configItems = applyConfigReplacements \@configItems, \@validAppNames;
     my %okConfigAppNames = map {$_ => 1} @configItems;
 
-    my @extraAppNames = map {$_ =~ s/\.desktop$//; $_} @EXTRA_INCLUDE_PATTERNS;
-    my %okExtraAppNames = map {$_ => 1} @extraAppNames;
-
     my @activeAppNames = getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN;
 
     my @nonEmptyUserLaunchers = grep {not -z $_} glob "$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop";
@@ -443,7 +408,23 @@ sub main(@){
 
     my @missingAppNames = (@activeAppNames, @nonEmptyUserAppNames);
     @missingAppNames = grep {not defined $okConfigAppNames{$_}} @missingAppNames;
-    @missingAppNames = grep {not defined $okExtraAppNames{$_}} @missingAppNames;
+
+    my %missingAppIsNoDisplay;
+    for my $appName(@missingAppNames){
+      my @desktopFiles = getDesktopFilesByPattern($appName);
+      my $isNoDisplay = 0;
+      for my $desktopFile(@desktopFiles){
+        my $noDisplayAtt = readProc "grep", "^NoDisplay", $desktopFile;
+        if($noDisplayAtt =~ /^NoDisplay=true$/){
+          $isNoDisplay = 1;
+          last;
+        }
+      }
+      $missingAppIsNoDisplay{$appName} = $isNoDisplay;
+    }
+
+    #filter out desktop files that are NoDisplay=true
+    @missingAppNames = grep {not $missingAppIsNoDisplay{$_}} @missingAppNames;
 
     print "\n\nmissing config entries:\n";
     print map {"$_\n"} @missingAppNames;
