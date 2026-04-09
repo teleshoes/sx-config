@@ -207,16 +207,6 @@ my @CONFIG = qw(
   ]
 );
 
-my @DESKTOP_FILE_DISABLE_PATTERNS = qw(
-  jolla-email
-  sailfish-weather
-  sailfish-tutorial
-  google-tts
-  vanced-microg
-  ivona-tts
-  ivona-tts-amy
-);
-
 ########################################################
 #arbitrary depth nested dirs, with icons
 #  if icon name is blank 'dir%name%[', use the DEFAULT_ICON_NAME
@@ -298,6 +288,16 @@ my %ANDROID_LAUNCHERS = (
   "youtube"            => [0, "com.vanced.android.youtube",                "com.google.android.youtube.app.honeycomb.Shell\$HomeActivity",    undef],
   "youtube-music"      => [0, "com.vanced.android.apps.youtube.music",     "com.google.android.apps.youtube.music.activities.MusicActivity",  undef],
   "youtube-vanced-mgr" => [0, "com.vanced.manager",                        ".ui.MainActivity",                                                undef],
+);
+
+my @DESKTOP_FILE_DISABLE_PATTERNS = qw(
+  jolla-email
+  sailfish-weather
+  sailfish-tutorial
+  google-tts
+  vanced-microg
+  ivona-tts
+  ivona-tts-amy
 );
 
 my @DESKTOP_FILE_FREEZE_PATTERNS = (
