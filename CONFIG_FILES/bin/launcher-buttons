@@ -2,7 +2,6 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
-use File::Compare qw(compare);
 use Time::HiRes qw(time);
 
 sub startLipstick();
@@ -12,10 +11,10 @@ sub createAndroidDesktopFiles();
 sub createAndroidDesktopFile($$);
 sub ensureExecScriptOnDevice();
 sub applyConfigReplacements($$);
+sub getDesktopFilesByPattern($);
 sub getAppNamesInDir($);
 sub getValidAppNames();
-sub createAppDesktopFiles(@);
-sub freezeAppDesktopFiles(@);
+sub disableDesktopFile($$);
 sub writeLipstickConfig(@);
 sub nowMillis();
 sub run(@);
@@ -485,8 +484,16 @@ sub rearrangeLauncherButtons(){
   my @appNames = grep {$_ !~ /^(dir%.*%.*\[|\])$/} @configItems;
 
   my %okAllAppNamesOld = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
-  createAppDesktopFiles(@appNames);
-  freezeAppDesktopFiles(@DESKTOP_FILE_DISABLE_FREEZE_PATTERNS);
+  for my $ptrn(@DESKTOP_FILE_DISABLE_PATTERNS){
+    for my $desktopFile(getDesktopFilesByPattern($ptrn)){
+      disableDesktopFile($desktopFile, 0);
+    }
+  }
+  for my $ptrn(@DESKTOP_FILE_DISABLE_FREEZE_PATTERNS){
+    for my $desktopFile(getDesktopFilesByPattern($ptrn)){
+      disableDesktopFile($desktopFile, 1);
+    }
+  }
   my %okAllAppNamesNew = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
 
   writeLipstickConfig(@configItems);
@@ -654,6 +661,29 @@ sub ensureExecScriptOnDevice(){
   }
 }
 
+sub getDesktopFilesByPattern($){
+  my ($ptrn) = @_;
+
+  # ignore 'dir%*%*[' and ']' config items
+  if($ptrn =~ /^(dir%.*\[|\])$/){
+    return ();
+  }
+
+  if(defined $PATTERN_SYNONYMS{$ptrn}){
+    $ptrn = $PATTERN_SYNONYMS{$ptrn};
+  }
+
+  my @desktopFiles;
+  for my $dir($DIR_ACTIVE_LAUNCHERS_MAIN, $DIR_ACTIVE_LAUNCHERS_HOME){
+    for my $prefix(("", @OPTIONAL_PREFIXES)){
+      @desktopFiles = (@desktopFiles, glob "$dir/$prefix$ptrn.desktop*");
+    }
+  }
+  @desktopFiles = grep {-f $_} @desktopFiles;
+
+  return @desktopFiles;
+}
+
 sub applyConfigReplacements($$){
   my ($configItems, $validAppNames) = @_;
 
@@ -700,72 +730,37 @@ sub getValidAppNames(){
   return sort keys %okAppNames;
 }
 
-sub createAppDesktopFiles(@){
-  my @appNames = @_;
-  run "mkdir", "-p", $DIR_BAK_ALL_LAUNCHERS;
-  my @active = glob "$DIR_ACTIVE_LAUNCHERS_MAIN/*.desktop";
+sub disableDesktopFile($$){
+  my ($desktopFile, $freeze) = @_;
 
-  run "rsync", "-avP", "--ignore-existing", @active, $DIR_BAK_ALL_LAUNCHERS;
-  run "rm -rf $DIR_ACTIVE_LAUNCHERS_MAIN";
-  run "mkdir", "-p", $DIR_ACTIVE_LAUNCHERS_MAIN;
-  for my $app(@appNames){
-    run "cp", "-a", "$DIR_BAK_ALL_LAUNCHERS/$app.desktop", $DIR_ACTIVE_LAUNCHERS_MAIN;
-  }
-  for my $pattern(@EXTRA_INCLUDE_PATTERNS){
-    for my $file(glob "$DIR_BAK_ALL_LAUNCHERS/$pattern"){
-      run "cp", "-a", $file, $DIR_ACTIVE_LAUNCHERS_MAIN;
-    }
-  }
-}
+  #backup + delete desktop files and optionally prevent replacement with chattr +i
 
-sub freezeAppDesktopFiles(@){
-  my @desktopFilePatterns = @_;
-  #delete desktop files and prevent replacement with chattr +i
-
-  my @allActiveDesktopFiles = grep {-f $_} (
-    glob("$DIR_ACTIVE_LAUNCHERS_MAIN/*.desktop"),
-    glob("$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop"),
-  );
-  if(@allActiveDesktopFiles > 0){
-    run "chattr", "-i", @allActiveDesktopFiles;
+  if($desktopFile =~ /\.desktop\.disabled/){
+    #already disabled, skip
+    return;
   }
 
-  for my $ptrn(@desktopFilePatterns){
-    my @desktopFiles = grep {-f $_} (
-      glob("$DIR_ACTIVE_LAUNCHERS_MAIN/$ptrn.desktop"),
-      glob("$DIR_ACTIVE_LAUNCHERS_HOME/$ptrn.desktop"),
-    );
+  my $fileName = undef;
+  $fileName = $2 if $desktopFile =~ /^(.*\/)([^\/]*\.desktop)$/;
+  die "ERROR: malformed desktop file $desktopFile\n" if not defined $fileName;
 
-    for my $desktopFile(@desktopFiles){
-      my $fileName = undef;
-      $fileName = $2 if $desktopFile =~ /^(.*\/)([^\/]*\.desktop)$/;
-      die "ERROR: malformed desktop file $desktopFile\n" if not defined $fileName;
+  if(-z $desktopFile){
+    #remove empty launcher file without backup
+    run "rm", "-f", $desktopFile;
+  }else{
+    #backup+remove non-empty launcher file
+    my $bakFile = "$desktopFile.disabled." . nowMillis();
+    run "mv", "--no-clobber", $desktopFile, $bakFile;
+  }
 
-      if(not -z $desktopFile){
-        #backup non-empty launcher files
-        my $bakFile = "$DIR_BAK_FROZEN_LAUNCHERS/$fileName";
-        if(-e $bakFile and compare($desktopFile, $bakFile) != 0){
-          #retain old backups as archive if different
-          my $archiveBakFile = "$bakFile.old." . nowMillis();
-          run "mv", "--no-clobber", $bakFile, $archiveBakFile;
-          if(-e $bakFile){
-            die "ERROR: could not backup $desktopFile, $bakFile exists\n";
-          }
-          run "mv", "--no-clobber", $desktopFile, $bakFile;
-          if(-e $desktopFile){
-            die "ERROR: could not backup $desktopFile\n";
-          }
-        }
-      }
-      run "rm", "-f", $desktopFile;
-      if(-e $desktopFile){
-        die "ERROR: could not remove $desktopFile\n";
-      }
+  if(-e $desktopFile){
+    die "ERROR: could not backup $desktopFile\n";
+  }
 
-      #create empty placeholder and prevent deletion
-      run "touch", $desktopFile;
-      run "chattr", "+i", $desktopFile;
-    }
+  if($freeze){
+    #create empty placeholder and prevent deletion
+    run "touch", $desktopFile;
+    run "chattr", "+i", $desktopFile;
   }
 }
 
