@@ -362,16 +362,16 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC
+  $EXEC [OPTS]
     re-arrange launcher buttons and launcher dirs, potentially removing some
       backs up desktop files to $DIR_BAK_ALL_LAUNCHERS
       before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
 
-  $EXEC -g
+  $EXEC [OPTS] -g
     print a list of all app names from all desktop files
       in $DIR_BAK_ALL_LAUNCHERS and $DIR_ACTIVE_LAUNCHERS_MAIN
 
-  $EXEC --missing-config
+  $EXEC [OPTS] --missing-config
     -get active desktop files from:
       $DIR_ACTIVE_LAUNCHERS_MAIN
       $DIR_ACTIVE_LAUNCHERS_HOME
@@ -380,17 +380,21 @@ my $USAGE = "Usage:
     -do not include desktop files that are marked extra (no launchers)
     -print the remaining desktop files that would be removed by rearrange
 
-  $EXEC --inactive
+  $EXEC [OPTS] --inactive
     -get all desktop files from:
       $DIR_BAK_ALL_LAUNCHERS
     -do not include desktop files that are in:
       $DIR_ACTIVE_LAUNCHERS_MAIN
     -do not include desktop files that are specifically marked unused
     -print the remaining inactive desktop files
+
+  OPTS
 ";
 
 sub main(@){
   my $mode = $MODE_REARRANGE;
+  my $opts = {
+  };
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
