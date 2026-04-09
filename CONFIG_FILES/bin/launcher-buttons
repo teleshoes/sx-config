@@ -8,7 +8,7 @@ sub startLipstick();
 sub stopLipstick();
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
-sub createAndroidDesktopFile($$);
+sub createAndroidDesktopFile($);
 sub ensureExecScriptOnDevice();
 sub applyConfigReplacements($$);
 sub getDesktopFilesByPattern($);
@@ -560,20 +560,13 @@ sub createAndroidDesktopFiles(){
     ;
   }
 
-  if($USE_WAYDROID){
-    for my $appName(sort keys %ANDROID_LAUNCHERS){
-      createAndroidDesktopFile($appName, "waydroid");
-    }
-  }
-  if($USE_ALIENDALVIK){
-    for my $appName(sort keys %ANDROID_LAUNCHERS){
-      createAndroidDesktopFile($appName, "aliendalvik");
-    }
+  for my $appName(sort keys %ANDROID_LAUNCHERS){
+    createAndroidDesktopFile($appName);
   }
 }
 
-sub createAndroidDesktopFile($$){
-  my ($appName, $androidEnvName) = @_;
+sub createAndroidDesktopFile($){
+  my ($appName) = @_;
 
   my ($isWaitMount, $pkg, $action, $iconPathOverride) = @{$ANDROID_LAUNCHERS{$appName}};
 
@@ -582,18 +575,21 @@ sub createAndroidDesktopFile($$){
   my $cmd;
   my $desktopFilePrefix;
   my $androidIconDir;
-  if($androidEnvName eq "aliendalvik"){
+  my $androidEnvDesc;
+  if($USE_ALIENDALVIK){
     $cmd = "ad";
     $cmd .= " --skip-mount" unless $isWaitMount;
     $cmd .= " --app $appName '$fullIntent'";
     $desktopFilePrefix = "android-ad";
     $androidIconDir = $DIR_ALIENDALVIK_APP_ICON_DEST;
-  }elsif($androidEnvName eq "waydroid"){
+    $androidEnvDesc = "aliendalvik";
+  }elsif($USE_WAYDROID){
     $cmd = "/usr/local/bin/udo wd --launch-intent=\"$fullIntent\"";
     $desktopFilePrefix = "android-wd";
     $androidIconDir = $DIR_WAYDROID_APP_ICON_DEST;
+    $androidEnvDesc = "waydroid";
   }else{
-    die "ERROR: unknown android environment $androidEnvName\n";
+    die "ERROR: no android environment configured\n";
   }
 
   my $iconPath = "$androidIconDir/$pkg.png";
@@ -603,7 +599,7 @@ sub createAndroidDesktopFile($$){
   my $desktopContents = ""
     . "[Desktop Entry]\n"
     . "Name=$appName\n"
-    . "Comment=Run $fullIntent in $androidEnvName\n"
+    . "Comment=Run $fullIntent in $androidEnvDesc\n"
     . "Icon=$iconPath\n"
     . "Exec=$cmd\n"
     . "Type=Application\n"
