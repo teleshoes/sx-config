@@ -17,6 +17,7 @@ sub getValidAppNames();
 sub disableDesktopFile($$);
 sub writeLipstickConfig(@);
 sub nowMillis();
+sub readProc(@);
 sub run(@);
 
 #in case running in a gui terminal
@@ -780,6 +781,18 @@ sub writeLipstickConfig(@){
 
 sub nowMillis(){
   return int(time * 1000.0 + 0.5);
+}
+
+sub readProc(@){
+  my (@cmd) = @_;
+  open my $cmdH, "-|", @cmd or die "ERROR: could not run @cmd\n$!\n";
+  my @lines = <$cmdH>;
+  close $cmdH;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
+  }
 }
 
 sub run(@){
