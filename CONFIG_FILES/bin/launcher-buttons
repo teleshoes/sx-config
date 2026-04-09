@@ -300,7 +300,7 @@ my @DESKTOP_FILE_DISABLE_PATTERNS = qw(
   ivona-tts-amy
 );
 
-my @DESKTOP_FILE_FREEZE_PATTERNS = (
+my @DESKTOP_FILE_DISABLE_FREEZE_PATTERNS = (
   ### skip freezing apkd launchers, move to apkd dir instead
   # "apkd_launcher_*-*",
 );
@@ -486,7 +486,7 @@ sub rearrangeLauncherButtons(){
 
   my %okAllAppNamesOld = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
   createAppDesktopFiles(@appNames);
-  freezeAppDesktopFiles(@DESKTOP_FILE_FREEZE_PATTERNS);
+  freezeAppDesktopFiles(@DESKTOP_FILE_DISABLE_FREEZE_PATTERNS);
   my %okAllAppNamesNew = map {$_ => 1} getAppNamesInDir $DIR_BAK_ALL_LAUNCHERS;
 
   writeLipstickConfig(@configItems);
