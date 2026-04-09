@@ -359,7 +359,7 @@ my $USAGE = "Usage:
 
   $EXEC [OPTS]
     re-arrange launcher buttons and launcher dirs, potentially removing some
-      backs up desktop files to $DIR_BAK_ALL_LAUNCHERS
+      backs up desktop files as *.desktop.disabled.<NOW_MILLIS>
       before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
 
   $EXEC [OPTS] -g
