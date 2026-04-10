@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
 sub ensureExecScriptOnDevice();
+sub isRoot();
 sub startLipstick();
 sub stopLipstick();
 sub checkLauncherConfig();
@@ -415,7 +416,7 @@ sub main(@){
 
   ensureExecScriptOnDevice();
 
-  die "must be run as root\n" if `whoami` ne "root\n";
+  die "must be run as root\n" if not isRoot();
 
   if($mode eq $MODE_APPLY){
     stopLipstick() if $$opts{restartLipstick};
@@ -448,6 +449,10 @@ sub ensureExecScriptOnDevice(){
     print "rerunning on the device\n";
     exec "ssh", "root\@$host", "/tmp/$name", @ARGV;
   }
+}
+
+sub isRoot(){
+  return `whoami` eq "root\n" ? 1 : 0;
 }
 
 sub startLipstick(){
