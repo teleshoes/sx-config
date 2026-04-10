@@ -438,18 +438,20 @@ sub main(@){
 }
 
 sub ensureExecScriptOnDevice(){
-  my $targetHost = `ipmagic $IPMAGIC_NAME 2>/dev/null`;
+  my @ipmagicCmd = isRoot() ? ("udo", "ipmagic") : ("ipmagic");
+  my $targetHost = readProc @ipmagicCmd, $IPMAGIC_NAME;
   chomp $targetHost;
-  my $actualHost = `hostname`;
+  my $actualHost = readProc "hostname";
   chomp $actualHost;
-  if(length $targetHost > 0 and $targetHost ne $actualHost){
-    my $host = `ipmagic $IPMAGIC_NAME`;
-    chomp $host;
-    my $name = basename $0;
-    print "copying to the device\n";
-    system "scp", $0, "root\@$host:/tmp/$name";
-    print "rerunning on the device\n";
-    exec "ssh", "root\@$host", "/tmp/$name", @ARGV;
+  if($targetHost ne $actualHost){
+    die "ERROR: rerun failed, target host missing\n" if $targetHost !~ /\w/;
+    if($EXEC =~ /-remote-/){
+      die "ERROR: failed to rerun already rerun script $EXEC\n";
+    }
+    print "rerunning on $IPMAGIC_NAME\n";
+    my $destExec = "/tmp/$EXEC-remote-$IPMAGIC_NAME";
+    system "scp", $0, "root\@$targetHost:$destExec";
+    exec "ssh", "root\@$targetHost", $destExec, @ARGV;
   }
 }
 
