@@ -327,7 +327,10 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC [OPTS]
+  $EXEC
+    same as: $EXEC --apply
+
+  $EXEC [OPTS] --apply
     re-arrange launcher buttons and launcher dirs, potentially removing some
       backs up desktop files as *.desktop.disabled.<NOW_MILLIS>
       before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
@@ -382,6 +385,8 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(--apply)$/){
+      $mode = $MODE_APPLY;
     }elsif($arg =~ /^(--check)$/){
       $mode = $MODE_CHECK;
     }elsif($arg =~ /^(--get-matching-desktop-files)$/){
