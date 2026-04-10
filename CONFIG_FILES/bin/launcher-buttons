@@ -293,16 +293,17 @@ my %ANDROID_LAUNCHERS = (
   "youtube-vanced-mgr" => [0, "com.vanced.manager",                        ".ui.MainActivity",                                                undef],
 );
 
-my @DESKTOP_FILE_DISABLE_PATTERNS = qw(
-  jolla-email
-  sailfish-weather
-  sailfish-tutorial
-  google-tts
-  vanced-microg
-  ivona-tts
-  ivona-tts-amy
+# backup + delete desktop files
+my @DESKTOP_FILE_DISABLE_PATTERNS = (
+  "jolla-email",
+  "sailfish-weather",
+  "sailfish-tutorial",
+  "google-tts",
+  "vanced-microg",
+  "ivona-tts",
+  "ivona-tts-amy",
 );
-
+# backup + delete desktop files, freezing them empty with chattr +i
 my @DESKTOP_FILE_DISABLE_FREEZE_PATTERNS = (
   ### skip freezing apkd launchers, move to apkd dir instead
   # "apkd_launcher_*-*",
