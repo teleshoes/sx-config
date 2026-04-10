@@ -13,11 +13,8 @@ sub initializeAllAndroidDesktopFiles();
 sub removeAllAndroidDesktopFiles();
 sub initializeAndroidAppIcons();
 sub createAndroidDesktopFile($);
-sub applyConfigReplacements($$);
 sub getAllDesktopFiles();
 sub getDesktopFilesByPattern($);
-sub getAppNamesInDir($);
-sub getValidAppNames();
 sub enableDesktopFile($);
 sub disableDesktopFile($$);
 sub enableAllDesktopFiles();
@@ -485,13 +482,6 @@ sub checkLauncherConfig(){
 sub rearrangeLauncherButtons(){
   initializeAllAndroidDesktopFiles();
 
-  my @validAppNames = getValidAppNames();
-
-  my @configItems = @CONFIG;
-  @configItems = applyConfigReplacements \@configItems, \@validAppNames;
-
-  my @appNames = grep {$_ !~ /^(dir%.*%.*\[|\])$/} @configItems;
-
   unfreezeAllDesktopFiles();
 
   enableAllDesktopFiles();
@@ -507,7 +497,7 @@ sub rearrangeLauncherButtons(){
     }
   }
 
-  writeLipstickConfig(@configItems);
+  writeLipstickConfig(@CONFIG);
 }
 
 sub initializeAllAndroidDesktopFiles(){
@@ -684,51 +674,6 @@ sub getDesktopFilesByPattern($){
   return @desktopFiles;
 }
 
-sub applyConfigReplacements($$){
-  my ($configItems, $validAppNames) = @_;
-
-  my %prefixApps;
-  my $prefixRegex = join "|", @OPTIONAL_PREFIXES;
-  for my $appNameReal(@$validAppNames){
-    if($appNameReal =~ /^($prefixRegex)(.+)$/){
-      my $unprefixedAppName = $2;
-      $prefixApps{$unprefixedAppName} = $appNameReal;
-    }
-  }
-
-  my @replacedConfigItems;
-  for my $item(@$configItems){
-    if($item =~ /^(dir%.*%\[|\])$/){ #dont replace dir start/end items
-      push @replacedConfigItems, $item;
-    }elsif($item =~ /\*/){
-      my $regex = $item;
-      $regex =~ s/\*/.*/g;
-      my @matchingApps = grep {/^$regex$/} @$validAppNames;
-      @replacedConfigItems = (@replacedConfigItems, @matchingApps);
-    }else{
-      $item = $PATTERN_SYNONYMS{$item} if defined $PATTERN_SYNONYMS{$item};
-      $item = $prefixApps{$item} if defined $prefixApps{$item};
-      push @replacedConfigItems, $item;
-    }
-  }
-
-  return @replacedConfigItems;
-}
-
-sub getAppNamesInDir($){
-  my ($dir) = @_;
-  my @desktopFiles = glob "$dir/*.desktop";
-  my @appNames = map {/\/([^\/]+)\.desktop$/} @desktopFiles;
-  return @appNames;
-}
-
-sub getValidAppNames(){
-  my %okAppNames;
-  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN);
-  %okAppNames = (%okAppNames, map {$_ => 1} getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_HOME);
-  return sort keys %okAppNames;
-}
-
 sub enableDesktopFile($){
   my ($disabledDesktopFile) = @_;
   my ($dir, $enabledFileName) = (undef, undef);
@@ -846,7 +791,13 @@ sub writeLipstickConfig(@){
       $indent = "    " x $depth;
       $xml .= "$indent</Menu>\n"
     }else{
-      $xml .= "$indent<Filename>$configItem.desktop</Filename>\n";
+      my @desktopFiles = getDesktopFilesByPattern($configItem);
+      for my $desktopFile(@desktopFiles){
+        if($desktopFile =~ /^(?:.*\/)?([^\/]*\.desktop)$/){
+          my $fileName = $1;
+          $xml .= "$indent<Filename>$fileName</Filename>\n";
+        }
+      }
     }
   }
   $xml .= "</Menu>\n";
