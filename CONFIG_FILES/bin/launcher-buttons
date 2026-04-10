@@ -11,10 +11,14 @@ sub createAndroidDesktopFiles();
 sub createAndroidDesktopFile($);
 sub ensureExecScriptOnDevice();
 sub applyConfigReplacements($$);
+sub getAllDesktopFiles();
 sub getDesktopFilesByPattern($);
 sub getAppNamesInDir($);
 sub getValidAppNames();
+sub enableDesktopFile($);
 sub disableDesktopFile($$);
+sub enableAllDesktopFiles();
+sub unfreezeAllDesktopFiles();
 sub writeLipstickConfig(@);
 sub nowMillis();
 sub readProc(@);
@@ -456,6 +460,10 @@ sub rearrangeLauncherButtons(){
 
   my @appNames = grep {$_ !~ /^(dir%.*%.*\[|\])$/} @configItems;
 
+  unfreezeAllDesktopFiles();
+
+  enableAllDesktopFiles();
+
   for my $ptrn(@DESKTOP_FILE_DISABLE_PATTERNS){
     for my $desktopFile(getDesktopFilesByPattern($ptrn)){
       disableDesktopFile($desktopFile, 0);
@@ -614,6 +622,14 @@ sub ensureExecScriptOnDevice(){
   }
 }
 
+sub getAllDesktopFiles(){
+  my @allDesktopFiles = grep {-f $_} (
+    glob("$DIR_ACTIVE_LAUNCHERS_MAIN/*.desktop*"),
+    glob("$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop*"),
+  );
+  return @allDesktopFiles;
+}
+
 sub getDesktopFilesByPattern($){
   my ($ptrn) = @_;
 
@@ -682,6 +698,27 @@ sub getValidAppNames(){
   return sort keys %okAppNames;
 }
 
+sub enableDesktopFile($){
+  my ($disabledDesktopFile) = @_;
+  my ($dir, $enabledFileName) = (undef, undef);
+  if($disabledDesktopFile =~ /^(.*)\/([^\/]*\.desktop)\.disabled.*/){
+    ($dir, $enabledFileName) = ($1, $2);
+  }else{
+    die "ERROR: malformed disabled desktop file $disabledDesktopFile\n";
+  }
+
+  my $enabledDesktopFile = "$dir/$enabledFileName";
+  if(-z $enabledDesktopFile){
+    #remove empty placeholder desktop file
+    run "rm", "-f", $enabledDesktopFile;
+  }
+  if(-e $enabledDesktopFile){
+    print "\nWARNING: skipping re-enable of $disabledDesktopFile\n";
+  }else{
+    run "mv", "--no-clobber", $disabledDesktopFile, $enabledDesktopFile;
+  }
+}
+
 sub disableDesktopFile($$){
   my ($desktopFile, $freeze) = @_;
 
@@ -714,6 +751,43 @@ sub disableDesktopFile($$){
     run "touch", $desktopFile;
     run "chattr", "+i", $desktopFile;
   }
+}
+
+sub enableAllDesktopFiles(){
+  for my $dir($DIR_ACTIVE_LAUNCHERS_MAIN, $DIR_ACTIVE_LAUNCHERS_HOME){
+    my @disabledDesktopFiles = grep {-f $_} glob "$dir/*.desktop.disabled*";
+
+    my %desktopFilesByEnabledFileName;
+    for my $disabledDesktopFile(@disabledDesktopFiles){
+      my $enabledFileName = undef;
+      if($disabledDesktopFile =~ /^.*\/([^\/]*\.desktop)\.disabled\.\d+$/){
+        $enabledFileName = $1;
+      }else{
+        die "ERROR: malformed disabled desktop file $disabledDesktopFile\n";
+      }
+      if(not defined $desktopFilesByEnabledFileName{$enabledFileName}){
+        $desktopFilesByEnabledFileName{$enabledFileName} = [];
+      }
+      push @{$desktopFilesByEnabledFileName{$enabledFileName}}, $disabledDesktopFile;
+    }
+
+    for my $enabledFileName(sort keys %desktopFilesByEnabledFileName){
+      my @disabledDesktopFiles = @{$desktopFilesByEnabledFileName{$enabledFileName}};
+      @disabledDesktopFiles = sort {
+        my $aMillis = $1 if $a =~ /\.desktop\.disabled\.(\d+)$/;
+        my $bMillis = $1 if $b =~ /\.desktop\.disabled\.(\d+)$/;
+        $aMillis <=> $bMillis;
+      } @disabledDesktopFiles;
+
+      my $mostRecentDisabledDesktopFile = $disabledDesktopFiles[-1];
+      enableDesktopFile($mostRecentDisabledDesktopFile);
+    }
+  }
+}
+
+sub unfreezeAllDesktopFiles(){
+  print "running 'chattr -i' on all desktop files\n";
+  runQuiet "chattr", "-i", getAllDesktopFiles();
 }
 
 sub writeLipstickConfig(@){
