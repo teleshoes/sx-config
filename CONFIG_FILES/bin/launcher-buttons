@@ -497,10 +497,12 @@ sub checkLauncherConfig(){
 sub applyLauncherConfig(){
   initializeAllAndroidDesktopFiles();
 
+  print "\n=== ENABLING+UNFREEZING ALL APP LAUNCHERS\n";
   unfreezeAllDesktopFiles();
 
   enableAllDesktopFiles();
 
+  print "\n=== DISABLING APP LAUNCHERS\n";
   for my $ptrn(@DESKTOP_FILE_DISABLE_PATTERNS){
     for my $desktopFile(getDesktopFilesByPattern($ptrn)){
       disableDesktopFile($desktopFile, 0);
@@ -512,14 +514,18 @@ sub applyLauncherConfig(){
     }
   }
 
+  print "\n=== WRITING LIPSTICK MENU CONFIG\n";
   writeLipstickConfig(@CONFIG);
 }
 
 sub initializeAllAndroidDesktopFiles(){
+  print "\n=== REMOVING CUSTOM ANDROID APP LAUNCHERS\n";
   removeAllAndroidDesktopFiles();
 
+  print "\n=== INITIALIZING ANDROID APP ICONS\n";
   initializeAndroidAppIcons();
 
+  print "\n=== CREATING CUSTOM ANDROID APP LAUNCHERS\n";
   for my $appName(sort keys %ANDROID_LAUNCHERS){
     createAndroidDesktopFile($appName);
   }
