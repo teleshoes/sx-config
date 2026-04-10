@@ -4,12 +4,12 @@ use warnings;
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
+sub ensureExecScriptOnDevice();
 sub startLipstick();
 sub stopLipstick();
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
 sub createAndroidDesktopFile($);
-sub ensureExecScriptOnDevice();
 sub applyConfigReplacements($$);
 sub getAllDesktopFiles();
 sub getDesktopFilesByPattern($);
@@ -442,6 +442,22 @@ sub main(@){
   }
 }
 
+sub ensureExecScriptOnDevice(){
+  my $targetHost = `ipmagic $IPMAGIC_NAME 2>/dev/null`;
+  chomp $targetHost;
+  my $actualHost = `hostname`;
+  chomp $actualHost;
+  if(length $targetHost > 0 and $targetHost ne $actualHost){
+    my $host = `ipmagic $IPMAGIC_NAME`;
+    chomp $host;
+    my $name = basename $0;
+    print "copying to the device\n";
+    system "scp", $0, "root\@$host:/tmp/$name";
+    print "rerunning on the device\n";
+    exec "ssh", "root\@$host", "/tmp/$name", @ARGV;
+  }
+}
+
 sub startLipstick(){
   run "udo systemctl --user restart lipstick";
 }
@@ -628,22 +644,6 @@ sub createAndroidDesktopFile($){
   open FH, "> $desktopFile" or die "ERROR: cannot write $desktopFile\n$!\n";
   print FH $desktopContents;
   close FH;
-}
-
-sub ensureExecScriptOnDevice(){
-  my $targetHost = `ipmagic $IPMAGIC_NAME 2>/dev/null`;
-  chomp $targetHost;
-  my $actualHost = `hostname`;
-  chomp $actualHost;
-  if(length $targetHost > 0 and $targetHost ne $actualHost){
-    my $host = `ipmagic $IPMAGIC_NAME`;
-    chomp $host;
-    my $name = basename $0;
-    print "copying to the device\n";
-    system "scp", $0, "root\@$host:/tmp/$name";
-    print "rerunning on the device\n";
-    exec "ssh", "root\@$host", "/tmp/$name", @ARGV;
-  }
 }
 
 sub getAllDesktopFiles(){
