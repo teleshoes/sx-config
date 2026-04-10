@@ -526,6 +526,8 @@ sub createAndroidDesktopFiles(){
       }
     }
 
+    my %missingIconPkgByAppName;
+
     run "mkdir", "-p", $DIR_ALIENDALVIK_APP_ICON_BACKUP;
     for my $appName(sort keys %ANDROID_LAUNCHERS){
       my ($isWaitMount, $pkg, $intent, $iconPath) = @{$ANDROID_LAUNCHERS{$appName}};
@@ -535,8 +537,30 @@ sub createAndroidDesktopFiles(){
       if(defined $iconFile){
         runQuiet "cp", "-ar", "$iconFile", "$DIR_ALIENDALVIK_APP_ICON_BACKUP/$pkg.png";
       }else{
-        print "\n\nWARNING: no aliendalvik icon found for $appName - $pkg\n";
+        $missingIconPkgByAppName{$appName} = $pkg;
       }
+    }
+
+    my @missingIconWarningLines;
+    for my $appName(sort keys %missingIconPkgByAppName){
+      my $pkg = $missingIconPkgByAppName{$appName};
+      my $isDisabled = 0;
+      for my $ptrn(@DESKTOP_FILE_DISABLE_PATTERNS, @DESKTOP_FILE_DISABLE_FREEZE_PATTERNS){
+        my $regex = $ptrn;
+        $regex =~ s/\*/.*/g;
+        if($appName =~ /^$regex$/){
+          $isDisabled = 1;
+          last;
+        }
+      }
+      if(not $isDisabled){
+        #ignore missing icons for disabled apps (usually APKs without launchers)
+        push @missingIconWarningLines, "  $appName - $pkg\n";
+      }
+    }
+    if(@missingIconWarningLines > 0){
+      my $msg = "no aliendalvik icons found for:\n" . join("", @missingIconWarningLines);
+      print "\n\nWARNING: $msg\n";
     }
 
     run "mkdir", "-p", $DIR_ALIENDALVIK_APP_ICON_DEST;
