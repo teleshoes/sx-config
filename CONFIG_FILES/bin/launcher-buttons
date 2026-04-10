@@ -166,6 +166,7 @@ my @CONFIG = qw(
     screenshot
     meecast
 
+    waydroid
     waydroid-wd
     waydroid-runner
 
