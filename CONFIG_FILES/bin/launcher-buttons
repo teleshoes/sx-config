@@ -8,7 +8,7 @@ sub ensureExecScriptOnDevice();
 sub startLipstick();
 sub stopLipstick();
 sub checkLauncherConfig();
-sub rearrangeLauncherButtons();
+sub applyLauncherConfig();
 sub initializeAllAndroidDesktopFiles();
 sub removeAllAndroidDesktopFiles();
 sub initializeAndroidAppIcons();
@@ -319,7 +319,7 @@ my %PATTERN_SYNONYMS = (
   lirrgui   => "lirrtraintime",
 );
 
-my $MODE_REARRANGE = "rearrange";
+my $MODE_APPLY = "apply";
 my $MODE_CHECK = "check";
 my $MODE_GET_DESKTOP_FILES = "get-desktop-files";
 
@@ -372,7 +372,7 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  my $mode = $MODE_REARRANGE;
+  my $mode = $MODE_APPLY;
   my $targetPattern = undef;
   my $opts = {
     restartLipstick => 1,
@@ -402,9 +402,9 @@ sub main(@){
 
   die "must be run as root\n" if `whoami` ne "root\n";
 
-  if($mode eq $MODE_REARRANGE){
+  if($mode eq $MODE_APPLY){
     stopLipstick() if $$opts{restartLipstick};
-    rearrangeLauncherButtons();
+    applyLauncherConfig();
     startLipstick() if $$opts{restartLipstick};
 
     checkLauncherConfig();
@@ -479,7 +479,7 @@ sub checkLauncherConfig(){
   print "missing=$countMissing, extra=$countExtra\n";
 }
 
-sub rearrangeLauncherButtons(){
+sub applyLauncherConfig(){
   initializeAllAndroidDesktopFiles();
 
   unfreezeAllDesktopFiles();
