@@ -320,9 +320,9 @@ my %PATTERN_SYNONYMS = (
 );
 
 my $MODE_REARRANGE = "rearrange";
-my $MODE_GET = "get";
 my $MODE_INACTIVE = "inactive";
 my $MODE_MISSING_CONFIG = "missing-config";
+my $MODE_GET_DESKTOP_FILES = "get-desktop-files";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -332,10 +332,6 @@ my $USAGE = "Usage:
     re-arrange launcher buttons and launcher dirs, potentially removing some
       backs up desktop files as *.desktop.disabled.<NOW_MILLIS>
       before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
-
-  $EXEC [OPTS] -g
-    print a list of all app names from all desktop files in:
-      $DIR_ACTIVE_LAUNCHERS_MAIN
 
   $EXEC [OPTS] --missing-config
     -get active desktop files from:
@@ -351,6 +347,23 @@ my $USAGE = "Usage:
       $DIR_ACTIVE_LAUNCHERS_MAIN
       $DIR_ACTIVE_LAUNCHERS_HOME
 
+  $EXEC [OPTS] --get-matching-desktop-files PATTERN
+    get matching desktop files, enabled or disabled, in main + home launcher directories
+      -if PATTERN has a PATTERN_SYNONYM:
+        -use PATTERN_REAL=PATTERN_SYNONYM
+      -otherwise:
+        -use PATTERN_REAL=PATTERN
+      -use PREFIX_GLOB=?(" . join("|", @OPTIONAL_PREFIXES) . ")
+      -list all desktop files that match:
+        $DIR_ACTIVE_LAUNCHERS_MAIN/<PREFIX_GLOB><PATTERN_REAL>.desktop*
+        $DIR_ACTIVE_LAUNCHERS_HOME/<PREFIX_GLOB><PATTERN_REAL>.desktop*
+
+  $EXEC [OPTS] --get-all-desktop-files
+    get all desktop files, enabled or disabled, in main + home launcher directories
+      -list all desktop files that match:
+        $DIR_ACTIVE_LAUNCHERS_MAIN/*.desktop*
+        $DIR_ACTIVE_LAUNCHERS_HOME/*.desktop*
+
   OPTS
     -k | --keep-lipstick | --no-restart-lipstick
       do not kill lipstick
@@ -359,6 +372,7 @@ my $USAGE = "Usage:
 
 sub main(@){
   my $mode = $MODE_REARRANGE;
+  my $targetPattern = undef;
   my $opts = {
     restartLipstick => 1,
   };
@@ -367,12 +381,17 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(-g)$/){
-      $mode = $MODE_GET;
     }elsif($arg =~ /^(--inactive)$/){
       $mode = $MODE_INACTIVE;
     }elsif($arg =~ /^(--missing-config)$/){
       $mode = $MODE_MISSING_CONFIG;
+    }elsif($arg =~ /^(--get-matching-desktop-files)$/){
+      die "ERROR: missing PATTERN\n" if @_ == 0;
+      $mode = $MODE_GET_DESKTOP_FILES;
+      $targetPattern = shift @_;
+    }elsif($arg =~ /^(--get-all-desktop-files)$/){
+      $mode = $MODE_GET_DESKTOP_FILES;
+      $targetPattern = undef;
     }elsif($arg =~ /^(-k|--keep-lipstick|--no-restart-lipstick)$/){
       $$opts{restartLipstick} = 0;
     }else{
@@ -384,9 +403,7 @@ sub main(@){
 
   die "must be run as root\n" if `whoami` ne "root\n";
 
-  if($mode eq $MODE_GET){
-    print map {"$_\n"} getValidAppNames();
-  }elsif($mode eq $MODE_INACTIVE){
+  if($mode eq $MODE_INACTIVE){
     my @files;
     for my $dir($DIR_ACTIVE_LAUNCHERS_MAIN, $DIR_ACTIVE_LAUNCHERS_HOME){
       @files = (@files, grep {-f $_} glob "$dir/*.desktop.disabled*");
@@ -437,6 +454,10 @@ sub main(@){
     stopLipstick() if $$opts{restartLipstick};
     rearrangeLauncherButtons();
     startLipstick() if $$opts{restartLipstick};
+  }elsif($mode eq $MODE_GET_DESKTOP_FILES){
+    my @desktopFiles = defined $targetPattern ?
+      getDesktopFilesByPattern($targetPattern) : getAllDesktopFiles();
+    print "$_\n" foreach @desktopFiles;
   }else{
     die "ERROR: unknown mode $mode\n";
   }
