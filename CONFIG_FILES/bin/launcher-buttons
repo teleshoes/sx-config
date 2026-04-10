@@ -409,6 +409,8 @@ sub main(@){
     stopLipstick() if $$opts{restartLipstick};
     rearrangeLauncherButtons();
     startLipstick() if $$opts{restartLipstick};
+
+    checkLauncherConfig();
   }elsif($mode eq $MODE_CHECK){
     checkLauncherConfig();
   }elsif($mode eq $MODE_GET_DESKTOP_FILES){
@@ -506,22 +508,6 @@ sub rearrangeLauncherButtons(){
   }
 
   writeLipstickConfig(@configItems);
-
-  my %okActiveAppNames = map {$_ => 1} (
-    getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN,
-    getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_HOME,
-  );
-
-  my @unusedItems = @DESKTOP_FILE_DISABLE_PATTERNS;
-  @unusedItems = applyConfigReplacements \@unusedItems, \@validAppNames;
-  my %okUnusedAppNames = map {$_ => 1} @unusedItems;
-
-  my @missing;
-  for my $appName(@appNames){
-    push @missing, $appName if not defined $okActiveAppNames{$appName};
-  }
-
-  print "\n\nMISSING (not installed): @missing\n" if @missing > 0;
 }
 
 sub initializeAllAndroidDesktopFiles(){
