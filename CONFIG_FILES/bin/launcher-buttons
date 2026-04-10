@@ -7,6 +7,7 @@ use Time::HiRes qw(time);
 sub ensureExecScriptOnDevice();
 sub startLipstick();
 sub stopLipstick();
+sub checkLauncherConfig();
 sub rearrangeLauncherButtons();
 sub createAndroidDesktopFiles();
 sub createAndroidDesktopFile($);
@@ -320,8 +321,7 @@ my %PATTERN_SYNONYMS = (
 );
 
 my $MODE_REARRANGE = "rearrange";
-my $MODE_INACTIVE = "inactive";
-my $MODE_MISSING_CONFIG = "missing-config";
+my $MODE_CHECK = "check";
 my $MODE_GET_DESKTOP_FILES = "get-desktop-files";
 
 my $USAGE = "Usage:
@@ -333,19 +333,21 @@ my $USAGE = "Usage:
       backs up desktop files as *.desktop.disabled.<NOW_MILLIS>
       before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
 
-  $EXEC [OPTS] --missing-config
-    -get active desktop files from:
-      $DIR_ACTIVE_LAUNCHERS_MAIN
-      $DIR_ACTIVE_LAUNCHERS_HOME
-    -do not include empty files (user dir placeholders)
-    -do not include desktop files that are in config
-    -do not include desktop files that are marked extra (no launchers)
-    -print the remaining desktop files that would be removed by rearrange
-
-  $EXEC [OPTS] --inactive
-    -list all *.desktop.disabled* files in:
-      $DIR_ACTIVE_LAUNCHERS_MAIN
-      $DIR_ACTIVE_LAUNCHERS_HOME
+  $EXEC [OPTS] --check
+    check that all config/disabled patterns match desktop files and vice-versa
+      -for each PATTERN in CONFIG_PATTERNS:
+        -get CFG_DESKTOP_FILES as in: $EXEC --get-matching-desktop-files <CONFIG_PATTERN>
+        -if CFG_DESKTOP_FILES is empty:
+          -print 'MISSING: <CONFIG_PATTERN>'
+        -append CFG_DESKTOP_FILES files to ALL_MATCHING_DESKTOP_FILES_LIST
+      -for each PATTERN in IGNORED_PATERNS:
+        -get CFG_DESKTOP_FILES as in: $EXEC --get-matching-desktop-files <CONFIG_PATTERN>
+        -append CFG_DESKTOP_FILES files to ALL_MATCHING_DESKTOP_FILES_LIST
+      -for each DESKTOP_FILE in `$EXEC --get-all-desktop-files`:
+        -check if DESKTOP_FILE contents contains the line 'NoDisplay=true'
+          -if not, ensure DESKTOP_FILE is contained in ALL_MATCHING_DESKTOP_FILES_LIST
+            -if DESKTOP_FILE is not in ALL_MATCHING_DESKTOP_FILES_LIST:
+              -print 'EXTRA: <DESKTOP_FILE>'
 
   $EXEC [OPTS] --get-matching-desktop-files PATTERN
     get matching desktop files, enabled or disabled, in main + home launcher directories
@@ -381,10 +383,8 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(--inactive)$/){
-      $mode = $MODE_INACTIVE;
-    }elsif($arg =~ /^(--missing-config)$/){
-      $mode = $MODE_MISSING_CONFIG;
+    }elsif($arg =~ /^(--check)$/){
+      $mode = $MODE_CHECK;
     }elsif($arg =~ /^(--get-matching-desktop-files)$/){
       die "ERROR: missing PATTERN\n" if @_ == 0;
       $mode = $MODE_GET_DESKTOP_FILES;
@@ -403,57 +403,12 @@ sub main(@){
 
   die "must be run as root\n" if `whoami` ne "root\n";
 
-  if($mode eq $MODE_INACTIVE){
-    my @files;
-    for my $dir($DIR_ACTIVE_LAUNCHERS_MAIN, $DIR_ACTIVE_LAUNCHERS_HOME){
-      @files = (@files, grep {-f $_} glob "$dir/*.desktop.disabled*");
-    }
-    @files = sort @files;
-
-    print "\n\ndisabled launchers:\n";
-    print "$_\n" foreach @files;
-  }elsif($mode eq $MODE_MISSING_CONFIG){
-    my @configItems = @CONFIG;
-    my @validAppNames = getValidAppNames();
-    @configItems = applyConfigReplacements \@configItems, \@validAppNames;
-    my %okConfigAppNames = map {$_ => 1} @configItems;
-
-    my @activeAppNames = getAppNamesInDir $DIR_ACTIVE_LAUNCHERS_MAIN;
-
-    my @nonEmptyUserLaunchers = grep {not -z $_} glob "$DIR_ACTIVE_LAUNCHERS_HOME/*.desktop";
-    my @nonEmptyUserAppNames = map {
-      $_ =~ s/$DIR_ACTIVE_LAUNCHERS_HOME\///;
-      $_ =~ s/\.desktop$//;
-      $_
-    } @nonEmptyUserLaunchers;
-
-
-    my @missingAppNames = (@activeAppNames, @nonEmptyUserAppNames);
-    @missingAppNames = grep {not defined $okConfigAppNames{$_}} @missingAppNames;
-
-    my %missingAppIsNoDisplay;
-    for my $appName(@missingAppNames){
-      my @desktopFiles = getDesktopFilesByPattern($appName);
-      my $isNoDisplay = 0;
-      for my $desktopFile(@desktopFiles){
-        my $noDisplayAtt = readProc "grep", "^NoDisplay", $desktopFile;
-        if($noDisplayAtt =~ /^NoDisplay=true$/){
-          $isNoDisplay = 1;
-          last;
-        }
-      }
-      $missingAppIsNoDisplay{$appName} = $isNoDisplay;
-    }
-
-    #filter out desktop files that are NoDisplay=true
-    @missingAppNames = grep {not $missingAppIsNoDisplay{$_}} @missingAppNames;
-
-    print "\n\nmissing config entries:\n";
-    print map {"$_\n"} @missingAppNames;
-  }elsif($mode eq $MODE_REARRANGE){
+  if($mode eq $MODE_REARRANGE){
     stopLipstick() if $$opts{restartLipstick};
     rearrangeLauncherButtons();
     startLipstick() if $$opts{restartLipstick};
+  }elsif($mode eq $MODE_CHECK){
+    checkLauncherConfig();
   }elsif($mode eq $MODE_GET_DESKTOP_FILES){
     my @desktopFiles = defined $targetPattern ?
       getDesktopFilesByPattern($targetPattern) : getAllDesktopFiles();
@@ -485,6 +440,42 @@ sub startLipstick(){
 sub stopLipstick(){
   run "udo systemctl --user stop lipstick &";
   run "pkill -9 lipstick";
+}
+
+sub checkLauncherConfig(){
+  print "\nchecking launcher config:\n";
+  my $countMissing = 0;
+  my %handledDesktopFiles;
+  for my $ptrn(@CONFIG){
+    next if $ptrn =~ /^(dir%.*\[|\])$/; #skip dir open/close entries
+
+    my @desktopFiles = getDesktopFilesByPattern($ptrn);
+    if(@desktopFiles == 0){
+      print "MISSING: $ptrn\n";
+      $countMissing++;
+    }
+    $handledDesktopFiles{$_} = 1 foreach @desktopFiles;
+  }
+  for my $ptrn(@DESKTOP_FILE_DISABLE_PATTERNS, @DESKTOP_FILE_DISABLE_FREEZE_PATTERNS){
+    my @desktopFiles = getDesktopFilesByPattern($ptrn);
+    $handledDesktopFiles{$_} = 1 foreach @desktopFiles;
+  }
+
+  my $countExtra = 0;
+  for my $desktopFile(getAllDesktopFiles()){
+    if(not defined $handledDesktopFiles{$desktopFile}){
+      my $noDisplayAtt = readProc "grep", "^NoDisplay", $desktopFile;
+      if($noDisplayAtt =~ /^NoDisplay=true$/){
+        #ignore launchers with no launcher display
+        next;
+      }else{
+        print "EXTRA: $desktopFile\n";
+        $countExtra++;
+      }
+    }
+  }
+
+  print "missing=$countMissing, extra=$countExtra\n";
 }
 
 sub rearrangeLauncherButtons(){
