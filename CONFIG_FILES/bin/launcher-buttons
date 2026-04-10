@@ -331,9 +331,19 @@ my $USAGE = "Usage:
     same as: $EXEC --apply
 
   $EXEC [OPTS] --apply
-    re-arrange launcher buttons and launcher dirs, potentially removing some
-      backs up desktop files as *.desktop.disabled.<NOW_MILLIS>
-      before changing $DIR_ACTIVE_LAUNCHERS_MAIN and lipstick
+    apply launcher config
+      -ensure script is running on device
+        -if not, copy script to device and execute it over ssh
+      -stop lipstick
+      -create/disable desktop files:
+        -remove all previously created custom android launchers
+        -create custom android launchers for aliendalivk/appsupport or waydroid
+        -restore+enable previously backed up disabled launchers
+        -backup+disable configured launchers
+      -configure lipstick:
+        -create directory entries for lipstick menu
+        -create lipstick applications.menu with ordered launchers
+      -run $EXEC --check
 
   $EXEC [OPTS] --check
     check that all config/disabled patterns match desktop files and vice-versa
