@@ -533,7 +533,7 @@ sub createAndroidDesktopFiles(){
       $pkgNameFmt =~ s/\W/_/g;
       my $iconFile = $$adIcons{$pkgNameFmt};
       if(defined $iconFile){
-        run "cp", "-ar", "$iconFile", "$DIR_ALIENDALVIK_APP_ICON_BACKUP/$pkg.png";
+        runQuiet "cp", "-ar", "$iconFile", "$DIR_ALIENDALVIK_APP_ICON_BACKUP/$pkg.png";
       }else{
         print "\n\nWARNING: no aliendalvik icon found for $appName - $pkg\n";
       }
