@@ -9,7 +9,9 @@ sub startLipstick();
 sub stopLipstick();
 sub checkLauncherConfig();
 sub rearrangeLauncherButtons();
-sub createAndroidDesktopFiles();
+sub initializeAllAndroidDesktopFiles();
+sub removeAllAndroidDesktopFiles();
+sub initializeAndroidAppIcons();
 sub createAndroidDesktopFile($);
 sub applyConfigReplacements($$);
 sub getAllDesktopFiles();
@@ -479,7 +481,7 @@ sub checkLauncherConfig(){
 }
 
 sub rearrangeLauncherButtons(){
-  createAndroidDesktopFiles();
+  initializeAllAndroidDesktopFiles();
 
   my @validAppNames = getValidAppNames();
 
@@ -522,11 +524,22 @@ sub rearrangeLauncherButtons(){
   print "\n\nMISSING (not installed): @missing\n" if @missing > 0;
 }
 
-sub createAndroidDesktopFiles(){
+sub initializeAllAndroidDesktopFiles(){
+  removeAllAndroidDesktopFiles();
+
+  initializeAndroidAppIcons();
+
+  for my $appName(sort keys %ANDROID_LAUNCHERS){
+    createAndroidDesktopFile($appName);
+  }
+}
+
+sub removeAllAndroidDesktopFiles(){
   run "rm -f $DIR_ACTIVE_LAUNCHERS_MAIN/android-wd-*.desktop*";
-
   run "rm -f $DIR_ACTIVE_LAUNCHERS_MAIN/android-ad-*.desktop*";
+}
 
+sub initializeAndroidAppIcons(){
   if($USE_WAYDROID){
     run "mkdir", "-p", $DIR_WAYDROID_APP_ICON_BACKUP;
     run "rsync", "-avP",
@@ -601,10 +614,6 @@ sub createAndroidDesktopFiles(){
       "$DIR_ALIENDALVIK_APP_ICON_DEST/",
       "--reference=$DIR_ALIENDALVIK_APP_ICON_DEST/../",
     ;
-  }
-
-  for my $appName(sort keys %ANDROID_LAUNCHERS){
-    createAndroidDesktopFile($appName);
   }
 }
 
