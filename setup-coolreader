@@ -69,7 +69,7 @@ my $MARGIN = {
   top    => 20,
   bottom => 20,
   left   => 30,
-  right  => 150,
+  right  => 30,
 };
 
 sub getConfig($){
