@@ -342,6 +342,7 @@ sub writeRemoteConfigLines($@){
     chmod 0660 $iniFile
     cp -a $iniFile $iniDir/bak-cr3-ini-good
     cp -a $iniFile $SDCARD_DIR/bak-cr3-ini-good
+    ad fuse
   ";
 
   run "rm", $tmpFile;
