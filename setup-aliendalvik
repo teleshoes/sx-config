@@ -17,6 +17,9 @@ my $POST_ALIENDALVIK_START_SCRIPT = "/usr/local/bin/aliendalvik-post-start";
 
 my $REMOTE_DATA_DIR = "$REMOTE_BASE_ANDROID_DIR/data";
 
+my $EXEC_ABX2XML = "$ENV{HOME}/.cargo/bin/abx2xml";
+my $EXEC_XML2ABX = "$ENV{HOME}/.cargo/bin/xml2abx";
+
 #pkg, SFOS block device, path relative to storage device
 #  uri=content://com.android.externalstorage.documents/tree/$BLOCK_UUID%:$RELATIVE_PATH"
 my $EXTERNAL_STORAGE_URI_GRANTS = [
@@ -288,9 +291,15 @@ sub editRemoteFile($$$){
 
 sub editPackageRestrictions($){
   my ($file) = @_;
-  open FH, "< $file" or die "could not read $file\n$!\n";
-  my $contents = join '', <FH>;
-  close FH;
+
+  my $contents = readFile($file);
+
+ my $isABXFile = 0;
+  if($contents =~ /^ABX/){
+    $isABXFile = 1;
+    run $EXEC_ABX2XML, "-i", $file;
+    $contents = readFile($file);
+  }
 
   my $ws = '(?:\s|\n)*';
 
@@ -374,9 +383,11 @@ sub editPackageRestrictions($){
   $contents = $prefix . $pkgXml . $suffix;
 
   if($isChanged){
-    open FH, "> $file" or die "could not write $file\n$!\n";
-    print FH $contents;
-    close FH;
+    writeFile($file, $contents);
+
+    if($isABXFile){
+      run $EXEC_XML2ABX, "-i", $file;
+    }
   }
 
   return $isChanged;
@@ -384,9 +395,15 @@ sub editPackageRestrictions($){
 
 sub editUriGrants($$){
   my ($file, $uriGrants) = @_;
-  open FH, "< $file" or die "could not read $file\n$!\n";
-  my $contents = join '', <FH>;
-  close FH;
+
+  my $contents = readFile($file);
+
+  my $isABXFile = 0;
+  if($contents =~ /^ABX/){
+    $isABXFile = 1;
+    run $EXEC_ABX2XML, "-i", $file;
+    $contents = readFile($file);
+  }
 
   my @uriGrantLines = $contents =~ /(<uri-grant .*\/>)/g;
   s/$/\n/ foreach @uriGrantLines;
@@ -439,9 +456,11 @@ sub editUriGrants($$){
   my $isChanged = $contents eq $newContents ? 0 : 1;
 
   if($isChanged){
-    open FH, "> $file" or die "could not write $file\n$!\n";
-    print FH $newContents;
-    close FH;
+    writeFile($file, $newContents);
+
+    if($isABXFile){
+      run $EXEC_XML2ABX, "-i", $file;
+    }
   }
 
   return $isChanged;
@@ -449,9 +468,15 @@ sub editUriGrants($$){
 
 sub editNotificationPolicy($){
   my ($file) = @_;
-  open FH, "< $file" or die "could not read $file\n$!\n";
-  my $contents = join '', <FH>;
-  close FH;
+
+  my $contents = readFile($file);
+
+  my $isABXFile = 0;
+  if($contents =~ /^ABX/){
+    $isABXFile = 1;
+    run $EXEC_ABX2XML, "-i", $file;
+    $contents = readFile($file);
+  }
 
   my $isChanged = 0;
 
@@ -474,9 +499,11 @@ sub editNotificationPolicy($){
   }
 
   if($isChanged){
-    open FH, "> $file" or die "could not write $file\n$!\n";
-    print FH $contents;
-    close FH;
+    writeFile($file, $contents);
+
+    if($isABXFile){
+      run $EXEC_XML2ABX, "-i", $file;
+    }
   }
 
   return $isChanged;
