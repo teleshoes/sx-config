@@ -182,6 +182,9 @@ sub main(@){
   print "\n\n\napplying settings\n";
   applySettings();
 
+  print "\n\n\nsetting up jitsi:\n";
+  setupJitsi();
+
   print "\n\n\nediting package restrictions\n";
   editRemoteFile(
     "package-restrictions",
@@ -215,8 +218,6 @@ sub main(@){
     print "skipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
   }
 
-  print "\n\n\nsetting up jitsi:\n";
-  setupJitsi();
 }
 
 sub applySettings(){
