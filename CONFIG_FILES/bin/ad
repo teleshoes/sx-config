@@ -99,7 +99,7 @@ my $USAGE = "Usage:
     -restart $APKD_BRIDGE_SERVICE service
     -stop $APKD_BRIDGE_HW_SERVICE service
     -sleep 3s
-    -start android as in: $EXEC --stop
+    -start android as in: $EXEC --start
 
   $EXEC [OPTS] --systemctl|systemctl SERVICE_CMD
     run as $USER: systemctl --user SERVICE_CMD $SYSTEMD_SERVICE
