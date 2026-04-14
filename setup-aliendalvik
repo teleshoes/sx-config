@@ -208,15 +208,11 @@ sub main(@){
   );
 
   print "\n\n\nediting start script\n";
-  if(ipmagicTest $IPMAGIC_NAME, "root", "-f", $ALIENDALVIK_START_SCRIPT){
-    editRemoteFile(
-      "start-script",
-      $ALIENDALVIK_START_SCRIPT,
-      \&editStartScript,
-    );
-  }else{
-    print "skipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
-  }
+  editRemoteFile(
+    "start-script",
+    $ALIENDALVIK_START_SCRIPT,
+    \&editStartScript,
+  );
 
   run "ipmagic", $IPMAGIC_NAME, "ad", "start";
 }
@@ -257,6 +253,11 @@ sub editRemoteFile($$$){
   my $nowMillis = nowMillis();
   my $tmpFileOld = "/tmp/setup-aliendalvik-$editName-$nowMillis-old";
   my $tmpFileNew = "/tmp/setup-aliendalvik-$editName-$nowMillis-new";
+
+  if(not ipmagicTest $IPMAGIC_NAME, "root", "-f", $remoteFile){
+    print STDERR "\n\n\n\n\nWARNING: REMOTE FILE $remoteFile missing\n\n\n\n\n";
+    return;
+  }
 
   run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", ":$remoteFile", $tmpFileOld;
   run "cp", "-ar", $tmpFileOld, $tmpFileNew;
