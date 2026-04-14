@@ -86,8 +86,8 @@ my @CONFIG = qw(
   clock
   qtemail
 
-  filetug
   sailfish-filemanager
+  filetug
   gallery
   timeline
 
