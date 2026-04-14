@@ -218,6 +218,7 @@ sub main(@){
     print "skipping edit of non-existent $ALIENDALVIK_START_SCRIPT\n";
   }
 
+  run "ipmagic", $IPMAGIC_NAME, "ad", "start";
 }
 
 sub applySettings(){
@@ -279,8 +280,6 @@ sub editRemoteFile($$$){
       cat $tmpFileNew > $remoteFile
       rm $tmpFileNew
     ";
-
-    run "ipmagic", $IPMAGIC_NAME, "ad", "start";
   }else{
     print "NO CHANGE to $editName\n";
   }
