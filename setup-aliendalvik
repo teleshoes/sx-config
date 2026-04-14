@@ -253,14 +253,12 @@ sub applySettings(){
 sub editRemoteFile($$$){
   my ($editName, $remoteFile, $editSub) = @_;
   print "checking $editName\n";
-  my $host = `ipmagic $IPMAGIC_NAME`;
-  chomp $host;
 
   my $nowMillis = nowMillis();
   my $tmpFileOld = "/tmp/setup-aliendalvik-$editName-$nowMillis-old";
   my $tmpFileNew = "/tmp/setup-aliendalvik-$editName-$nowMillis-new";
 
-  run "scp", "root\@$host:$remoteFile", $tmpFileOld;
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", ":$remoteFile", $tmpFileOld;
   run "cp", "-ar", $tmpFileOld, $tmpFileNew;
 
   if(not -e $tmpFileOld or not -e $tmpFileNew){
@@ -275,7 +273,7 @@ sub editRemoteFile($$$){
     run "ipmagic", $IPMAGIC_NAME, "ad", "stop";
 
     tryrun "diff", $tmpFileOld, $tmpFileNew;
-    run "scp", $tmpFileNew, "root\@$host:$tmpFileNew";
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", $tmpFileNew, ":$tmpFileNew";
     run "ipmagic", $IPMAGIC_NAME, "-u", "root", "
       cat $tmpFileNew > $remoteFile
       rm $tmpFileNew
