@@ -271,8 +271,7 @@ sub editRemoteFile($$$){
   print "\n";
   if($isChanged){
     print "$editName changed, updating..\n";
-    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-      "systemctl stop appsupport.service";
+    run "ipmagic", $IPMAGIC_NAME, "ad", "stop";
 
     tryrun "diff", $tmpFileOld, $tmpFileNew;
     run "scp", $tmpFileNew, "root\@$host:$tmpFileNew";
@@ -280,8 +279,8 @@ sub editRemoteFile($$$){
       cat $tmpFileNew > $remoteFile
       rm $tmpFileNew
     ";
-    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
-      "systemctl start appsuport.service";
+
+    run "ipmagic", $IPMAGIC_NAME, "ad", "start";
   }else{
     print "NO CHANGE to $editName\n";
   }
