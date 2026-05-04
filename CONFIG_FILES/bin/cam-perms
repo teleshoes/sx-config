@@ -1,0 +1,14 @@
+#!/bin/bash
+
+make_dir_files_readable() {
+  dir="$1"
+
+  readarray -d '' files_arr < <(find $dir -maxdepth 1 -type f -not -perm -o=r -print0)
+
+  if [ -n "$files_arr" ]; then
+    echo sudo chmod a+r "${files_arr[@]}"
+    sudo chmod a+r "${files_arr[@]}"
+  fi
+}
+
+make_dir_files_readable /media/sdcard/droid/DCIM/AndroidCamera/
