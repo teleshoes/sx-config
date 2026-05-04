@@ -10,7 +10,7 @@ my $USER = "nemo";
 my @PIP_MODULES = qw(
   midea-beautiful-air
   mpris-fakeplayer
-  gehomesdk
+  gehomesdk==2025.2.0
   pexpect
   pyjwt
 );
