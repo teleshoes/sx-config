@@ -12,6 +12,7 @@ my $EXEC_TRACKER_MINER_FS = "/usr/libexec/tracker-miner-fs";
 my $EXEC_TRACKER_MINER_FS_DISABLED = "/usr/libexec/tracker-miner-fs-disabled";
 
 my @TRACKER_INDEX_DIRS = qw(
+  /media/sdcard/droid/DCIM/AndroidCamera/
   /media/sdcard/phone/Pictures/Camera/
   /media/sdcard/phone/Videos/Camera/
 );
