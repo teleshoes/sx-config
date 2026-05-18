@@ -394,10 +394,7 @@ sub installRepos(@){
 sub zypperForceInstall($){
   my ($packageName) = @_;
 
-  my $expectLibSrc = "/usr/lib/tcl/expect5.45+mer1/libexpect5.45.so";
-  my $expectLibDest = "/usr/lib/libexpect5.45.so";
-
-  tryrunIpmagicRoot "ln -s $expectLibSrc $expectLibDest";
+  tryrunIpmagicRoot "rmdir /usr/lib64/tcl8.5; ln -s tcl /usr/lib64/tcl8.5";
 
   my $expect = getZypperForceInstallExpect($packageName);
   tryrunIpmagicRoot "expect <<HEREDOC\n$expect\nHEREDOC";
