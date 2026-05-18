@@ -1,0 +1,123 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+sub readLatestGpsLog();
+
+my $EXEC = basename $0;
+
+my $DAEMON_NAME = "gps";
+my $LOG_FILE = "$ENV{HOME}/.cache/logs/$DAEMON_NAME/latest";
+
+my $MILES_PER_KM = 0.62137119;
+my $THRESHOLD_S = 60;
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+    read last speed from position-cli daemon logs and format as MPH
+      -get latest log file from daemon $DAEMON_NAME (`position -v -r` cmd from position-cli)
+        $LOG_FILE
+      -parse latest TIMESTAMP and GROUND_SPEED_M_PER_S (in m/s)
+      -if no log exists or TIMESTAMP is older than $THRESHOLD_S seconds ago:
+        -print '???? MPH'
+      -if GROUND_SPEED_M_PER_S is not a real number:
+        -print '---- MPH'
+      -otherwise:
+        -convert GROUND_SPEED_M_PER_S to GROUND_SPEED_MPH, rounded to the nearest tenth
+        -print '<GROUND_SPEED_MPH> MPH'
+";
+
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  my $entry = readLatestGpsLog();
+  my $epoch = defined $entry ? $$entry{epoch} : undef;
+
+  my $nowEpoch = time;
+
+  if(not defined $epoch or $epoch > $nowEpoch or ($nowEpoch-$epoch) > $THRESHOLD_S){
+    print "???? MPH\n";
+  }elsif(defined $entry and not defined $$entry{speedMPH}){
+    print "---- MPH\n";
+  }else{
+    printf "%4.1f MPH\n", $$entry{speedMPH};
+  }
+}
+
+sub readLatestGpsLog(){
+  if(not -e $LOG_FILE){
+    return undef;
+  }
+
+  my $out = join '', `tail -20 $LOG_FILE`;
+  my @textEntries = split /(?=timestamp)/, $out;
+
+  my @entries;
+  for my $text(@textEntries){
+    my $entry = {};
+    push @entries, $entry;
+    $$entry{timestamp}  = $1 if $text =~ /timestamp (.+)/;
+    $$entry{lat}        = $1 if $text =~ /latitude (.+)/;
+    $$entry{lon}        = $1 if $text =~ /longitude (.+)/;
+    $$entry{alt}        = $1 if $text =~ /altitude (.+)/;
+    $$entry{speedMPerS} = $1 if $text =~ /ground speed (.+)/;
+    $$entry{accuracy}   = $1 if $text =~ /horizontal accuracy (.+)/;
+
+    $$entry{epoch} = timestampToEpoch($$entry{timestamp});
+    $$entry{speedMPH} = metersPerSecondToMPH($$entry{speedMPerS});
+  }
+
+  @entries = grep {
+    defined $$_{epoch}
+    and defined $$_{lat}
+    and defined $$_{lon}
+  } @entries;
+
+  @entries = sort {$$a{epoch} <=> $$b{epoch}} @entries;
+
+  if(@entries > 0){
+    return $entries[-1];
+  }else{
+    return undef;
+  }
+}
+
+sub timestampToEpoch($){
+  my ($dtmStr) = @_;
+  if(not defined $dtmStr or $dtmStr eq ""){
+    return undef;
+  }
+
+  my $epoch = `date --date='$dtmStr' +%s`;
+  chomp $epoch;
+
+  if($epoch =~ /^\d+$/){
+    return $epoch;
+  }else{
+    return undef;
+  }
+}
+
+sub metersPerSecondToMPH($){
+  my ($metersPerSecond) = @_;
+  if(defined $metersPerSecond and $metersPerSecond =~ /^(\d+|\d*\.\d*)$/){
+    my $mph = $metersPerSecond*$MILES_PER_KM*1000.0/60.0/60.0;
+    return $mph;
+  }else{
+    return undef;
+  }
+}
+
+&main(@ARGV);
