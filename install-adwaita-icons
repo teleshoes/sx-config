@@ -21,9 +21,30 @@ sub main(@){
     die "could not clone $REPO_URL" if $? != 0;
   }
 
+  my $attempts = 3;
+  my $success = 0;
+  while($attempts > 0){
+    run "pixmirror", "--size=128x128", "--trim-ext", "--png", "$REPO_DIR/Adwaita", "$REPO_DIR/128x128";
+    $attempts -= 1;
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", "--del",
-    "$REPO_DIR/Adwaita/", ":/usr/share/icons/Adwaita/";
+    if($? == 0){
+      $success = 1;
+      last;
+    }
+  }
+
+  if(not $success){
+    die "ERROR: pixmirror failed\n";
+  }
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "mkdir", "/usr/share/icons/Adwaita";
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync",
+    "-avP",
+    "--del",
+    "--exclude=pixmirror-info",
+    "$REPO_DIR/128x128/",
+    ":/usr/share/icons/Adwaita/128x128";
 }
 
 sub run(@){
