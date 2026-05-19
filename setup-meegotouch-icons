@@ -2,7 +2,7 @@ IPMAGIC_NAME="sx"
 USER="nemo"
 HOST=$(ipmagic $IPMAGIC_NAME)
 
-SRC_DIR="/usr/share/themes/sailfish-default/meegotouch/z1.75/icons"
+SRC_DIR="/usr/share/themes/sailfish-default"
 MEEGOTOUCH_ICONS_DIR="/usr/share/icons/meegotouch"
 
 ipmagic $IPMAGIC_NAME -s "
