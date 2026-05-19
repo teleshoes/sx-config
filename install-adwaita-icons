@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $ipmagicName = "sx";
+my $IPMAGIC_NAME = "sx";
 
 my $REPO_URL = "https://github.com/GNOME/adwaita-icon-theme";
 my $REPO_DIR = "$ENV{HOME}/Code/adwaita-icon-theme";
@@ -21,11 +21,9 @@ sub main(@){
     die "could not clone $REPO_URL" if $? != 0;
   }
 
-  my $host = `ipmagic $ipmagicName`;
-  chomp $host;
 
-  run "rsync", "-avP", "--del",
-    "$REPO_DIR/Adwaita/", "root\@$host:/usr/share/icons/Adwaita/";
+  run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync", "-avP", "--del",
+    "$REPO_DIR/Adwaita/", ":/usr/share/icons/Adwaita/";
 }
 
 sub run(@){
