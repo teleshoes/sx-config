@@ -47,6 +47,8 @@ sub main(@){
   backup "backup-comm", "--cleanup-only" unless $$opts{quick};
   backup "backup-comm", "--fetch-only";
   backup "dcim-backup", ($$opts{quick} ? ("--quick") : ());
+  backup "backup-tmobile-digits";
+
   #backup "sync-android-apps --backup"; WAYDROID
   backup "backup-workouts";
   backup "backup-amazfish";
@@ -56,7 +58,6 @@ sub main(@){
   backup "sync-games --backup";
   backup "backup-home";
   backup "cleanup-backups" unless $$opts{quick};
-  backup "backup-tmobile-digits";
   backup "sync-home-config" unless $$opts{quick};
   backup "backup-comm", "--apply-only" unless $$opts{quick};
   backup "sync-pixmirror" unless $$opts{quick};
