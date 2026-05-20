@@ -57,9 +57,11 @@ sub main(@){
   backup "backup-klomp-lists";
   backup "sync-games --backup";
   backup "backup-home";
+
+  backup "backup-comm", "--apply-only" unless $$opts{quick};
+
   backup "cleanup-backups" unless $$opts{quick};
   backup "sync-home-config" unless $$opts{quick};
-  backup "backup-comm", "--apply-only" unless $$opts{quick};
   backup "sync-pixmirror" unless $$opts{quick};
 }
 
