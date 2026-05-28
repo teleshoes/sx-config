@@ -314,6 +314,20 @@ SilicaFlickable {
             writeFileOverHTTP("/tmp/lipstick-window-title", window.title + "\n")
           }
         }
+
+        var windowListFmt = ""
+        for (var i = 0; i < mruSwitcherModel.count; i++) {
+            var modelIdx = mruSwitcherModel.mapRowToSource(i)
+            var windowId = switcherModel.windowId(modelIdx)
+            var window = Lipstick.compositor.windowForId(windowId)
+            if(window){
+              var title = window.title
+              var className = window.surface.className
+              var pid = window.processId
+              windowListFmt += windowId + "|" + pid + "|" + className + "|" + title + "\n"
+            }
+        }
+        writeFileOverHTTP("/tmp/lipstick-windows", windowListFmt)
     }
 
     Connections {
