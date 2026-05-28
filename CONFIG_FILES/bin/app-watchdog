@@ -29,6 +29,10 @@ sub main(@){
     }
   }
 
+  if(isRunning("facebook.katana") and not isWindowOpen("com.facebook.katana")){
+    print "KILLING ZOMBIE FACEBOOK!\n";
+    system "sudo", "pkill", "-9", "facebook.katana";
+  }
 }
 
 sub isRunning($){
