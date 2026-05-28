@@ -306,18 +306,23 @@ SilicaFlickable {
         return request.status;
     }
 
+    function writeWindowInfo() {
+        var windowId = Lipstick.compositor.topmostWindowId
+        if(windowId > 0){
+          var window = Lipstick.compositor.windowForId(windowId)
+          if(window){
+            writeFileOverHTTP("/tmp/lipstick-window-title", window.title + "\n")
+          }
+        }
+    }
+
     Connections {
         target: Lipstick.compositor
         onMinimizeLaunchingWindows: switcherRoot.minimizeLaunchingWindows()
         onTopmostWindowIdChanged: {
-          var windowId = Lipstick.compositor.topmostWindowId
-          if(windowId > 0){
-            var window = Lipstick.compositor.windowForId(windowId)
-            if(window){
-              writeFileOverHTTP("/tmp/lipstick-window-title", window.title + "\n")
-            }
-          }
-          touchWindow(windowId)
+          touchWindow(Lipstick.compositor.topmostWindowId)
+          // updates when app is brought to focus
+          writeWindowInfo()
         }
     }
 
