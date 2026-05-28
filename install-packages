@@ -89,6 +89,7 @@ my %packages = (
     sailfish-audiorecorder
     sailfish-office
     sailfish-filemanager
+    w3m
     youtube-dl
     usb-moded-connection-sharing-android-config
   )],
