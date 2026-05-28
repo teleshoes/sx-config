@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+sub isRunning($);
+sub isWindowOpen($);
+
+my $WINDOW_LIST_FILE = "/tmp/lipstick-windows";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+    kill certain apps if the app is running but the window is closed
+";
+
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+}
+
+sub isRunning($){
+  my ($ptrn) = @_;
+  system "pgrep $ptrn >/dev/null 2>/dev/null";
+  return $? == 0 ? 1 : 0;
+}
+
+sub isWindowOpen($){
+  my ($className) = @_;
+  system "grep '^[0-9]*|[0-9]*|$className|' $WINDOW_LIST_FILE >/dev/null 2>/dev/null";
+  return $? == 0 ? 1 : 0;
+}
+
+&main(@ARGV);
