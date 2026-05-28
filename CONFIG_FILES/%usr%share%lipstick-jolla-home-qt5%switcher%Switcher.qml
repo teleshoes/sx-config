@@ -653,6 +653,8 @@ SilicaFlickable {
                         switcherRoot.housekeeping = false
                     }
                     switcherGrid.updateColumns()
+                    // updates after app is closed or newly opened
+                    writeWindowInfo()
                 }
 
                 onItemAdded: {
