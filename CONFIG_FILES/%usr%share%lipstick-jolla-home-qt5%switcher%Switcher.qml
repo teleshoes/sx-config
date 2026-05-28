@@ -570,6 +570,8 @@ SilicaFlickable {
                         if (running && launcherItem) {
                             launcherItem.isLaunching = false
                         }
+                        // updates after temporary cover is replaced
+                        writeWindowInfo()
                     }
 
                     showingWid: switcherRoot.showingWid
