@@ -66,6 +66,9 @@ ApplicationWindow {
       id: page
       allowedOrientations: Orientation.All
 
+      // handle orientation changes after page is active
+      onWidthChanged: img.resetZoom()
+
       Item{
         id: imgContainer
         anchors.fill: parent
