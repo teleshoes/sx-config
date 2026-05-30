@@ -66,23 +66,24 @@ ApplicationWindow {
       id: page
       allowedOrientations: Orientation.All
 
-      Flickable{
-        id: flick
+      Item{
+        id: imgContainer
         anchors.fill: parent
-        contentWidth: img.width
-        contentHeight: img.height
 
         PinchArea {
           anchors.fill: parent
           pinch.target: img
           pinch.minimumScale: 0.1
           pinch.maximumScale: 10
+
+          MouseArea {
+            anchors.fill: parent
+            drag.target: img
+          }
         }
 
         Image{
           id: img
-          anchors.centerIn: parent
-          fillMode: Image.PreserveAspectFit
           source: 'file://%(imgFile)s'
           Component.onCompleted: {
             var scale
@@ -92,10 +93,7 @@ ApplicationWindow {
               scale = Screen.height / img.paintedHeight
             }
             img.scale = scale
-            flick.contentX = (img.parent.width-(img.parent.width*scale))/2
-            flick.contentY = (img.parent.height-(img.parent.height*scale))/2
           }
-
         }
       }
     }
