@@ -85,7 +85,9 @@ ApplicationWindow {
         Image{
           id: img
           source: 'file://%(imgFile)s'
-          Component.onCompleted: {
+          Component.onCompleted: img.resetZoom()
+
+          function resetZoom(){
             var scale
             if(img.paintedWidth > img.paintedHeight){
               scale = Screen.width / img.paintedWidth
