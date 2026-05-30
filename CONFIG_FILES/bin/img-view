@@ -13,7 +13,10 @@ from PyQt5.QtWidgets import *
 import os
 import re
 import sys
+import signal
 import tempfile
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 usage = """Usage:
   %(exec)s IMG_FILE
