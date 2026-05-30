@@ -88,12 +88,10 @@ ApplicationWindow {
           Component.onCompleted: img.resetZoom()
 
           function resetZoom(){
-            var scale
-            if(img.paintedWidth > img.paintedHeight){
-              scale = Screen.width / img.paintedWidth
-            }else{
-              scale = Screen.height / img.paintedHeight
-            }
+            var scaleW = page.width / img.paintedWidth
+            var scaleH = page.height / img.paintedHeight
+            var scale = (scaleW < scaleH) ? scaleW : scaleH
+
             img.scale = scale
           }
         }
