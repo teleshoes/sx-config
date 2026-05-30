@@ -60,34 +60,40 @@ import QtQuick 2.0
 import QtQuick.Window 2.2
 import Sailfish.Silica 1.0
 
-Flickable{
-  id: flick
-  anchors.fill: parent
-  contentWidth: img.width
-  contentHeight: img.height
-
-  Image{
-    id: img
-    anchors.centerIn: parent
-    fillMode: Image.PreserveAspectFit
-    source: 'file://%(imgFile)s'
-    Component.onCompleted: {
-      var scale
-      if(img.paintedWidth > img.paintedHeight){
-        scale = Screen.width / img.paintedWidth
-      }else{
-        scale = Screen.height / img.paintedHeight
-      }
-      img.scale = scale
-      flick.contentX = (img.parent.width-(img.parent.width*scale))/2
-      flick.contentY = (img.parent.height-(img.parent.height*scale))/2
-    }
-
-    PinchArea {
+ApplicationWindow {
+  initialPage: Component {
+    Page {
+      Flickable{
+        id: flick
         anchors.fill: parent
-        pinch.target: img
-        pinch.minimumScale: 0.1
-        pinch.maximumScale: 10
+        contentWidth: img.width
+        contentHeight: img.height
+
+        Image{
+          id: img
+          anchors.centerIn: parent
+          fillMode: Image.PreserveAspectFit
+          source: 'file://%(imgFile)s'
+          Component.onCompleted: {
+            var scale
+            if(img.paintedWidth > img.paintedHeight){
+              scale = Screen.width / img.paintedWidth
+            }else{
+              scale = Screen.height / img.paintedHeight
+            }
+            img.scale = scale
+            flick.contentX = (img.parent.width-(img.parent.width*scale))/2
+            flick.contentY = (img.parent.height-(img.parent.height*scale))/2
+          }
+
+          PinchArea {
+              anchors.fill: parent
+              pinch.target: img
+              pinch.minimumScale: 0.1
+              pinch.maximumScale: 10
+          }
+        }
+      }
     }
   }
 }
