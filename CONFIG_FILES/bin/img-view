@@ -69,6 +69,13 @@ ApplicationWindow {
       // handle orientation changes after page is active
       onWidthChanged: img.resetZoom()
 
+      Timer {
+        id: resetZoomTimer
+        repeat: false
+        interval: 50
+        onTriggered: img.resetZoom()
+      }
+
       Item{
         id: imgContainer
         anchors.fill: parent
@@ -88,7 +95,7 @@ ApplicationWindow {
         Image{
           id: img
           source: 'file://%(imgFile)s'
-          Component.onCompleted: img.resetZoom()
+          Component.onCompleted: resetZoomTimer.start()
 
           function resetZoom(){
             var scaleW = page.width / img.paintedWidth
