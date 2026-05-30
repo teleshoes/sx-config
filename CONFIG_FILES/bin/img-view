@@ -63,6 +63,9 @@ import Sailfish.Silica 1.0
 ApplicationWindow {
   initialPage: Component {
     Page {
+      id: page
+      allowedOrientations: Orientation.All
+
       Flickable{
         id: flick
         anchors.fill: parent
