@@ -93,6 +93,8 @@ ApplicationWindow {
             var scale = (scaleW < scaleH) ? scaleW : scaleH
 
             img.scale = scale
+            img.x = (page.width - img.width) / 2
+            img.y = (page.height - img.height) / 2
           }
         }
       }
