@@ -40,7 +40,22 @@ def main():
 
   app = QApplication([])
 
-  qml = """
+  qml = getQML(imgFile)
+
+  fd, qmlFile = tempfile.mkstemp(prefix="imgview_", suffix=".qml")
+  fh = open(qmlFile, 'w')
+  fh.write(qml)
+  fh.close()
+
+  mainWindow = QQuickView()
+  mainWindow.setSource(QUrl(qmlFile))
+
+  mainWindow.show()
+
+  app.exec_()
+
+def getQML(imgFile):
+  return """
         import QtQuick 2.0
         import QtQuick.Window 2.2
         import Sailfish.Silica 1.0
@@ -78,17 +93,6 @@ def main():
         }
   """ % {"imgFile": imgFile}
 
-  fd, qmlFile = tempfile.mkstemp(prefix="imgview_", suffix=".qml")
-  fh = open(qmlFile, 'w')
-  fh.write(qml)
-  fh.close()
-
-  mainWindow = QQuickView()
-  mainWindow.setSource(QUrl(qmlFile))
-
-  mainWindow.show()
-
-  app.exec_()
 
 if __name__ == "__main__":
   sys.exit(main())
