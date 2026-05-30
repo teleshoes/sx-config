@@ -72,6 +72,13 @@ ApplicationWindow {
         contentWidth: img.width
         contentHeight: img.height
 
+        PinchArea {
+          anchors.fill: parent
+          pinch.target: img
+          pinch.minimumScale: 0.1
+          pinch.maximumScale: 10
+        }
+
         Image{
           id: img
           anchors.centerIn: parent
@@ -89,12 +96,6 @@ ApplicationWindow {
             flick.contentY = (img.parent.height-(img.parent.height*scale))/2
           }
 
-          PinchArea {
-              anchors.fill: parent
-              pinch.target: img
-              pinch.minimumScale: 0.1
-              pinch.maximumScale: 10
-          }
         }
       }
     }
