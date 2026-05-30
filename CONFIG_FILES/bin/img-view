@@ -89,6 +89,7 @@ ApplicationWindow {
           MouseArea {
             anchors.fill: parent
             drag.target: img
+            onDoubleClicked: img.resetZoom()
           }
         }
 
