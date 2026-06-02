@@ -109,8 +109,8 @@ ApplicationWindow {
               onTriggered: mouseArea.clickCount = 0
             }
             onClicked: {
-              if(++clickCount == 2){
-                //double-click
+              if(++clickCount == 3){
+                //triple-click
                 img.resetZoom()
                 clickCount = 0
                 resetClickCountTimer.stop()
