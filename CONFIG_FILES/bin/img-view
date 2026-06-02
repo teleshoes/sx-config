@@ -21,6 +21,15 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 def main():
   parser = argparse.ArgumentParser(description="open a QT window with the image displayed")
+  parser.add_argument("-p", "--portrait",
+                      dest="ORIENTATION", action="store_const", const="Portrait",
+                      help=("disable auto-rotate, force portrait orientation"))
+  parser.add_argument("-l", "--landscape",
+                      dest="ORIENTATION", action="store_const", const="Landscape",
+                      help=("disable auto-rotate, force landscape orientation"))
+  parser.add_argument("-a", "--auto-rotate",
+                      dest="ORIENTATION", action="store_const", const="All",
+                      help=("enable auto-rotate (this is the default)"))
   parser.add_argument('imgFile',
                       help="image file, absolute or relative path")
 
@@ -32,6 +41,8 @@ def main():
     sys.exit(1)
 
   allowedOrientations = "All"
+  if args.ORIENTATION:
+    allowedOrientations = args.ORIENTATION
 
   os.environ['QT_QPA_PLATFORM']='wayland'
   os.environ['XDG_RUNTIME_DIR']='/run/user/100000'
