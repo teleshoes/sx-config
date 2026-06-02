@@ -97,9 +97,27 @@ ApplicationWindow {
           pinch.maximumScale: 10
 
           MouseArea {
+            id: mouseArea
             anchors.fill: parent
             drag.target: img
-            onDoubleClicked: img.resetZoom()
+            property int clickCount: 0
+
+            Timer {
+              id: resetClickCountTimer
+              interval: 500
+              repeat: false
+              onTriggered: mouseArea.clickCount = 0
+            }
+            onClicked: {
+              if(++clickCount == 2){
+                //double-click
+                img.resetZoom()
+                clickCount = 0
+                resetClickCountTimer.stop()
+              }else{
+                resetClickCountTimer.restart()
+              }
+            }
           }
         }
 
