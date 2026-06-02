@@ -10,6 +10,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtQuick import *
 from PyQt5.QtWidgets import *
 
+import argparse
 import os
 import re
 import sys
@@ -18,22 +19,14 @@ import tempfile
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-usage = """Usage:
-  %(exec)s IMG_FILE
-    open a QT window with the image displayed
-
-""" % {"exec": sys.argv[0]}
-
 def main():
-  imgFile = None
-  if len(sys.argv) == 2:
-    imgFile = sys.argv[1]
-  else:
-    sys.stderr.write(usage)
-    sys.exit(2)
+  parser = argparse.ArgumentParser(description="open a QT window with the image displayed")
+  parser.add_argument('imgFile',
+                      help="image file, absolute or relative path")
 
-  imgFile = os.path.abspath(imgFile)
+  args = parser.parse_args()
 
+  imgFile = os.path.abspath(args.imgFile)
   os.environ['QT_QPA_PLATFORM']='wayland'
   os.environ['XDG_RUNTIME_DIR']='/run/user/100000'
   os.environ['WAYLAND_DISPLAY']='../../display/wayland-0'
