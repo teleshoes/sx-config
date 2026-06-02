@@ -27,6 +27,10 @@ def main():
   args = parser.parse_args()
 
   imgFile = os.path.abspath(args.imgFile)
+  if not os.path.exists(imgFile):
+    print("ERROR: " + imgFile + " does not exist")
+    sys.exit(1)
+
   os.environ['QT_QPA_PLATFORM']='wayland'
   os.environ['XDG_RUNTIME_DIR']='/run/user/100000'
   os.environ['WAYLAND_DISPLAY']='../../display/wayland-0'
