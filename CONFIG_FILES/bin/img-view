@@ -37,7 +37,7 @@ def main():
 
   app = QApplication([])
 
-  qml = getQML(imgFile)
+  qml = getQML({"imgFile":imgFile})
 
   fd, qmlFile = tempfile.mkstemp(prefix="imgview_", suffix=".qml")
   fh = open(qmlFile, 'w')
@@ -51,7 +51,7 @@ def main():
 
   app.exec_()
 
-def getQML(imgFile):
+def getQML(props):
   return """
 import QtQuick 2.0
 import QtQuick.Window 2.2
@@ -128,8 +128,7 @@ ApplicationWindow {
     }
   }
 }
-""" % {"imgFile": imgFile}
-
+""" % props
 
 if __name__ == "__main__":
   sys.exit(main())
