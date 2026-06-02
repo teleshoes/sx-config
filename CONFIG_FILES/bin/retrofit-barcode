@@ -41,7 +41,7 @@ sub main(@){
     . " &";
   sleep 0.2;
 
-  exec $EXEC_IMG_VIEW, $IMG_FILE_BARCODE;
+  exec $EXEC_IMG_VIEW, "--portrait", $IMG_FILE_BARCODE;
 }
 
 &main(@ARGV);
