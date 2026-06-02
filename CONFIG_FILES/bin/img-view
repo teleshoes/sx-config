@@ -111,6 +111,25 @@ ApplicationWindow {
       }
     }
   }
+
+  cover: Component {
+    Cover {
+      transparent: true
+
+      Image {
+        id: imgCover
+        source: 'file://%(imgFile)s'
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectFit
+      }
+      Label {
+        anchors.centerIn: parent
+        text: "%(imgFile)s"
+        wrapMode: Text.WrapAnywhere
+        width: parent.width
+      }
+    }
+  }
 }
 """ % {"imgFile": imgFile}
 
