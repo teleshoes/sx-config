@@ -31,13 +31,15 @@ def main():
     print("ERROR: " + imgFile + " does not exist")
     sys.exit(1)
 
+  allowedOrientations = "All"
+
   os.environ['QT_QPA_PLATFORM']='wayland'
   os.environ['XDG_RUNTIME_DIR']='/run/user/100000'
   os.environ['WAYLAND_DISPLAY']='../../display/wayland-0'
 
   app = QApplication([])
 
-  qml = getQML({"imgFile":imgFile})
+  qml = getQML({"imgFile":imgFile, "allowedOrientations":allowedOrientations})
 
   fd, qmlFile = tempfile.mkstemp(prefix="imgview_", suffix=".qml")
   fh = open(qmlFile, 'w')
@@ -61,7 +63,7 @@ ApplicationWindow {
   initialPage: Component {
     Page {
       id: page
-      allowedOrientations: Orientation.All
+      allowedOrientations: Orientation.%(allowedOrientations)s
 
       // handle orientation changes after page is active
       onWidthChanged: img.resetZoom()
