@@ -11,6 +11,6 @@ X-Maemo-Service=org.sailfishos.Messages
 X-Maemo-Method=org.sailfishos.Messages.openUrl
 
 [X-Sailjail]
-Permissions=Contacts;Messages;CommunicationHistory;Privileged;Ambience;RemovableMedia;Pictures
+Permissions=Contacts;Messages;CommunicationHistory;Privileged;Ambience;RemovableMedia;Pictures;Downloads
 OrganizationName=org.sailfishos
 ApplicationName=Messages

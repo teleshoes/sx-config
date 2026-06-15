@@ -53,7 +53,7 @@ SystemWindow {
                                           Screen.topRightCorner.radius,
                                           Screen.bottomLeftCorner.radius,
                                           Screen.bottomRightCorner.radius)
-
+    property int _verticalCornerPadding: _biggestCorner * 0.7
 
     Binding {
         // Invocation typically closes the notification, so bind the current values
@@ -182,8 +182,9 @@ SystemWindow {
 
         readonly property int baseX: {
             // handle top notch separately
-            if (Lipstick.compositor.topmostWindowOrientation === Qt.PortraitOrientation
-                    && Screen.topCutout.height > Theme.paddingLarge) {
+            if ((Lipstick.compositor.topmostWindowOrientation === Qt.PortraitOrientation
+                    && Screen.topCutout.height > Theme.paddingLarge)
+                 || (!transpose && _biggestCorner > 0)) {
                 // assuming pushed down enough to avoid corners
                 return Theme.paddingSmall
             }
@@ -197,7 +198,7 @@ SystemWindow {
         property real textOpacity: 0
         property color textColor: down ? palette.highlightColor : palette.primaryColor
         readonly property int displayWidth: transpose ? Math.max(Screen.width, Screen.height/2)
-                                                      : Screen.width - Theme.paddingSmall*2
+                                                      : Screen.width - 2 * baseX
 
         onSwipedAway: {
             notificationWindow.state = ""
@@ -215,8 +216,11 @@ SystemWindow {
             }
 
             return Theme.paddingMedium
-                    + (Screen.hasCutouts && Lipstick.compositor.topmostWindowOrientation === Qt.PortraitOrientation
-                       ? Screen.topCutout.height : 0)
+                    + (Lipstick.compositor.topmostWindowOrientation === Qt.PortraitOrientation
+                       ? Math.max(Screen.topCutout.height, _verticalCornerPadding)
+                       : (Lipstick.compositor.topmostWindowOrientation === Qt.InvertedPortraitOrientation
+                          ? _verticalCornerPadding
+                          : 0))
         }
         width: displayWidth
         swipeDistance: notificationWindow.width
@@ -419,7 +423,7 @@ SystemWindow {
 
                     anchors {
                         top: summary.visible ? summary.bottom : parent.top
-                        topMargin: summary.visible ? 0 : Theme.paddingMedium/2
+                        topMargin: summary.visible ? 0 : Theme.paddingSmall
                         left: summary.left
                         right: summary.right
                     }
@@ -634,7 +638,10 @@ SystemWindow {
 
     function notificationShown(timeout) {
         // Min 1sec and max 5secs
-        if (!timeout && notification.expireTimeout > 0) {
+        if (!timeout && notification.expireTimeout == 0 && Notifications.permanentPreviewEnabled) {
+            // 0 = don't close automatically -> 24h
+            timeout = 1000 * 60 * 60 * 24
+        } else if (!timeout && notification.expireTimeout > 0) {
             timeout = Math.min(Math.max(notification.expireTimeout, 1000), 5000)
         } else {
             timeout = 5000

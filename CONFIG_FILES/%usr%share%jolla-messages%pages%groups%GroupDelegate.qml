@@ -7,6 +7,7 @@ import Sailfish.Messages 1.0
 
 ListItem {
     id: delegate
+
     contentHeight: textColumn.height + Theme.paddingMedium + Theme.paddingSmall + textColumn.y
     menu: contextMenuComponent
     property CommContactGroupModel groupModel
@@ -24,7 +25,9 @@ ListItem {
             return ""
         }
 
-        return MessageUtils.accountDisplayName(person, model.lastEventGroup.localUid, model.lastEventGroup.remoteUids[0])
+        return MessageUtils.accountDisplayName(person,
+                                               model.lastEventGroup.localUid,
+                                               model.lastEventGroup.remoteUids[0])
     }
 
     function _hasIMAccount() {
@@ -38,6 +41,7 @@ ListItem {
 
     Column {
         id: textColumn
+
         anchors {
             top: parent.top
             topMargin: Theme.paddingMedium
@@ -53,6 +57,7 @@ ListItem {
 
             HighlightImage {
                 id: groupIcon
+
                 visible: model.groups[0].remoteUids.length > 1
                 source: "image://theme/icon-s-group-chat"
                 highlighted: delegate.highlighted
@@ -133,8 +138,8 @@ ListItem {
 
         Label {
             id: lastMessage
-            width: parent.width
 
+            width: parent.width
             text: {
                 if (model.lastMessageText !== '') {
                     return model.lastMessageText.replace(/^\s*\n/gm, "") // remove empty lines
@@ -147,7 +152,8 @@ ListItem {
 
             textFormat: Text.PlainText
             font.pixelSize: Theme.fontSizeExtraSmall
-            color: delegate.highlighted || model.unreadMessages > 0 ? Theme.secondaryHighlightColor : Theme.secondaryColor
+            color: delegate.highlighted || model.unreadMessages > 0 ? Theme.secondaryHighlightColor
+                                                                    : Theme.secondaryColor
             wrapMode: Text.Wrap
             maximumLineCount: 3
             onLineLaidOut: {

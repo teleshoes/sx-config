@@ -165,6 +165,8 @@ Compositor {
 
     property int homeOrientation: QtQuick.Screen.primaryOrientation
 
+    property real keyboardHeight
+
     screenOrientation: {
         if (orientationLock == "portrait") return Qt.PortraitOrientation
         else if (orientationLock == "portrait-inverted") return Qt.InvertedPortraitOrientation
@@ -220,6 +222,7 @@ Compositor {
     PeekFilter.boundaryWidth: peekFilterConfigs.boundaryWidth
     PeekFilter.boundaryHeight: peekFilterConfigs.boundaryHeight
     PeekFilter.orientation: topmostWindowOrientation
+    PeekFilter.keyboardHeight: keyboardHeight
     PeekFilter.keyboardBoundaryWidth: peekFilterConfigs.keyboardBoundaryWidth
     PeekFilter.keyboardBoundaryHeight: peekFilterConfigs.keyboardBoundaryHeight
 
@@ -346,6 +349,9 @@ Compositor {
         property bool topmenu_always_show_lockbutton
         property int lockscreen_notification_count: 4
         property bool dismiss_lockscreen_on_bootup
+        property bool keep_devicelock_topmost_window
+        property bool debug_color_visible
+        property string debug_color: "transparent"
     }
 
     MultiPointTouchDrag {
@@ -490,7 +496,11 @@ Compositor {
                     return !deviceIsLocked
                 })
             }
+            if (root.deviceIsLocked && experimentalFeatures.keep_devicelock_topmost_window) {
+                return
+            }
             // Nothing more to do, allow this window to become current window.
+
         } else if (alarmLayerItem.window && !force) {
             if (w != launcherLayerItem.window) {
                 return
@@ -1153,7 +1163,7 @@ Compositor {
                             delayClose: lockscreenDelayTimer.running
                             onClosed: {
                                 if (active) {
-                                    root.setCurrentWindow(appLayerItem.window || homeLayerItem.window)
+                                    root.setCurrentWindow(alarmLayerItem.window || appLayerItem.window || homeLayerItem.window)
                                 }
                             }
 
@@ -1499,6 +1509,18 @@ Compositor {
         }
     }
 
+    RotatingItem {
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: Theme.paddingSmall
+
+            visible: experimentalFeatures.debug_color_visible
+            color: experimentalFeatures.debug_color
+        }
+    }
+
+
     Component {
         id: windowWrapper
         WindowWrapper { }
@@ -1512,6 +1534,11 @@ Compositor {
     Component {
         id: wallpaperWindowWrapper
         WallpaperWindowWrapper {}
+    }
+
+    Component {
+        id: xdgWindowWrapper
+        XdgWindowWrapper { }
     }
 
     onWindowAdded: {
@@ -1563,7 +1590,16 @@ Compositor {
         var isApplicationWindow = window.category == "" || window.category == "silica"
         var isWallpaperWindow = window.category === "wallpaper"
 
-        var component = window.isInProcess ? inProcWindowWrapper : windowWrapper
+        var component
+        if (window.isInProcess) {
+            component = inProcWindowWrapper
+        } else if (window.isXdg && !window.isAlien) {
+            component = xdgWindowWrapper
+            window.transformOrigin = Item.TopLeft
+        } else {
+            component = windowWrapper
+        }
+
         var properties = {
             'window': window,
             'parent': null
@@ -1641,6 +1677,9 @@ Compositor {
 
         // reparenting already handled (window is transient to another window)
         if (isApplicationWindow && window.parent !== root.contentItem) {
+            window.bufferScale = Qt.binding(function () {
+                return window.parent ? window.parent.bufferScale : 1.0
+            })
             return
         }
 
@@ -1954,7 +1993,7 @@ Compositor {
         watchServiceStatus: true
 
         function keyboardHeightChanged(keyboardHeight) {
-            root.PeekFilter.keyboardHeight = keyboardHeight
+            root.keyboardHeight = keyboardHeight
         }
     }
 

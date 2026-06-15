@@ -26,6 +26,7 @@ ListItem {
     Behavior on contentHeight {
         NumberAnimation {
             id: contentHeightAnimation
+
             duration: 100
             easing.type: Easing.InOutQuad
         }
@@ -43,7 +44,7 @@ ListItem {
                                   || attachmentOverlay.visible
     property bool hasText
     readonly property bool canRetry: eventStatus >= CommHistory.TemporarilyFailedStatus
-                || (inbound && eventStatus === CommHistory.ManualNotificationStatus)
+                                     || (inbound && eventStatus === CommHistory.ManualNotificationStatus)
     property int eventStatus
     readonly property string eventStatusText: {
         if (inbound && eventStatus === CommHistory.ManualNotificationStatus) {
@@ -361,11 +362,12 @@ ListItem {
             }
         }
 
-        y: Theme.paddingMedium / 2
+        y: Theme.paddingSmall
         height: Math.max(implicitHeight, implicitHeight ? attachments.height : 0)
         width: parent.width
                - (hasAttachments ? (Theme.itemSizeLarge + Theme.paddingMedium) : 0)
-               - (retryIcon.width > 0 ? (2 * Theme.horizontalPageMargin + retryIcon.width + 2 * Theme.paddingMedium) : sidePadding)
+               - (retryIcon.width > 0 ? (2 * Theme.horizontalPageMargin + retryIcon.width + 2 * Theme.paddingMedium)
+                                      : sidePadding)
 
         plainText: {
             if (!modelData) {
@@ -419,7 +421,8 @@ ListItem {
                     return 0
                 } else if (mergeTimestamp) {
                     return bubble.anchors.leftMargin + messageText.anchors.leftMargin
-                           + (messageText.effectiveHorizontalAlignment === Text.AlignLeft ? mergedTimestampLtrX : mergedTimestampRtlX)
+                           + (messageText.effectiveHorizontalAlignment === Text.AlignLeft ? mergedTimestampLtrX
+                                                                                          : mergedTimestampRtlX)
                            + (hasAttachments ? (attachments.width + Theme.paddingMedium) : 0)
                 } else {
                     return Theme.paddingMedium + bubble.anchors.leftMargin
@@ -431,7 +434,8 @@ ListItem {
                     return 0
                 } else if (mergeTimestamp) {
                     return bubble.anchors.rightMargin + messageText.anchors.rightMargin
-                           + (messageText.effectiveHorizontalAlignment === Text.AlignLeft ? mergedTimestampRtlX : mergedTimestampLtrX)
+                           + (messageText.effectiveHorizontalAlignment === Text.AlignLeft ? mergedTimestampRtlX
+                                                                                          : mergedTimestampLtrX)
                            + (hasAttachments ? (attachments.width + Theme.paddingMedium) : 0)
                 } else {
                     return Theme.paddingMedium + bubble.anchors.rightMargin
@@ -544,7 +548,9 @@ ListItem {
                     font.pixelSize: Theme.fontSizeExtraSmall
                     visible: simIcon.visible
                     color: simIcon.color
-                    text: message.modemIndex >= 0 ? MessageUtils.simManager.modemSimModel.get(message.modemIndex)["operator"] : ""
+                    text: message.modemIndex >= 0
+                          ? MessageUtils.simManager.modemSimModel.get(message.modemIndex)["operator"]
+                          : ""
                 }
 
                 Label {
@@ -638,4 +644,3 @@ ListItem {
         }
     }
 }
-

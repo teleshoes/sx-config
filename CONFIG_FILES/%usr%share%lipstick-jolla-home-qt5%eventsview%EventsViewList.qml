@@ -8,6 +8,7 @@
 import QtQuick 2.6
 import Sailfish.Silica 1.0
 import com.jolla.lipstick 0.1
+import com.jolla.settings.system 1.0
 import org.nemomobile.lipstick 0.1
 import Nemo.Time 1.0
 import Nemo.Configuration 1.0
@@ -162,56 +163,26 @@ SilicaFlickable {
             }
         }
 
-        WeatherLoader {
-            id: weatherWidget
-            active: false
+        EventsWidgetsModel {
+            id: eventsWidgetsModel
+            onlyUserConfigurable: false
         }
 
-        // For future use:
-        //EventsViewSystemUpdate {}
+        Repeater {
+            model: eventsWidgetsModel
 
-        Item { height: Theme.paddingSmall; width: parent.width }
-
-        CalendarWidgetLoader {
-            id: calendarWidget
-
-            active: false
-            eventsView: root
-        }
-
-        ConfigurationValue {
-            id: eventsScreenWidgets
-
-            key: "/desktop/lipstick-jolla-home/events_screen_widgets"
-
-            // The default value should match the defaults set in the
-            // /usr/share/lipstick/eventswidgets/*.json files
-            defaultValue: [
-                "/usr/share/lipstick-jolla-home-qt5/eventsview/weather/WeatherLoader.qml",
-                "/usr/share/lipstick-jolla-home-qt5/eventsview/calendar/CalendarWidgetLoader.qml"
-            ]
-
-            onValueChanged: update()
-            Component.onCompleted: update()
-
-            function update() {
-                var weatherUrl = Qt.resolvedUrl("weather/WeatherLoader.qml")
-                var calendarUrl = Qt.resolvedUrl("calendar/CalendarWidgetLoader.qml")
-
-                var weatherEnabled = false
-                var calendarEnabled = false
-
-                for (var i = 0; i < value.length; ++i) {
-                    var url = Qt.resolvedUrl(value[i])
-                    if (url === weatherUrl) {
-                        weatherEnabled = true
-                    } else if (url === calendarUrl) {
-                        calendarEnabled = true
-                    }
+            delegate: Column {
+                width: parent ? parent.width : 0
+                Item {
+                    height: widgetLoader.active ? Theme.paddingSmall : 0
+                    width: parent.width
                 }
-
-                weatherWidget.active = weatherEnabled
-                calendarWidget.active = calendarEnabled
+                Loader {
+                    id: widgetLoader
+                    active: model.enabled
+                    width: parent ? parent.width : 0
+                    source: model.path
+                }
             }
         }
     }

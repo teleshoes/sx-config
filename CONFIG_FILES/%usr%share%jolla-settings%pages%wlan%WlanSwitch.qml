@@ -21,7 +21,6 @@ SettingsToggle {
     available: AccessPolicy.wlanToggleEnabled
     active: wifiTechnology && wifiTechnology.connected
     checked: wifiTechnology.powered && !wifiTechnology.tethering
-    busy: busyTimer.running
 
     menu: ContextMenu {
         SettingsMenuItem {
@@ -41,26 +40,25 @@ SettingsToggle {
         } else if (wifiTechnology.tethering) {
             connectionAgent.stopTethering("wifi", true)
         } else {
-            wifiTechnology.powered = !wifiTechnology.powered
-            if (wifiTechnology.powered) {
-                busyTimer.stop()
-            } else if (connDialogConfig.rise) {
+            var powered = !checked
+            wifiTechnology.powered = powered
+
+            if (powered && connDialogConfig.rise) {
                 //HACK - DONT show the conn dialog just because you enabled wifi
-                //busyTimer.restart()
+                //selectorTimer.restart()
+            } else {
+                selectorTimer.stop()
             }
         }
     }
 
     Timer {
-        id: busyTimer
+        id: selectorTimer
 
         interval: connDialogConfig.scanningWait
-        onTriggered: connectionSelector.openConnection()
-        onRunningChanged: {
-            if (running) {
-                wifiTechnology.connectedChanged.connect(stop)
-            } else {
-                wifiTechnology.connectedChanged.disconnect(stop)
+        onTriggered: {
+            if (!networkManager.connectingWifi) {
+                connectionSelector.openConnection()
             }
         }
     }
@@ -71,12 +69,18 @@ SettingsToggle {
         path: "/apps/jolla-settings/wlan_fav_switch_connection_dialog"
 
         property bool rise: true
-        property int scanningWait: 5000
+        property int scanningWait: 8000
     }
 
     NetworkTechnology {
         id: wifiTechnology
+
         path: Connman.wifiTechnologyPath
+        onConnectedChanged: {
+            if (connected) {
+                selectorTimer.stop()
+            }
+        }
     }
 
     NetworkManager { id: networkManager }
