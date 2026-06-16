@@ -7,7 +7,7 @@ use PhoneBackupUtils;
 use File::Basename qw(basename);
 
 my $IPMAGIC_NAME = "sx";
-my $USER = "root";
+my $ROOT_USER = "root";
 
 sub setupCpanConfig();
 
@@ -70,7 +70,7 @@ sub main(@){
 
   setupCpanConfig();
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER,
+  run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER,
     "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
 
   setupCpanConfig();
@@ -82,19 +82,19 @@ sub main(@){
     my @cpanInstallArgs = ("install", @modules);
     my $cpanInstallArgStr = join ", ", map {"'$_'"} @cpanInstallArgs;
 
-    run "ipmagic", $IPMAGIC_NAME, "-u", $USER,
+    run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER,
       "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
   }
 
   #build encodings after install
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "enc2xs", "-C";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER, "enc2xs", "-C";
 }
 
 sub setupCpanConfig(){
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "cpanp 's conf pushy_https 0; s save'";
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "cpanp 's conf prereqs 1; s save'";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER, "cpanp 's conf pushy_https 0; s save'";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER, "cpanp 's conf prereqs 1; s save'";
 
-  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, ''
+  run "ipmagic", $IPMAGIC_NAME, "-u", $ROOT_USER, ''
     . '( echo;'
     . '  echo o conf pushy_https 0;'
     . '  echo o conf prerequisites_policy follow;'
