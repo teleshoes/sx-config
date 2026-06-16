@@ -220,6 +220,9 @@ sub main(@){
     }
   }
 
+  ipmagicRun($IPMAGIC_NAME, $USER, "--sshc-close");
+  ipmagicRun($IPMAGIC_NAME, "root", "--sshc-close");
+
   print "making sure $IPMAGIC_NAME is ssh-able\n";
   ipmagicRun($IPMAGIC_NAME, $USER, "--sshc", "echo found $IPMAGIC_NAME!\n");
   die "failed" if $? != 0;
