@@ -385,11 +385,15 @@ sub main(@){
 }
 
 sub installRepos(@){
+  my @repos = @_;
+  my $cmd = "echo adding " . (0+@repos) . " repos\n";
+  $cmd .= "set -x\n";
   for my $repo(@_){
     my $repoName = "openrepos-$repo";
     my $url = "https://$OPENREPOS_HOST/$repo/personal/main";
-    runIpmagicRoot "ssu", "addrepo", $repoName, $url;
+    $cmd .= "ssu addrepo '$repoName' '$url'\n";
   }
+  runIpmagicRoot $cmd;
 }
 
 sub zypperForceInstall($){
