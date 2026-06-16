@@ -38,6 +38,7 @@ my @MODULES_ARR = (
 );
 my %MODULES = @MODULES_ARR;
 my @GROUP_NAMES = map {$MODULES_ARR[$_]} grep {$_ % 2 == 0} (0..$#MODULES_ARR);
+my $GROUP_NAME_REGEX = join "|", @GROUP_NAMES;
 
 my $MODULES_FORMAT = join('', map {"    $_ => @{$MODULES{$_}}\n"} @GROUP_NAMES);
 
@@ -52,7 +53,20 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
-  die $USAGE if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+  my @groups;
+  while(@_ > 0){
+    my $arg = shift @_;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^($GROUP_NAME_REGEX)$/){
+      push @groups, $arg;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
+
+  @groups = @GROUP_NAMES if @groups == 0;
 
   setupCpanConfig();
 
@@ -61,10 +75,8 @@ sub main(@){
 
   setupCpanConfig();
 
-  my @groups = @_;
-  @groups = @GROUP_NAMES if @_ == 0;
   for my $group(@groups){
-    die "$USAGE\n\nunknown module group: $group\n" if not defined $MODULES{$group};
+    die "ERROR: unknown group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
 
     my @cpanInstallArgs = ("install", @modules);
