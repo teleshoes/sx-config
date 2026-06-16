@@ -130,7 +130,6 @@ my %packages = (
 );
 
 my @zypperForceInstallPackages = qw(
-  perl-CPANPLUS
   python2-pyqt5
   lipstick2vnc
   harbour-amazfish
