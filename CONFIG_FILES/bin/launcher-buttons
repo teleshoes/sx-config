@@ -451,8 +451,8 @@ sub ensureExecScriptOnDevice(){
     }
     print "rerunning on $IPMAGIC_NAME\n";
     my $destExec = "/tmp/$EXEC-remote-$IPMAGIC_NAME";
-    system "scp", $0, "root\@$targetHost:$destExec";
-    exec "ssh", "root\@$targetHost", $destExec, @ARGV;
+    system "ipmagic", $IPMAGIC_NAME, "-u", "root", "--scp", $0, ":$destExec";
+    exec "ipmagic", $IPMAGIC_NAME, "-u", "root", $destExec, @ARGV;
   }
 }
 
