@@ -50,7 +50,6 @@
 ./set-host
 
 ./install-packages removals #for GNU bash immediately
-./install-packages removals #twice, sometimes fails instead of suggesting gnu
 
 ./install-chum
 
