@@ -68,6 +68,13 @@ sub main(@){
 
   @groups = @GROUP_NAMES if @groups == 0;
 
+  if(not ipmagicTest($IPMAGIC_NAME, $ROOT_USER, "-x", "/usr/local/bin/cpanm")){
+    ipmagicRun $IPMAGIC_NAME, $ROOT_USER, "curl -L https://cpanmin.us | perl - --sudo App::cpanminus";
+    if(not ipmagicTest($IPMAGIC_NAME, $ROOT_USER, "-x", "/usr/local/bin/cpanm")){
+      die "ERROR: cpanminus is not installed\n";
+    }
+  }
+
   setupCpanConfig();
 
   ipmagicRun $IPMAGIC_NAME, $ROOT_USER,
