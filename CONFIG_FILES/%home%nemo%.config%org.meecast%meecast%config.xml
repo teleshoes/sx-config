@@ -26,7 +26,7 @@
   <station_id>USNY0715</station_id>
   <country>United States of America</country>
   <region>New York</region>
-  <file_name>/home/nemo/.config/org.meecast/MeeCast/weather.com_USNY0715</file_name>
+  <file_name>/home/nemo/.config/org.meecast/meecast/weather.com_USNY0715</file_name>
   <forecast_url>https://weather.com/en-GB/weather/today/l/USNY0715</forecast_url>
   <cookie></cookie>
   <user_agent></user_agent>
