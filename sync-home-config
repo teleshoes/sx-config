@@ -12,6 +12,8 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 my $COMM_TOOLS_DIR = "$ENV{HOME}/Code/sx/comm-tools";
 
+my $SDCARD_PHONE_DIR = "/media/sdcard/phone";
+
 my @HOME_RSYNC_INCLUDES = qw(
   .bashrc
   .gitconfig
@@ -119,25 +121,25 @@ my $RSYNCS_ARR = [
   klomp_config => {
     user => $USER,
     src  => "$ENV{HOME}/.klomp/config-$IPMAGIC_NAME",
-    dest => "/media/sdcard/phone/klomp/config",
+    dest => "$SDCARD_PHONE_DIR/klomp/config",
     args => ["-avP"],
   },
   klomp_lib => {
     user => $USER,
     src  => "$ENV{HOME}/.klomp/lib-$IPMAGIC_NAME",
-    dest => "/media/sdcard/phone/klomp/lib",
+    dest => "$SDCARD_PHONE_DIR/klomp/lib",
     args => ["-avP"],
   },
   ddr_videos => {
     user => $USER,
     src  => "$ENV{HOME}/DCIM/xddr/videos/good/",
-    dest => "/media/sdcard/phone/ddr-videos/",
+    dest => "$SDCARD_PHONE_DIR/ddr-videos/",
     args => ["-avP"],
   },
   sheet_music => {
     user => $USER,
     src  => "$ENV{HOME}/Music/sheet_music/",
-    dest => "/media/sdcard/phone/sheet_music/",
+    dest => "$SDCARD_PHONE_DIR/sheet_music/",
     args => [
       "-avP", "-O",
       "--include=shows/",
@@ -151,13 +153,13 @@ my $RSYNCS_ARR = [
   alarms => {
     user => $USER,
     src  => "/usr/share/alarms/",
-    dest => "/media/sdcard/phone/alarms/",
+    dest => "$SDCARD_PHONE_DIR/alarms/",
     args => ["-avP"],
   },
   sounds => {
     user => $USER,
     src  => "/usr/share/sounds/custom/",
-    dest => "/media/sdcard/phone/sounds/",
+    dest => "$SDCARD_PHONE_DIR/sounds/",
     args => ["-avP"],
   },
 
