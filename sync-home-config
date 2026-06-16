@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
 use List::Util qw(uniq);
 
-sub ipmagic($$@);
-sub rsync($$@);
 sub getAllParentDirs($);
-sub run(@);
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
@@ -219,7 +219,7 @@ sub main(@){
   }
 
   print "making sure $IPMAGIC_NAME is ssh-able\n";
-  ipmagic($IPMAGIC_NAME, $USER, "echo found $IPMAGIC_NAME!\n");
+  ipmagicRun($IPMAGIC_NAME, $USER, "--sshc", "echo found $IPMAGIC_NAME!\n");
   die "failed" if $? != 0;
 
   print "\n\n===RSYNC FILES\n";
@@ -231,7 +231,7 @@ sub main(@){
     print "\n=== $rsyncName\n";
     my $rsyncInfo = $RSYNCS{$rsyncName};
     my @maybeSimulateArg = $$opts{simulate} ? ("-n") : ();
-    rsync($IPMAGIC_NAME, $$rsyncInfo{user},
+    ipmagicRun($IPMAGIC_NAME, $$rsyncInfo{user}, "--sshc", "--rsync",
       "--chown=$$rsyncInfo{user}:$$rsyncInfo{user}",
       @{$$rsyncInfo{args}},
       "$$rsyncInfo{src}",
@@ -239,15 +239,6 @@ sub main(@){
       @maybeSimulateArg,
     );
   }
-}
-
-sub ipmagic($$@){
-  my ($ipmagicName, $user, @cmd) = @_;
-  run "ipmagic", $ipmagicName, "-u", $user, "--sshc", @cmd;
-}
-sub rsync($$@){
-  my ($ipmagicName, $user, @cmd) = @_;
-  run "ipmagic", $ipmagicName, "-u", $user, "--sshc", "--rsync", @cmd;
 }
 
 # recursively list all parent dirs
@@ -269,14 +260,6 @@ sub getAllParentDirs($){
     push @dirs, "$path/";
   }
   return @dirs;
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
-  if($? != 0){
-    die "ERROR: \"@_\" failed\n";
-  }
 }
 
 &main(@ARGV);
