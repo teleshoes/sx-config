@@ -27,7 +27,7 @@ sub runCmd($@);
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw();
 our @EXPORT = qw(
-  ipmagicTest
+  ipmagicTest ipmagicRun ipmagicReadProc
   getIpmagicBlockDevUUID
   nowMillis
   mtime
@@ -55,6 +55,15 @@ sub ipmagicTest($$@){
     die "ERROR: could not run '@testCmd' (result not TRUE or FALSE)\n";
   }
 }
+sub ipmagicRun($$@){
+  my ($ipmagicName, $ipmagicUser, @cmd) = @_;
+  run "ipmagic", $ipmagicName, "-u", $ipmagicUser, @cmd;
+}
+sub ipmagicReadProc($$@){
+  my ($ipmagicName, $ipmagicUser, @cmd) = @_;
+  readProc "ipmagic", $ipmagicName, "-u", $ipmagicUser, @cmd;
+}
+
 
 sub getIpmagicBlockDevUUID($$){
   my ($ipmagicName, $blockDev) = @_;
