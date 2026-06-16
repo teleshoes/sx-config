@@ -4,7 +4,7 @@ use warnings;
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
 
-sub ensureExecScriptOnDevice();
+sub ensureExecScriptOnDevice($);
 sub isRoot();
 sub startLipstick();
 sub stopLipstick();
@@ -385,6 +385,9 @@ my $USAGE = "Usage:
     -k | --keep-lipstick | --no-restart-lipstick
       do not kill lipstick
       do not stop, start, or restart lipstick service
+
+    --target-host=TARGET_HOSTNAME
+      only run on the indicated hostname, instead of `ipmagic $IPMAGIC_NAME`
 ";
 
 sub main(@){
@@ -392,6 +395,7 @@ sub main(@){
   my $targetPattern = undef;
   my $opts = {
     restartLipstick => 1,
+    forceTargetHost => undef,
   };
   while(@_ > 0){
     my $arg = shift @_;
@@ -411,12 +415,14 @@ sub main(@){
       $targetPattern = undef;
     }elsif($arg =~ /^(-k|--keep-lipstick|--no-restart-lipstick)$/){
       $$opts{restartLipstick} = 0;
+    }elsif($arg =~ /^--target-host=(.+)$/){
+      $$opts{forceTargetHost} = $1;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
   }
 
-  ensureExecScriptOnDevice();
+  ensureExecScriptOnDevice($opts);
 
   die "must be run as root\n" if not isRoot();
 
@@ -437,10 +443,17 @@ sub main(@){
   }
 }
 
-sub ensureExecScriptOnDevice(){
-  my @ipmagicCmd = isRoot() ? ("udo", "ipmagic") : ("ipmagic");
-  my $targetHost = readProc @ipmagicCmd, $IPMAGIC_NAME;
-  chomp $targetHost;
+sub ensureExecScriptOnDevice($){
+  my ($opts) = @_;
+  my $targetHost = undef;
+  if(defined $$opts{forceTargetHost}){
+    $targetHost = $$opts{forceTargetHost};
+  }else{
+    my @ipmagicCmd = isRoot() ? ("udo", "ipmagic") : ("ipmagic");
+    $targetHost = readProc @ipmagicCmd, $IPMAGIC_NAME;
+    chomp $targetHost;
+  }
+
   my $actualHost = readProc "hostname";
   chomp $actualHost;
   if($targetHost ne $actualHost){
