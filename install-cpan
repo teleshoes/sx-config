@@ -8,7 +8,7 @@ my $USER = "root";
 sub setupCpanConfig();
 sub run(@);
 
-my %MODULES = (
+my @MODULES_ARR = (
   qtemail => [qw(
     Net::SSLeay
     Mail::IMAPClient
@@ -33,9 +33,10 @@ my %MODULES = (
     Cpanel::JSON::XS
   )],
 );
-my @GROUPS = sort keys %MODULES;
+my %MODULES = @MODULES_ARR;
+my @GROUP_NAMES = map {$MODULES_ARR[$_]} grep {$_ % 2 == 0} (0..$#MODULES_ARR);
 
-my $MODULES_FORMAT = join '', map {"    $_ => @{$MODULES{$_}}\n"} @GROUPS;
+my $MODULES_FORMAT = join('', map {"    $_ => @{$MODULES{$_}}\n"} @GROUP_NAMES);
 
 my $USAGE = "Usage:
   $0 [MODULE_GROUP MODULE_GROUP ..]
@@ -56,7 +57,7 @@ sub main(@){
   setupCpanConfig();
 
   my @groups = @_;
-  @groups = @GROUPS if @_ == 0;
+  @groups = @GROUP_NAMES if @_ == 0;
   for my $group(@groups){
     die "$USAGE\n\nunknown module group: $group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
