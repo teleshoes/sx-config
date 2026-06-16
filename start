@@ -49,10 +49,6 @@
 
 ./set-host
 
-#havent been necessary recently
-#./set-resolv #necessary for some inexplicable reason sometimes
-#./setup-dns #dnsmasq is probably the culprit, so disable it forever
-
 ./install-packages removals #for GNU bash immediately
 ./install-packages removals #twice, sometimes fails instead of suggesting gnu
 
@@ -96,8 +92,6 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 #ensure SD card inserted and mounted
 #ipmagic sx -s ls /media/sdcard/phone/
 ./sync-home-config
-
-./set-resolv #necessary for some inexplicable reason sometimes
 
 #xperia x compact only: ./setup-sensor-diversions
 
