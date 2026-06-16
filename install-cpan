@@ -4,6 +4,8 @@ use warnings;
 use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 
+use File::Basename qw(basename);
+
 my $IPMAGIC_NAME = "sx";
 my $USER = "root";
 
@@ -39,8 +41,10 @@ my @GROUP_NAMES = map {$MODULES_ARR[$_]} grep {$_ % 2 == 0} (0..$#MODULES_ARR);
 
 my $MODULES_FORMAT = join('', map {"    $_ => @{$MODULES{$_}}\n"} @GROUP_NAMES);
 
+my $EXEC = basename $0;
+
 my $USAGE = "Usage:
-  $0 [MODULE_GROUP MODULE_GROUP ..]
+  $EXEC [MODULE_GROUP MODULE_GROUP ..]
     install cpan module groups indicated
       (default is to install all if none are given)
 
