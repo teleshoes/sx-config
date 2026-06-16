@@ -224,14 +224,31 @@ sub main(@){
   ipmagicRun($IPMAGIC_NAME, $USER, "--sshc", "echo found $IPMAGIC_NAME!\n");
   die "failed" if $? != 0;
 
+  my $mountList = ipmagicReadProc($IPMAGIC_NAME, $USER, "--sshc", "mount");
+  my $sdcardDev = undef;
+  if($mountList =~ /^(\/dev\/mmcblk\d+p\d+) on $SDCARD_PHONE_DIR type/m){
+    $sdcardDev = $1;
+    print "  $SDCARD_PHONE_DIR dev: $sdcardDev\n";
+  }else{
+    print "\n\n\nWARNING: could not find sdcard mountpoint $SDCARD_PHONE_DIR\n";
+  }
+
   print "\n\n===RSYNC FILES\n";
   for my $rsyncName(@RSYNC_NAME_ORDER){
     my $regexFilter = $$opts{rsyncNameRegex};
     if(defined $regexFilter and $rsyncName !~ /$regexFilter/i){
       next;
     }
+
     print "\n=== $rsyncName\n";
     my $rsyncInfo = $RSYNCS{$rsyncName};
+    if($$rsyncInfo{dest} =~ /^$SDCARD_PHONE_DIR/){
+      if(not defined $sdcardDev){
+        print "\n\n\nSDCARD NOT FOUND, SKIPPING:\n  $$rsyncInfo{src} => $$rsyncInfo{dest}\n";
+        next;
+      }
+    }
+
     my @maybeSimulateArg = $$opts{simulate} ? ("-n") : ();
     ipmagicRun($IPMAGIC_NAME, $$rsyncInfo{user}, "--sshc", "--rsync",
       "--chown=$$rsyncInfo{user}:$$rsyncInfo{user}",
