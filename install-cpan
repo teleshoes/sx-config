@@ -86,11 +86,7 @@ sub main(@){
     die "ERROR: unknown group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
 
-    my @cpanInstallArgs = ("install", @modules);
-    my $cpanInstallArgStr = join ", ", map {"'$_'"} @cpanInstallArgs;
-
-    ipmagicRun $IPMAGIC_NAME, $ROOT_USER,
-      "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
+    ipmagicRun $IPMAGIC_NAME, $ROOT_USER, "cpanm --notest --nointeractive @modules";
   }
 
   #build encodings after install
