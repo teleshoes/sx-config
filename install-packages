@@ -84,6 +84,7 @@ my %packages = (
     jolla-notes
     jolla-calendar
     libvncserver
+    lipstick2vnc
     perl-Image-ExifTool
     python2-dbus
     sailfish-audiorecorder
@@ -131,7 +132,6 @@ my %packages = (
 
 my @zypperForceInstallPackages = qw(
   python2-pyqt5
-  lipstick2vnc
   harbour-amazfish
   harbour-meecast-event
 );
