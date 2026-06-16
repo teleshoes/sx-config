@@ -77,7 +77,9 @@ sub main(@){
     die "ERROR: unknown group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
 
+    print "\n##### installing $group\n#####   @modules\n";
     ipmagicRun $IPMAGIC_NAME, $ROOT_USER, "cpanm --notest --nointeractive @modules";
+    print "\n\n";
   }
 
   #build encodings after install
