@@ -66,6 +66,7 @@ my %packages = (
     cutes-js
     gpscon
     gstreamer1.0-tools
+    harbour-amazfish
     harbour-audio-output
     harbour-filetug
     harbour-gpsinfo
@@ -132,7 +133,6 @@ my %packages = (
 
 my @zypperForceInstallPackages = qw(
   python2-pyqt5
-  harbour-amazfish
   harbour-meecast-event
 );
 
