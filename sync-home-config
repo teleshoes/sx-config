@@ -228,12 +228,12 @@ sub main(@){
   die "failed" if $? != 0;
 
   my $mountList = ipmagicReadProc($IPMAGIC_NAME, $USER, "--sshc", "mount");
-  my $sdcardDev = undef;
-  if($mountList =~ /^(\/dev\/mmcblk\d+p\d+) on $SDCARD_PHONE_DIR type/m){
-    $sdcardDev = $1;
+  my $sdcardDev = getIpmagicMountpointBlockDev($IPMAGIC_NAME, $SDCARD_PHONE_DIR);
+  if(defined $sdcardDev and $sdcardDev =~ /^\/dev\/mmcblk\d+p\d+$/){
     print "  $SDCARD_PHONE_DIR dev: $sdcardDev\n";
   }else{
     print "\n\n\nWARNING: could not find sdcard mountpoint $SDCARD_PHONE_DIR\n";
+    $sdcardDev = undef;
   }
 
   print "\n\n===RSYNC FILES\n";

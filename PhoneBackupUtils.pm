@@ -29,6 +29,7 @@ our @EXPORT_OK = qw();
 our @EXPORT = qw(
   ipmagicTest ipmagicRun ipmagicReadProc
   getIpmagicBlockDevUUID
+  getIpmagicMountpointBlockDev
   nowMillis
   mtime
   md5
@@ -72,6 +73,17 @@ sub getIpmagicBlockDevUUID($$){
   chomp $devUUID;
   if($devUUID =~ /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/){
     return $devUUID;
+  }else{
+    return undef;
+  }
+}
+
+sub getIpmagicMountpointBlockDev($$){
+  my ($ipmagicName, $mountpoint) = @_;
+  my $mountList = readProc("ipmagic", $ipmagicName, "-u", "root", "mount");
+  my $blockDev = undef;
+  if($mountList =~ /^(\/dev\/[^ ]+) on $mountpoint type/m){
+    return $1;
   }else{
     return undef;
   }
