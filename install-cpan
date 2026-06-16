@@ -73,9 +73,6 @@ sub main(@){
     }
   }
 
-  ipmagicRun $IPMAGIC_NAME, $ROOT_USER,
-    "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
-
   for my $group(@groups){
     die "ERROR: unknown group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
