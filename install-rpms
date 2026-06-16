@@ -53,7 +53,7 @@ sub main(@){
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  system "rsync", "-avP", "--del", "$SRC_DIR/", "$USER\@$host:$destDir/";
+  system "rsync", "-avP", "--del", "--exclude=backup", "$SRC_DIR/", "$USER\@$host:$destDir/";
 
   my $fullRpmGlobPath = "$destDir/*$rpmGlobPattern*.rpm";
 
