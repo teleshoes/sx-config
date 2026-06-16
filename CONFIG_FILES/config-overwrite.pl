@@ -4,7 +4,9 @@ use warnings;
 use Time::HiRes qw(time);
 use File::Basename qw(basename);
 
-my $hostName = "wolke-sx";
+my %ALLOWED_HOSTNAMES = map {$_ => 1} qw(
+  wolke-sx
+);
 
 my $DIR = '/opt/CONFIG_FILES';
 my $BAK_DIR_PREFIX = '/opt/CONFIG_FILES_BACKUP';
@@ -57,7 +59,13 @@ sub main(@){
 
   die $usage if @_ > 0;
 
-  die "hostname must be $hostName" if `hostname` ne "$hostName\n";
+  my $hostname = `hostname`;
+  chomp $hostname;
+
+  if(not defined $ALLOWED_HOSTNAMES{$hostname}){
+    die "hostname ($hostname) must be one of: "
+      . join(" | ", sort keys %ALLOWED_HOSTNAMES) . "\n";
+  }
 
   my $backupDir = "${BAK_DIR_PREFIX}_" . nowMillis();
   if($backupOnlyMode){
