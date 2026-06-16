@@ -26,7 +26,7 @@ sub main(@){
   print "\n\n### allow any OEM image\n";
   #replace '_v9a_' => '_'
   run "sed", "-i", "-E",
-    "s/^(flash_blob.*)(_v\\d+a_)/\\1_/",
+    "s/(flash_blob.*)(_v[a-zA-Z0-9]*_)/\\1_/",
     "flash-config.sh";
 
   print "\n\n### creating raw img from sparse img\n";
