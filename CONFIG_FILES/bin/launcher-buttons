@@ -446,7 +446,8 @@ sub ensureExecScriptOnDevice(){
   if($targetHost ne $actualHost){
     die "ERROR: rerun failed, target host missing\n" if $targetHost !~ /\w/;
     if($EXEC =~ /-remote-/){
-      die "ERROR: failed to rerun already rerun script $EXEC\n";
+      die "ERROR: failed to rerun already rerun script $EXEC\n"
+        . "  (host=$actualHost, target=$targetHost)\n";
     }
     print "rerunning on $IPMAGIC_NAME\n";
     my $destExec = "/tmp/$EXEC-remote-$IPMAGIC_NAME";
