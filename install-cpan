@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $ipmagicName = "sx";
+my $IPMAGIC_NAME = "sx";
 my $USER = "root";
 
 sub setupCpanConfig();
@@ -35,22 +35,22 @@ my %MODULES = (
 );
 my @GROUPS = sort keys %MODULES;
 
-my $modulesFmt = join '', map {"    $_ => @{$MODULES{$_}}\n"} @GROUPS;
+my $MODULES_FORMAT = join '', map {"    $_ => @{$MODULES{$_}}\n"} @GROUPS;
 
-my $usage = "Usage:
+my $USAGE = "Usage:
   $0 [MODULE_GROUP MODULE_GROUP ..]
     install cpan module groups indicated
       (default is to install all if none are given)
 
-    \n$modulesFmt
+    \n$MODULES_FORMAT
 ";
 
 sub main(@){
-  die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+  die $USAGE if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
 
   setupCpanConfig();
 
-  run "ipmagic", $ipmagicName, "-u", $USER,
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER,
     "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest('install', 'CPAN')\"";
 
   setupCpanConfig();
@@ -58,25 +58,25 @@ sub main(@){
   my @groups = @_;
   @groups = @GROUPS if @_ == 0;
   for my $group(@groups){
-    die "$usage\n\nunknown module group: $group\n" if not defined $MODULES{$group};
+    die "$USAGE\n\nunknown module group: $group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
 
     my @cpanInstallArgs = ("install", @modules);
     my $cpanInstallArgStr = join ", ", map {"'$_'"} @cpanInstallArgs;
 
-    run "ipmagic", $ipmagicName, "-u", $USER,
+    run "ipmagic", $IPMAGIC_NAME, "-u", $USER,
       "yes \"\" | perl -MCPAN -e \"CPAN::Shell->notest($cpanInstallArgStr)\"";
   }
 
   #build encodings after install
-  run "ipmagic", $ipmagicName, "-u", $USER, "enc2xs", "-C";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "enc2xs", "-C";
 }
 
 sub setupCpanConfig(){
-  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf pushy_https 0; s save'";
-  run "ipmagic", $ipmagicName, "-u", $USER, "cpanp 's conf prereqs 1; s save'";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "cpanp 's conf pushy_https 0; s save'";
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "cpanp 's conf prereqs 1; s save'";
 
-  run "ipmagic", $ipmagicName, "-u", $USER, ''
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, ''
     . '( echo;'
     . '  echo o conf pushy_https 0;'
     . '  echo o conf prerequisites_policy follow;'
