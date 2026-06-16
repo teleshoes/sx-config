@@ -1,9 +1,13 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
+my $SDCARD_PHONE_DIR = "/media/sdcard/phone";
 
 my $SRC_BG_DIR = "$ENV{HOME}/.cache/backgrounds";
-my $DEST_BG_DIR = "/media/sdcard/phone/Backgrounds";
+my $DEST_BG_DIR = "$SDCARD_PHONE_DIR/Backgrounds";
 
 my @BG_DIR_NAMES = qw(sx sx-ambience sx-ambience-full sx-ambience-small);
 
@@ -11,9 +15,13 @@ my $IPMAGIC_NAME = "sx";
 
 my $USER = "nemo";
 
-sub run(@);
-
 sub main(@){
+  my $sdcardDev = getIpmagicMountpointBlockDev($IPMAGIC_NAME, $SDCARD_PHONE_DIR);
+  $sdcardDev = "" if not defined $sdcardDev;
+  if($sdcardDev !~ /^\/dev\/mmcblk\d+p\d+$/){
+    die "ERROR: could not find sdcard block dev\n";
+  }
+
   run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "mkdir -p $DEST_BG_DIR";
 
   for my $bgDirName(@BG_DIR_NAMES){
@@ -21,12 +29,6 @@ sub main(@){
       "-avP", "--del", "--no-owner", "--no-group",
       "$SRC_BG_DIR/$bgDirName/", ":$DEST_BG_DIR/$bgDirName/";
   }
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
-  die "\"@_\" failed\n" if $? != 0;
 }
 
 &main(@ARGV);
