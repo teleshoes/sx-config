@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 
 sub isRunning($);
 sub isWindowOpen($);
+sub getLipstickWindows();
 
 my $WINDOW_LIST_FILE = "/tmp/lipstick-windows";
 
@@ -43,8 +44,30 @@ sub isRunning($){
 
 sub isWindowOpen($){
   my ($className) = @_;
-  system "grep '^[0-9]*|[0-9]*|$className|' $WINDOW_LIST_FILE >/dev/null 2>/dev/null";
-  return $? == 0 ? 1 : 0;
+  for my $w(getLipstickWindows()){
+    if($$w{className} eq $className){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+sub getLipstickWindows(){
+  my @windowEntries = `cat $WINDOW_LIST_FILE 2>/dev/null`;
+  my @windows;
+  for my $entry(@windowEntries){
+    if($entry =~ /^(\d+)\|(\d+)\|([^\|]*)\|(.*)$/){
+      push @windows, {
+        windowID  => $1,
+        processID => $2,
+        className => $3,
+        title     => $4,
+      };
+    }else{
+      print "WARNING: invalid window entry $entry\n";
+    }
+  }
+  return @windows;
 }
 
 &main(@ARGV);
