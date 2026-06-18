@@ -43,9 +43,9 @@ sub isRunning($){
 }
 
 sub isWindowOpen($){
-  my ($className) = @_;
+  my ($classNameRegex) = @_;
   for my $w(getLipstickWindows()){
-    if($$w{className} eq $className){
+    if($$w{className} =~ /$classNameRegex/){
       return 1;
     }
   }
