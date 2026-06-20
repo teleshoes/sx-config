@@ -39,50 +39,46 @@ sub main(@){
   run "rm", "-r", $LOCAL_PIXMIRROR_BY_DATE_DIR if -d $LOCAL_PIXMIRROR_BY_DATE_DIR;
   run "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/";
 
-  for my $dir(glob "$LOCAL_PIXMIRROR_DIR/????-??-??_*"){
-    if($dir !~ /^(?:.*\/)?(\d\d\d\d)-(\d\d)-(\d\d)_(.+)$/){
+  for my $dir(sort grep {-d $_} glob "$LOCAL_PIXMIRROR_DIR/*"){
+    my $dirName;
+    if($dir =~ /^$LOCAL_PIXMIRROR_DIR\/([a-zA-Z0-9_\-]+)\/?$/){
+      $dirName = $1;
+    }else{
       die "malformed dir: $dir\n";
     }
-    my ($y, $m, $d, $title) = ($1, $2, $3, $4);
-    my $subDir = "${y}/${m}";
-    my $dirName = "${y}-${m}-${d}_${title}";
 
-    my $remoteSrcAbsDir = "$REMOTE_PIXMIRROR_DIR/$dirName";
-    my $remoteRelBaseDir = "$REMOTE_PIXMIRROR_BY_DATE_DIR/$subDir";
+    if($dirName =~ /^(\d\d\d\d)-(\d\d)-(\d\d)_(.+)$/){
+      my ($y, $m, $d, $title) = ($1, $2, $3, $4);
+      my $monthSubDir = "${y}/${m}";
 
-    my $remoteSrcRelDir = File::Spec->abs2rel($remoteSrcAbsDir, $remoteRelBaseDir);
+      my $remoteSrcAbsDir = "$REMOTE_PIXMIRROR_DIR/$dirName";
+      my $remoteRelBaseDir = "$REMOTE_PIXMIRROR_BY_DATE_DIR/$monthSubDir";
 
-    my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$subDir/$dirName";
+      my $remoteSrcRelDir = File::Spec->abs2rel($remoteSrcAbsDir, $remoteRelBaseDir);
 
-    runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/$subDir/";
-    runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
+      my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/$dirName";
 
+      runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/";
+      runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
 
-    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}/${dirName}", "-r", $dir;
-    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}", "-r", $dir;
-    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}", "-r", $dir;
-    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
-  }
-  for my $dir(glob "$LOCAL_PIXMIRROR_DIR/*/"){
-    if($dir !~ /^$LOCAL_PIXMIRROR_DIR\/([a-zA-Z0-9_\-]+)\/?$/){
-      die "malformed dir: $dir\n";
+      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}/${dirName}", "-r", $dir;
+      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}", "-r", $dir;
+      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}", "-r", $dir;
+      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
+    }else{
+      my $remoteSrcAbsDir = "$REMOTE_PIXMIRROR_DIR/$dirName";
+      my $remoteRelBaseDir = "$REMOTE_PIXMIRROR_BY_DATE_DIR";
+
+      my $remoteSrcRelDir = File::Spec->abs2rel($remoteSrcAbsDir, $remoteRelBaseDir);
+
+      my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$dirName";
+
+      runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR";
+      runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
+
+      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${dirName}", "-r", $dir;
+      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
     }
-    my $dirName = $1;
-    next if $dirName =~ /^\d\d\d\d-\d\d-\d\d_/;
-
-    my $remoteSrcAbsDir = "$REMOTE_PIXMIRROR_DIR/$dirName";
-    my $remoteRelBaseDir = "$REMOTE_PIXMIRROR_BY_DATE_DIR";
-
-    my $remoteSrcRelDir = File::Spec->abs2rel($remoteSrcAbsDir, $remoteRelBaseDir);
-
-    my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$dirName";
-
-    runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR";
-    runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
-
-
-    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${dirName}", "-r", $dir;
-    runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
   }
 
   runQuiet "touch", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia", "-r", "$LOCAL_PIXMIRROR_DIR/.nomedia";
