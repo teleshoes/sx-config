@@ -13,6 +13,7 @@ sub nowMillis();
 sub mtime($);
 sub md5($);
 sub statNano($);
+sub touchNano($$$$$);
 sub syscallResolveNum($$);
 sub readFile($);
 sub writeFile($$);
@@ -221,6 +222,20 @@ sub statNano($){
   }else{
     print STDERR "WARNING: syscall statx failed on '$file'\n";
     return undef;
+  }
+}
+
+sub touchNano($$$$$){
+  my ($file, $atimeS, $atimeNS, $mtimeS, $mtimeNS) = @_;
+
+  my $timespecArr = pack("q L x4 q L x4", $atimeS, $atimeNS, $mtimeS, $mtimeNS);
+
+  my $res = syscall($SYS_UTIMENSAT, $AT_FDCWD, $file, $timespecArr, $AT_SYMLINK_NOFOLLOW);
+  if($res == 0){
+    return 1;
+  }else{
+    print STDERR "WARNING: syscall utimensat failed on '$file'\n";
+    return 0;
   }
 }
 
