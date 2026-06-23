@@ -61,10 +61,10 @@ sub main(@){
       runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/";
       runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
 
-      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}/${dirName}", "-r", $dir;
-      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}", "-r", $dir;
-      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}", "-r", $dir;
-      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
+      touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}/${dirName}";
+      touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}";
+      touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}";
+      touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR";
     }else{
       my $remoteSrcAbsDir = "$REMOTE_PIXMIRROR_DIR/$dirName";
       my $remoteRelBaseDir = "$REMOTE_PIXMIRROR_BY_DATE_DIR";
@@ -76,12 +76,13 @@ sub main(@){
       runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR";
       runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
 
-      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR/${dirName}", "-r", $dir;
-      runQuiet "touch", "-h", "$LOCAL_PIXMIRROR_BY_DATE_DIR", "-r", $dir;
+      touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${dirName}";
+      touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR";
     }
   }
 
-  runQuiet "touch", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia", "-r", "$LOCAL_PIXMIRROR_DIR/.nomedia";
+  runQuiet "touch", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia";
+  touchByRef "$LOCAL_PIXMIRROR_DIR/.nomedia", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia";
 
   print "\n\n=====syncing bydate-subdirs local=>remote\n";
   runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
