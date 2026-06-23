@@ -60,7 +60,7 @@ sub main(@){
       my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/$dirName";
 
       make_path("$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/");
-      runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
+      symlink $remoteSrcRelDir, $localDestDir;
 
       touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}/${dirName}";
       touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}";
@@ -75,7 +75,7 @@ sub main(@){
       my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$dirName";
 
       make_path("$LOCAL_PIXMIRROR_BY_DATE_DIR");
-      runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
+      symlink($remoteSrcRelDir, $localDestDir);
 
       touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${dirName}";
       touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR";
