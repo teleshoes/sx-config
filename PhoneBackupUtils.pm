@@ -5,11 +5,14 @@ require Exporter;
 
 use Time::HiRes qw(time);
 
+eval 'require "syscall.ph"';
+
 sub ipmagicTest($$@);
 sub getIpmagicBlockDevUUID($$);
 sub nowMillis();
 sub mtime($);
 sub md5($);
+sub syscallResolveNum($$);
 sub readFile($);
 sub writeFile($$);
 sub run(@);
@@ -43,6 +46,9 @@ our @EXPORT = qw(
   readProcChomp
   runCmd
 );
+
+my $SYS_STATX = syscallResolveNum("SYS_statx", {x86_64=>332, aarch64=>291});
+my $SYS_UTIMENSAT = syscallResolveNum("SYS_utimensat", {x86_64=>280, aarch64=>88});
 
 sub ipmagicTest($$@){
   my ($ipmagicName, $ipmagicUser, @testArgs) = @_;
@@ -107,6 +113,33 @@ sub md5($){
     return $1;
   }else{
     die "ERROR: could not md5sum file $file\n";
+  }
+}
+
+sub syscallResolveNum($$){
+  my ($callName, $archList) = @_;
+
+  my $callNum = undef;
+  {
+    # load syscall number from syscall.ph if available
+    no strict 'refs';
+    if(defined &{$callName}){
+      $callNum = &{$callName};
+    }
+  }
+
+  if(defined $callNum and $callNum =~ /^\d+$/){
+    return $callNum;
+  }else{
+    my $arch = `uname -m`;
+    chomp $arch;
+    if(defined $$archList{$arch}){
+      return $$archList{$arch};
+    }elsif(defined $$archList{x86_64}){
+      return $$archList{x86_64};
+    }else{
+      die "ERROR: failed to resolve syscall number for $callName\n";
+    }
   }
 }
 
