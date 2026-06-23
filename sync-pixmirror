@@ -13,7 +13,7 @@ my $PIXMIRROR_TARGET_SIZE = "1920x1080";
 
 my $LOCAL_DCIM_DIR = "$ENV{HOME}/Code/sx/backup/DCIM";
 my $LOCAL_PIXMIRROR_DIR = "$ENV{HOME}/Code/sx/backup/DCIM-pixmirror";
-my $LOCAL_PIXMIRROR_BY_DATE_DIR = "/tmp/sync-pixmirror-bydate";
+my $LOCAL_PIXMIRROR_BY_DATE_DIR = "$ENV{HOME}/Code/sx/backup/DCIM-pixmirror-bydate";
 
 my $REMOTE_PIXMIRROR_DIR = "/media/sdcard/phone/DCIM-pixmirror";
 my $REMOTE_PIXMIRROR_BY_DATE_DIR = "/media/sdcard/phone/DCIM-pixmirror-bydate";
