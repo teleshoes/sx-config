@@ -39,6 +39,7 @@ our @EXPORT = qw(
   nowMillis
   mtime
   md5
+  statNano touchNano touchByRef
   readFile
   writeFile
   run runQuiet
