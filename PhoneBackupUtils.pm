@@ -14,6 +14,7 @@ sub mtime($);
 sub md5($);
 sub statNano($);
 sub touchNano($$$$$);
+sub touchByRef($$);
 sub syscallResolveNum($$);
 sub readFile($);
 sub writeFile($$);
@@ -235,6 +236,17 @@ sub touchNano($$$$$){
     return 1;
   }else{
     print STDERR "WARNING: syscall utimensat failed on '$file'\n";
+    return 0;
+  }
+}
+
+sub touchByRef($$){
+  my ($refFile, $fileToUpdate) = @_;
+  my $s = statNano($refFile);
+  if(defined $s){
+    return touchNano($fileToUpdate, $$s{atimeS}, $$s{atimeNS}, $$s{mtimeS}, $$s{mtimeNS});
+  }else{
+    print STDERR "WARNING: statx failed on '$refFile', not touching '$fileToUpdate'\n";
     return 0;
   }
 }
