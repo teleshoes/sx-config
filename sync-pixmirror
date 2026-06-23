@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
+use File::Path qw(make_path);
 use File::Spec;
 
 my $IPMAGIC_NAME = "sx";
@@ -58,7 +59,7 @@ sub main(@){
 
       my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/$dirName";
 
-      runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/";
+      make_path("$LOCAL_PIXMIRROR_BY_DATE_DIR/$monthSubDir/");
       runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
 
       touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${y}/${m}/${dirName}";
@@ -73,7 +74,7 @@ sub main(@){
 
       my $localDestDir = "$LOCAL_PIXMIRROR_BY_DATE_DIR/$dirName";
 
-      runQuiet "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR";
+      make_path("$LOCAL_PIXMIRROR_BY_DATE_DIR");
       runQuiet "ln", "-s", $remoteSrcRelDir, $localDestDir;
 
       touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR/${dirName}";
