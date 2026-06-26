@@ -134,7 +134,13 @@ sub editAutologinGuestfish($){
   ready($gf);
 
   if(-e "start-autologin"){
-    run "sed", "-i", "s/defaultuser/nemo/g", "start-autologin";
+    my @repls =(
+      's/useradd -g defaultuser \(.*\) defaultuser/useradd -g nemo \1 nemo/',
+      's/groupadd \(.*\) defaultuser/groupadd \1 nemo/',
+    );
+    for my $repl(@repls){
+      run "sed", "-i", $repl, "start-autologin";
+    }
   }else{
     die "ERROR: copy-out start-autologin failed\n";
   }
