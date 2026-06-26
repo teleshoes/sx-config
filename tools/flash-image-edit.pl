@@ -127,6 +127,7 @@ sub editAutologinGuestfish($){
 
   if(-e "start-autologin"){
     my @repls =(
+      's/# No system user.*/\0### APPLIED HACK: defaultuser => nemo/',
       's/useradd -g defaultuser \(.*\) defaultuser/useradd -g nemo \1 nemo/',
       's/groupadd \(.*\) defaultuser/groupadd \1 nemo/',
     );
