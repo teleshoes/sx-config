@@ -29,6 +29,8 @@ my @MODULES_ARR = (
     Parallel::ForkManager
   )],
   utils => [qw(
+    DBI
+    DBD::SQLite
     DateTime
     XML::LibXML
     Cpanel::JSON::XS
