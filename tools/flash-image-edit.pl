@@ -55,6 +55,9 @@ sub main(@){
   print "\n\n### remove encrypt-home, if present\n";
   writeCmd($gf, "rm-f /var/lib/sailfish-device-encryption/encrypt-home");
 
+  writeCmd($gf, "sync");
+  ready($gf);
+
   print "\n\n### guestfish cleanup + exit\n";
   stopGuestfish($gf);
   run "sudo", "rm", "-r", $tmpDir;
