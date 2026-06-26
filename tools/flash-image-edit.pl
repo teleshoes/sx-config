@@ -7,7 +7,7 @@ my $SRC_SPARSE_IMG = "sailfish.img001";
 my $DEST_RAW_IMG = "sfos_lvm_raw.img";
 
 sub editFlashSh();
-sub editAutologin($);
+sub editAutologinGuestfish($);
 sub editBinaryBBE($$$);
 sub createRawImg();
 sub restoreSparseImg();
@@ -114,7 +114,7 @@ sub editFlashSh(){
   }
 }
 
-sub editAutologin($){
+sub editAutologinGuestfish($){
   my ($gf) = @_;
 
   if(-e "start-autologin"){
