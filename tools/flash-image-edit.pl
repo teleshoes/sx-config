@@ -28,6 +28,7 @@ sub readOut($);
 sub grepFile($$);
 sub nowMillis();
 sub run(@);
+sub runQuiet(@);
 
 sub main(@){
   print "\n\n########################################\n"
@@ -322,6 +323,10 @@ sub nowMillis(){
 
 sub run(@){
   print "@_\n";
+  runQuiet(@_);
+}
+
+sub runQuiet(@){
   system @_;
   if($? != 0){
     die "ERROR: \"@_\" failed\n";
