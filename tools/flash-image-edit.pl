@@ -32,10 +32,12 @@ sub main(@){
   editFlashSh();
 
   print "\n\n### allow any OEM image\n";
-  #replace '_v9a_' => '_'
-  run "sed", "-i", "-E",
-    "s/(flash_blob.*)(_v[a-zA-Z0-9]*_)/\\1_/",
-    "flash-config.sh";
+  if(-e "flash-config.sh"){
+    #replace '_v9a_' => '_'
+    run "sed", "-i", "-E",
+      "s/(flash_blob.*)(_v[a-zA-Z0-9]*_)/\\1_/",
+      "flash-config.sh";
+  }
 
   print "\n\n### creating raw img from sparse img\n";
   createRawImg();
@@ -86,6 +88,7 @@ sub updateMd5($@){
   my ($checkListFile, @updatedFiles) = @_;
 
   for my $f(@updatedFiles){
+    next if not -f $f;
     my $md5 = `md5sum $f`;
     chomp $md5;
     die "ERROR: could not get md5 for $f\n" if $md5 !~ /^[0-9a-f]{32}\s*$f$/;
