@@ -30,30 +30,45 @@ sub nowMillis();
 sub run(@);
 
 sub main(@){
-  print "\n\n### editing flash.sh to fix supported device product codes and add -S 512k to oem\n";
+  print "\n\n########################################\n"
+    . "### editing flash.sh:\n"
+    . "###   -allow alternate device product codes: $ALTERNATE_PRODUCT_CODES_FMT\n"
+    . "###   -add '-S 512k' to oem flashing args\n"
+  ;
   editFlashSh();
 
-  print "\n\n### allow any OEM image\n";
+  print "\n\n########################################\n"
+    . "### editing flash-config.sh:\n"
+    . "###   -allow any version OEM image, e.g.: '*_v9a_*' => '*_*'\n"
+  ;
   editFlashConfigSh();
 
-  print "\n\n### editing sailfish root LVM image\n";
+  print "\n\n########################################\n"
+    . "### editing sailfish root LVM image\n"
+    . "###  -change user defaultuser => nemo\n"
+    . "###  -remove encrypt-home marker to prevent LUKS encrytpion\n"
+  ;
   editSailfishImg();
 
-  print "\n\n### updating md5.list\n";
+  print "\n\n########################################\n"
+    . "### updating md5.list\n"
+  ;
   updateMd5("md5.lst", "flash.sh", "flash-config.sh", "hybris-boot.img", $SRC_SPARSE_IMG);
 
-  print "\n\n### done\n";
+  print "\n\n########################################\n"
+    . "### done\n"
+  ;
 }
 
 sub editSailfishImg(){
-  print "\n\n### creating raw img from sparse img\n";
+  print "\n# creating raw img from sparse img\n";
   createRawImg();
 
   my $tmpDir = "$ENV{PWD}/guestfs-cache";
   system "mkdir", "-p", $tmpDir;
   $ENV{TMPDIR} = $tmpDir;
 
-  print "\n\n### starting guestfish\n";
+  print "\n# starting guestfish\n";
   my $gf = startGuestfish qw(
     guestfish
       --rw
@@ -62,27 +77,27 @@ sub editSailfishImg(){
       -m /dev/mapper/sailfish-root:/:noatime:ext4
   );
 
-  print "\n\n### waiting for run+mount (should take between 2s - 60s)\n";
+  print "\n# waiting for run+mount (should take between 2s - 60s)\n";
   ready($gf);
   print "ready!\n";
 
-  print "\n\n### ensuring root filesystem fills available space\n";
+  print "\n# ensuring root filesystem fills available space\n";
   writeCmd($gf, "resize2fs /dev/mapper/sailfish-root");
 
-  print "\n\n### editing autologin\n";
+  print "\n# editing autologin\n";
   editAutologinGuestfish($gf);
 
-  print "\n\n### remove encrypt-home, if present\n";
+  print "\n# remove encrypt-home, if present\n";
   writeCmd($gf, "rm-f /var/lib/sailfish-device-encryption/encrypt-home");
 
   writeCmd($gf, "sync");
   ready($gf);
 
-  print "\n\n### guestfish cleanup + exit\n";
+  print "\n# guestfish cleanup + exit\n";
   stopGuestfish($gf);
   run "sudo", "rm", "-r", $tmpDir;
 
-  print "\n\n### creating sparse img from raw img\n";
+  print "\n# creating sparse img from raw img\n";
   restoreSparseImg();
 }
 
