@@ -139,6 +139,13 @@ sub editFlashConfigSh(){
     return;
   }
 
+  if(not -e "orig-flash-config.sh"){
+    run "mv", "flash-config.sh", "orig-flash-config.sh";
+  }
+  die "ERROR: missing orig-flash-config.sh\n" if not -f "orig-flash-config.sh";
+  run "rm", "-f", "flash-config.sh";
+  run "cp", "-a", "orig-flash-config.sh", "flash-config.sh";
+
   #replace '_v9a_' => '_'
   run "sed", "-i", "-E",
     "s/(flash_blob.*)(_v[a-zA-Z0-9]*_)/\\1_/",
