@@ -4,6 +4,7 @@ use warnings;
 use IPC::Run qw(start finish);
 
 my $SRC_SPARSE_IMG = "sailfish.img001";
+my $BAK_SPARSE_IMG = "orig-sailfish.img001.bak";
 my $DEST_RAW_IMG = "sfos_lvm_raw.img";
 
 sub editFlashSh();
@@ -169,15 +170,17 @@ sub editAutologinGuestfish($){
 }
 
 sub createRawImg(){
+  if(not -e $BAK_SPARSE_IMG){
+    run "mv", $SRC_SPARSE_IMG, $BAK_SPARSE_IMG;
+  }
+  die "ERROR: missing $BAK_SPARSE_IMG\n" if not -f $BAK_SPARSE_IMG;
+  run "rm", "-f", $SRC_SPARSE_IMG;
+
   if(-e $DEST_RAW_IMG){
     run "rm", $DEST_RAW_IMG;
   }
 
-  if(not -f $SRC_SPARSE_IMG){
-    die "ERROR: could not find sailfish.img001\n";
-  }
-
-  run "simg2img", $SRC_SPARSE_IMG, $DEST_RAW_IMG;
+  run "simg2img", $BAK_SPARSE_IMG, $DEST_RAW_IMG;
 
   if(not -f $DEST_RAW_IMG){
     die "ERROR: simg2img failed\n";
@@ -186,7 +189,7 @@ sub createRawImg(){
 
 sub restoreSparseImg(){
   my $nowMillis = nowMillis();
-  run "mv", $SRC_SPARSE_IMG, "sailfish.img001.bak.$nowMillis";
+  die "ERROR: $SRC_SPARSE_IMG already exists\n" if -e $SRC_SPARSE_IMG;
 
   run "img2simg", $DEST_RAW_IMG, $SRC_SPARSE_IMG;
   if(not -f $SRC_SPARSE_IMG){
