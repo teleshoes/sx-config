@@ -7,6 +7,8 @@ my $SRC_SPARSE_IMG = "sailfish.img001";
 my $BAK_SPARSE_IMG = "orig-sailfish.img001.bak";
 my $DEST_RAW_IMG = "sfos_lvm_raw.img";
 
+my $LVM_ROOT_SIZE_MB = 10000; #10gb
+
 my $ALTERNATE_PRODUCT_CODES = {
   H8314 => [qw(SO-05K)],
 };
@@ -47,6 +49,7 @@ sub main(@){
 
   print "\n\n########################################\n"
     . "### editing hybris-boot:\n"
+    . "###   -set root LVM size 10GB\n"
   ;
   editHybrisBootImg();
 
@@ -271,6 +274,22 @@ sub editHybrisBootImg(){
   ;
 
   print "\n# edit ramdisk\n";
+
+  my $sysCfgInit = "$fsrootDir/etc/sysconfig/init";
+
+  runQuiet "grep", "LVM_ROOT_SIZE", $sysCfgInit;
+  runQuiet "fakeroot", "sed",
+    "-i",
+    "s/LVM_ROOT_SIZE=[0-9]\\+/LVM_ROOT_SIZE=$LVM_ROOT_SIZE_MB/",
+    $sysCfgInit,
+  ;
+  print " => \n";
+  runQuiet "grep", "LVM_ROOT_SIZE", $sysCfgInit;
+
+  my $rootSizeLine = `grep LVM_ROOT_SIZE $sysCfgInit`;
+  if($rootSizeLine !~ /^LVM_ROOT_SIZE=$LVM_ROOT_SIZE_MB$/){
+    die "ERROR: LVM root size does not match after editing\n";
+  }
 
   print "\n# rebuild ramdisk + repack boot img\n";
 
