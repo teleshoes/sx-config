@@ -7,6 +7,14 @@ my $SRC_SPARSE_IMG = "sailfish.img001";
 my $BAK_SPARSE_IMG = "orig-sailfish.img001.bak";
 my $DEST_RAW_IMG = "sfos_lvm_raw.img";
 
+my $ALTERNATE_PRODUCT_CODES = {
+  H8314 => [qw(SO-05K)],
+};
+my $ALTERNATE_PRODUCT_CODES_FMT = join(", ",
+  map {"[$_ => " . join(" | ", @{$$ALTERNATE_PRODUCT_CODES{$_}}) . "]"}
+  sort keys %$ALTERNATE_PRODUCT_CODES
+);
+
 sub editFlashSh();
 sub editAutologinGuestfish($);
 sub createRawImg();
@@ -94,14 +102,20 @@ sub editFlashSh(){
   run "rm", "-f", "flash.sh";
   run "cp", "-a", "orig-flash.sh", "flash.sh";
 
-  if(grepFile("H8314", "flash.sh")){
-    print "editing flash.sh for SO-05K\n";
-    run "sed", "-i", "-E",
-      "s/grep -e \"[^\"]*H8314[^\"]*\"/grep -e \"\\\\(H8314\\\\|SO-05K\\\\)\"/",
-      "flash.sh";
-  }else{
-    print "no devices need modifying\n";
+  my $found = 0;
+  for my $origCode(sort keys %$ALTERNATE_PRODUCT_CODES){
+    my @altCodes = @{$$ALTERNATE_PRODUCT_CODES{$origCode}};
+    if(grepFile($origCode, "flash.sh")){
+      $found = 1;
+      print "# editing flash.sh for product code $origCode => (@altCodes)\n";
+      my $searchPtrn;
+      my $replPtrn = "\\\\(" . join("\\\\|", $origCode, @altCodes) . "\\\\)";
+      run "sed", "-i", "-E",
+        "s/grep -e \"$origCode\"/grep -e \"$replPtrn\"/",
+        "flash.sh";
+    }
   }
+  print "# no alternate device product codes added\n" if not $found;
 
 
   if(grepFile(".-S 512k flash", "flash.sh")){
