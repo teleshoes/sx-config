@@ -17,6 +17,7 @@ my $ALTERNATE_PRODUCT_CODES_FMT = join(", ",
 
 sub editSailfishImg();
 sub editFlashSh();
+sub editFlashConfigSh();
 sub editAutologinGuestfish($);
 sub createRawImg();
 sub restoreSparseImg();
@@ -33,12 +34,7 @@ sub main(@){
   editFlashSh();
 
   print "\n\n### allow any OEM image\n";
-  if(-e "flash-config.sh"){
-    #replace '_v9a_' => '_'
-    run "sed", "-i", "-E",
-      "s/(flash_blob.*)(_v[a-zA-Z0-9]*_)/\\1_/",
-      "flash-config.sh";
-  }
+  editFlashConfigSh();
 
   print "\n\n### editing sailfish root LVM image\n";
   editSailfishImg();
@@ -135,6 +131,19 @@ sub editFlashSh(){
       "s/flash \"\\\$partition\" \"\\\$b\"/-S 512k \\0/",
       "flash.sh";
   }
+}
+
+sub editFlashConfigSh(){
+  if(not -e "flash-config.sh"){
+    print "# no flash-config.sh, skipping\n";
+    return;
+  }
+
+  #replace '_v9a_' => '_'
+  run "sed", "-i", "-E",
+    "s/(flash_blob.*)(_v[a-zA-Z0-9]*_)/\\1_/",
+    "flash-config.sh",
+  ;
 }
 
 sub editAutologinGuestfish($){
