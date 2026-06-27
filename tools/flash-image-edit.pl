@@ -86,6 +86,13 @@ sub updateMd5($@){
 }
 
 sub editFlashSh(){
+  if(not -e "orig-flash.sh"){
+    run "mv", "flash.sh", "orig-flash.sh";
+  }
+  die "ERROR: missing orig-flash.sh\n" if not -f "orig-flash.sh";
+  run "rm", "-f", "flash.sh";
+  run "cp", "-a", "orig-flash.sh", "flash.sh";
+
   if(grepFile("H8314", "flash.sh")){
     print "editing flash.sh for SO-05K\n";
     run "sed", "-i", "-E",
