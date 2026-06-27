@@ -19,6 +19,7 @@ sub editSailfishImg();
 sub editFlashSh();
 sub editFlashConfigSh();
 sub editAutologinGuestfish($);
+sub editHybrisBootImg();
 sub createRawImg();
 sub restoreSparseImg();
 sub startGuestfish(@);
@@ -43,6 +44,11 @@ sub main(@){
     . "###   -allow any version OEM image, e.g.: '*_v9a_*' => '*_*'\n"
   ;
   editFlashConfigSh();
+
+  print "\n\n########################################\n"
+    . "### editing hybris-boot:\n"
+  ;
+  editHybrisBootImg();
 
   print "\n\n########################################\n"
     . "### editing sailfish root LVM image\n"
@@ -222,6 +228,71 @@ sub editAutologinGuestfish($){
   }
 
   run "rm", "start-autologin";
+}
+
+sub editHybrisBootImg(){
+  my $origImg = "orig-hybris-boot.img";
+  my $workDir = "./hybris-boot-dir";
+  my $fsrootDir = "$workDir/fsroot";
+  my $mkbootimgArgsFile = "$workDir/mkbootimg-args";
+
+  runQuiet "rm", "-rf", $workDir;
+  runQuiet "mkdir", "-p", $workDir;
+
+  #backup boot image only if not backed up, and then remove boot img
+  # => always work with orig img
+  if(not -f $origImg){
+    runQuiet "mv", "hybris-boot.img", $origImg;
+  }else{
+    runQuiet "rm", "-f", "hybris-boot.img";
+  }
+
+  print "\n# unpack boot img + extract ramdisk\n";
+
+  run "unpack_bootimg"
+    . " --boot_img '$origImg'"
+    . " --out '$workDir'"
+    . " --format mkbootimg"
+    . " > $mkbootimgArgsFile"
+  ;
+  if(not -e "$workDir/ramdisk"){
+    die "ERROR: no ramdisk found after unpack_bootimg\n";
+  }
+
+  runQuiet "mv", "$workDir/ramdisk", "$workDir/ramdisk-cpio-orig.gz";
+  runQuiet "gunzip", "$workDir/ramdisk-cpio-orig.gz";
+
+  runQuiet "mkdir", "$workDir/fsroot";
+  run "fakeroot", "cpio",
+    "-idm",
+    "--no-absolute-filenames",
+    "-D", "$workDir/fsroot",
+    "-I", "$workDir/ramdisk-cpio-orig",
+  ;
+
+  print "\n# edit ramdisk\n";
+
+  print "\n# rebuild ramdisk + repack boot img\n";
+
+  run "fakeroot", "pax",
+    "-w",
+    "-x", "sv4cpio",
+    "-s", "|^$fsrootDir||", #remove leading rel dir, make abs
+    "$fsrootDir",
+    "-f", "$workDir/new-ramdisk.cpio",
+  ;
+
+  runQuiet "gzip", "--no-name", "$workDir/new-ramdisk.cpio";
+  runQuiet "mv", "$workDir/new-ramdisk.cpio.gz", "$workDir/ramdisk";
+
+  my $mkbootimgArgs = `cat $mkbootimgArgsFile`;
+  chomp $mkbootimgArgs;
+  run "sh", "-c", "mkbootimg $mkbootimgArgs -o hybris-boot.img";
+
+  if(not -f "hybris-boot.img"){
+    die "ERROR: could not pack boot img\n";
+  }
+  run "fakeroot", "rm", "-rf", $workDir;
 }
 
 sub createRawImg(){
