@@ -15,6 +15,7 @@ my $ALTERNATE_PRODUCT_CODES_FMT = join(", ",
   sort keys %$ALTERNATE_PRODUCT_CODES
 );
 
+sub editSailfishImg();
 sub editFlashSh();
 sub editAutologinGuestfish($);
 sub createRawImg();
@@ -39,6 +40,16 @@ sub main(@){
       "flash-config.sh";
   }
 
+  print "\n\n### editing sailfish root LVM image\n";
+  editSailfishImg();
+
+  print "\n\n### updating md5.list\n";
+  updateMd5("md5.lst", "flash.sh", "flash-config.sh", "hybris-boot.img", $SRC_SPARSE_IMG);
+
+  print "\n\n### done\n";
+}
+
+sub editSailfishImg(){
   print "\n\n### creating raw img from sparse img\n";
   createRawImg();
 
@@ -77,11 +88,6 @@ sub main(@){
 
   print "\n\n### creating sparse img from raw img\n";
   restoreSparseImg();
-
-  print "\n\n### updating md5.list\n";
-  updateMd5("md5.lst", "flash.sh", "flash-config.sh", $SRC_SPARSE_IMG);
-
-  print "\n\n### done\n";
 }
 
 sub updateMd5($@){
