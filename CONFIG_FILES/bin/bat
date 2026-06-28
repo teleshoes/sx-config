@@ -265,6 +265,19 @@ sub setPSM($){
 
 sub screenWipe(){
   system "screen -wipe";
+
+  #clear buggy persistent dead screens
+  my @screens = `screen -ls`;
+  my @deadScreens = grep {$_ =~ /\s+\([^)]*dead[^)]*\)/i} @screens;
+  my @deadPids = grep {defined $_} map {$_ =~ /^\s*(\d+)\./ ? $1 : undef} @deadScreens;
+  for my $pid(@deadPids){
+    print "re-running screen wipe for PID $pid\n";
+    system "screen", "-wipe", $pid;
+  }
+
+  if(@deadPids > 0){
+    system "screen -wipe";
+  }
 }
 
 sub readFile($){
