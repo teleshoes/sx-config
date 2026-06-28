@@ -8,6 +8,7 @@ sub fetchDaemonEnabled($);
 sub isAnyDaemonEnabled();
 sub isPSM();
 sub setPSM($);
+sub screenWipe();
 sub readFile($);
 
 my $DIR_BAT_DEV = "/sys/class/power_supply/battery";
@@ -183,7 +184,7 @@ sub main(@){
       system $cmd;
     }
     if($actionArg eq $ACTION_OFF){
-      system "screen -wipe";
+      screenWipe();
     }
     print "\n\n";
     for my $daemonName(sort keys %DAEMONS){
@@ -260,6 +261,10 @@ sub isPSM(){
 sub setPSM($){
   my ($isPSM) = @_;
   system "mcetool", "-F", ($isPSM ? "enabled" : "disabled");
+}
+
+sub screenWipe(){
+  system "screen -wipe";
 }
 
 sub readFile($){
