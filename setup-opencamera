@@ -29,10 +29,10 @@ my $PREFS_TEMPLATE = [
   ["preference_show_white_balance_lock" => "boolean"  => "true"],
 ];
 
-sub editPrefs();
+sub editOpenCameraPrefs();
 
 sub main(@){
-  editPrefs();
+  editOpenCameraPrefs();
 }
 
 sub getDCIMUri(){
@@ -42,7 +42,7 @@ sub getDCIMUri(){
   return "content://com.android.externalstorage.documents/tree/$sdcardUUID%3A$path";
 }
 
-sub editPrefs(){
+sub editOpenCameraPrefs(){
   my $dcimUri = getDCIMUri();
 
   my $contents = "";
