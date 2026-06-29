@@ -4,9 +4,13 @@ use warnings;
 
 sub createCameraDirs();
 sub patchAdvancedCamera();
+sub copyGCamXml();
 
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
+
+my $BASE_DIR = `dirname $0 | tr -d '\n'`;
+my $GCAM_XML = "$BASE_DIR/backup/gcam-xml/gcam.xml";
 
 my @CAM_DIRS = (
   "/home/$USER/Pictures/Camera",
@@ -41,6 +45,8 @@ sub main(@){
   createCameraDirs();
 
   patchAdvancedCamera();
+
+  copyGCamXml();
 }
 
 sub createCameraDirs(){
@@ -71,6 +77,35 @@ sub patchAdvancedCamera(){
     . "  && patch -N -f $ADV_CAM_QML_FILE $tmpPatch"
     . "  && rm $tmpPatch"
   ;
+}
+
+sub copyGCamXml(){
+  my $pkg = "com.shamim.cam";
+  my $app = "SGCAM";
+
+  my @apks = grep {-f $_} glob "$BASE_DIR/apks/*_${pkg}_*";
+  my $apk;
+  if(@apks == 1){
+    $apk = $apks[0];
+  }else{
+    die "ERROR: could not find apk for gcam app $pkg\n";
+  }
+
+  my $version;
+  if($apk =~ /_${pkg}_(\d+\.\d+\.\d+)/){
+    $version = $1;
+  }else{
+    die "ERROR: could not read MAJ.MIN.PT version from $apk file name\n";
+  }
+
+  my $remoteXmlDir = "/home/$USER/android_storage/$app/$version/XML";
+  system "ipmagic", $IPMAGIC_NAME, "mkdir", "-p", $remoteXmlDir;
+
+  system "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP", "-L", $GCAM_XML, ":$remoteXmlDir/";
+
+  print "\n\n\n\n#############################\n";
+  print "OPEN $app AND DOUBLE-TAP NEAR SHUTTER BUTTON\n\n";
+  print "   MAYBE TWICE, CHECK THAT LENS OPTION LABELS CHANGE\n";
 }
 
 &main(@ARGV);
