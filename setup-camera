@@ -201,7 +201,7 @@ sub editOpenCameraPrefs(){
       print "\n\n\n#####\nNOTE: URI GRANT NEEDED FOR SAF LOCATION UPDATE\n";
     }
   }else{
-    print "NO CHANGE IN PREFS\n";
+    print "NO CHANGE IN OPENCAMERA PREFS\n";
   }
 }
 
