@@ -101,7 +101,6 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 ./setup-backgrounds
 ./setup-ambiences
 ./setup-ping
-./setup-camera
 ./setup-meegotouch-icons
 
 ./setup-usbmoded
@@ -153,6 +152,8 @@ ipmagic sx okboard-toggle --init-default
 #  ./setup-aliendalvik
 
 ./setup-coolreader
+
+./setup-camera
 
 ./setup-opencamera
 
