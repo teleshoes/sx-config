@@ -229,9 +229,11 @@ sub copyGCamXml(){
 
   system "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP", "-L", $GCAM_XML, ":$remoteXmlDir/";
 
-  print "\n\n\n\n#############################\n";
-  print "OPEN $app AND DOUBLE-TAP NEAR SHUTTER BUTTON\n\n";
+  print "\n\n";
+  print "---\n";
+  print "NOTE: OPEN $app AND DOUBLE-TAP NEAR SHUTTER BUTTON\n";
   print "   MAYBE TWICE, CHECK THAT LENS OPTION LABELS CHANGE\n";
+  print "---\n";
 }
 
 &main(@ARGV);
