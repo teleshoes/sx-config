@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 
+sub createCameraDirs();
 sub patchAdvancedCamera();
 
 my $IPMAGIC_NAME = "sx";
@@ -37,12 +38,16 @@ my $ADV_CAM_PATCH = ""
 ;
 
 sub main(@){
+  createCameraDirs();
+
+  patchAdvancedCamera();
+}
+
+sub createCameraDirs(){
   print "\n\ncreating camera dirs\n";
   my $cmd = "set -x\n";
   $cmd .= "mkdir -p $_\n" foreach @CAM_DIRS;
   system "ipmagic", $IPMAGIC_NAME, "-s", $cmd;
-
-  patchAdvancedCamera();
 }
 
 sub patchAdvancedCamera(){
