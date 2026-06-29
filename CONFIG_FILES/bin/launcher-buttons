@@ -141,6 +141,7 @@ my @CONFIG = qw(
     tribit
     amazfish-ui
     polar-beat
+    elite-hrv
     whisker
   ]
 
@@ -250,6 +251,7 @@ my %ANDROID_LAUNCHERS = (
   "cromite"            => [0, "org.cromite.cromite",                       "com.google.android.apps.chrome.Main",                             undef],
   "discord"            => [0, "com.discord",                               ".app.AppActivity\$Main",                                          undef],
   "element"            => [0, "im.vector.app",                             ".features.Alias",                                                 undef],
+  "elite-hrv"          => [0, "com.elitehrv.app",                          ".MainActivity",                                                   undef],
   "facebook"           => [0, "com.facebook.katana",                       ".LoginActivity",                                                  undef],
   "fairynest"          => [0, "com.spled.aicontrol",                       ".activity.main.MainActivity",                                     undef],
   "fbmessenger"        => [0, "com.facebook.orca",                         ".auth.StartScreenActivity",                                       undef],
