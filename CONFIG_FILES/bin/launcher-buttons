@@ -208,6 +208,8 @@ my @CONFIG = qw(
 
     retro-fitness
     lifefitness
+
+    vampire-survivors
   ]
 );
 
@@ -286,6 +288,7 @@ my %ANDROID_LAUNCHERS = (
   "tor"                => [0, "org.torproject.torbrowser",                 ".App",                                                            undef],
   "traintime"          => [0, "com.mta.mobileapp",                         ".MainActivity",                                                   undef],
   "tribit"             => [0, "com.thousandshores.tribit",                 ".modulelogin.activity.FirstActivity",                             undef],
+  "vampire-survivors"  => [0, "com.poncle.vampiresurvivors",               "com.unity3d.player.UnityPlayerActivity",                          undef],
   "vanced-microg"      => [0, "com.mgoogle.android.gms",                   "android.app.AppDetailsActivity",                                  undef],
   "vlc"                => [1, "org.videolan.vlc",                          ".StartActivity",                                                  undef],
   "whisker"            => [0, "com.whisker.android",                       ".MainActivity",                                                   undef],
