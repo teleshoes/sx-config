@@ -68,17 +68,32 @@ my $ADV_CAM_PATCH = ""
 ;
 
 sub main(@){
+  print "\n\n";
+  print "#############################################################\n";
+  print "# creating camera dirs\n";
+  print "#############################################################\n";
   createCameraDirs();
 
+  print "\n\n";
+  print "#############################################################\n";
+  print "# patching adv-cam to use long-press instead of tap to focus\n";
+  print "#############################################################\n";
   patchAdvancedCamera();
 
+  print "\n\n";
+  print "#############################################################\n";
+  print "# editing android opencamera app prefs\n";
+  print "#############################################################\n";
   editOpenCameraPrefs();
 
+  print "\n\n";
+  print "#############################################################\n";
+  print "# copying *BUT NOT APPLYING* GCam xml config\n";
+  print "#############################################################\n";
   copyGCamXml();
 }
 
 sub createCameraDirs(){
-  print "\n\ncreating camera dirs\n";
   my $cmd = "set -x\n";
   $cmd .= "mkdir -p $_\n" foreach @CAM_DIRS;
   system "ipmagic", $IPMAGIC_NAME, "-s", $cmd;
@@ -86,7 +101,6 @@ sub createCameraDirs(){
 
 sub patchAdvancedCamera(){
   my $tmpPatch = "/tmp/adv-cam-patch";
-  print "\n\npatching adv-cam to use long-press instead of tap to focus\n";
   open FH, "> $tmpPatch" or die "$!\n";
   print FH $ADV_CAM_PATCH;
   close FH;
@@ -131,7 +145,6 @@ sub editOpenCameraPrefs(){
 
   my @prefLines;
 
-  print "\n\nediting android opencamera app prefs\n";
   my $oldPrefs = {};
   for my $line(split /\n/, $contents){
     next if $line =~ /^(<\?xml|<map>|<\/map>)/;
@@ -208,8 +221,6 @@ sub editOpenCameraPrefs(){
 sub copyGCamXml(){
   my $pkg = "com.shamim.cam";
   my $app = "SGCAM";
-
-  print "\n\ncopying *BUT NOT APPLYING* GCam xml config\n";
 
   my @apks = grep {-f $_} glob "$BASE_DIR/apks/*_${pkg}_*";
   my $apk;
