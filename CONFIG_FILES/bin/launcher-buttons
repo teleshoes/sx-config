@@ -140,6 +140,7 @@ my @CONFIG = qw(
     petsafe
     tribit
     amazfish-ui
+    polar-beat
     whisker
   ]
 
@@ -273,6 +274,7 @@ my %ANDROID_LAUNCHERS = (
   "newpipe"            => [0, "org.schabi.newpipe",                        ".MainActivity",                                                   undef],
   "opencamera"         => [1, "net.sourceforge.opencamera",                ".MainActivity",                                                   undef],
   "petsafe"            => [0, "net.petsafe.platform",                      ".views.ActSplash",                                                undef],
+  "polar-beat"         => [0, "fi.polar.beat",                             ".ui.SplashScreen",                                                undef],
   "retro-fitness"      => [0, "com.netpulse.mobile.retro",                 "com.netpulse.mobile.launch.LaunchActivity",                       undef],
   "rheem"              => [0, "com.rheem.econetconsumerandroid",           "com.rheem.econet.view.splash.SplashActivity",                     undef],
   "riot"               => [0, "im.vector.alpha",                           "im.vector.activity.LauncherActivity",                             undef],
