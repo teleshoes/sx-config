@@ -79,7 +79,6 @@ my %packages = (
     harbour-storeman
     harbour-timeline
     harbour-unplayer
-    harbour-whisperfish
     jolla-calculator
     jolla-mediaplayer
     jolla-notes
@@ -185,7 +184,6 @@ my @openrepos = qw(
   rgrnetalk
   Rikudou_Sennin
   ROZZ
-  rubdos
   saberaltria
   Sailbook
   sailfish_browser_nightly
