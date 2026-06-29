@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 
+sub patchAdvancedCamera();
+
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
@@ -40,6 +42,10 @@ sub main(@){
   $cmd .= "mkdir -p $_\n" foreach @CAM_DIRS;
   system "ipmagic", $IPMAGIC_NAME, "-s", $cmd;
 
+  patchAdvancedCamera();
+}
+
+sub patchAdvancedCamera(){
   my $tmpPatch = "/tmp/adv-cam-patch";
   print "\n\npatchin adv-cam to use long-press instead of tap to focus\n";
   open FH, "> $tmpPatch" or die "$!\n";
