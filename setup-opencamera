@@ -4,6 +4,8 @@ use warnings;
 use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 
+sub editOpenCameraPrefs();
+
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
@@ -28,8 +30,6 @@ my $PREFS_TEMPLATE = [
 
   ["preference_show_white_balance_lock" => "boolean"  => "true"],
 ];
-
-sub editOpenCameraPrefs();
 
 sub main(@){
   editOpenCameraPrefs();
