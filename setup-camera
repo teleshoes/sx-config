@@ -86,7 +86,7 @@ sub createCameraDirs(){
 
 sub patchAdvancedCamera(){
   my $tmpPatch = "/tmp/adv-cam-patch";
-  print "\n\npatchin adv-cam to use long-press instead of tap to focus\n";
+  print "\n\npatching adv-cam to use long-press instead of tap to focus\n";
   open FH, "> $tmpPatch" or die "$!\n";
   print FH $ADV_CAM_PATCH;
   close FH;
