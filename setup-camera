@@ -209,6 +209,8 @@ sub copyGCamXml(){
   my $pkg = "com.shamim.cam";
   my $app = "SGCAM";
 
+  print "\n\ncopying *BUT NOT APPLYING* GCam xml config\n";
+
   my @apks = grep {-f $_} glob "$BASE_DIR/apks/*_${pkg}_*";
   my $apk;
   if(@apks == 1){
