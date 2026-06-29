@@ -187,6 +187,7 @@ pubkeys
 #     -enable device-registration (digits definitely runs checkin)
 #     -enable cloud-messaging (digits definitely uses GCM)
 #   -it works when installed from aurora store
+# -sgcam apply xml (xml copied as part of setup-camera)
 # -bluetooth
 #   -for car:
 #     -run: bt car
