@@ -24,10 +24,11 @@ my @SYMLINK_NAMES = map {$$_[0]} @SYMLINKS_ARR;
 my $SYMLINKS_FMT = join '', map {"    $$_[0]: $$_[1] => $$_[2]\n"} @SYMLINKS_ARR;
 
 my $USAGE = "Usage:
-  $0 [SYMLINK_NAME ..]
-    set up symlinks for the indicated symlink names
-      (default is to set up all if none are given)
-
+  $0 [SYMLINK_NAME SYMLINK_NAME..]
+    create + set user for the indicated symlink entries (or all if none given)
+      -run as <USER> for dest files that start with /home/<USER>, run as root otherwise
+      -delete dest file or dir if it exists
+      -create symlinks as ln -s <SRC> <DEST>
     \n$SYMLINKS_FMT
 ";
 
