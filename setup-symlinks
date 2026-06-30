@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
 use File::Basename qw(dirname);
 
 my $IPMAGIC_NAME = "sx";
 
 my $USER = "nemo";
-
-sub run(@);
 
 my @SYMLINKS_ARR = (
   "1qtemail" => {
@@ -80,11 +80,6 @@ sub main(@){
 
     run "ipmagic", $IPMAGIC_NAME, "-u", $ipmagicUser, "sh -c \"$cmd\"";
   }
-}
-
-sub run(@){
-  print "@_\n";
-  system @_;
 }
 
 &main(@ARGV);
