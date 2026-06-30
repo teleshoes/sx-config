@@ -76,7 +76,7 @@ sub main(@){
     my $cmd = "rmdir $dest 2>/dev/null ; rm -f $dest && ln -s $src $dest";
 
     my $ipmagicUser;
-    if($$sym{dir} =~ /^\/home\/(\w+)\//){
+    if($$sym{dir} =~ /^\/home\/(\w+)(?:\/.*)?$/){
       $ipmagicUser = "$1";
     }else{
       $ipmagicUser = "root";
