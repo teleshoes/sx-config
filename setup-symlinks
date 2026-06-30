@@ -21,7 +21,7 @@ my @SYMLINKS_ARR = (
 my %SYMLINKS = map {$$_[0] => {src => $$_[1], dest => $$_[2]}} @SYMLINKS_ARR;
 my @SYMLINK_NAMES = map {$$_[0]} @SYMLINKS_ARR;
 
-my $SYMLINKS_FMT = join '', map {"    $$_[0]: $$_[1] => $$_[2]\n"} @SYMLINKS_ARR;
+my $SYMLINKS_FORMAT = join '', map {sprintf "    %-10s: %-32s => %s\n", @$_} @SYMLINKS_ARR;
 
 my $USAGE = "Usage:
   $0 [SYMLINK_NAME SYMLINK_NAME..]
@@ -29,7 +29,7 @@ my $USAGE = "Usage:
       -run as <USER> for dest files that start with /home/<USER>, run as root otherwise
       -delete dest file or dir if it exists
       -create symlinks as ln -s <SRC> <DEST>
-    \n$SYMLINKS_FMT
+    \n$SYMLINKS_FORMAT
 ";
 
 sub main(@){
