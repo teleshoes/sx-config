@@ -9,13 +9,13 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 my @SYMLINKS_ARR = (
-  ["1qtemail",  "/media/sdcard/phone/email",   "/home/$USER/.cache/email"],
-  ["2alarms",   "/media/sdcard/phone/alarms",  "/usr/share/alarms"],
-  ["3sounds",   "/media/sdcard/phone/sounds",  "/usr/share/sounds/custom"],
-  ["4klomp",    "/media/sdcard/phone/klomp",   "/home/$USER/.klomp"],
-  ["5bashrc",   ".bashrc",                     "/home/$USER/.profile"],
-  ["6vnclib",   "libvncserver.so.1",           "/usr/lib64/libvncserver.so.0"],
-  ["7rootbin",  "/home/$USER/bin/",            "/root/bin"],
+  ["qtemail",  "/media/sdcard/phone/email",   "/home/$USER/.cache/email"],
+  ["alarms",   "/media/sdcard/phone/alarms",  "/usr/share/alarms"],
+  ["sounds",   "/media/sdcard/phone/sounds",  "/usr/share/sounds/custom"],
+  ["klomp",    "/media/sdcard/phone/klomp",   "/home/$USER/.klomp"],
+  ["bashrc",   ".bashrc",                     "/home/$USER/.profile"],
+  ["vnclib",   "libvncserver.so.1",           "/usr/lib64/libvncserver.so.0"],
+  ["rootbin",  "/home/$USER/bin/",            "/root/bin"],
 );
 my %SYMLINKS = map {$$_[0] => {src => $$_[1], dest => $$_[2]}} @SYMLINKS_ARR;
 my @SYMLINK_NAMES = map {$$_[0]} @SYMLINKS_ARR;
