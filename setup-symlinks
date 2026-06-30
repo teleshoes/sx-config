@@ -9,6 +9,7 @@ my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
 my @SYMLINKS_ARR = (
+  ["books",    "/media/sdcard/phone/books",   "/home/$USER/books"],
   ["qtemail",  "/media/sdcard/phone/email",   "/home/$USER/.cache/email"],
   ["alarms",   "/media/sdcard/phone/alarms",  "/usr/share/alarms"],
   ["sounds",   "/media/sdcard/phone/sounds",  "/usr/share/sounds/custom"],
