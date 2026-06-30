@@ -6,7 +6,6 @@ use PhoneBackupUtils;
 use File::Basename qw(dirname);
 
 my $IPMAGIC_NAME = "sx";
-
 my $USER = "nemo";
 
 my @SYMLINKS_ARR = (
@@ -50,18 +49,12 @@ sub main(@){
 
   for my $name(@names){
     my $sym = $SYMLINKS{$name};
+    my ($src, $dest) = ($$sym{src}, $$sym{dest});
+    my $destDir = dirname $$sym{dest};
 
-    my $src = "$$sym{src}";
-    my $dest = "$$sym{dest}";
-    my $destDir = dirname $dest;
     my $cmd = "rmdir $dest 2>/dev/null ; rm -f $dest && ln -s $src $dest";
 
-    my $ipmagicUser;
-    if($destDir =~ /^\/home\/(\w+)(?:\/.*)?$/){
-      $ipmagicUser = "$1";
-    }else{
-      $ipmagicUser = "root";
-    }
+    my $ipmagicUser = $destDir =~ /^\/home\/(\w+)(?:\/.*)?$/ ? "$1" : "root";
 
     run "ipmagic", $IPMAGIC_NAME, "-u", $ipmagicUser, "sh -c \"$cmd\"";
   }
