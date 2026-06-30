@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Basename qw(dirname);
 
 my $ipmagicName = "sx";
 
@@ -10,39 +11,32 @@ sub run(@);
 
 my @SYMLINKS_ARR = (
   "1qtemail" => {
-    dir => "/home/$user/.cache",
     src => "/media/sdcard/phone/email",
-    dest => "email",
+    dest => "/home/$user/.cache/email",
   },
   "2alarms" => {
-    dir => "/usr/share",
     src => "/media/sdcard/phone/alarms",
-    dest => "alarms",
+    dest => "/usr/share/alarms",
   },
   "3sounds" => {
-    dir => "/usr/share/sounds",
     src => "/media/sdcard/phone/sounds",
-    dest => "custom",
+    dest => "/usr/share/sounds/custom",
   },
   "4klomp" => {
-    dir => "/home/$user",
     src => "/media/sdcard/phone/klomp",
-    dest => ".klomp",
+    dest => "/home/$user/.klomp",
   },
   "5bashrc" => {
-    dir => "/home/$user",
     src => ".bashrc",
-    dest => ".profile",
+    dest => "/home/$user.profile",
   },
   "6vnclib" => {
-    dir => "/usr/lib64",
     src => "libvncserver.so.1",
-    dest => "libvncserver.so.0",
+    dest => "/usr/lib64/libvncserver.so.0",
   },
   "7rootbin" => {
-    dir => "/root",
     src => "/home/$user/bin/",
-    dest => "bin",
+    dest => "/root/bin",
   },
 );
 my %SYMLINKS = @SYMLINKS_ARR;
@@ -73,11 +67,12 @@ sub main(@){
     my $sym = $SYMLINKS{$name};
 
     my $src = "$$sym{src}";
-    my $dest = "$$sym{dir}/$$sym{dest}";
+    my $dest = "$$sym{dest}";
+    my $destDir = dirname $dest;
     my $cmd = "rmdir $dest 2>/dev/null ; rm -f $dest && ln -s $src $dest";
 
     my $ipmagicUser;
-    if($$sym{dir} =~ /^\/home\/(\w+)(?:\/.*)?$/){
+    if($destDir =~ /^\/home\/(\w+)(?:\/.*)?$/){
       $ipmagicUser = "$1";
     }else{
       $ipmagicUser = "root";
