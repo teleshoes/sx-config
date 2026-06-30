@@ -3,16 +3,16 @@ use strict;
 use warnings;
 use File::Basename qw(dirname);
 
-my $ipmagicName = "sx";
+my $IPMAGIC_NAME = "sx";
 
-my $user = "nemo";
+my $USER = "nemo";
 
 sub run(@);
 
 my @SYMLINKS_ARR = (
   "1qtemail" => {
     src => "/media/sdcard/phone/email",
-    dest => "/home/$user/.cache/email",
+    dest => "/home/$USER/.cache/email",
   },
   "2alarms" => {
     src => "/media/sdcard/phone/alarms",
@@ -24,18 +24,18 @@ my @SYMLINKS_ARR = (
   },
   "4klomp" => {
     src => "/media/sdcard/phone/klomp",
-    dest => "/home/$user/.klomp",
+    dest => "/home/$USER/.klomp",
   },
   "5bashrc" => {
     src => ".bashrc",
-    dest => "/home/$user.profile",
+    dest => "/home/$USER.profile",
   },
   "6vnclib" => {
     src => "libvncserver.so.1",
     dest => "/usr/lib64/libvncserver.so.0",
   },
   "7rootbin" => {
-    src => "/home/$user/bin/",
+    src => "/home/$USER/bin/",
     dest => "/root/bin",
   },
 );
@@ -45,25 +45,25 @@ my %DIR = map {$_ => $SYMLINKS{$_}{dir}} @SYMLINK_NAMES;
 my %SRC = map {$_ => $SYMLINKS{$_}{src}} @SYMLINK_NAMES;
 my %DEST = map {$_ => $SYMLINKS{$_}{dest}} @SYMLINK_NAMES;
 
-my $symlinksFmt = join '', map {"    $_: $SRC{$_} => $DEST{$_}\n"} @SYMLINK_NAMES;
+my $SYMLINKS_FMT = join '', map {"    $_: $SRC{$_} => $DEST{$_}\n"} @SYMLINK_NAMES;
 
-my $usage = "Usage:
+my $USAGE = "Usage:
   $0 [SYMLINK_NAME ..]
     set up symlinks for the indicated symlink names
       (default is to set up all if none are given)
 
-    \n$symlinksFmt
+    \n$SYMLINKS_FMT
 ";
 
 sub main(@){
-  die $usage if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
+  die $USAGE if @_ == 1 and $_[0] =~ /^(-h|--help)$/;
 
   my @commands;
 
   my @names = @_;
   @names = @SYMLINK_NAMES if @_ == 0;
   for my $name(@names){
-    die "$usage\n\nunknown symlink name: $name\n" if not defined $SYMLINKS{$name};
+    die "$USAGE\n\nunknown symlink name: $name\n" if not defined $SYMLINKS{$name};
     my $sym = $SYMLINKS{$name};
 
     my $src = "$$sym{src}";
@@ -78,7 +78,7 @@ sub main(@){
       $ipmagicUser = "root";
     }
 
-    run "ipmagic", $ipmagicName, "-u", $ipmagicUser, "sh -c \"$cmd\"";
+    run "ipmagic", $IPMAGIC_NAME, "-u", $ipmagicUser, "sh -c \"$cmd\"";
   }
 }
 
