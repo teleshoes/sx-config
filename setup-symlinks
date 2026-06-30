@@ -8,7 +8,7 @@ my $user = "nemo";
 
 sub run(@);
 
-my %SYMLINKS = (
+my @SYMLINKS_ARR = (
   "1qtemail" => {
     dir => "/home/$user/.cache",
     src => "/media/sdcard/phone/email",
@@ -45,7 +45,8 @@ my %SYMLINKS = (
     dest => "bin",
   },
 );
-my @SYMLINK_NAMES = sort keys %SYMLINKS;
+my %SYMLINKS = @SYMLINKS_ARR;
+my @SYMLINK_NAMES = map {$SYMLINKS_ARR[$_]} grep {$_ % 2 == 0} (0..$#SYMLINKS_ARR);
 my %DIR = map {$_ => $SYMLINKS{$_}{dir}} @SYMLINK_NAMES;
 my %SRC = map {$_ => $SYMLINKS{$_}{src}} @SYMLINK_NAMES;
 my %DEST = map {$_ => $SYMLINKS{$_}{dest}} @SYMLINK_NAMES;
