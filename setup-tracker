@@ -12,10 +12,10 @@ my $GSETTINGS = {
   'index-removable-devices'     => 'false',
 };
 
-my @DIRS_SINGLE = qw(
-  /media/sdcard/droid/DCIM/AndroidCamera/
-  /media/sdcard/phone/Pictures/Camera/
-  /media/sdcard/phone/Videos/Camera/
+my @DIRS_SINGLE = (
+  "/media/sdcard/droid/DCIM/AndroidCamera/",
+  "/media/sdcard/phone/Pictures/Camera/",
+  "/media/sdcard/phone/Videos/Camera/",
 );
 
 my @DIRS_RECURSIVE = (
