@@ -24,13 +24,10 @@ my @DIRS_SINGLE = (
   "/home/$USER/android_storage/Download",
   "/home/$USER/android_storage/Pictures",
   "/home/$USER/android_storage/Movies",
-
-  "/media/sdcard/droid/DCIM/AndroidCamera/",
-  "/media/sdcard/phone/Pictures/Camera/",
-  "/media/sdcard/phone/Videos/Camera/",
 );
 
 my @DIRS_RECURSIVE = (
+  "/media/sdcard/phone/DCIM",
 );
 
 sub main(@){
