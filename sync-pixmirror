@@ -32,9 +32,12 @@ sub main(@){
   run "touch", "$LOCAL_PIXMIRROR_DIR/.nomedia" if not -f "$LOCAL_PIXMIRROR_DIR/.nomedia";
 
   print "\n\n=====syncing pixmirror local=>remote\n";
-  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync",
+    "-avP",
+    "--del",
     "$LOCAL_PIXMIRROR_DIR/",
-    ":$REMOTE_PIXMIRROR_DIR/";
+    ":$REMOTE_PIXMIRROR_DIR/",
+  ;
 
   print "\n\n=====making bydate-subdirs locally\n";
   run "rm", "-r", $LOCAL_PIXMIRROR_BY_DATE_DIR if -d $LOCAL_PIXMIRROR_BY_DATE_DIR;
@@ -86,9 +89,12 @@ sub main(@){
   }
 
   print "\n\n=====syncing bydate-subdirs local=>remote\n";
-  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
+  runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync",
+    "-avP",
+    "--del",
     "$LOCAL_PIXMIRROR_BY_DATE_DIR/",
-    ":$REMOTE_PIXMIRROR_BY_DATE_DIR/";
+    ":$REMOTE_PIXMIRROR_BY_DATE_DIR/",
+  ;
 }
 
 &main(@ARGV);
