@@ -11,4 +11,4 @@ make_dir_files_readable() {
   fi
 }
 
-make_dir_files_readable /media/sdcard/droid/DCIM/AndroidCamera/
+make_dir_files_readable /media/sdcard/phone/DCIM/AndroidCamera/
