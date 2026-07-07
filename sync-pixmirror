@@ -40,6 +40,9 @@ sub main(@){
   run "rm", "-r", $LOCAL_PIXMIRROR_BY_DATE_DIR if -d $LOCAL_PIXMIRROR_BY_DATE_DIR;
   run "mkdir", "-p", "$LOCAL_PIXMIRROR_BY_DATE_DIR/";
 
+  runQuiet "touch", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia";
+  touchByRef "$LOCAL_PIXMIRROR_DIR/.nomedia", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia";
+
   for my $dir(sort grep {-d $_} glob "$LOCAL_PIXMIRROR_DIR/*"){
     my $dirName;
     if($dir =~ /^$LOCAL_PIXMIRROR_DIR\/([a-zA-Z0-9_\-]+)\/?$/){
@@ -81,9 +84,6 @@ sub main(@){
       touchByRef $dir, "$LOCAL_PIXMIRROR_BY_DATE_DIR";
     }
   }
-
-  runQuiet "touch", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia";
-  touchByRef "$LOCAL_PIXMIRROR_DIR/.nomedia", "$LOCAL_PIXMIRROR_BY_DATE_DIR/.nomedia";
 
   print "\n\n=====syncing bydate-subdirs local=>remote\n";
   runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync", "-avP", "--del",
