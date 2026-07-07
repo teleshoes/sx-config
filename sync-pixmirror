@@ -35,6 +35,7 @@ sub main(@){
   runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync",
     "-avP",
     "--del",
+    "--modify-window=-1", #compare+update dir mtimes to nanosecond precision
     "$LOCAL_PIXMIRROR_DIR/",
     ":$REMOTE_PIXMIRROR_DIR/",
   ;
@@ -92,6 +93,7 @@ sub main(@){
   runRetry 300, "ipmagic", $IPMAGIC_NAME, "-u", $USER, "--rsync",
     "-avP",
     "--del",
+    "--modify-window=-1", #compare+update dir mtimes to nanosecond precision
     "$LOCAL_PIXMIRROR_BY_DATE_DIR/",
     ":$REMOTE_PIXMIRROR_BY_DATE_DIR/",
   ;
