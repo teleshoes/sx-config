@@ -5,6 +5,7 @@ use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 
 my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
 
 my @TRACKER_INDEX_DIRS = qw(
   /media/sdcard/droid/DCIM/AndroidCamera/
@@ -15,7 +16,7 @@ my @TRACKER_INDEX_DIRS = qw(
 sub main(@){
 
   for my $dir(@TRACKER_INDEX_DIRS){
-    run "ipmagic", $IPMAGIC_NAME, "-s", "localsearch", "index", "--add", $dir;
+    run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", "localsearch", "index", "--add", $dir;
   }
 }
 
