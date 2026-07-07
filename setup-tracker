@@ -7,6 +7,10 @@ use PhoneBackupUtils;
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
+my $GSETTINGS_SCHEMA = "org.freedesktop.Tracker3.Miner.Files";
+my $GSETTINGS = {
+};
+
 my @DIRS_SINGLE = qw(
   /media/sdcard/droid/DCIM/AndroidCamera/
   /media/sdcard/phone/Pictures/Camera/
@@ -19,6 +23,11 @@ my @DIRS_RECURSIVE = (
 sub main(@){
   my @cmds;
 
+  for my $key(sort keys %$GSETTINGS){
+    my $val = $$GSETTINGS{$key};
+    push @cmds, "gsettings set '$GSETTINGS_SCHEMA' '$key' '$val'";
+  }
+
   for my $dir(@DIRS_SINGLE){
     push @cmds, "localsearch index --add '$dir'";
   }
@@ -30,6 +39,5 @@ sub main(@){
 
   run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", $cmd;
 }
-
 
 &main(@ARGV);
