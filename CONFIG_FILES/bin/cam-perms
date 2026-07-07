@@ -8,6 +8,8 @@ make_dir_files_readable() {
   if [ -n "$files_arr" ]; then
     echo sudo chmod a+r "${files_arr[@]}"
     sudo chmod a+r "${files_arr[@]}"
+    echo udo localsearch reset -f "${files_arr[@]}"
+    udo localsearch reset -f "${files_arr[@]}"
   fi
 }
 
