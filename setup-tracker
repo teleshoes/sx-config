@@ -15,7 +15,7 @@ my @TRACKER_INDEX_DIRS = qw(
 sub main(@){
 
   for my $dir(@TRACKER_INDEX_DIRS){
-    run "ipmagic", "sx", "-s", "tracker3", "index", "--add", $dir;
+    run "ipmagic", "sx", "-s", "localsearch", "index", "--add", $dir;
   }
 }
 
