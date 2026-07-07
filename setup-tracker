@@ -35,6 +35,10 @@ sub main(@){
     push @cmds, "localsearch index --add --recursive '$dir'";
   }
 
+  push @cmds, "localsearch reset -s";
+  push @cmds, "localsearch daemon -t";
+  push @cmds, "localsearch daemon -s";
+
   my $cmd = join '', map {"$_;\n"} @cmds;
 
   run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", $cmd;
