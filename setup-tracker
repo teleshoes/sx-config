@@ -14,10 +14,15 @@ my @TRACKER_INDEX_DIRS = qw(
 );
 
 sub main(@){
+  my @cmds;
 
   for my $dir(@TRACKER_INDEX_DIRS){
-    run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", "localsearch", "index", "--add", $dir;
+    push @cmds, "localsearch index --add '$dir'";
   }
+
+  my $cmd = join '', map {"$_;\n"} @cmds;
+
+  run "ipmagic", $IPMAGIC_NAME, "-u", $USER, "-s", $cmd;
 }
 
 
