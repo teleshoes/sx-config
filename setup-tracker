@@ -13,6 +13,16 @@ my $GSETTINGS = {
 };
 
 my @DIRS_SINGLE = (
+  "/home/$USER/Documents",
+  "/home/$USER/Downloads",
+  "/home/$USER/Pictures",
+  "/home/$USER/Videos",
+
+  "/home/$USER/android_storage/Documents",
+  "/home/$USER/android_storage/Download",
+  "/home/$USER/android_storage/Pictures",
+  "/home/$USER/android_storage/Movies",
+
   "/media/sdcard/droid/DCIM/AndroidCamera/",
   "/media/sdcard/phone/Pictures/Camera/",
   "/media/sdcard/phone/Videos/Camera/",
