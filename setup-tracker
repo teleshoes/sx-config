@@ -7,7 +7,7 @@ use PhoneBackupUtils;
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my @TRACKER_INDEX_DIRS = qw(
+my @DIRS_SINGLE = qw(
   /media/sdcard/droid/DCIM/AndroidCamera/
   /media/sdcard/phone/Pictures/Camera/
   /media/sdcard/phone/Videos/Camera/
@@ -16,7 +16,7 @@ my @TRACKER_INDEX_DIRS = qw(
 sub main(@){
   my @cmds;
 
-  for my $dir(@TRACKER_INDEX_DIRS){
+  for my $dir(@DIRS_SINGLE){
     push @cmds, "localsearch index --add '$dir'";
   }
 
