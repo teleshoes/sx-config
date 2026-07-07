@@ -4,12 +4,7 @@ use warnings;
 use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 
-sub disableTrackerMiner();
-
 my $IPMAGIC_NAME = "sx";
-
-my $EXEC_TRACKER_MINER_FS = "/usr/libexec/tracker-miner-fs";
-my $EXEC_TRACKER_MINER_FS_DISABLED = "/usr/libexec/tracker-miner-fs-disabled";
 
 my @TRACKER_INDEX_DIRS = qw(
   /media/sdcard/droid/DCIM/AndroidCamera/
@@ -18,22 +13,11 @@ my @TRACKER_INDEX_DIRS = qw(
 );
 
 sub main(@){
-  print "NOT disabling tracker-miner-fs, isolating sdcards fixes main cpu problem\n";
 
   for my $dir(@TRACKER_INDEX_DIRS){
     run "ipmagic", "sx", "-s", "tracker3", "index", "--add", $dir;
   }
 }
 
-sub disableTrackerMiner(){
-  system "ipmagic", $IPMAGIC_NAME, "-u", "root", ""
-    . "if [ -e $EXEC_TRACKER_MINER_FS ]; then"
-    . "  echo moving $EXEC_TRACKER_MINER_FS to $EXEC_TRACKER_MINER_FS_DISABLED;"
-    . "  mv $EXEC_TRACKER_MINER_FS $EXEC_TRACKER_MINER_FS_DISABLED;"
-    . "else"
-    . "  echo $EXEC_TRACKER_MINER_FS is not present;"
-    . "fi"
-    ;
-}
 
 &main(@ARGV);
