@@ -9,6 +9,7 @@ my $USER = "nemo";
 
 my $GSETTINGS_SCHEMA = "org.freedesktop.Tracker3.Miner.Files";
 my $GSETTINGS = {
+  'index-removable-devices'     => 'false',
 };
 
 my @DIRS_SINGLE = qw(
