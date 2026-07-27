@@ -18,6 +18,7 @@ sub isAndroidBooted($);
 sub launchIntent($);
 sub extractLaunchIntent($$$);
 sub readIntentFromPkgName($$);
+sub installApkFiles(@);
 sub aaptRun(@);
 sub readSdcardsConf();
 sub isSdcardsMounted($$);
@@ -572,8 +573,7 @@ sub main(@){
     lxcShell($opts, @cmdArgs);
   }elsif($mode eq $MODE_INSTALL){
     die "$USAGE\nError: no APK_FILE to install\n" if @apkFiles == 0;
-    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install-preload -i $CONTAINER_NAME @apkFiles";
-    system "sudo", "sh", "-c", "$DBUS_ENV apkd-install -i $CONTAINER_NAME @apkFiles";
+    installApkFiles(@apkFiles);
   }elsif($mode eq $MODE_UNINSTALL){
     die "$USAGE\nError: no APK_FILE to uninstall\n" if @apkFiles == 0;
     for my $apkFile(@apkFiles){
@@ -916,6 +916,26 @@ sub readIntentFromPkgName($$){
     return $1;
   }else{
     die "ERROR: could not read main activity of pkg $pkgName\n";
+  }
+}
+
+sub installApkFiles(@){
+  my @apkFileArgs = @_;
+
+  my @apkSingleFiles;
+  for my $apkFile(@apkFileArgs){
+    if($apkFile =~ /\.apk$/){
+      push @apkSingleFiles, $apkFile;
+    }elsif($apkFile =~ /\.apkm$/){
+      #APKM files just work
+      push @apkSingleFiles, $apkFile;
+  }
+
+  if(@apkSingleFiles > 0){
+    system "sudo", "sh", "-c",
+      "$DBUS_ENV apkd-install-preload -i $CONTAINER_NAME @apkSingleFiles";
+    system "sudo", "sh", "-c",
+      "$DBUS_ENV apkd-install -i $CONTAINER_NAME @apkSingleFiles";
   }
 }
 
