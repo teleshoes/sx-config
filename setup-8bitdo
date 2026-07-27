@@ -20,6 +20,32 @@ my $XML_PREFIX = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
 my $XML_SUFFIX = "]</string>\n</map>\n";
 
 my $PROFILES = {
+  kingdom => {
+    UP    => 'W',
+    DOWN  => 'S',
+    LEFT  => 'A',
+    RIGHT => 'D',
+
+    A     => 'A',
+    B     => 'W',
+    X     => 'S',
+    Y     => 'D',
+
+    L     => 'SHIFT',
+    R     => 'K',
+    L2    => 'ENTER',
+    R2    => 'ENTER',
+
+    MINUS => 'ESC',
+    PLUS  => 'ENTER',
+    STAR  => 'SHIFT',
+    SYM   => 'ESC',
+
+    UNK0  => 'NONE',
+    UNK1  => 'NONE',
+    UNK2  => 'NONE',
+    UNK3  => 'NONE',
+  },
 };
 
 
