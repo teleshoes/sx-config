@@ -112,6 +112,7 @@ sub main(@){
   print "\n\nrunning apk-name on ALL local apk files\n";
   my @apkFiles = grep {-f $_} (
     glob("$srcDir/*.apk"),
+    glob("$srcDir/*.xapk"),
     glob("$srcDir/*.apkm")
   );
   for my $apkFile(@apkFiles){
