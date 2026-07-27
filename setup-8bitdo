@@ -1,0 +1,141 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+use File::Basename qw(basename);
+
+sub calculateXml();
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $SHARED_PREFS_DIR = "/home/.appsupport/instance/nemo/data/data/com.abitdo.advance/shared_prefs";
+my $CFG_XML_FILE = "$SHARED_PREFS_DIR/MicroDatasArrays.xml";
+
+my $XML_PREFIX = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
+  . "<map>\n"
+  . "    <string name=\"MicroDatasArrays\">["
+;
+my $XML_SUFFIX = "]</string>\n</map>\n";
+
+my $PROFILES = {
+};
+
+
+my $KEY_MAPPINGS = {
+  NONE  => 0,
+  ENTER => 40,
+  SHIFT => 225,
+  ESC   => 41,
+  (map {$_ => ord($_)-61} ("A".."Z")),  #A-Z => 4-29
+};
+
+my $BTN_TYPES = {
+  UP    => 512,
+  DOWN  => 256,
+  LEFT  => 128,
+  RIGHT => 64,
+  A     => 8192,
+  B     => 4096,
+  X     => 16,
+  Y     => 32,
+  L     => 1024,
+  R     => 2048,
+  L2    => 16384,
+  R2    => 32768,
+  MINUS => 8,
+  PLUS  => 1,
+  STAR  => 123,
+  SYM   => 124,
+  UNK0  => 2,
+  UNK1  => 4,
+  UNK2  => 33554432,
+  UNK3  => 67108864,
+};
+
+my @XML_BTN_ORDER = qw(
+  A B X Y
+  L R L2 R2
+  UNK0 UNK1
+  MINUS PLUS STAR SYM
+  UP DOWN LEFT RIGHT
+  UNK2 UNK3
+);
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC -s | --set
+    -generate XML from config
+    -write remote $IPMAGIC_NAME:$CFG_XML_FILE
+";
+
+my $MODE_SET = "set";
+
+sub main(@){
+  my $mode = undef;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-s|--set)$/){
+      $mode = $MODE_SET;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  die "$USAGE\nERROR: missing mode\n" if not defined $mode;
+
+  if($mode eq $MODE_SET){
+    my $xml = calculateXml();
+    my $tmpFile = "/tmp/8bitdo-" . nowMillis() . ".xml";
+    writeFile($tmpFile, $xml);
+
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync",
+      "-avP", "--no-owner", "--no-group",
+      $tmpFile,
+      ":$CFG_XML_FILE",
+    ;
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "chown", "--reference=$SHARED_PREFS_DIR", $CFG_XML_FILE;
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub calculateXml(){
+  my @profileJsonStrs;
+  for my $profileName(sort keys %$PROFILES){
+    my $profileKeys = $$PROFILES{$profileName};
+    my @jsonMappings;
+    for my $btnName(@XML_BTN_ORDER){
+      my $key = $$profileKeys{$btnName};
+      my $type = $$BTN_TYPES{$btnName};
+      my $mappingId = $$KEY_MAPPINGS{$key};
+      die "ERROR: missing btn '$btnName' in '$profileName'\n" if not defined $key;
+      die "ERROR: unknown btn '$btnName' in '$profileName'\n" if not defined $type;
+      die "ERROR: unknown key '$key' in '$profileName'\n" if not defined $mappingId;
+      push @jsonMappings, "{\"mapping0\":$mappingId,\"mapping1\":0,\"mapping2\":0,\"mapping3\":0,\"type\":$type}";
+    }
+
+    #the json value is a string for some reason
+    my $jsonMappingArrStr = "[" . join(",", @jsonMappings) . "]";
+    $jsonMappingArrStr =~ s/"/\\"/g;
+
+    my $json = "{\"data\":\"$jsonMappingArrStr\",\"name\":\"$profileName\"}";
+    push @profileJsonStrs, $json;
+  }
+
+  my $xmlProfileStr = join(",", @profileJsonStrs);
+  $xmlProfileStr =~ s/"/&quot;/g;
+
+  return $XML_PREFIX . $xmlProfileStr . $XML_SUFFIX;
+}
+
+&main(@ARGV);
