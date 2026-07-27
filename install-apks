@@ -109,8 +109,11 @@ sub main(@){
   chomp $host;
   die "could not find host\n" if $host !~ /\w/;
 
-  print "\n\nrenaming ALL local apk files\n";
-  my @apkFiles = grep {-f $_} (glob("$srcDir/*.apk"), glob("$srcDir/*.apkm"));
+  print "\n\nrunning apk-name on ALL local apk files\n";
+  my @apkFiles = grep {-f $_} (
+    glob("$srcDir/*.apk"),
+    glob("$srcDir/*.apkm")
+  );
   for my $apkFile(@apkFiles){
     if($apkFile =~ /\.apkm$/){
       print "skipping APKM $apkFile\n";
