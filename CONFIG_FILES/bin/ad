@@ -38,6 +38,8 @@ my $SDCARDS_CONF_FILE = "/etc/sdcards.conf";
 my $SAILFISH_HOME_MAPPER_BLOCK_DEV = "/dev/mapper/sailfish-home";
 
 my $APK_DIR = "/media/sdcard/phone/apks-aliendalvik";
+my $SPLIT_APK_TMP_DIR = "/media/sdcard/phone/apks-split-tmp";
+
 my %SHELL_ENV_VARS = (
   ANDROID_DATA         => "/data",
   ANDROID_RUNTIME_ROOT => "/apex/com.android.runtime",
@@ -923,12 +925,43 @@ sub installApkFiles(@){
   my @apkFileArgs = @_;
 
   my @apkSingleFiles;
+  my @apkSplits;
   for my $apkFile(@apkFileArgs){
     if($apkFile =~ /\.apk$/){
       push @apkSingleFiles, $apkFile;
     }elsif($apkFile =~ /\.apkm$/){
       #APKM files just work
       push @apkSingleFiles, $apkFile;
+    }elsif($apkFile =~ /\.xapk$/){
+      my $dirName = basename $apkFile;
+      $dirName =~ s/\W+/_/g;
+      my $tmpDir = "$SPLIT_APK_TMP_DIR/$dirName";
+      print "extracting $apkFile to $tmpDir\n";
+      system "rm", "-rf", $tmpDir;
+      system "mkdir", "-p", $tmpDir;
+
+      system "unzip", "-qq", "-d", $tmpDir, $apkFile;
+
+      my @splitApks = grep {-f $_} glob "$tmpDir/*.apk";
+      my @baseApks;
+      my @configApks;
+      for my $apk(@splitApks){
+        if($apk =~ /^(.*\/)?(config|split_config|split_[^\/]*asset)/){
+          push @configApks, $apk;
+        }else{
+          push @baseApks, $apk;
+        }
+      }
+
+      if(@baseApks != 1){
+        die "ERROR: could not find base APK in apk split $apkFile:\n"
+          . join("\n", @splitApks) . "\n";
+      }
+
+      push @apkSplits, [@baseApks, @configApks];
+    }else{
+      die "ERROR: could not parse apk file ext for $apkFile\n";
+    }
   }
 
   if(@apkSingleFiles > 0){
@@ -936,6 +969,14 @@ sub installApkFiles(@){
       "$DBUS_ENV apkd-install-preload -i $CONTAINER_NAME @apkSingleFiles";
     system "sudo", "sh", "-c",
       "$DBUS_ENV apkd-install -i $CONTAINER_NAME @apkSingleFiles";
+  }
+
+  if(@apkSplits > 0){
+    for my $split(@apkSplits){
+      my @splitApks = @$split;
+      system "sudo", "sh", "-c",
+        "$DBUS_ENV appsupport-pm install-split -i $CONTAINER_NAME @splitApks"
+    }
   }
 }
 
@@ -1060,7 +1101,7 @@ sub lxcReadProc($@){
 sub getApksForPrefix($){
   my ($prefix) = @_;
   my @files = glob "$APK_DIR/$prefix*";
-  @files = grep {/\.apk[m]?$/i} grep {-f $_} @files;
+  @files = grep {/\.(apk|xapk|apkm)$/i} grep {-f $_} @files;
   return @files;
 }
 
