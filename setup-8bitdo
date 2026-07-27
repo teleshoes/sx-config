@@ -140,12 +140,16 @@ sub calculateXml(){
   for my $profileName(sort keys %$PROFILES){
     my $profileKeys = $$PROFILES{$profileName};
     my @jsonMappings;
+    for my $btnName(sort keys %$profileKeys){
+      my $type = $$BTN_TYPES{$btnName};
+      die "ERROR: unknown btn '$btnName' in '$profileName'\n" if not defined $type;
+    }
+
     for my $btnName(@XML_BTN_ORDER){
       my $key = $$profileKeys{$btnName};
       my $type = $$BTN_TYPES{$btnName};
       my $mappingId = $$KEY_MAPPINGS{$key};
       die "ERROR: missing btn '$btnName' in '$profileName'\n" if not defined $key;
-      die "ERROR: unknown btn '$btnName' in '$profileName'\n" if not defined $type;
       die "ERROR: unknown key '$key' in '$profileName'\n" if not defined $mappingId;
       push @jsonMappings, "{\"mapping0\":$mappingId,\"mapping1\":0,\"mapping2\":0,\"mapping3\":0,\"type\":$type}";
     }
