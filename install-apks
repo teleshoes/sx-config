@@ -125,7 +125,10 @@ sub main(@){
   run "rsync", "-avP", "--del", "$srcDir/", "$USER\@$host:$destDir/";
 
   print "\n\ncopying obb files local => remote\n";
-  run "rsync", "-avP", "--del", "$obbSrcDir/", "root\@$host:$obbDestDir/";
+  run "rsync",
+    "-avP", "--no-owner", "--no-group",
+    "--del",
+    "$obbSrcDir/", "root\@$host:$obbDestDir/";
   run "ipmagic", $IPMAGIC_NAME, "-u", "root", "chown", "-R", "media_rw.media_rw", $obbDestDir;
 
   my @baseApkFiles = map {/(^.*\/)?([^\/]+)/; $2} @apkFiles;
