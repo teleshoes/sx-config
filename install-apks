@@ -115,11 +115,7 @@ sub main(@){
     glob("$srcDir/*.apkm")
   );
   for my $apkFile(@apkFiles){
-    if($apkFile =~ /\.apkm$/){
-      print "skipping APKM $apkFile\n";
-      next;
-    }
-    runQuiet "apk-name", $apkFile;
+    runQuiet "apk-name", "--quick", $apkFile;
     if($? != 0){
       print STDERR "WARNING: apk-name failed for $apkFile\n";
     }
