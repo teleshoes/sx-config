@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=laundry-cam
+Comment=laundry-cam
+Icon=laundromat
+Exec=/usr/local/bin/udo fingerterm -e 'loop laundry-cam'
+Type=Application
+X-Nemo-Single-Instance=no
+Custom-Launcher=yes
+
+[X-Sailjail]
+Sandboxing=Disabled
