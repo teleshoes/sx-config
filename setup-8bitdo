@@ -4,7 +4,9 @@ use warnings;
 use lib `dirname $0 | tr -d '\n'`;
 use PhoneBackupUtils;
 use File::Basename qw(basename);
+use JSON qw(from_json);
 
+sub parseXml($);
 sub calculateXml();
 
 my $IPMAGIC_NAME = "sx";
@@ -57,6 +59,7 @@ my $KEY_MAPPINGS = {
   ESC   => 41,
   (map {$_ => ord($_)-61} ("A".."Z")),  #A-Z => 4-29
 };
+my $KEY_NAMES_BY_ID = { map {$$KEY_MAPPINGS{$_} => $_} sort keys %$KEY_MAPPINGS };
 
 my $BTN_TYPES = {
   UP    => 512,
@@ -80,6 +83,7 @@ my $BTN_TYPES = {
   UNK2  => 33554432,
   UNK3  => 67108864,
 };
+my $BTN_NAMES_BY_TYPE = { map {$$BTN_TYPES{$_} => $_} sort keys %$BTN_TYPES };
 
 my @XML_BTN_ORDER = qw(
   A B X Y
@@ -96,11 +100,16 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
+  $EXEC -g | --get
+    -fetch remote $IPMAGIC_NAME:$CFG_XML_FILE
+    -parse profiles
+
   $EXEC -s | --set
     -generate XML from config
     -write remote $IPMAGIC_NAME:$CFG_XML_FILE
 ";
 
+my $MODE_GET = "get";
 my $MODE_SET = "set";
 
 sub main(@){
@@ -110,6 +119,8 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-g|--get)$/){
+      $mode = $MODE_GET;
     }elsif($arg =~ /^(-s|--set)$/){
       $mode = $MODE_SET;
     }else{
@@ -119,7 +130,22 @@ sub main(@){
 
   die "$USAGE\nERROR: missing mode\n" if not defined $mode;
 
-  if($mode eq $MODE_SET){
+  if($mode eq $MODE_GET){
+    my $xml = readProc "ipmagic", $IPMAGIC_NAME, "-u", "root",
+      "cat $CFG_XML_FILE",
+    ;
+
+    my @profiles = parseXml($xml);
+    for my $profile(@profiles){
+      printf "\n\n### PROFILE %s\n", $$profile{name};
+      my %mappings = %{$$profile{mappings}};
+      for my $btnName(@XML_BTN_ORDER){
+        my @keyNames = @{$mappings{$btnName}};
+        pop @keyNames while @keyNames > 0 and $keyNames[-1] eq "NONE";
+        printf "  %-5s = %s\n", $btnName, join(" / ", @keyNames);
+      }
+    }
+  }elsif($mode eq $MODE_SET){
     my $xml = calculateXml();
     my $tmpFile = "/tmp/8bitdo-" . nowMillis() . ".xml";
     writeFile($tmpFile, $xml);
@@ -143,6 +169,50 @@ sub main(@){
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub parseXml($){
+  my ($xml) = @_;
+  my $profileArrStr = undef;
+  if($xml =~ /^\Q$XML_PREFIX\E(.*)\Q$XML_SUFFIX\E$/s){
+    $profileArrStr = $1;
+  }else{
+    die "ERROR: malformed/missing XML at $CFG_XML_FILE:\n$xml\n";
+  }
+  $profileArrStr =~ s/&quot;/"/g;
+
+  my @profiles;
+
+  my @profileArr = @{from_json($profileArrStr)};
+  for my $profile(@profileArr){
+    my $profileName = $$profile{name};
+    my $mappingArrStr = $$profile{data};
+    $mappingArrStr =~ s/\\"/"/g;
+    my @mappingArr = @{from_json($mappingArrStr)};
+    my $keyMaps = {};
+    for my $mapping(@mappingArr){
+      my $btnType = $$mapping{type};
+      my $btnName = $$BTN_NAMES_BY_TYPE{$btnType};
+      if(not defined $btnName){
+        die "ERROR: missing button type '$btnType' for XML:\n$xml";
+      }
+      my @keyIds = map {$$mapping{"mapping$_"}} (0, 1, 2, 3);
+      my @keyNames = map {$$KEY_NAMES_BY_ID{$_}} @keyIds;
+      @keyNames = grep {defined $_} @keyNames;
+      if(@keyNames != 4){
+        die "ERROR: missing mappings for key $btnName for XML:\n$xml\n";
+      }
+      $$keyMaps{$btnName} = [@keyNames];
+    }
+    for my $btnName(@XML_BTN_ORDER){
+      if(not defined $$keyMaps{$btnName}){
+        die "ERROR: missing mapping for button $btnName for XML\n$xml\n";
+      }
+    }
+    push @profiles, {name=>$profileName, mappings=>$keyMaps};
+  }
+
+  return @profiles;
 }
 
 sub calculateXml(){
