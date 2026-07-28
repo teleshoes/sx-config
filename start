@@ -153,6 +153,8 @@ ipmagic sx okboard-toggle --init-default
 
 ./setup-coolreader
 
+./setup-8bitdo --set
+
 ./setup-camera
 
 ./setup-tracker
