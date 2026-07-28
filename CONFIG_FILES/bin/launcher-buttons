@@ -142,6 +142,7 @@ my @CONFIG = qw(
     amazfish-ui
     polar-beat
     elite-hrv
+    8bitdo
     whisker
   ]
 
@@ -237,6 +238,7 @@ my @CONFIG = qw(
 # these get created as "/usr/shared/applications/<PREFIX>-<APP_NAME>.desktop"
 #   PREFIX is "android-ad" for USE_ALIENDALVIK and "android-wd" for USE_WAYDROID
 my %ANDROID_LAUNCHERS = (
+  "8bitdo"             => [0, "com.abitdo.advance",                        ".activity.SearchActivity",                                        undef],
   "android-settings"   => [0, "com.android.settings",                      ".Settings",                                                       undef],
   "aptoide"            => [0, "cm.aptoide.pt",                             ".view.MainActivity",                                              undef],
   "aurora-store"       => [0, "com.aurora.store",                          ".MainActivity",                                                   undef],
