@@ -10,7 +10,8 @@ sub calculateXml();
 my $IPMAGIC_NAME = "sx";
 my $USER = "nemo";
 
-my $SHARED_PREFS_DIR = "/home/.appsupport/instance/nemo/data/data/com.abitdo.advance/shared_prefs";
+my $APP_DIR = "/home/.appsupport/instance/nemo/data/data/com.abitdo.advance";
+my $SHARED_PREFS_DIR = "$APP_DIR/shared_prefs";
 my $CFG_XML_FILE = "$SHARED_PREFS_DIR/MicroDatasArrays.xml";
 
 my $XML_PREFIX = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
@@ -122,6 +123,13 @@ sub main(@){
     my $xml = calculateXml();
     my $tmpFile = "/tmp/8bitdo-" . nowMillis() . ".xml";
     writeFile($tmpFile, $xml);
+
+    run "ipmagic", $IPMAGIC_NAME, "-u", "root", "-s", "
+      if [ ! -d \"$SHARED_PREFS_DIR\" ] && [ -d \"$APP_DIR\" ] ; then
+        mkdir -p $SHARED_PREFS_DIR
+        chown --reference=$APP_DIR $SHARED_PREFS_DIR
+      fi
+    ";
 
     run "ipmagic", $IPMAGIC_NAME, "-u", "root", "--rsync",
       "-avP", "--no-owner", "--no-group",
