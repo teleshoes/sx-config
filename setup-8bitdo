@@ -138,6 +138,8 @@ sub main(@){
     ;
     run "ipmagic", $IPMAGIC_NAME, "-u", "root",
       "chown", "--reference=$SHARED_PREFS_DIR", $CFG_XML_FILE;
+
+    run "rm", $tmpFile;
   }else{
     die "ERROR: unknown mode $mode\n";
   }
