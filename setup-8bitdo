@@ -16,9 +16,9 @@ my $CFG_XML_FILE = "$SHARED_PREFS_DIR/MicroDatasArrays.xml";
 
 my $XML_PREFIX = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
   . "<map>\n"
-  . "    <string name=\"MicroDatasArrays\">["
+  . "    <string name=\"MicroDatasArrays\">"
 ;
-my $XML_SUFFIX = "]</string>\n</map>\n";
+my $XML_SUFFIX = "</string>\n</map>\n";
 
 my $PROFILES = {
   kingdom => {
@@ -172,7 +172,7 @@ sub calculateXml(){
     push @profileJsonStrs, $json;
   }
 
-  my $xmlProfileStr = join(",", @profileJsonStrs);
+  my $xmlProfileStr = "[" . join(",", @profileJsonStrs) . "]";
   $xmlProfileStr =~ s/"/&quot;/g;
 
   return $XML_PREFIX . $xmlProfileStr . $XML_SUFFIX;
