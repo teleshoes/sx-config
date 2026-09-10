@@ -68,6 +68,7 @@ my %packages = (
     gstreamer1.0-tools
     harbour-amazfish
     harbour-audio-output
+    harbour-dsnote
     harbour-filetug
     harbour-gpsinfo
     harbour-jollacompass
@@ -165,6 +166,7 @@ my @openrepos = qw(
   halftux
   hbp
   HengYeDev
+  HtheB
   HuyliGun
   krnlyng
   llelectronics
@@ -174,6 +176,7 @@ my @openrepos = qw(
   mike7b4
   minitreintje
   Matsav
+  mkiol
   MSameer
   nephros
   NielDK
