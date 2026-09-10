@@ -17,6 +17,7 @@ my $MILES_PER_KM = 0.62137119;
 my $DEFAULT_CUTOFF_MILLIS = 60000;
 
 my $MODE_CUR = "cur";
+my $MODE_AVG = "avg";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
@@ -33,6 +34,22 @@ my $USAGE = "Usage:
       -otherwise:
         -convert GROUND_SPEED_M_PER_S to GROUND_SPEED_MPH, rounded to the nearest tenth
         -print '<GROUND_SPEED_MPH> MPH'
+
+  $EXEC --avg
+    same as: $EXEC --avg $DEFAULT_CUTOFF_MILLIS
+
+  $EXEC --avg RECENT_CUTOFF_MILLIS
+    read all speed readings from harbour-gpsinfo logs from the last RECENT_CUTOFF_MILLIS ms
+      -if no recent readings are found:
+        -print '???? MPH'
+      -otherwise:
+        -extract GROUND_SPEED_M_PER_S for each entry as in $EXEC --cur
+        -if no readings have defined GROUND_SPEED_M_PER_S:
+          -print '---- MPH'
+        -otherwise:
+          -assume each reading was for 1s and take the mean as AVG_SPEED_M_PER_S
+          -convert AVG_SPEED_M_PER_S to AVG_SPEED_MPH, rounded to the nearest tenth
+          -print '<AVG_SPEED_MPH> MPH'
 ";
 
 sub main(@){
@@ -45,6 +62,11 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(--cur)$/){
       $mode = $MODE_CUR;
+    }elsif($arg =~ /^(--avg)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
+      $mode = $MODE_AVG;
+      $cutoffMillis = shift;
+    }elsif($arg =~ /^(--avg)$/){
+      $mode = $MODE_AVG;
     }else{
       die "ERROR: unknown arg $arg\n";
     }
