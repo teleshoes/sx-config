@@ -2,25 +2,31 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
+use File::ReadBackwards;
 use Time::HiRes qw(time);
+use List::Util qw(sum);
 
-sub readLatestGpsLog();
+sub readGpsinfoEntries($);
+sub metersPerSecondToMPH($);
 
 my $EXEC = basename $0;
 
 my $LOG_DIR = "$ENV{HOME}/.cache/harbour-gpsinfo/harbour-gpsinfo";
 
 my $MILES_PER_KM = 0.62137119;
-my $THRESHOLD_MILLIS = 60000;
+my $DEFAULT_CUTOFF_MILLIS = 60000;
+
+my $MODE_CUR = "cur";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
   $EXEC
-    read last speed from harbour-gpsinfo logs and format as MPH
+  $EXEC --cur
+    read last speed from harbour-gpsinfo logs
       -parse latest TIMESTAMP and GROUND_SPEED_M_PER_S (in m/s)
-      -if no log exists or TIMESTAMP is older than $THRESHOLD_MILLIS ms ago:
+      -if no log exists or TIMESTAMP is older than $DEFAULT_CUTOFF_MILLIS ms ago:
         -print '???? MPH'
       -if GROUND_SPEED_M_PER_S is not a real number:
         -print '---- MPH'
@@ -30,83 +36,114 @@ my $USAGE = "Usage:
 ";
 
 sub main(@){
+  my $mode = $MODE_CUR;
+  my $cutoffMillis = $DEFAULT_CUTOFF_MILLIS;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(--cur)$/){
+      $mode = $MODE_CUR;
     }else{
       die "ERROR: unknown arg $arg\n";
     }
   }
 
-  my $entry = readLatestGpsLog();
+  my @entries = readRecentGpsinfoEntries($cutoffMillis);
+  if($mode eq $MODE_CUR and @entries > 0){
+    # ignore all entries except the most recent
+    @entries = ($entries[0]);
+  }
+  my @speedEntries = grep {defined $$_{speedMPH}} @entries;
 
-  my $epochMillis = defined $entry ? $$entry{epochMillis} : undef;
-  my $nowEpochMillis = int(time * 1000.0);
-  my $dateInvalid = 0;
-  $dateInvalid = 1 if not defined $epochMillis;
-  $dateInvalid = 1 if $epochMillis > $nowEpochMillis + 1000;
-  $dateInvalid = 1 if $nowEpochMillis - $epochMillis > $THRESHOLD_MILLIS;
-
-  my $speedMPerS = $$entry{speed} =~ /^(\d+|\d*\.\d+)m\/s$/ ? $1 : undef;
-  my $speedMPH = defined $speedMPerS ? metersPerSecondToMPH($speedMPerS) : undef;
-
-  if($dateInvalid){
+  if(@entries == 0){
+    #harbour-gpsinfo is not logging
     print "???? MPH\n";
-  }elsif(not defined $speedMPH){
+  }elsif(@speedEntries == 0){
+    #harbour-gpsinfo is logging, but has no gps fix
     print "---- MPH\n";
   }else{
-    printf "%4.1f MPH\n", $speedMPH;
+    my @speedMPHs = map {$$_{speedMPH}} @speedEntries;
+    my $count = @speedMPHs;
+    if($count > 1 and $mode eq $MODE_CUR){
+      die "ERROR: too many entries returned for mode=$mode\n";
+    }elsif($count == 0){
+      die "ERROR: no entries returned for mode=$mode\n";
+    }
+    my $avgSpeedMPH = sum(@speedMPHs) / $count;
+    printf "%4.1f MPH\n", $avgSpeedMPH;
   }
 }
 
-sub readLatestGpsLog(){
-  my @logFiles = sort grep {-f $_} glob "$LOG_DIR/*.log";
-  if(@logFiles == 0){
-    return undef;
+sub readRecentGpsinfoEntries($){
+  my ($cutoffMillis) = @_;
+  my $cutoffEpochMillis = int(time * 1000.0) - $cutoffMillis;
+
+  my @allLogFiles = grep {-f $_} glob "$LOG_DIR/*.log";
+
+  #sort by filename epoch
+  my %validLogFilesByEpochMillis;
+  for my $logFile(@allLogFiles){
+    if($logFile =~ /harbour-gpsinfo-(\d+)\.log$/){
+      my $epochMillis = $1;
+      $validLogFilesByEpochMillis{$epochMillis} = $logFile;
+    }
   }
 
-  my $lastFile = $logFiles[-1];
-  my $lastLine = `tail -1 $lastFile`;
-  if($lastLine =~ /
-    ^
-    (?<epochMillis>\d+)
-    \s*:\s*
-    \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
-    \s*:\s*
-      lat     = (?<lat>[^,]*)
-    , lon     = (?<lon>[^,]*)
-    , alt     = (?<alt>[^,]*)
-    , speed   = (?<speed>[^,]*)
-    , dirMove = (?<dirMove>[^,]*)
-    , dirComp = (?<dirComp>[^,]*)
-    , vAcc    = (?<vAcc>[^,]*)
-    , hAcc    = (?<hAcc>[^,]*)
-    , sat     = (?<sat>[^,]*)
-    $
-  /x){
-    my $entry = { %+ };
-    return $entry;
-  }else{
-    return undef;
-  }
-}
-
-sub timestampToEpoch($){
-  my ($dtmStr) = @_;
-  if(not defined $dtmStr or $dtmStr eq ""){
-    return undef;
+  my @recentLogFiles;
+  for my $logEpochMillis(reverse sort keys %validLogFilesByEpochMillis){
+    #include all files at or after the cutoff,
+    #  plus the last file /older/ than the cutoff,
+    #  but exclude any older than that last file
+    my $logFile = $validLogFilesByEpochMillis{$logEpochMillis};
+    push @recentLogFiles, $logFile;
+    if($logEpochMillis < $cutoffEpochMillis){
+      last;
+    }
   }
 
-  my $epoch = `date --date='$dtmStr' +%s`;
-  chomp $epoch;
+  my @entries;
+  for my $logFile(@recentLogFiles){
+    my $logBwH = File::ReadBackwards->new($logFile)
+      or die "ERROR: could not read $logFile\n$!\n";
+    my $lastLineTooOld = 0;
+    while(!$lastLineTooOld && !$logBwH->eof()){
+      my $line = $logBwH->readline();
 
-  if($epoch =~ /^\d+$/){
-    return $epoch;
-  }else{
-    return undef;
+      if($line =~ /
+        ^
+        (?<epochMillis>\d+)
+        \s*:\s*
+        \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
+        \s*:\s*
+          lat     = (?<lat>[^,]*)
+        , lon     = (?<lon>[^,]*)
+        , alt     = (?<alt>[^,]*)
+        , speed   = (?<speed>[^,]*)
+        , dirMove = (?<dirMove>[^,]*)
+        , dirComp = (?<dirComp>[^,]*)
+        , vAcc    = (?<vAcc>[^,]*)
+        , hAcc    = (?<hAcc>[^,]*)
+        , sat     = (?<sat>[^,]*)
+        $
+      /x){
+        my $entry = { %+ };
+        if($$entry{speed} =~ /^(\d+|\d*\.\d+)m\/s$/){
+          $$entry{speedMPH} = metersPerSecondToMPH($1);
+        }
+
+        if($$entry{epochMillis} < $cutoffEpochMillis){
+          $lastLineTooOld = 1;
+        }else{
+          push @entries, $entry;
+        }
+      }
+    }
+    $logBwH->close();
   }
+
+  return @entries;
 }
 
 sub metersPerSecondToMPH($){
