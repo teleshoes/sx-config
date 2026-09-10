@@ -23,8 +23,8 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC
-  $EXEC --cur
+  $EXEC [OPTS]
+  $EXEC [OPTS] --cur
     read last speed from harbour-gpsinfo logs
       -parse latest TIMESTAMP and GROUND_SPEED_M_PER_S (in m/s)
       -if no log exists or TIMESTAMP is older than $DEFAULT_CUTOFF_MILLIS ms ago:
@@ -35,10 +35,10 @@ my $USAGE = "Usage:
         -convert GROUND_SPEED_M_PER_S to GROUND_SPEED_MPH, rounded to the nearest tenth
         -print '<GROUND_SPEED_MPH> MPH'
 
-  $EXEC --avg
+  $EXEC [OPTS] --avg
     same as: $EXEC --avg $DEFAULT_CUTOFF_MILLIS
 
-  $EXEC --avg RECENT_CUTOFF_MILLIS
+  $EXEC [OPTS] --avg RECENT_CUTOFF_MILLIS
     read all speed readings from harbour-gpsinfo logs from the last RECENT_CUTOFF_MILLIS ms
       -if no recent readings are found:
         -print '???? MPH'
@@ -50,9 +50,18 @@ my $USAGE = "Usage:
           -assume each reading was for 1s and take the mean as AVG_SPEED_M_PER_S
           -convert AVG_SPEED_M_PER_S to AVG_SPEED_MPH, rounded to the nearest tenth
           -print '<AVG_SPEED_MPH> MPH'
+
+  OPTS
+    --short
+      -print 'unknown' instead of '???? MPH'
+      -print 'waiting' instead of '---- MPH'
+      -print '<SPEED_MPH>' instead of '<SPEED_MPH> MPH'
 ";
 
 sub main(@){
+  my $opts = {
+    isShort => 0,
+  };
   my $mode = $MODE_CUR;
   my $cutoffMillis = $DEFAULT_CUTOFF_MILLIS;
   while(@_ > 0){
@@ -67,6 +76,8 @@ sub main(@){
       $cutoffMillis = shift;
     }elsif($arg =~ /^(--avg)$/){
       $mode = $MODE_AVG;
+    }elsif($arg =~ /^(--short)$/){
+      $$opts{short} = 1;
     }else{
       die "ERROR: unknown arg $arg\n";
     }
@@ -81,10 +92,10 @@ sub main(@){
 
   if(@entries == 0){
     #harbour-gpsinfo is not logging
-    print "???? MPH\n";
+    print $$opts{short} ? "unknown\n" : "???? MPH\n";
   }elsif(@speedEntries == 0){
     #harbour-gpsinfo is logging, but has no gps fix
-    print "---- MPH\n";
+    print $$opts{short} ? "waiting\n" : "---- MPH\n";
   }else{
     my @speedMPHs = map {$$_{speedMPH}} @speedEntries;
     my $count = @speedMPHs;
@@ -94,7 +105,8 @@ sub main(@){
       die "ERROR: no entries returned for mode=$mode\n";
     }
     my $avgSpeedMPH = sum(@speedMPHs) / $count;
-    printf "%4.1f MPH\n", $avgSpeedMPH;
+    my $speedFmt = sprintf "%4.1f", $avgSpeedMPH;
+    print $$opts{short} ? "$speedFmt\n" : "$speedFmt MPH\n";
   }
 }
 
