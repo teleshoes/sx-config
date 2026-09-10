@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+use Time::HiRes qw(time);
+
+sub daemonize();
+sub nowMillis();
+
+my $LOG_DIR = "$ENV{HOME}/.cache/logs/tts";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC TEXT_WORD [TEXT_WORD TEXT_WORD..]
+    daemonize and run harbour-dsnote
+      -double-fork, redirect i/o, etc
+      -redirect stdout+stderr to a log file at:
+        $LOG_DIR/tts-<NOW_MILLIS>.log
+      -format TEXT as \"TEXT_WORD TEXT_WORD TEXT_WORD\"
+      -run:
+        harbour-dsnote --action start-reading-text --text TEXT
+";
+
+sub main(@){
+  my @textWords;
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg !~ /^-/){
+      @textWords = ($arg, @_);
+      @_ = ();
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  die "$USAGE\nERROR: missing TEXT_WORD\n" if @textWords == 0;
+
+  my $nowMillis = nowMillis();
+  my $logFile = "$LOG_DIR/tts-$nowMillis.log";
+  print "log file: $logFile\n";
+
+  daemonize();
+
+  system "mkdir", "-p", $LOG_DIR if not -d $LOG_DIR;
+
+  open STDOUT, '>>', $logFile;
+  open STDERR, '>&STDOUT';
+
+  exec "harbour-dsnote", "--action", "start-reading-text", "--text", "@textWords";
+}
+
+sub daemonize(){
+  chdir "/";
+  umask 0;
+  open STDIN, '<', '/dev/null' or die "ERROR: redirect stdin failed\n$!\n";
+  open STDOUT, '>', '/dev/null' or die "ERROR: redirect stdout failed\n$!\n";
+
+  my $pid;
+
+  $pid = fork;
+  exit if $pid;
+
+  $pid = fork;
+  exit if $pid;
+
+  open STDERR, '>&STDOUT' or die "ERROR: redirect stderr failed\n$!\n";
+}
+
+sub nowMillis(){
+  return int(time * 1000.0);
+}
+
+&main(@ARGV);
