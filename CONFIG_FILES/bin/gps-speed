@@ -183,7 +183,7 @@ sub readRecentGpsinfoEntries($){
 sub metersPerSecondToMPH($){
   my ($metersPerSecond) = @_;
   if(defined $metersPerSecond and $metersPerSecond =~ /^(\d+|\d*\.\d*)$/){
-    my $mph = $metersPerSecond*$MILES_PER_KM*1000.0/60.0/60.0;
+    my $mph = $metersPerSecond*60.0*60.0 * $MILES_PER_KM/1000.0;
     return $mph;
   }else{
     return undef;
