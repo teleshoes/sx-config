@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 use Time::HiRes qw(time);
+use POSIX qw(setsid);
 
 sub daemonize();
 sub nowMillis();
@@ -57,19 +58,23 @@ sub main(@){
 }
 
 sub daemonize(){
-  chdir "/";
-  umask 0;
-  open STDIN, '<', '/dev/null' or die "ERROR: redirect stdin failed\n$!\n";
-  open STDOUT, '>', '/dev/null' or die "ERROR: redirect stdout failed\n$!\n";
-
   my $pid;
 
   $pid = fork;
+  die "ERROR: fork failed\n$!\n" if not defined $pid;
   exit if $pid;
+
+  setsid() or die "ERROR: setsid failed\n$!\n";
 
   $pid = fork;
+  die "ERROR: fork failed\n$!\n" if not defined $pid;
   exit if $pid;
 
+  chdir "/";
+  umask 0;
+
+  open STDIN, '<', '/dev/null' or die "ERROR: redirect stdin failed\n$!\n";
+  open STDOUT, '>', '/dev/null' or die "ERROR: redirect stdout failed\n$!\n";
   open STDERR, '>&STDOUT' or die "ERROR: redirect stderr failed\n$!\n";
 }
 
