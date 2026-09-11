@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 use Time::HiRes qw(time);
 use POSIX qw(setsid);
 
+sub isAppDbusAvail();
 sub invokeAction($$);
 sub getProp($);
 sub daemonize();
@@ -64,6 +65,15 @@ sub main(@){
   open STDERR, '>&STDOUT';
 
   exec "harbour-dsnote", "--action", "start-reading-text", "--text", "@textWords";
+}
+
+sub isAppDbusAvail(){
+  my $out = `busctl --user status $DBUS_SERVICE 2>&1`;
+  if($out =~ /PID=/){
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
 sub invokeAction($$){
