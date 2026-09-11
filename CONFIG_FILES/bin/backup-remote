@@ -63,7 +63,7 @@ sub main(@){
   ######
   notificationMsg 0, sprintf "BAK-CNXN: %s", nowHrMin();
   my $config = readSecrets();
-  run "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
+  tryRun "screen", "-S", "revtun-bak", "-X", "quit";
   run "screen-cmd", "--session=revtun-bak", "revtun", "-r", "--unsafe", "--local";
   ensureConnection($config);
   run sshCmd($config, "mkdir", "-p", $BACKUP_DIR);
@@ -117,7 +117,7 @@ sub main(@){
 
   ######
   notificationMsg 0, sprintf "%28s", "b\@" . nowHrMin();
-  run "screen-cmd", "-q", "revtun", "-r", "--unsafe", "--local";
+  tryRun "screen", "-S", "revtun-bak", "-X", "quit";
   system "echo " . nowHrMin() . " > $lastSuccessFile";
   ######
 
