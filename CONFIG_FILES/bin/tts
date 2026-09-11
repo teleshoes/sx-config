@@ -5,6 +5,7 @@ use File::Basename qw(basename);
 use Time::HiRes qw(time);
 use POSIX qw(setsid);
 
+sub forkAndStartApp();
 sub isAppDbusAvail();
 sub invokeAction($$);
 sub getProp($);
@@ -53,7 +54,11 @@ sub main(@){
 
   die "$USAGE\nERROR: missing TEXT_WORD\n" if @textWords == 0;
 
-  forkAndStartApp();
+  if(!isAppDbusAvail()){
+    print "dbus service not available, starting app and waiting 3s\n";
+    forkAndStartApp();
+    sleep 3;
+  }
 
   exec "harbour-dsnote", "--action", "start-reading-text", "--text", "@textWords";
 }
