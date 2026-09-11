@@ -5,8 +5,17 @@ use File::Basename qw(basename);
 use Time::HiRes qw(time);
 use POSIX qw(setsid);
 
+sub invokeAction($$);
+sub getProp($);
 sub daemonize();
+sub readProc(@);
+sub run(@);
 sub nowMillis();
+
+my $DBUS_SERVICE = "org.mkiol.dsnote";
+my $DBUS_PATH = "/org/mkiol/dsnote";
+my $DBUS_METHOD_INVOKE_ACTION = "org.mkiol.dsnote.InvokeAction";
+my $DBUS_METHOD_GET_PROP = "org.freedesktop.DBus.Properties.Get";
 
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/tts";
 
@@ -57,6 +66,38 @@ sub main(@){
   exec "harbour-dsnote", "--action", "start-reading-text", "--text", "@textWords";
 }
 
+sub invokeAction($$){
+  my ($action, $params) = @_;
+  my @paramsFmt;
+  for my $key(sort keys %$params){
+    my $val = $$params{$key};
+    $val =~ s/(['"<>\\])/\\$1/g;
+    push @paramsFmt, "'$key': <'$val'>";
+  }
+  my $paramsQvarMap = "{" . join(",", @paramsFmt) . "}";
+
+  run "gdbus", "call",
+    "--session",
+    "--dest", $DBUS_SERVICE,
+    "--object-path", $DBUS_PATH,
+    "--method", $DBUS_METHOD_INVOKE_ACTION,
+    $action,
+    $paramsQvarMap,
+  ;
+}
+
+sub getProp($){
+  my ($prop) = @_;
+  return readProc "gdbus", "call",
+    "--session",
+    "--dest", $DBUS_SERVICE,
+    "--object-path", $DBUS_PATH,
+    "--method", $DBUS_METHOD_GET_PROP,
+    $DBUS_SERVICE,
+    $prop,
+  ;
+}
+
 sub daemonize(){
   my $pid;
 
@@ -76,6 +117,23 @@ sub daemonize(){
   open STDIN, '<', '/dev/null' or die "ERROR: redirect stdin failed\n$!\n";
   open STDOUT, '>', '/dev/null' or die "ERROR: redirect stdout failed\n$!\n";
   open STDERR, '>&STDOUT' or die "ERROR: redirect stderr failed\n$!\n";
+}
+
+sub readProc(@){
+  my @cmd = @_;
+  open my $cmdH, "-|", @cmd or die "ERROR: could not run @_\n$!\n";
+  my @lines = <$cmdH>;
+  close $cmdH;
+  if(wantarray){
+    return @lines;
+  }else{
+    return join '', @lines;
+  }
+}
+
+sub run(@){
+  print "@_\n";
+  system @_;
 }
 
 sub nowMillis(){
