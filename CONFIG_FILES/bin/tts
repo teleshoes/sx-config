@@ -53,18 +53,27 @@ sub main(@){
 
   die "$USAGE\nERROR: missing TEXT_WORD\n" if @textWords == 0;
 
-  my $nowMillis = nowMillis();
-  my $logFile = "$LOG_DIR/tts-$nowMillis.log";
-  print "log file: $logFile\n";
-
-  daemonize();
-
-  system "mkdir", "-p", $LOG_DIR if not -d $LOG_DIR;
-
-  open STDOUT, '>>', $logFile;
-  open STDERR, '>&STDOUT';
+  forkAndStartApp();
 
   exec "harbour-dsnote", "--action", "start-reading-text", "--text", "@textWords";
+}
+
+sub forkAndStartApp(){
+  my $pid = fork();
+  die "ERROR: fork failed\n$!\n" if not defined $pid;
+  if($pid == 0){
+    my $nowMillis = nowMillis();
+    my $logFile = "$LOG_DIR/tts-$nowMillis.log";
+    print "starting harbour-dsnote app with log file: $logFile\n";
+
+    system "mkdir", "-p", $LOG_DIR if not -d $LOG_DIR;
+
+    open STDOUT, '>>', $logFile;
+    open STDERR, '>&STDOUT';
+
+    daemonize();
+    exec "harbour-dsnote";
+  }
 }
 
 sub isAppDbusAvail(){
