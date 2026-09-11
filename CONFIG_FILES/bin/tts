@@ -2,12 +2,13 @@
 use strict;
 use warnings;
 use File::Basename qw(basename);
-use Time::HiRes qw(time);
+use Time::HiRes qw(sleep time);
 use POSIX qw(setsid);
 
 sub forkAndStartApp();
 sub isAppDbusAvail();
 sub startReadingText($);
+sub getGeneralState();
 sub invokeAction($$);
 sub getProp($);
 sub daemonize();
@@ -19,6 +20,17 @@ my $DBUS_SERVICE = "org.mkiol.dsnote";
 my $DBUS_PATH = "/org/mkiol/dsnote";
 my $DBUS_METHOD_INVOKE_ACTION = "org.mkiol.dsnote.InvokeAction";
 my $DBUS_METHOD_GET_PROP = "org.freedesktop.DBus.Properties.Get";
+my $DBUS_PROP_GENERAL_STATE = "State";
+my $DBUS_PROP_TASK_STATE = "TaskState";
+my $DBUS_PROP_MODEL_TTS = "ActiveTtsModel";
+my $DBUS_PROP_MODEL_STT = "ActiveSttModel";
+
+my $STATE_UNKNOWN = 0;
+my $STATE_NOT_CONFIGURED = 1;
+my $STATE_BUSY = 2;
+my $STATE_IDLE = 3;
+
+my $MAX_TIMEOUT_S = 10;
 
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/tts";
 
@@ -62,6 +74,28 @@ sub main(@){
     sleep 3;
   }
 
+  my $state = getGeneralState();
+  my $start = time;
+  while(not defined $state or $state != $STATE_IDLE){
+    if(time - $start > $MAX_TIMEOUT_S){
+      print "WARNING: timeout waiting for state=idle(3)\n";
+      last;
+    }
+    print "state=" . (defined $state ? $state : "undef"). ", waiting for state=idle\n";
+    sleep 0.5;
+    $state = getGeneralState();
+  }
+
+  if(not defined $state){
+    die "ERROR: cannot read state from dbus iface\n";
+  }
+  die "ERROR: state=Unknown\n" if $state eq $STATE_UNKNOWN;
+  die "ERROR: state=NotConfigured\n" if $state eq $STATE_NOT_CONFIGURED;
+  die "ERROR: state=Busy\n" if $state eq $STATE_BUSY;
+  if($state ne $STATE_IDLE){
+    print "WARNING: state = $state, not $STATE_IDLE(idle)\n";
+  }
+
   startReadingText("@textWords");
 }
 
@@ -95,6 +129,15 @@ sub isAppDbusAvail(){
 sub startReadingText($){
   my ($text) = @_;
   invokeAction('start-reading-text', {"text" => $text});
+}
+
+sub getGeneralState(){
+  my $val = getProp($DBUS_PROP_GENERAL_STATE);
+  if($val =~ /^\(<(\d+)>/){
+    return $1;
+  }else{
+    return undef;
+  }
 }
 
 sub invokeAction($$){
