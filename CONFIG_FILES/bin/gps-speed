@@ -62,6 +62,15 @@ my $USAGE = "Usage:
     -round all values to the nearest tenth and format as:
       $DEFAULT_FORMAT_SPEC
 
+  $EXEC [OPTS] --cur
+    same as: $EXEC --format='%{CUR_SPEED_MPH}%n'
+
+  $EXEC [OPTS] --avg [RECENT_CUTOFF_MILLIS]
+    same as: $EXEC --format='%{AVG_SPEED_MPH}%n'
+
+  $EXEC [OPTS] --dist
+    same as: $EXEC --format='%{TOTAL_DIST_MI}%n'
+
   OPTS
     -m RECENT_CUTOFF_MILLIS
     --cutoff-millis RECENT_CUTOFF_MILLIS | --cutoff-millis=RECENT_CUTOFF_MILLIS
@@ -104,6 +113,12 @@ sub main(@){
       $$opts{formatSpec} = shift @_;
     }elsif($arg =~ /^--format=(.+)$/){
       $$opts{formatSpec} = $1;
+    }elsif($arg =~ /^(--cur)$/){
+      $$opts{formatSpec} = "%{CUR_SPEED_MPH}%n";
+    }elsif($arg =~ /^(--avg)$/){
+      $$opts{formatSpec} = "%{AVG_SPEED_MPH}%n";
+    }elsif($arg =~ /^(--dist)$/){
+      $$opts{formatSpec} = "%{TOTAL_DIST_MI}%n";
     }else{
       die "ERROR: unknown arg $arg\n";
     }
