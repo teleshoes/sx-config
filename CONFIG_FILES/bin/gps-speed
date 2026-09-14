@@ -62,14 +62,17 @@ my $USAGE = "Usage:
     -round all values to the nearest tenth and format as:
       $DEFAULT_FORMAT_SPEC
 
-  $EXEC [OPTS] --cur
-    same as: $EXEC --format='%{CUR_SPEED_MPH}%n'
+  $EXEC [OPTS] RECENT_CUTOFF_MILLIS
+    same as: $EXEC --cutoff-millis=RECENT_CUTOFF_MILLIS
+
+  $EXEC [OPTS] --cur [RECENT_CUTOFF_MILLIS]
+    same as: $EXEC --format='%{CUR_SPEED_MPH}%n' --cutoff=RECENT_CUTOFF_MILLIS
 
   $EXEC [OPTS] --avg [RECENT_CUTOFF_MILLIS]
-    same as: $EXEC --format='%{AVG_SPEED_MPH}%n'
+    same as: $EXEC --format='%{AVG_SPEED_MPH}%n' --cutoff=RECENT_CUTOFF_MILLIS
 
-  $EXEC [OPTS] --dist
-    same as: $EXEC --format='%{TOTAL_DIST_MI}%n'
+  $EXEC [OPTS] --dist [RECENT_CUTOFF_MILLIS]
+    same as: $EXEC --format='%{TOTAL_DIST_MI}%n' --cutoff=RECENT_CUTOFF_MILLIS
 
   OPTS
     -m RECENT_CUTOFF_MILLIS
@@ -119,6 +122,8 @@ sub main(@){
       $$opts{formatSpec} = "%{AVG_SPEED_MPH}%n";
     }elsif($arg =~ /^(--dist)$/){
       $$opts{formatSpec} = "%{TOTAL_DIST_MI}%n";
+    }elsif($arg =~ /^(\d+)$/ and not defined $$opts{cutoffMillis}){
+      $$opts{cutoffMillis} = $arg;
     }else{
       die "ERROR: unknown arg $arg\n";
     }
