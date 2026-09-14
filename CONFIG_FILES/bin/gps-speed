@@ -22,6 +22,7 @@ my $DEFAULT_FORMAT_SPEC = ""
   . "cur=%{CUR_SPEED_MPH} mph"
   . " avg=%{AVG_SPEED_MPH} mph"
   . " dur=%{FIX_DURATION_S}s"
+  . " dist=%{TOTAL_DIST_MI}mi"
   . "%n"
   ;
 my $DEFAULT_CUTOFF_MILLIS = 60000;
@@ -55,6 +56,9 @@ my $USAGE = "Usage:
         AVG_SPEED_MPH='waiting'
       -otherwise, use the sum of speeds in m/s of entries with a gps fix+speed:
         AVG_SPEED_MPH=<SUM_ENTRY_SPEED_M_PER_SEC>*$M_PER_S_TO_MPH/<FIX_DURATION_S>
+    -calculate TOTAL_DIST_MI:
+      -use only entries with a gps fix+speed to estimate distance
+        TOTAL_DIST_MI=<AVG_SPEED_MPH>*<FIX_DURATION_S>/60/60
     -round all values to the nearest tenth and format as:
       $DEFAULT_FORMAT_SPEC
 
@@ -78,6 +82,7 @@ my $USAGE = "Usage:
         %{CUR_SPEED_MPH}  => cur speed in mph rounded to nearest tenth, or unknown/waiting
         %{AVG_SPEED_MPH}  => avg speed in mph rounded to nearest tenth, or unknown/waiting
         %{FIX_DURATION_S} => number of entries since cutoff, assumed to be 1s, with GPS fix+speed
+        %{TOTAL_DIST_MI}  => distance calculated as AVG_SPEED_MPH / FIX_DURATION_S, in MPH
 ";
 
 sub main(@){
@@ -119,6 +124,7 @@ sub parseEntriesInfo(@){
     CUR_SPEED_MPH  => @entries > 0 ? 'waiting' : 'unknown',
     AVG_SPEED_MPH  => @entries > 0 ? 'waiting' : 'unknown',
     FIX_DURATION_S => 0,
+    TOTAL_DIST_MI  => 0,
   };
 
   my $latestEntry = @entries > 0 ? $entries[0] : undef;
@@ -138,6 +144,7 @@ sub parseEntriesInfo(@){
   if($countGpsFixEntry > 0){
     $$info{AVG_SPEED_MPH} = sprintf "%.1f", ($totalSpeedMPH/$countGpsFixEntry);
     $$info{FIX_DURATION_S} = $countGpsFixEntry;
+    $$info{TOTAL_DIST_MI} = sprintf "%.1f", $totalSpeedMPH*$countGpsFixEntry/60.0/60.0;
   }
 
   return $info;
@@ -152,6 +159,7 @@ sub formatInfo($$){
   $fmt =~ s/%\{CUR_SPEED_MPH\}/$$info{CUR_SPEED_MPH}/g;
   $fmt =~ s/%\{AVG_SPEED_MPH\}/$$info{AVG_SPEED_MPH}/g;
   $fmt =~ s/%\{FIX_DURATION_S\}/$$info{FIX_DURATION_S}/g;
+  $fmt =~ s/%\{TOTAL_DIST_MI\}/$$info{TOTAL_DIST_MI}/g;
   $fmt =~ s/&nl;/\n/g;
   $fmt =~ s/&boing;/%/g;
   $fmt =~ s/&amp;/&/g;
