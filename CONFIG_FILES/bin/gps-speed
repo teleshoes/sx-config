@@ -6,6 +6,8 @@ use File::ReadBackwards;
 use Time::HiRes qw(time);
 use List::Util qw(sum);
 
+sub parseEntriesInfo(@);
+sub formatInfo($$);
 sub readGpsinfoEntries($);
 sub metersPerSecondToMPH($);
 
@@ -14,100 +16,146 @@ my $EXEC = basename $0;
 my $LOG_DIR = "$ENV{HOME}/.cache/harbour-gpsinfo/harbour-gpsinfo";
 
 my $MILES_PER_KM = 0.62137119;
+my $M_PER_S_TO_MPH = $MILES_PER_KM*60.0*60.0/1000.0;
+
+my $DEFAULT_FORMAT_SPEC = ""
+  . "cur=%{CUR_SPEED_MPH} mph"
+  . " avg=%{AVG_SPEED_MPH} mph"
+  . " dur=%{FIX_DURATION_S}s"
+  . "%n"
+  ;
 my $DEFAULT_CUTOFF_MILLIS = 60000;
 
-my $MODE_CUR = "cur";
-my $MODE_AVG = "avg";
+my $MODE_INFO = "info";
 
 my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
   $EXEC [OPTS]
-  $EXEC [OPTS] --cur
-    read last speed from harbour-gpsinfo logs
-      -parse latest TIMESTAMP and GROUND_SPEED_M_PER_S (in m/s)
-      -if no log exists or TIMESTAMP is older than $DEFAULT_CUTOFF_MILLIS ms ago:
-        -print '???? MPH'
-      -if GROUND_SPEED_M_PER_S is not a real number:
-        -print '---- MPH'
-      -otherwise:
-        -convert GROUND_SPEED_M_PER_S to GROUND_SPEED_MPH, rounded to the nearest tenth
-        -print '<GROUND_SPEED_MPH> MPH'
-
-  $EXEC [OPTS] --avg
-    same as: $EXEC --avg $DEFAULT_CUTOFF_MILLIS
-
-  $EXEC [OPTS] --avg RECENT_CUTOFF_MILLIS
-    read all speed readings from harbour-gpsinfo logs from the last RECENT_CUTOFF_MILLIS ms
-      -if no recent readings are found:
-        -print '???? MPH'
-      -otherwise:
-        -extract GROUND_SPEED_M_PER_S for each entry as in $EXEC --cur
-        -if no readings have defined GROUND_SPEED_M_PER_S:
-          -print '---- MPH'
-        -otherwise:
-          -assume each reading was for 1s and take the mean as AVG_SPEED_M_PER_S
-          -convert AVG_SPEED_M_PER_S to AVG_SPEED_MPH, rounded to the nearest tenth
-          -print '<AVG_SPEED_MPH> MPH'
+    -fetch entries from harbour-gps-info logs
+    -include only entries within the last ${DEFAULT_CUTOFF_MILLIS}ms
+    -assume each entry measures the previous 1.0 seconds
+    -calculate CUR_SPEED_MPH:
+      -use only the latest entry, regardless of gps fix
+      -if no entries exist at all:
+        CUR_SPEED_MPH='unknown'
+      -if the latest entry has no gps fix+speed:
+        CUR_SPEED_MPH='waiting'
+      -otherwise, use the latest entry's speed in m/s:
+        CUR_SPEED_MPH=<ENTRY_SPEED_M_PER_SEC>*$M_PER_S_TO_MPH
+    -calculate FIX_DURATION_S
+      -count the number of entries that have a gps fix+speed
+        FIX_DURATION_S=<GPS_FIX_ENTRY_COUNT>*1.0
+    -calculate AVG_SPEED_MPH:
+      -use only entries with a gps fix+speed to take a sum of the speeds
+      -if no entries exist at all:
+        AVG_SPEED_MPH='unknown'
+      -if no entries have gps fix+speed:
+        AVG_SPEED_MPH='waiting'
+      -otherwise, use the sum of speeds in m/s of entries with a gps fix+speed:
+        AVG_SPEED_MPH=<SUM_ENTRY_SPEED_M_PER_SEC>*$M_PER_S_TO_MPH/<FIX_DURATION_S>
+    -round all values to the nearest tenth and format as:
+      $DEFAULT_FORMAT_SPEC
 
   OPTS
-    --short
-      -print 'unknown' instead of '???? MPH'
-      -print 'waiting' instead of '---- MPH'
-      -print '<SPEED_MPH>' instead of '<SPEED_MPH> MPH'
+    -m RECENT_CUTOFF_MILLIS
+    --cutoff-millis RECENT_CUTOFF_MILLIS | --cutoff-millis=RECENT_CUTOFF_MILLIS
+      include entries within the last RECENT_CUTOFF_MILLIS milliseconds
+      default is $DEFAULT_CUTOFF_MILLIS
+
+      RECENT_CUTOFF_MILLIS
+        positive integer number of millis to look back for harbour-gpsinfo log entries
+
+    --format FORMAT_SPEC | --format=FORMAT_SPEC
+      use FORMAT_SPEC with replacements to print output
+      default is $DEFAULT_FORMAT_SPEC
+
+      FORMAT_SPEC
+        any string, with the following replacements:
+        %%                => a literal '%' character
+        %n                => a newline character '\\n'
+        %{CUR_SPEED_MPH}  => cur speed in mph rounded to nearest tenth, or unknown/waiting
+        %{AVG_SPEED_MPH}  => avg speed in mph rounded to nearest tenth, or unknown/waiting
+        %{FIX_DURATION_S} => number of entries since cutoff, assumed to be 1s, with GPS fix+speed
 ";
 
 sub main(@){
   my $opts = {
-    isShort => 0,
+    cutoffMillis => undef,
+    formatSpec   => undef,
   };
-  my $mode = $MODE_CUR;
-  my $cutoffMillis = $DEFAULT_CUTOFF_MILLIS;
+  my $mode = $MODE_INFO;
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(--cur)$/){
-      $mode = $MODE_CUR;
-    }elsif($arg =~ /^(--avg)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
-      $mode = $MODE_AVG;
-      $cutoffMillis = shift;
-    }elsif($arg =~ /^(--avg)$/){
-      $mode = $MODE_AVG;
-    }elsif($arg =~ /^(--short)$/){
-      $$opts{short} = 1;
+    }elsif($arg =~ /^(-m|--cutoff-millis)$/ and @_ > 0 and $_[0] =~ /^\d+$/){
+      $$opts{cutoffMillis} = shift @_;
+    }elsif($arg =~ /^--cutoff-millis=(\d+)$/){
+      $$opts{cutoffMillis} = $1;
+    }elsif($arg =~ /^(--format)$/ and @_ > 0){
+      $$opts{formatSpec} = shift @_;
+    }elsif($arg =~ /^--format=(.+)$/){
+      $$opts{formatSpec} = $1;
     }else{
       die "ERROR: unknown arg $arg\n";
     }
   }
 
-  my @entries = readRecentGpsinfoEntries($cutoffMillis);
-  if($mode eq $MODE_CUR and @entries > 0){
-    # ignore all entries except the most recent
-    @entries = ($entries[0]);
-  }
-  my @speedEntries = grep {defined $$_{speedMPH}} @entries;
+  $$opts{cutoffMillis} = $DEFAULT_CUTOFF_MILLIS if not defined $$opts{cutoffMillis};
+  $$opts{formatSpec} = $DEFAULT_FORMAT_SPEC if not defined $$opts{formatSpec};
 
-  if(@entries == 0){
-    #harbour-gpsinfo is not logging
-    print $$opts{short} ? "unknown\n" : "???? MPH\n";
-  }elsif(@speedEntries == 0){
-    #harbour-gpsinfo is logging, but has no gps fix
-    print $$opts{short} ? "waiting\n" : "---- MPH\n";
-  }else{
-    my @speedMPHs = map {$$_{speedMPH}} @speedEntries;
-    my $count = @speedMPHs;
-    if($count > 1 and $mode eq $MODE_CUR){
-      die "ERROR: too many entries returned for mode=$mode\n";
-    }elsif($count == 0){
-      die "ERROR: no entries returned for mode=$mode\n";
-    }
-    my $avgSpeedMPH = sum(@speedMPHs) / $count;
-    my $speedFmt = sprintf "%4.1f", $avgSpeedMPH;
-    print $$opts{short} ? "$speedFmt\n" : "$speedFmt MPH\n";
+  my @entries = readRecentGpsinfoEntries($$opts{cutoffMillis});
+  my $info = parseEntriesInfo(@entries);
+
+  print formatInfo($$opts{formatSpec}, $info);
+}
+
+sub parseEntriesInfo(@){
+  my (@entries) = @_;
+  my $info = {
+    CUR_SPEED_MPH  => @entries > 0 ? 'waiting' : 'unknown',
+    AVG_SPEED_MPH  => @entries > 0 ? 'waiting' : 'unknown',
+    FIX_DURATION_S => 0,
+  };
+
+  my $latestEntry = @entries > 0 ? $entries[0] : undef;
+  if(defined $latestEntry and defined $$latestEntry{speedMPH}){
+    $$info{CUR_SPEED_MPH} = $$latestEntry{speedMPH};
   }
+
+  my $totalSpeedMPH = 0;
+  my $countGpsFixEntry = 0;
+  for my $entry(@entries){
+    if(defined $$entry{speedMPH}){
+      $totalSpeedMPH += $$entry{speedMPH};
+      $countGpsFixEntry++;
+    }
+  }
+
+  if($countGpsFixEntry > 0){
+    $$info{AVG_SPEED_MPH} = sprintf "%.1f", ($totalSpeedMPH/$countGpsFixEntry);
+    $$info{FIX_DURATION_S} = $countGpsFixEntry;
+  }
+
+  return $info;
+}
+
+sub formatInfo($$){
+  my ($formatSpec, $info) = @_;
+  my $fmt = $formatSpec;
+  $fmt =~ s/&/&amp;/g;
+  $fmt =~ s/%%/&boing;/g;
+  $fmt =~ s/%n/&nl;/g;
+  $fmt =~ s/%\{CUR_SPEED_MPH\}/$$info{CUR_SPEED_MPH}/g;
+  $fmt =~ s/%\{AVG_SPEED_MPH\}/$$info{AVG_SPEED_MPH}/g;
+  $fmt =~ s/%\{FIX_DURATION_S\}/$$info{FIX_DURATION_S}/g;
+  $fmt =~ s/&nl;/\n/g;
+  $fmt =~ s/&boing;/%/g;
+  $fmt =~ s/&amp;/&/g;
+  return $fmt;
 }
 
 sub readRecentGpsinfoEntries($){
