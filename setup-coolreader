@@ -40,7 +40,7 @@ my $usage = "Usage:
     update `ipmagic $IPMAGIC_NAME`:<ANDROID_STORAGE_DIR>/.cr3/$CR3_INI_FILE
     backup cr3.ini to:
       <ANDROID_STORAGE_DIR>/.cr3/bak-cr3-ini-good
-      $SDCARD_DIR/bak-cr3-ini-good
+      $SDCARD_DIR/bak-cr3-ini-good                 (if sdcard available)
 
   $0 --copy-books-internal
     sync $BOOKS_SDCARD_DIR/ => <ANDROID_STORAGE_DIR>/$BOOKS_STORAGE_REL_DIR/
@@ -341,7 +341,11 @@ sub writeRemoteConfigLines($@){
     setfacl -m 'group:$USER:rwx' $iniDir $iniFile
     chmod 0660 $iniFile
     cp -a $iniFile $iniDir/bak-cr3-ini-good
-    cp -a $iniFile $SDCARD_DIR/bak-cr3-ini-good
+    if [ -d $SDCARD_DIR ]; then
+      cp -a $iniFile $SDCARD_DIR/bak-cr3-ini-good
+    else
+      echo skipping missing $SDCARD_DIR
+    fi
     ad fuse
   ";
 
