@@ -12,16 +12,25 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC
+  $EXEC [OPTS]
     setup ssh
+
+  OPTS
+    -n --no-keygen
+      skip generating a new pubkey on $IPMAGIC_NAME
 ";
 
 sub main(@){
+  my $opts = {
+    keygen => 1,
+  };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-n|--no-keygen)$/){
+      $$opts{keygen} = 0;
     }else{
       die "$USAGE\nERROR: unknown arg $arg\n";
     }
@@ -48,14 +57,23 @@ sub main(@){
   system "sshc", "--close", "root\@$host";
   system "sshc", "root\@$host", "echo ok root";
 
-  print "ssh-keygen\n";
-  system "sshc", "$USER\@$host", "
-    set -x
-    if [ ! -f ~/.ssh/$host.pub ]; then
-      ssh-keygen -f ~/.ssh/id_rsa -N '' -t rsa
-      mv ~/.ssh/id_rsa.pub ~/.ssh/$host.pub
-    fi
-  ";
+  if($$opts{keygen}){
+    print "ssh-keygen\n";
+    system "sshc", "$USER\@$host", "
+      set -x
+      if [ ! -f ~/.ssh/$host.pub ]; then
+        ssh-keygen -f ~/.ssh/id_rsa -N '' -t rsa
+        mv ~/.ssh/id_rsa.pub ~/.ssh/$host.pub
+      fi
+    ";
+  }else{
+    print "skipping keygen\n";
+    system "sshc", "$USER\@$host", "
+      set -x
+      mkdir ~/.ssh
+      chmod 700 ~/.ssh
+    ";
+  }
 
   print "create root ssh dir\n";
   system "sshc", "root\@$host", "
