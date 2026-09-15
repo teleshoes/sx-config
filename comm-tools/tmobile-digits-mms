@@ -729,6 +729,11 @@ sub parseAndroid($$$){
 
     for my $partId(@partIds){
       my $phone = $$participantsById{$partId}{recipientNumber};
+      if($phone =~ /^(\+?\d+)@[a-zA-Z0-9\-\.]+$/){
+        my $num = $1;
+        print STDERR "WARNING: pretending SIP id is a phone number $phone => $num\n";
+        $phone = $num;
+      }
       if(not defined $phone or $phone !~ /^\+?\d+$/){
         die "ERROR: missing participant for id = $partId\n";
       }
