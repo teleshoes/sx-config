@@ -1,52 +1,82 @@
-IPMAGIC_NAME="sx"
-USER="nemo"
-HOST=$(ipmagic $IPMAGIC_NAME)
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
 
-echo setup sshc $USER
-sshc --close $USER@$HOST
-sshc $USER@$HOST echo ok $USER
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
 
-echo enable ssh root login
-sshc $USER@$HOST 'su -c "
-  sed -i \"s/^\s*#*\s*PermitRootLogin\s.*/PermitRootLogin yes/\" /etc/ssh/sshd_config;
-  sed -i \"s/^\s*#*\s*GatewayPorts\s.*/GatewayPorts yes/\" /etc/ssh/sshd_config;
-  systemctl restart sshd;
-"'
+my $EXEC = basename $0;
 
-echo sleep 3s
-sleep 3
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
 
-echo setup sshc root
-sshc --close root@$HOST
-sshc root@$HOST echo ok root
+  $EXEC
+    setup ssh
+";
 
-echo ssh-keygen
-sshc $USER@$HOST "
-  set -x
-  if [ ! -f ~/.ssh/$HOST.pub ]; then
-    ssh-keygen -f ~/.ssh/id_rsa -N '' -t rsa
-    mv ~/.ssh/id_rsa.pub ~/.ssh/$HOST.pub
-  fi
-"
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "$USAGE\nERROR: unknown arg $arg\n";
+    }
+  }
 
-echo create root ssh dir
-sshc root@$HOST "
-  set -x
-  mkdir -p /root/.ssh/
-"
+  my $host = `ipmagic $IPMAGIC_NAME`;
+  chomp $host;
 
-echo fetch pubkey
-sshc --scp $USER@$HOST:~/.ssh/$HOST.pub ~/.ssh/$HOST.pub
+  print "setup sshc $USER\n";
+  system "sshc", "--close", "$USER\@$host";
+  system "sshc", "$USER\@$host", "echo ok $USER";
 
-echo run pubkeys
-pubkeys $IPMAGIC_NAME scp
-pubkeys $IPMAGIC_NAME-root scp
+  print "enable ssh root login\n";
+  system "sshc", "$USER\@$host", 'su -c "
+    sed -i \"s/^\s*#*\s*PermitRootLogin\s.*/PermitRootLogin yes/\" /etc/ssh/sshd_config;
+    sed -i \"s/^\s*#*\s*GatewayPorts\s.*/GatewayPorts yes/\" /etc/ssh/sshd_config;
+    systemctl restart sshd;
+  "';
 
+  print "sleep 3s\n";
+  sleep 3;
 
-echo set perms on ssh config
-ipmagic $IPMAGIC_NAME -u $USER touch /home/$USER/.ssh/config
-ipmagic $IPMAGIC_NAME -u $USER chmod 655 /home/$USER/.ssh/config
+  print "setup sshc root\n";
+  system "sshc", "--close", "root\@$host";
+  system "sshc", "root\@$host", "echo ok root";
 
-echo cleanup
-sshc --close $USER@$HOST
-sshc --close root@$HOST
+  print "ssh-keygen\n";
+  system "sshc", "$USER\@$host", "
+    set -x
+    if [ ! -f ~/.ssh/$host.pub ]; then
+      ssh-keygen -f ~/.ssh/id_rsa -N '' -t rsa
+      mv ~/.ssh/id_rsa.pub ~/.ssh/$host.pub
+    fi
+  ";
+
+  print "create root ssh dir\n";
+  system "sshc", "root\@$host", "
+    set -x
+    mkdir -p /root/.ssh/
+  ";
+
+  print "fetch pubkey\n";
+  system "sshc", "--scp", "$USER\@$host:/home/$USER/.ssh/$host.pub", "$ENV{HOME}/.ssh/$host.pub";
+
+  print "run pubkeys\n";
+  system "pubkeys", "$IPMAGIC_NAME", "scp";
+  system "pubkeys", "$IPMAGIC_NAME-root", "scp";
+
+  print "set perms on ssh config\n";
+  system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "touch /home/$USER/.ssh/config";
+  system "ipmagic", $IPMAGIC_NAME, "-u", $USER, "chmod 655 /home/$USER/.ssh/config";
+
+  print "cleanup\n";
+  system "sshc", "--close", "$USER\@$host";
+  system "sshc", "--close", "root\@$host";
+}
+
+&main(@ARGV);
