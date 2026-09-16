@@ -33,6 +33,12 @@ import com.jolla.keyboard.translations 1.0
 Page {
     id: root
 
+    Component.onCompleted: {
+        pluginSettingsModel.refresh()
+        enabledLayoutModel.refresh()
+        enabledPhysicalLayoutModel.refresh()
+    }
+
     LayoutModel {
         id: layoutModel
     }
@@ -51,8 +57,8 @@ Page {
             for (var i = 0; i < layoutModel.count; ++i) {
                 var item = layoutModel.get(i)
 
-                if (item.enabled && item.settings &&
-                        layoutSettings.indexOf(item.settings) === -1) {
+                if (item.enabled && item.settings
+                        && layoutSettings.indexOf(item.settings) === -1) {
                     layoutSettings.push(item.settings)
                 }
             }
@@ -293,11 +299,5 @@ Page {
 
         key: "/desktop/lipstick-jolla-home/layout"
         defaultValue: "us"
-    }
-
-    Component.onCompleted: {
-        pluginSettingsModel.refresh()
-        enabledLayoutModel.refresh()
-        enabledPhysicalLayoutModel.refresh()
     }
 }

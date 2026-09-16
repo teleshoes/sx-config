@@ -14,13 +14,12 @@ import Nemo.Time 1.0
 import Nemo.Configuration 1.0
 import "../lockscreen"
 import "../notifications" as Notifications
-import "weather"
 import "../main"
-import "calendar"
 
 SilicaFlickable {
     id: root
 
+    property int orientation
     property real statusBarHeight
     readonly property bool hasNotifications: notificationList.count > 0
                                              || systemUpdateList.count > 0
@@ -34,7 +33,7 @@ SilicaFlickable {
                                             || feedsList.hasRemovableNotifications)
     property int _cornerPadding: {
         // squeeze content horizontally on rounded display landscape
-        if (!(desktop.orientation & Orientation.LandscapeMask)) {
+        if (!(root.orientation & Orientation.LandscapeMask)) {
             return 0
         }
 
@@ -45,10 +44,10 @@ SilicaFlickable {
         return Math.max(biggestCorner * 0.7, 0)
     }
     property real leftPadding: Math.max(_cornerPadding,
-                                        desktop.orientation == Orientation.Landscape
+                                        root.orientation == Orientation.Landscape
                                         ? Screen.topCutout.height : 0)
     property real rightPadding: Math.max(_cornerPadding,
-                                         desktop.orientation == Orientation.LandscapeInverted
+                                         root.orientation == Orientation.LandscapeInverted
                                          ? Screen.topCutout.height : 0)
 
     contentHeight: Math.ceil(Math.max(footerSpacer.y + footerSpacer.height,
@@ -168,20 +167,31 @@ SilicaFlickable {
             onlyUserConfigurable: false
         }
 
-        Repeater {
-            model: eventsWidgetsModel
+        Grid {
+            id: widgetGrid
 
-            delegate: Column {
-                width: parent ? parent.width : 0
-                Item {
-                    height: widgetLoader.active ? Theme.paddingSmall : 0
-                    width: parent.width
-                }
-                Loader {
-                    id: widgetLoader
-                    active: model.enabled
-                    width: parent ? parent.width : 0
-                    source: model.path
+            width: parent.width
+            rowSpacing: headerColumn.spacing
+            columns: (root.orientation & Orientation.LandscapeMask) ? 2: 1
+
+            Repeater {
+                model: eventsWidgetsModel
+
+                delegate: Column {
+                    width: parent ? parent.width / widgetGrid.columns : 0
+
+                    Item {
+                        height: widgetLoader.active ? Theme.paddingSmall : 0
+                        width: parent.width
+                    }
+                    Loader {
+                        id: widgetLoader
+
+                        visible: active
+                        active: model.enabled
+                        width: parent ? parent.width : 0
+                        source: model.path
+                    }
                 }
             }
         }
@@ -190,11 +200,12 @@ SilicaFlickable {
     InfoLabel {
         id: noNotificationsLabel
 
-        x: notificationsArea.x + Theme.paddingMedium
+        x: notificationsArea.x + Theme.horizontalPageMargin
         y: Math.max(notificationsArea.y + notificationHeaderContainer.y
-                    + notificationHeaderContainer.height + Theme.itemSizeSmall,
+                    + notificationHeaderContainer.height
+                    + ((root.orientation & Orientation.LandscapeMask) ? Theme.paddingLarge : Theme.itemSizeSmall),
                     root.height/2 - implicitHeight/2)
-        width: notificationsArea.width - 2*Theme.paddingMedium
+        width: notificationsArea.width - 2*Theme.horizontalPageMargin
         opacity: (!root.hasNotifications && notificationList.contentHeight < 1 && !feedsList.showingRemovableContent)
                  ? 1.0 : 0.0
 

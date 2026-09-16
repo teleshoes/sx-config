@@ -1,21 +1,37 @@
 import QtQuick 2.0
-import Sailfish.Silica 1.0
-import com.jolla.settings 1.0
-import com.jolla.settings.system 1.0
+import QtFeedback 5.0
 import org.nemomobile.systemsettings 1.0
 import Nemo.Configuration 1.0
-import QtFeedback 5.0
+import Sailfish.Silica 1.0
+import Sailfish.Policy 1.0
+import com.jolla.settings 1.0
+import com.jolla.settings.system 1.0
 
 Page {
-    ProfileControl { id: soundSettings }
+    ProfileControl {
+        id: soundSettings
+    }
 
     ThemeEffect {
         id: feedbackEffect
     }
 
-    SilicaFlickable {
-        id: listView
+    ConfigurationValue {
+        id: doNotDisturb
 
+        defaultValue: false
+        key: "/lipstick/do_not_disturb"
+    }
+
+    ConfigurationValue {
+        id: doNotDisturbRingtone
+
+        defaultValue: "on"
+        key: "/lipstick/do_not_disturb_ringtone"
+        onValueChanged: dndRingtoneCombobox.updateIndex()
+    }
+
+    SilicaFlickable {
         anchors.fill: parent
         contentHeight: content.height + Theme.paddingMedium
 
@@ -23,8 +39,6 @@ Page {
             id: content
 
             width: parent.width
-            anchors.left: parent.left
-            anchors.right: parent.right
 
             PageHeader {
                 //% "Sounds"
@@ -35,7 +49,6 @@ Page {
                 id: vibraComboBox
 
                 visible: feedbackEffect.supported
-                width: parent.width
                 //% "Vibrate"
                 label: qsTrId("settings_sounds-la-vibrate_combobox")
                 currentIndex: modeToIndex(soundSettings.vibraMode)
@@ -83,7 +96,6 @@ Page {
                     }
                 }
 
-
                 Connections {
                     target: soundSettings
                     onVibraModeChanged: vibraComboBox.currentIndex = vibraComboBox.modeToIndex(soundSettings.vibraMode)
@@ -94,6 +106,11 @@ Page {
                 width: parent.width
             }
 
+            DisabledByMdmBanner {
+                active: !AccessPolicy.ringtoneLevelEnabled
+                compressed: true
+            }
+
             VolumeSlider {
                 width: parent.width
             }
@@ -102,7 +119,7 @@ Page {
             }
 
             Item {
-                width: parent.width
+                width: 1
                 height: Theme.paddingLarge
             }
 
@@ -156,6 +173,7 @@ Page {
                 //% "Do not disturb mode"
                 text: qsTrId("settings_sounds-la-do_not_disturb")
             }
+
             TextSwitch {
                 automaticCheck: false
                 checked: !!doNotDisturb.value
@@ -208,7 +226,6 @@ Page {
                 }
                 Component.onCompleted: updateIndex()
 
-
                 function updateIndex() {
                     currentIndex = valueToIndex(doNotDisturbRingtone.value)
                 }
@@ -227,22 +244,8 @@ Page {
                     }
                 }
             }
-
-            ConfigurationValue {
-                id: doNotDisturb
-
-                defaultValue: false
-                key: "/lipstick/do_not_disturb"
-            }
-
-            ConfigurationValue {
-                id: doNotDisturbRingtone
-
-                defaultValue: "on"
-                key: "/lipstick/do_not_disturb_ringtone"
-                onValueChanged: dndRingtoneCombobox.updateIndex()
-            }
         }
+
         VerticalScrollDecorator {}
     }
 }

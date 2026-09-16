@@ -7,10 +7,10 @@
 
 import QtQuick 2.6
 import org.nemomobile.lipstick 0.1
-import Nemo.Ngf 1.0
 import com.jolla.lipstick 0.1
 import Sailfish.Silica 1.0
 import Sailfish.Silica.private 1.0
+import Sailfish.Policy 1.0
 import Sailfish.Lipstick 1.0
 import "../compositor"
 import "../main"
@@ -87,6 +87,13 @@ SilicaFlickable {
             item.minimized = false
 
             ensureVisible(item)
+
+            if (launchingItem && launchingItem.launcherItem === launcherItem) {
+                if (!launchingItem.running) {
+                    launchingItem.close()
+                }
+                launchingItem = null
+            }
 
             Lipstick.compositor.goToApplication(item.windowId)
 
@@ -340,6 +347,12 @@ SilicaFlickable {
         }
     }
 
+    PolicyValue {
+        id: appsupportPolicy
+
+        policyType: PolicyValue.AppsupportEnabled
+    }
+
     function resetPosition(delay) {
         resetPositionTimer.interval = delay === undefined ? 1 : delay
         resetPositionTimer.restart()
@@ -351,15 +364,6 @@ SilicaFlickable {
     Timer {
         id: resetPositionTimer
         onTriggered: switcherRoot.contentY = switcherRoot.originY
-    }
-
-    function playEffect() {
-        ngfEvent.play()
-    }
-
-    NonGraphicalFeedback {
-        id: ngfEvent
-        event: "pulldown_highlight"
     }
 
     function ensureVisible(item) {
@@ -385,7 +389,8 @@ SilicaFlickable {
                 scrollAnimation.start()
             } else if (item.y + item.height + switcherWrapper.y + switcherGrid.rowSpacing > contentY + height) {
                 var to = Math.min(item.y + item.height + switcherGrid.rowSpacing,
-                                  switcherWrapper.height) + switcherWrapper.y - height
+                                  switcherWrapper.height)
+                        + switcherWrapper.y - height
                 if (to >= 0) {
                     scrollAnimation.to = to
                     scrollAnimation.duration = 150
@@ -441,13 +446,12 @@ SilicaFlickable {
         SwitcherGrid {
             id: switcherGrid
 
-            columns: largeColumns
-            statusBarHeight: Lipstick.compositor.multitaskingHome ? switcherRoot.statusBarHeight : 0
-
             readonly property bool allowSmallCovers: !largeScreen
             readonly property int largeItemCount: largeColumns * largeRows
-
             property QtObject ngfEffect
+
+            columns: largeColumns
+            statusBarHeight: Lipstick.compositor.multitaskingHome ? switcherRoot.statusBarHeight : 0
 
             function updateColumns() {
                 // use a timer since switcherModel and pendingWindows models aren't in sync.
@@ -600,6 +604,10 @@ SilicaFlickable {
                                 minimized = false
                                 Lipstick.compositor.windowToFront(windowId)
                             } else if (launcherItem) {
+                                if (!appsupportPolicy.value && switcherRoot.isAndroidApplication(launcherItem)) {
+                                    return
+                                }
+
                                 var wasLaunching = launching
                                 switcherRoot.minimizeLaunchingWindows()
                                 // App is not running. Launch it now.

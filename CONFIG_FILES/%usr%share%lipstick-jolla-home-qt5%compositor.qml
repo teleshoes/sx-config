@@ -622,6 +622,16 @@ Compositor {
 
         launcherModel: root.launcherModel
         onLaunching: Desktop.instance.switcher.activateWindowFor(item)
+        onLaunchFailed: {
+            var switcher = Desktop.instance && Desktop.instance.switcher
+            item.isLaunching = false
+            if (switcher) {
+                switcher.closeCover(item, false)
+                if (switcher.launchingItem && switcher.launchingItem.launcherItem === item) {
+                    switcher.launchingItem = null
+                }
+            }
+        }
     }
 
     LayersParent {
@@ -959,6 +969,7 @@ Compositor {
                         root._peekDirection = peekFilter.leftActive ? "right" : "left"
                         homeLayerItem.lastActiveLayer = homeLayerItem.currentItem
                         root.peekGestureStarted(root._peekDirection)
+
                         if (root.deviceIsLocked && homeLayerItem.currentItem.maximized) {
                             // Retain the partner space as the current home item if the device is locked.
                         } else if (peekFilter.leftActive && Desktop.settings.left_peek_to_events) {
@@ -1424,6 +1435,15 @@ Compositor {
                                      && (appLayerItem.active || alarmLayerItem.inCall)
                                      ? Theme.itemSizeMedium
                                      : 0
+
+                    // set an extra reactive area if the notch is big enough and doesn't support
+                    // touch events on top of it
+                    notchArea: (Screen.topCutout.width > (Screen.width / 4))
+                               ? Qt.rect(Screen.topCutout.x,
+                                         0,
+                                         Screen.topCutout.width,
+                                         Screen.topCutout.y + Screen.topCutout.height + Theme.paddingLarge)
+                               : undefined
 
                     onGestureStarted: {
                         if (!topMenuLayerItem.active) {

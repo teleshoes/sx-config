@@ -411,10 +411,12 @@ SilicaFlickable {
 
             Image {
                 property real cameraOpacity: Lipstick.compositor.cameraLayer.canActivate ? 1.0 : 0.0
+
                 source: "image://theme/icon-camera-camera-mode?" + Theme.lightPrimaryColor
                 opacity: lipstickSettings.lowPowerMode ? 0.0 : cameraOpacity
-                Behavior on cameraOpacity { FadeAnimation {} }
                 anchors.horizontalCenter: parent.horizontalCenter
+
+                Behavior on cameraOpacity { FadeAnimation {} }
             }
         }
     }

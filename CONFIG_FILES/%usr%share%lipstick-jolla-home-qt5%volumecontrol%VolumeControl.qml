@@ -6,12 +6,13 @@
 ****************************************************************************/
 
 import QtQuick 2.6
-import org.nemomobile.lipstick 0.1
-import Sailfish.Silica 1.0
-import org.nemomobile.systemsettings 1.0
-import Nemo.Configuration 1.0
-import com.jolla.lipstick 0.1
 import QtFeedback 5.0
+import Nemo.Configuration 1.0
+import org.nemomobile.systemsettings 1.0
+import org.nemomobile.lipstick 0.1
+import com.jolla.lipstick 0.1
+import Sailfish.Silica 1.0
+import Sailfish.Policy 1.0
 import "../systemwindow"
 
 SystemWindow {
@@ -27,16 +28,16 @@ SystemWindow {
                                     || volumeControl.callActive
                                     || showContinuousVolume
     property real statusBarPushDownY: volumeArea.y + volumeArea.height
-    property bool showContinuousVolume: false
+    property bool showContinuousVolume
     property bool suppressVolumeBar
     property int maximumVolume: controllingMedia ? volumeControl.maximumVolume : 100
-    property real initialChange: 0
+    property real initialChange
     property bool disableSmoothChange: true
     property real baseVolume
     property real continuousVolume: {
         // The maximum continuous volume that should be allowed. Plus one so that the warning is triggered.
         var max = (controllingMedia && volumeControl.restrictedVolume !== volumeControl.maximumVolume)
-                    ? (volumeControl.restrictedVolume+1) : maximumVolume
+                  ? (volumeControl.restrictedVolume + 1) : maximumVolume
 
         // delta ranges from -1 to 1 (ratio of window dimension plus direction)
         // Triple rate of volume change as in practice will not reach these limits.
@@ -59,8 +60,8 @@ SystemWindow {
     }
 
     property color _foregroundColor: controllingMedia && (volumeControl.volume > volumeControl.safeVolume)
-                                    ? Theme.highlightDimmerColor
-                                    : Theme.primaryColor
+                                     ? Theme.highlightDimmerColor
+                                     : Theme.primaryColor
     property color _backgroundColor: controllingMedia && (volumeControl.volume > volumeControl.safeVolume)
                                      ? Theme.primaryColor
                                      : Theme.secondaryHighlightColor
@@ -79,6 +80,14 @@ SystemWindow {
     Component.onCompleted: {
         Lipstick.compositor.volumeWarningVisible = Qt.binding(function (){ return loader.active })
         triggerBar.value = false /* actuall set dconf value to false to start listening for true */
+    }
+
+    function restartHideTimerIfWindowVisibleAndWarningNotVisible() {
+        if (volumeControl.windowVisible
+                && !loader.warningActive
+                && !Lipstick.compositor.volumeGestureFilterItem.active) {
+            hideTimer.restart()
+        }
     }
 
     ProfileControl {
@@ -169,9 +178,9 @@ SystemWindow {
                 }
                 if (controllingMedia && volumeControl.callActive) {
                     if (showContinuousVolume)
-                        return (continuousVolume+1) / (maximumVolume+1)
+                        return (continuousVolume + 1) / (maximumVolume + 1)
                     else
-                        return (volumeControl.volume+1) / (volumeControl.maximumVolume+1)
+                        return (volumeControl.volume + 1) / (volumeControl.maximumVolume + 1)
                 } else {
                     if (showContinuousVolume)
                         return continuousVolume / maximumVolume
@@ -193,13 +202,12 @@ SystemWindow {
             }
 
             width: volumeArea.width * widthFraction
+            color: _backgroundColor
 
             Behavior on widthFraction {
                 enabled: !showContinuousVolume && !disableSmoothChange
                 NumberAnimation { easing.type: Easing.OutSine }
             }
-
-            color: _backgroundColor
         }
 
         Item {
@@ -210,6 +218,8 @@ SystemWindow {
             height: Theme.iconSizeSmall + Theme.paddingMedium
             anchors.bottom: parent.bottom
 
+            //% "Disallowed by privacy mode"
+            property string privacyModeText: qsTrId("lipstick-jolla-home-la-ringtone_privacy_mode_restriction")
             property bool mute: controllingMedia
                                 ? (!volumeControl.callActive && volumeControl.volume === 0)
                                 : (profileControl.profile === "silent" || profileControl.ringerVolume === 0)
@@ -222,6 +232,10 @@ SystemWindow {
             Image {
                 id: muteIcon
 
+                property string baseSource: controllingMedia ? "image://theme/icon-system-volume-mute"
+                                                             : "image://theme/icon-system-ringtone-mute"
+
+                source: baseSource + "?" + _foregroundColor
                 anchors.verticalCenter: parent.verticalCenter
                 x: {
                     if (Screen.topCutout.height > Theme.paddingLarge
@@ -236,22 +250,18 @@ SystemWindow {
                     return Math.max(biggestCorner, Theme.horizontalPageMargin)
                 }
                 opacity: parent.muteOpacity
-
-                property string baseSource: controllingMedia ? "image://theme/icon-system-volume-mute"
-                                                             : "image://theme/icon-system-ringtone-mute"
-                source: baseSource + "?" + _foregroundColor
             }
 
             Image {
                 id: volumeIcon
 
+                property string baseSource: controllingMedia ? "image://theme/icon-system-volume"
+                                                             : "image://theme/icon-system-ringtone"
+
+                source: baseSource + "?" + _foregroundColor
                 anchors.verticalCenter: parent.verticalCenter
                 x: muteIcon.x
                 opacity: 1 - parent.muteOpacity
-
-                property string baseSource: controllingMedia ? "image://theme/icon-system-volume"
-                                                             : "image://theme/icon-system-ringtone"
-                source: baseSource + "?" + _foregroundColor
             }
 
             Label {
@@ -264,9 +274,10 @@ SystemWindow {
                 font.pixelSize: Theme.fontSizeExtraSmall
                 opacity: parent.muteOpacity
                 color: _foregroundColor
-
-                //% "Muted"
-                text: qsTrId("lipstick-jolla-home-la-muted")
+                text: volumeBar.controllingMedia || AccessPolicy.ringtoneLevelEnabled
+                      ? //% "Muted"
+                        qsTrId("lipstick-jolla-home-la-muted")
+                      : volumeAnnotation.privacyModeText
             }
 
             Label {
@@ -293,10 +304,12 @@ SystemWindow {
                             //% "Volume"
                             return qsTrId("lipstick-jolla-home-la-volume")
                         }
-                    } else {
-                        //% "Ringtone volume"
-                        return qsTrId("lipstick-jolla-home-la-ringtone_volume")
                     }
+
+                    return AccessPolicy.ringtoneLevelEnabled
+                            ? //% "Ringtone volume"
+                              qsTrId("lipstick-jolla-home-la-ringtone_volume")
+                            : volumeAnnotation.privacyModeText
                 }
             }
         }
@@ -504,7 +517,8 @@ SystemWindow {
             if (volumeBar.controllingMedia) {
                 volumeControl.volume = volumeControl.volume + (volumeBar.volumeIncreasing ? 1 : -1)
             } else {
-                profileControl.adjustRingtoneVolume(volumeBar.volumeIncreasing ? 20 : -20)
+                if (AccessPolicy.ringtoneLevelEnabled)
+                    profileControl.adjustRingtoneVolume(volumeBar.volumeIncreasing ? 20 : -20)
             }
 
             restartHideTimerIfWindowVisibleAndWarningNotVisible()
@@ -554,15 +568,17 @@ SystemWindow {
                 keyRepeatDelay.restart()
                 volumeControl.volume = volumeControl.volume + (volumeBar.volumeIncreasing ? 1 : -1)
             } else {
-                if (volumeControl.windowVisible) {
-                    if (volumeIncreasing)
-                        initialChange = profileControl.ringerVolume === 100 ? 0 : -0.2
-                    else
-                        initialChange = profileControl.ringerVolume === 0 ? 0 : 0.2
+                if (AccessPolicy.ringtoneLevelEnabled) {
+                    if (volumeControl.windowVisible) {
+                        if (volumeIncreasing)
+                            initialChange = profileControl.ringerVolume === 100 ? 0 : -0.2
+                        else
+                            initialChange = profileControl.ringerVolume === 0 ? 0 : 0.2
 
-                    profileControl.adjustRingtoneVolume(volumeBar.volumeIncreasing ? 20 : -20)
-                } else {
-                    initialChange = 0
+                        profileControl.adjustRingtoneVolume(volumeBar.volumeIncreasing ? 20 : -20)
+                    } else {
+                        initialChange = 0
+                    }
                 }
 
                 keyRepeat.restart() // no initial delay
@@ -626,14 +642,6 @@ SystemWindow {
                 baseVolume = volumeControl.volume
             volumeBar.volumeIncreasing = false
             volumeBar.state = ""
-        }
-    }
-
-    function restartHideTimerIfWindowVisibleAndWarningNotVisible() {
-        if (volumeControl.windowVisible
-                && !loader.warningActive
-                && !Lipstick.compositor.volumeGestureFilterItem.active) {
-            hideTimer.restart()
         }
     }
 }
