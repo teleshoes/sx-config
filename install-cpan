@@ -36,6 +36,10 @@ my @MODULES_ARR = (
     Cpanel::JSON::XS
     File::ReadBackwards
   )],
+  xxh => [qw(
+    IPC::Run
+    Crypt::xxHash
+  )],
 );
 my %MODULES = @MODULES_ARR;
 my @GROUP_NAMES = map {$MODULES_ARR[$_]} grep {$_ % 2 == 0} (0..$#MODULES_ARR);
