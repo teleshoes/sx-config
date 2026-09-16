@@ -12,9 +12,9 @@ sub isFlashlightOn();
 
 my $EXEC = basename $0;
 
-my $DBUS_SERVICE = "com.jolla.settings.system.flashlight";
-my $DBUS_PATH = "/com/jolla/settings/system/flashlight";
-my $DBUS_METHOD_TOGGLE = "com.jolla.settings.system.flashlight.toggleFlashlight";
+my $DBUS_SERVICE = "org.sailfish.flashlight.provider";
+my $DBUS_PATH = "/org/sailfish/flashlight/provider";
+my $DBUS_METHOD_TOGGLE = "org.sailfish.flashlight.provider.toggleFlashlight";
 my $DBUS_METHOD_GET = "org.freedesktop.DBus.Properties.Get";
 my $DBUS_PROPERTY_FLASHLIGHT_ON = "flashlightOn";
 
