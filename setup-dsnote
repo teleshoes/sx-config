@@ -20,6 +20,7 @@ my $DIR_MODELS_REMOTE = "/home/$USER/dsnote-models";
 my $FILE_CFG_REMOTE = "/home/$USER/.config/org.mkiol/dsnote/settings.conf";
 
 my $CFG_GENERAL = {
+  hint_done_flags     => "68",
 };
 my $CFG_SERVICE = {
 };
@@ -33,6 +34,7 @@ my $USAGE = "Usage:
   $EXEC
     -overwrite harbour-dsnote TTS+STT models local=>remote
     -create local tmp settings.conf file
+      -skip hints
     -overwrite remote config file
 ";
 
