@@ -25,6 +25,8 @@ my $CFG_GENERAL = {
 };
 my $CFG_SERVICE = {
   models_dir        => $DIR_MODELS_REMOTE,
+  default_model     => "en_vosk_small",
+  default_tts_model => "en_piper_us_amy_medium",
   enabled_models    => undef, #use models dir
 };
 
@@ -40,6 +42,7 @@ my $USAGE = "Usage:
       -skip hints
       -enable dbus api
       -enable models
+      -set default models
     -overwrite remote config file
 ";
 
