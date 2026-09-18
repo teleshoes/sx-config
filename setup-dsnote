@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
+use Cwd qw(abs_path);
+use File::Basename qw(basename dirname);
+
+my $USER = "nemo";
+my $IPMAGIC_NAME = "sx";
+
+my $BASE_DIR = abs_path(dirname($0));
+
+my $DIR_MODELS_LOCAL = "$BASE_DIR/backup/dsnote-models";
+my $DIR_MODELS_REMOTE = "/home/$USER/dsnote-models";
+
+my $EXEC = basename $0;
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+    -overwrite harbour-dsnote TTS+STT models local=>remote
+";
+
+sub main(@){
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  ipmagicRun $IPMAGIC_NAME, $USER, "--rsync", "-avP", "--del",
+    "$DIR_MODELS_LOCAL/", ":$DIR_MODELS_REMOTE",
+  ;
+}
+
+&main(@ARGV);
