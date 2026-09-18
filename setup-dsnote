@@ -21,6 +21,7 @@ my $FILE_CFG_REMOTE = "/home/$USER/.config/org.mkiol/dsnote/settings.conf";
 
 my $CFG_GENERAL = {
   hint_done_flags     => "68",
+  actions_api_enabled => "true",
 };
 my $CFG_SERVICE = {
 };
@@ -35,6 +36,7 @@ my $USAGE = "Usage:
     -overwrite harbour-dsnote TTS+STT models local=>remote
     -create local tmp settings.conf file
       -skip hints
+      -enable dbus api
     -overwrite remote config file
 ";
 
