@@ -157,6 +157,8 @@ ipmagic sx okboard-toggle --init-default
 
 ./setup-camera
 
+./setup-dsnote
+
 ./setup-tracker
 
 ./launcher-buttons
