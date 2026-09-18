@@ -24,6 +24,8 @@ my $CFG_GENERAL = {
   actions_api_enabled => "true",
 };
 my $CFG_SERVICE = {
+  models_dir        => $DIR_MODELS_REMOTE,
+  enabled_models    => undef, #use models dir
 };
 
 my $EXEC = basename $0;
@@ -37,6 +39,7 @@ my $USAGE = "Usage:
     -create local tmp settings.conf file
       -skip hints
       -enable dbus api
+      -enable models
     -overwrite remote config file
 ";
 
@@ -69,9 +72,13 @@ sub main(@){
 }
 
 sub getConf(){
+  my @models = map {basename $_} grep {-d $_} glob "$DIR_MODELS_LOCAL/*";
+  die "ERROR: no models found in $DIR_MODELS_LOCAL\n" if @models == 0;
+
   my $confGeneral = {%$CFG_GENERAL};
 
   my $confSvc = {%$CFG_SERVICE};
+  $$confSvc{enabled_models} = join(", ", @models);
 
   my $cfg = "";
   $cfg .= "[General]\n";
