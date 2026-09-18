@@ -94,6 +94,8 @@ sub getConf(){
     $cfg .= "$key=$$confSvc{$key}\n";
   }
 
+  print $cfg;
+
   return $cfg;
 }
 
