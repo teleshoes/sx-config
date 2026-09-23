@@ -59,54 +59,50 @@ my @CONFIG = qw(
   phone
   messages
   contacts
+  tmobile-digits
   fingerterm
 
-  tmobile-digits
+  settings
   sailfish-browser
   tor
   cromite
+  clock
 
-  qtbtn-klomp
+  jollacompass
+  compass-calib
   camera
-  opencamera
   sgcam
+  opencamera
 
-  documents
+  calendar
   calculator
+  stellarium
   facebook
   coolreader
 
   jitsi
   sailtrix
-  google-maps
   gpsinfo
-
-  calendar
-  settings
-  clock
+  google-maps
   qtemail
 
+  documents
   sailfish-filemanager
   filetug
   gallery
   timeline
 
-  stellarium
-  retrofit-barcode
+  qtbtn-klomp
+  mediaplayer
+  sailfish-audiorecorder
   mpv
   vlc
 
-
-
-  mobile-sheets
-  qtbtn-lap
-  jollacompass
-  compass-calib
-
-  mediaplayer
-  sailfish-audiorecorder
   newpipe
+  qtbtn-lap
+  mobile-sheets
   traintime
+  retrofit-barcode
 
   dir%stores%custom-icon-folder-stores[
     storeman
