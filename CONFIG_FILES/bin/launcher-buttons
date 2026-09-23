@@ -104,6 +104,8 @@ my @CONFIG = qw(
   traintime
   retrofit-barcode
 
+  dsnote
+
   dir%stores%custom-icon-folder-stores[
     storeman
     store-client
