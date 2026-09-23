@@ -17,6 +17,13 @@ my $FIX_ARR = [
                                       "systemctl --user restart pulseaudio",
                                     ]],
   [kb       => [qw(keyboard)]    => ["systemctl --user restart maliit-server"]],
+  [sd       => [qw(screen)]      => ["udo screen-wipe",
+                                     "udo screen-daemon --start button-monitor",
+                                     "udo screen-daemon --start keepalive",
+                                     "udo screen-daemon --start lock-daemon",
+                                     "udo screen-daemon --start mpris-fakeplayer",
+                                     "udo screen-daemon --start remount-sdcard",
+                                    ]],
 ];
 
 my $CMD_FIX = "fix";
