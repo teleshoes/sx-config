@@ -224,9 +224,9 @@ sub readRecentGpsinfoEntries($){
       if($line =~ /
         ^
         (?<epochMillis>\d+)
-        \s*:\s*
+        \s*,\s*
         \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
-        \s*:\s*
+        \s*,\s*
           lat     = (?<lat>[^,]*)
         , lon     = (?<lon>[^,]*)
         , alt     = (?<alt>[^,]*)
