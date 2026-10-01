@@ -6,7 +6,7 @@ use File::Basename qw(basename);
 sub getEmailFmt($);
 sub getBatteryFmt($);
 sub formatEvent($$);
-sub getUnreadEvents();
+sub getUnreadEventsInfo();
 sub parseEventType($$$);
 sub getContacts();
 sub readFile($);
@@ -61,8 +61,14 @@ sub main(@){
 
   $contents .= "$email|$bat\n";
 
-  for my $event(getUnreadEvents()){
-    $contents .= formatEvent($event, $MAX_LINE_LEN);
+  my $unreadEventsInfo = getUnreadEventsInfo();
+  if($$unreadEventsInfo{success}){
+    for my $event(@{$$unreadEventsInfo{events}}){
+      $contents .= formatEvent($event, $MAX_LINE_LEN);
+    }
+  }else{
+    my $msg = $$unreadEventsInfo{errorMsg};
+    $contents .= $msg;
   }
 
   writeFile($FILE_CUSTOM_TEXT, $contents);
@@ -140,7 +146,7 @@ sub formatEvent($$){
   return sprintf "%-${maxContactLen}s: %${maxMsgLen}s\n", $contact, $msg;
 }
 
-sub getUnreadEvents(){
+sub getUnreadEventsInfo(){
   my $sql = ""
      . " SELECT"
      . "   type,"
@@ -167,10 +173,19 @@ sub getUnreadEvents(){
         text      => $text,
       };
     }else{
-      die "ERROR: malformed query output $line\n";
+      return {
+        success  => 0,
+        errorMsg => "ERROR: malformed query output $line\n",
+        events   => [],
+      };
     }
   }
-  return @events;
+
+  return {
+    success  => 1,
+    errorMsg => undef,
+    events   => [@events],
+  };
 }
 
 sub parseEventType($$$){
