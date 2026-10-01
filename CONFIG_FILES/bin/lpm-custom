@@ -160,12 +160,22 @@ sub getUnreadEventsInfo(){
      . " FROM Events"
      . " WHERE isRead=0;"
   ;
-  my @lines = `sqlite3 --csv $COMMHISTORY_DB "$sql" 2>&1`;
+  my @lines = `sqlite3 --json $COMMHISTORY_DB "$sql" 2>&1`;
   my $contacts = getContacts();
 
   my @events;
   for my $line(@lines){
-    if($line =~ /^(\d+),(\d+),(\d+),([0-9\+]+),(.*)$/){
+    if($line =~ /^
+      \[?
+      {
+      "type":         (\d+),
+      "direction":    (\d+),
+      "isMissedCall": (\d+),
+      "remoteUid":    "([0-9\+]+)",
+      "freeText":     (?:"(.*)"|null)
+      }
+      ,?\]?
+    /x){
       my ($type, $dir, $isMissedCall, $phone, $text) = ($1, $2, $3, $4, $5);
 
       $phone = $1 if $phone =~ /^\+1(\d\d\d\d\d\d\d\d\d\d)$/;
