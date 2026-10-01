@@ -200,12 +200,6 @@ SystemWindow {
         readonly property int displayWidth: transpose ? Math.max(Screen.width, Screen.height/2)
                                                       : Screen.width - 2 * baseX
 
-        onSwipedAway: {
-            notificationWindow.state = ""
-            notificationFeedbackPlayer.removeNotification(notification.id)
-            notificationWindow.notificationExpired()
-        }
-
         objectName: "NotificationPreview_popupArea"
 
         _showPress: false
@@ -233,6 +227,13 @@ SystemWindow {
         palette.colorScheme: Theme.colorScheme == Theme.DarkOnLight ? Theme.LightOnDark : Theme.DarkOnLight
 
         Behavior on height { NumberAnimation { duration: 150; easing.type: Easing.InQuad } }
+
+        onSwipedAway: {
+            notificationWindow.state = ""
+            notificationFeedbackPlayer.removeNotification(notification.id)
+            notificationWindow.notificationExpired()
+        }
+
         onClicked: {
             scrollAnimation.reset()
             if (notification && _indexOfAction("default") >= 0) {
@@ -575,6 +576,7 @@ SystemWindow {
         property int duration
         paused: running && (popupArea.swipeActive || popupArea.showSwipeHint
                             || (notificationWindow.state === "showPopup" && popupArea.expanded))
+
         PauseAnimation {
             duration: notificationTimer.duration
         }

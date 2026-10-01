@@ -219,6 +219,7 @@ SilicaFlickable {
     function windowIndexOf(launcherItem) {
         if (mruSwitcherModel.count == 0)
             return -1
+
         // Try to determine whether the app is currently minimized by matching
         // the command used to start it with the apps we're managing.
         var cmd = launcherItem.exec

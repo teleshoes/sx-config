@@ -8,12 +8,13 @@
 ****************************************************************************/
 
 import QtQuick 2.6
+import Nemo.DBus 2.0
+import org.nemomobile.lipstick 0.1
+import com.jolla.lipstick 0.1
 import Sailfish.Silica 1.0
 import Sailfish.Telephony 1.0
 import Sailfish.Media 1.0
-import Nemo.DBus 2.0
-import com.jolla.lipstick 0.1
-import org.nemomobile.lipstick 0.1
+import Sailfish.Policy 1.0
 import "../backgrounds"
 import "../main"
 import "../statusarea"
@@ -58,6 +59,12 @@ SilicaFlickable {
         id: shortcuts
     }
 
+    PolicyValue {
+        id: appsupportPolicy
+
+        policyType: PolicyValue.AppsupportEnabled
+    }
+
     onVisibleChanged: {
         if (!visible) {
             mce.endBlankDelay()
@@ -89,11 +96,12 @@ SilicaFlickable {
             MenuItem {
                 property bool isApp: shortcuts.isDesktopFile(modelData)
                 property LauncherItem launcherItem: isApp ? shortcuts.itemForFilePath(modelData) : null
+                property bool isAndroidApp: launcherItem && launcherItem.readValue("X-apkd-packageName") != ""
 
+                enabled: !isAndroidApp || appsupportPolicy.value
                 visible: text != ''
-                text: {
-                    return launcherItem && launcherItem.isValid ? launcherItem.title : ''
-                }
+                text: launcherItem && launcherItem.isValid ? launcherItem.title : ''
+
                 onClicked: pullDownMenu.menuAction = launcherItem
             }
         }
