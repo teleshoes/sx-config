@@ -157,7 +157,7 @@ sub getUnreadEventsInfo(){
      . " FROM Events"
      . " WHERE isRead=0;"
   ;
-  my @lines = `sqlite3 --csv $COMMHISTORY_DB "$sql"`;
+  my @lines = `sqlite3 --csv $COMMHISTORY_DB "$sql" 2>&1`;
   my $contacts = getContacts();
 
   my @events;
