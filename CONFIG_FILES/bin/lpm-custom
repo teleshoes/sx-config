@@ -68,6 +68,9 @@ sub main(@){
     }
   }else{
     my $msg = $$unreadEventsInfo{errorMsg};
+    $msg = "COMMFAIL\n$msg";
+    my $wrapChars = 20;
+    $msg =~ s/(.{1,$wrapChars})/$1\n/g;
     $contents .= $msg;
   }
 
