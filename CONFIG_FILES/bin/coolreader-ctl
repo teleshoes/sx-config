@@ -3,10 +3,16 @@ use strict;
 use warnings;
 use File::Basename qw(basename);
 
+sub getState();
 sub isRunning();
 
 my $EXEC = basename $0;
 my $INTENT = 'org.coolreader/.CoolReader';
+
+my $USER = "nemo";
+
+my $CR_DATA_DIR = "/home/.appsupport/instance/$USER/data/data/org.coolreader";
+my $CR_STATE_LOG_FILE = "$CR_DATA_DIR/files/cr-state-log.txt";
 
 my $CMDS = {
   next    => "ad shell am start -n $INTENT -a org.coolreader.cmd.PAGE_DOWN",
@@ -19,6 +25,11 @@ my $CMDS = {
 };
 
 my $MODE_CMD = "cmd";
+
+my $STATE_CR3_OFF = "CR3_OFF";
+my $STATE_TTS_OFF = "TTS_OFF";
+my $STATE_TTS_PLAY = "TTS_PLAY";
+my $STATE_TTS_PAUSE = "TTS_PAUSE";
 
 my $USAGE = "Usage:
   $0 -h|--help
@@ -95,6 +106,26 @@ sub main(@){
   }else{
     die "ERROR: unknown mode $mode\n";
   }
+}
+
+sub getState(){
+  if(not isRunning()){
+    return $STATE_CR3_OFF;
+  }
+
+  my @lines = `sudo cat $CR_STATE_LOG_FILE 2>/dev/null`;
+  for my $line(reverse @lines){
+    if($line =~ /TTS_ON/){
+      return $STATE_TTS_PAUSE; #started but not playing
+    }elsif($line =~ /TTS_PLAY/){
+      return $STATE_TTS_PLAY;
+    }elsif($line =~ /TTS_PAUSE/){
+      return $STATE_TTS_PAUSE;
+    }elsif($line =~ /TTS_OFF/){
+      return $STATE_TTS_OFF;
+    }
+  }
+  return $STATE_TTS_OFF;
 }
 
 sub isRunning(){
