@@ -50,22 +50,22 @@ my $USAGE = "Usage:
         harbour-dsnote --action start-reading-text --text TEXT
 
   OPTS
-    -w | --wait
-      wait up to $MAX_TIMEOUT_S for idle state after running harbour-dsnote
+    --no-wait
+      do not wait after running `harbour-dsnote --action start-reading-text`
 ";
 
 sub main(@){
   my @textWords;
   my $opts = {
-    wait => 0,
+    wait       => 1,
   };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
-    }elsif($arg =~ /^(-w|--wait)$/){
-      $$opts{wait} = 1;
+    }elsif($arg =~ /^(--no-wait)$/){
+      $$opts{wait} = 0;
     }elsif($arg !~ /^-/){
       @textWords = ($arg, @_);
       @_ = ();
