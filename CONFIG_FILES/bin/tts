@@ -40,7 +40,7 @@ my $USAGE = "Usage:
   $EXEC -h|--help
     show this message
 
-  $EXEC TEXT_WORD [TEXT_WORD TEXT_WORD..]
+  $EXEC [OPTS] TEXT_WORD [TEXT_WORD TEXT_WORD..]
     daemonize and run harbour-dsnote
       -double-fork, redirect i/o, etc
       -redirect stdout+stderr to a log file at:
@@ -48,15 +48,24 @@ my $USAGE = "Usage:
       -format TEXT as \"TEXT_WORD TEXT_WORD TEXT_WORD\"
       -run:
         harbour-dsnote --action start-reading-text --text TEXT
+
+  OPTS
+    -w | --wait
+      wait up to $MAX_TIMEOUT_S for idle state after running harbour-dsnote
 ";
 
 sub main(@){
   my @textWords;
+  my $opts = {
+    wait => 0,
+  };
   while(@_ > 0){
     my $arg = shift;
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(-w|--wait)$/){
+      $$opts{wait} = 1;
     }elsif($arg !~ /^-/){
       @textWords = ($arg, @_);
       @_ = ();
@@ -97,6 +106,20 @@ sub main(@){
   }
 
   startReadingText("@textWords");
+
+  if($$opts{wait}){
+    my $state = getGeneralState();
+    my $start = time;
+    while(not defined $state or $state != $STATE_IDLE){
+      if(time - $start > $MAX_TIMEOUT_S){
+        print "WARNING: timeout waiting for state=idle(3)\n";
+        last;
+      }
+      print "state=" . (defined $state ? $state : "undef"). ", waiting for state=idle\n";
+      sleep 0.5;
+      $state = getGeneralState();
+    }
+  }
 }
 
 sub forkAndStartApp(){
