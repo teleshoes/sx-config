@@ -16,6 +16,8 @@ my $CMDS = {
   toggleOrientation => "ad shell am start -n $INTENT -a org.coolreader.cmd.TOGGLE_ORIENTATION",
 };
 
+my $MODE_CMD = "cmd";
+
 my $USAGE = "Usage:
   $0 -h|--help
     show this message
@@ -52,6 +54,7 @@ my $USAGE = "Usage:
 sub isRunning();
 
 sub main(@){
+  my $mode = $MODE_CMD;
   my $cmd = undef;
   while(@_ > 0){
     my $arg = shift;
@@ -77,14 +80,18 @@ sub main(@){
     }
   }
 
-  if(not defined $cmd){
-    die "$USAGE\nERROR: no command given\n";
-  }
+  if($mode eq $MODE_CMD){
+    if(not defined $cmd){
+      die "$USAGE\nERROR: no command given\n";
+    }
 
-  if(isRunning()){
-    system $cmd;
+    if(isRunning()){
+      system $cmd;
+    }else{
+      print "coolreader is not running\n";
+    }
   }else{
-    print "coolreader is not running\n";
+    die "ERROR: unknown mode $mode\n";
   }
 }
 
