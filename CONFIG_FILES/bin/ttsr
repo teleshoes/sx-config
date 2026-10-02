@@ -1,0 +1,200 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename qw(basename);
+
+sub readStateFile();
+sub writeStateFile($);
+
+my $EXEC = basename $0;
+
+my $STATE_FILE = "/tmp/ttsr-gpsinfo-state";
+
+my $USAGE = "Usage:
+  $EXEC -h|--help
+    show this message
+
+  $EXEC
+  $EXEC [OPTS] -r|--read
+    -read COURSE_NAME, LAST_CHECKPOINT_NAME, and START_TIME from $STATE_FILE
+      -exit if COURSE_NAME or START_TIME are missing
+    -fetch GPSINFO_CHECKPOINT with:
+      `gpsinfo-tool --checkpoint COURSE_NAME START_TIME`
+    -parse GPSINFO_CHECKPOINT output:
+      <CHECKPOINT_NAME>,<DIST_KM>km,<DIST_MI>mi,<CHECKPOINT_SPEED_MPH>mph,<TOTAL_SPEED_MPH>mph
+    -if --new-checkpoint-only is given:
+      -if LAST_CHECKPOINT_NAME == CHECKPOINT_NAME:
+        -exit without running `tts`
+    -write to $STATE_FILE:
+      courseName=COURSE_NAME
+      startTime=START_TIME
+      lastCheckpoint=CHECKPOINT_NAME
+    -build TTS_SENTENCE
+    -run: `tts TTS_SENTENCE`
+
+  $EXEC [OPTS] -m|--monitor
+    -forever:
+      -check for new CHECKPOINT_NAME and run `tts` as in:
+        `$EXEC --read --new`
+      -sleep 1s
+    NOTE: --monitor implies --new-checkpoint-only
+
+  $EXEC -s|--start COURSE_NAME
+    -write to $STATE_FILE:
+      courseName=COURSE_NAME
+      startTime=\$(date --iso=s)
+      lastCheckpointName=
+    -run:
+      screen-daemon --start ttsr
+
+  OPTS
+    --new | --new-checkpoint-only
+      if CHECKPOINT_NAME matches LAST_CHECKPOINT_NAME, skip `tts`
+";
+
+my $MODE_READ = "read";
+my $MODE_MONITOR = "monitor";
+my $MODE_START = "start";
+
+sub main(@){
+  my $mode = $MODE_READ;
+  my $courseName = undef;
+  my $opts = {
+    newCheckpointOnly => 0,
+  };
+  while(@_ > 0){
+    my $arg = shift;
+    if($arg =~ /^(-h|--help)$/){
+      print $USAGE;
+      exit 0;
+    }elsif($arg =~ /^(-r|--read)$/){
+      $mode = $MODE_READ;
+    }elsif($arg =~ /^(-m|--monitor)$/){
+      $mode = $MODE_MONITOR;
+      $$opts{newCheckpointOnly} = 1;
+    }elsif($arg =~ /^(-s|--start)$/){
+      $mode = $MODE_START;
+    }elsif($arg =~ /^(--new|--new-checkpoint-only)$/){
+      $$opts{newCheckpointOnly} = 1;
+    }elsif($mode eq $MODE_START and $arg =~ /^\w+$/){
+      $courseName = $arg;
+    }else{
+      die "ERROR: unknown arg $arg\n";
+    }
+  }
+
+  if($mode eq $MODE_READ){
+    handleCheckpoint($opts);
+  }elsif($mode eq $MODE_MONITOR){
+    while(1){
+      system "date";
+      handleCheckpoint($opts);
+      sleep 1;
+    }
+  }elsif($mode eq $MODE_START){
+    die "$USAGE\nERROR: missing COURSE_NAME\n" if not defined $courseName;
+    my $startTime = `date --iso=s`;
+    chomp $startTime;
+    my $state = {
+      courseName=>$courseName,
+      startTime=>$startTime,
+      lastCheckpointName=>"",
+    };
+    writeStateFile($state);
+    system "screen-daemon", "--start", "ttsr";
+  }else{
+    die "ERROR: unknown mode $mode\n";
+  }
+}
+
+sub handleCheckpoint($){
+  my ($opts) = @_;
+  my $state = readStateFile();
+  my $checkpoint = readGpsinfoCheckpoint($state);
+  if(defined $checkpoint){
+    print "$$checkpoint{format}\n";
+    runCheckpointTTS($opts, $state, $checkpoint);
+    $$state{lastCheckpointName} = $$checkpoint{checkpointName};
+    writeStateFile($state);
+  }
+}
+
+sub readGpsinfoCheckpoint($){
+  my ($state) = @_;
+  if(not defined $state){
+    return undef;
+  }
+  my $info = `gpsinfo-tool --checkpoint '$$state{courseName}' '$$state{startTime}'`;
+  chomp $info;
+  if($info =~ /^(\w+),(\d+|\d*\.\d+)km,(\d+|\d*\.\d+)mi,(\d+|\d*\.\d+)mph,(\d+|\d*\.\d+)mph$/){
+    my ($checkpointName, $distKM, $distMI, $checkpointSpeed, $totalSpeed) = ($1, $2, $3, $4, $5);
+    return {
+      checkpointName  => $checkpointName,
+      distKM          => $distKM,
+      distMI          => $distMI,
+      checkpointSpeed => $checkpointSpeed,
+      totalSpeed      => $totalSpeed,
+      format          => $info
+    };
+  }else{
+    return undef;
+  }
+}
+
+sub runCheckpointTTS($$$){
+  my ($opts, $state, $checkpoint) = @_;
+  if(not defined $state or not defined $checkpoint){
+    print "NO CHECKPOINT FOUND\n";
+    return;
+  }
+
+  if($$opts{newCheckpointOnly} and $$state{lastCheckpointName} eq $$checkpoint{checkpointName}){
+    print "skipping unchanged checkpoint\n";
+    return;
+  }
+
+  my $sentence = ""
+    . "ding dong"
+    . " . , . $$checkpoint{checkpointName}"
+    . " , $$checkpoint{distKM} kay"
+    . " , $$checkpoint{distMI} miles"
+    . " , check $$checkpoint{checkpointSpeed} miles prower"
+    . " , total $$checkpoint{totalSpeed} miles prower"
+    . " , check point name is"
+    . " . , . $$checkpoint{checkpointName}"
+  ;
+
+  system "tts", $sentence;
+}
+
+sub readStateFile(){
+  my $out = `cat $STATE_FILE 2>/dev/null`;
+  my $course = undef;
+  my $startTime = undef;
+  my $lastCheckpointName = undef;
+  $course = $1 if $out =~ /^courseName\s*=\s*(\w+)\s*$/m;
+  $startTime = $1 if $out =~ /^startTime\s*=\s*(\S.*)$/m;
+  $lastCheckpointName = $1 if $out =~ /^lastCheckpointName\s*=\s*(\w+)\s*$/m;
+  if(defined $course and defined $startTime){
+    return {
+      courseName         => $course,
+      startTime          => $startTime,
+      lastCheckpointName => $lastCheckpointName,
+    };
+  }else{
+    return undef;
+  }
+}
+sub writeStateFile($){
+  my ($info) = @_;
+  my $fmt = ""
+    . "courseName=$$info{courseName}\n"
+    . "startTime=$$info{startTime}\n"
+    . "lastCheckpointName=$$info{lastCheckpointName}\n"
+  ;
+  open my $fh, "> $STATE_FILE" or die "ERROR: cannot write $STATE_FILE\n$!\n";
+  print $fh $fmt;
+  close $fh;
+}
+
+&main(@ARGV);
