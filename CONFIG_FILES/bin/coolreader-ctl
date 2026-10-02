@@ -10,6 +10,8 @@ my $CMDS = {
   next    => "ad shell am start -n $INTENT -a org.coolreader.cmd.PAGE_DOWN",
   prev    => "ad shell am start -n $INTENT -a org.coolreader.cmd.PAGE_UP",
   ttsInit => "ad shell am start -n $INTENT -a org.coolreader.cmd.TTS_PLAY",
+  ttsPlay => "ad shell am broadcast -a org.coolreader.tts.tts_play",
+  ttsPause => "ad shell am broadcast -a org.coolreader.tts.tts_pause",
   ttsPlayPause => "ad shell am broadcast -a org.coolreader.tts.tts_play_pause",
   toggleOrientation => "ad shell am start -n $INTENT -a org.coolreader.cmd.TOGGLE_ORIENTATION",
 };
@@ -29,6 +31,14 @@ my $USAGE = "Usage:
   $0 ttsInit | --tts-init
     if coolreader is running:
       $$CMDS{ttsInit}
+
+  $0 ttsPlay | --tts-play
+    if coolreader is running:
+      $$CMDS{ttsPlay}
+
+  $0 ttsPause | --tts-pause
+    if coolreader is running:
+      $$CMDS{ttsPause}
 
   $0 ttsPlayPause | --tts-play-pause
     if coolreader is running:
@@ -54,6 +64,10 @@ sub main(@){
       $cmd = $$CMDS{prev};
     }elsif($arg =~ /^(ttsInit|--tts-init)$/){
       $cmd = $$CMDS{ttsInit};
+    }elsif($arg =~ /^(ttsPlay|--tts-play)$/){
+      $cmd = $$CMDS{ttsPlay};
+    }elsif($arg =~ /^(ttsPause|--tts-pause)$/){
+      $cmd = $$CMDS{ttsPause};
     }elsif($arg =~ /^(ttsPlayPause|--tts-playPause)$/){
       $cmd = $$CMDS{ttsPlayPause};
     }elsif($arg =~ /^(toggleOrientation|--toggle-orientation)$/){
