@@ -24,6 +24,7 @@ my $CMDS = {
   toggleOrientation => "ad shell am start -n $INTENT -a org.coolreader.cmd.TOGGLE_ORIENTATION",
 };
 
+my $MODE_GET = "get";
 my $MODE_CMD = "cmd";
 
 my $STATE_CR3_OFF = "CR3_OFF";
@@ -34,6 +35,16 @@ my $STATE_TTS_PAUSE = "TTS_PAUSE";
 my $USAGE = "Usage:
   $0 -h|--help
     show this message
+
+  $0 get | -g | --get
+    if coolreader is not running:
+      print: $STATE_CR3_OFF
+    if tts is enabled but pause:
+      print: $STATE_TTS_PAUSE
+    if tts is enabled and playing:
+      print: $STATE_TTS_PLAY
+    if tts is not enabled:
+      print: $STATE_TTS_OFF
 
   $0 next | --next | --page-down
     if coolreader is running:
@@ -74,6 +85,8 @@ sub main(@){
     if($arg =~ /^(-h|--help)$/){
       print $USAGE;
       exit 0;
+    }elsif($arg =~ /^(get|-g|--get)$/){
+      $mode = $MODE_GET;
     }elsif($arg =~ /^(next|--next|--page-down)$/){
       $cmd = $$CMDS{next};
     }elsif($arg =~ /^(prev|--prev|--page-up)$/){
@@ -93,7 +106,10 @@ sub main(@){
     }
   }
 
-  if($mode eq $MODE_CMD){
+  if($mode eq $MODE_GET){
+    my $state = getState();
+    print "$state\n";
+  }elsif($mode eq $MODE_CMD){
     if(not defined $cmd){
       die "$USAGE\nERROR: no command given\n";
     }
