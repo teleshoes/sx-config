@@ -46,18 +46,30 @@ my $USAGE = "Usage:
       -redirect stdout+stderr to a log file at:
         $LOG_DIR/tts-<NOW_MILLIS>.log
       -format TEXT as \"TEXT_WORD TEXT_WORD TEXT_WORD\"
+      -if coolreader is currently in state TTS_PLAY:
+        -set COOLREADER_WAS_PAUSED = yes
+        -run coolreader-ctl --tts-pause
+        NOTE: see --no-coolreader
       -run:
         harbour-dsnote --action start-reading-text --text TEXT
+      -wait up to $MAX_TIMEOUT_S until idle state is restored
+        NOTE: see --no-wait
+      -if COOLREADER_WAS_PAUSED is 'yes':
+        -run coolreader-ctl --tts-play
 
   OPTS
     --no-wait
       do not wait after running `harbour-dsnote --action start-reading-text`
+
+    --no-cr3 | --no-coolreader
+      do not pause/resume coolreader TTS
 ";
 
 sub main(@){
   my @textWords;
   my $opts = {
     wait       => 1,
+    coolreader => 1,
   };
   while(@_ > 0){
     my $arg = shift;
@@ -66,6 +78,8 @@ sub main(@){
       exit 0;
     }elsif($arg =~ /^(--no-wait)$/){
       $$opts{wait} = 0;
+    }elsif($arg =~ /^(--no-cr3|--no-coolreader)$/){
+      $$opts{coolreader} = 0;
     }elsif($arg !~ /^-/){
       @textWords = ($arg, @_);
       @_ = ();
@@ -105,6 +119,16 @@ sub main(@){
     print "WARNING: state = $state, not $STATE_IDLE(idle)\n";
   }
 
+  my $cr3Paused = 0;
+  if($$opts{coolreader}){
+    my $state = `coolreader-ctl --get`;
+    chomp $state;
+    if($state eq "TTS_PLAY"){
+      system "coolreader-ctl --tts-pause";
+      $cr3Paused = 1;
+    }
+  }
+
   startReadingText("@textWords");
 
   if($$opts{wait}){
@@ -119,6 +143,10 @@ sub main(@){
       sleep 0.5;
       $state = getGeneralState();
     }
+  }
+
+  if($cr3Paused){
+    system "coolreader-ctl --tts-play";
   }
 }
 
