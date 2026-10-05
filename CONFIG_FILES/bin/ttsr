@@ -155,18 +155,31 @@ sub runCheckpointTTS($$$){
     return;
   }
 
-  my $sentence = ""
-    . "ding dong"
-    . " . , . $$checkpoint{checkpointName}"
-    . " , $$checkpoint{distKM} kay"
-    . " , $$checkpoint{distMI} miles"
-    . " , check $$checkpoint{checkpointSpeed} miles prower"
-    . " , total $$checkpoint{totalSpeed} miles prower"
-    . " , check point name is"
-    . " . , . $$checkpoint{checkpointName}"
-  ;
+  my $text = undef;
+  if($$checkpoint{priority} eq "LOW"){
+    # skip entirely
+  }elsif($$checkpoint{priority} eq "MED"){
+    $text = ""
+      . "check $$checkpoint{checkpointName} speed $$checkpoint{checkpointSpeed}"
+    ;
+  }elsif($$checkpoint{priority} eq "HIGH"){
+    $text = ""
+      . "ding dong"
+      . " . , . $$checkpoint{checkpointName}"
+      . " , $$checkpoint{distKM} kay"
+      . " , $$checkpoint{distMI} miles"
+      . " , check $$checkpoint{checkpointSpeed} miles prower"
+      . " , total $$checkpoint{totalSpeed} miles prower"
+      . " , check point name is"
+      . " . , . $$checkpoint{checkpointName}"
+    ;
+  }else{
+    $text = "UNKNOWN PRIORITY: $$checkpoint{checkpointName}";
+  }
 
-  system "tts", $sentence;
+  if(defined $text){
+    system "tts", $text;
+  }
 }
 
 sub readStateFile(){
