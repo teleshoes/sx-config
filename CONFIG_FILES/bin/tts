@@ -30,7 +30,7 @@ my $STATE_NOT_CONFIGURED = 1;
 my $STATE_BUSY = 2;
 my $STATE_IDLE = 3;
 
-my $MAX_TIMEOUT_S = 10;
+my $MAX_TIMEOUT_S = 30;
 
 my $LOG_DIR = "$ENV{HOME}/.cache/logs/tts";
 
