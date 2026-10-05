@@ -126,10 +126,12 @@ sub readGpsinfoCheckpoint($){
   }
   my $info = `gpsinfo-tool --checkpoint '$$state{courseName}' '$$state{startTime}'`;
   chomp $info;
-  if($info =~ /^(\w+),(\d+|\d*\.\d+)km,(\d+|\d*\.\d+)mi,(\d+|\d*\.\d+)mph,(\d+|\d*\.\d+)mph$/){
-    my ($checkpointName, $distKM, $distMI, $checkpointSpeed, $totalSpeed) = ($1, $2, $3, $4, $5);
+  if($info =~ /^(\w+),(LOW|MED|HIGH),(\d+|\d*\.\d+)km,(\d+|\d*\.\d+)mi,(\d+|\d*\.\d+)mph,(\d+|\d*\.\d+)mph$/){
+    my ($checkpointName, $priority, $distKM, $distMI, $checkpointSpeed, $totalSpeed) =
+      ($1, $2, $3, $4, $5, $6);
     return {
       checkpointName  => $checkpointName,
+      priority        => $priority,
       distKM          => $distKM,
       distMI          => $distMI,
       checkpointSpeed => $checkpointSpeed,
