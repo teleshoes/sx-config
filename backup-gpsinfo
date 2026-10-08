@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib `dirname $0 | tr -d '\n'`;
+use PhoneBackupUtils;
+
+my $IPMAGIC_NAME = "sx";
+my $USER = "nemo";
+
+my $REMOTE_DIR = "/home/$USER/.cache/harbour-gpsinfo/harbour-gpsinfo";
+
+my $BACKUP_DIR = "$ENV{HOME}/Code/sx/backup/backup-gpsinfo";
+
+sub main(@){
+  if(not ipmagicTest $IPMAGIC_NAME, $USER, "-d", $REMOTE_DIR){
+    print STDERR "\n\n\n!!!!!\n\n\nWARNING: $REMOTE_DIR does not exist, skipping backup\n";
+    exit 0;
+  }
+
+  print "\n=== gpsinfo: fetching logs\n";
+  run "ipmagic", $IPMAGIC_NAME, "--rsync", "-avP",
+    ":$REMOTE_DIR/",
+    "$BACKUP_DIR/",
+  ;
+}
+
+&main(@ARGV);
