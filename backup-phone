@@ -50,6 +50,7 @@ sub main(@){
   backup "backup-tmobile-digits";
 
   #backup "sync-android-apps --backup"; WAYDROID
+  backup "backup-gpsinfo";
   backup "backup-workouts";
   backup "backup-amazfish";
   backup "backup-hrmon";
