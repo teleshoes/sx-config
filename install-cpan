@@ -35,6 +35,8 @@ my @MODULES_ARR = (
     XML::LibXML
     Cpanel::JSON::XS
     File::ReadBackwards
+    GIS::Distance
+    Math::Polygon
   )],
   xxh => [qw(
     IPC::Run
