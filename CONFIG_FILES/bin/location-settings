@@ -82,20 +82,20 @@ def main():
         Component.onCompleted: {
           console.log("\n=====\n"
             + "OLD\n"
-            + "locationSettings.locationEnabled = " + locationSettings.locationEnabled + "\n"
-            + "locationSettings.locationMode = "    + locationSettings.locationMode + "\n"
-            + "locationSettings.hereState = "       + locationSettings.hereState + "\n"
-            + "locationSettings.mlsOnlineState = "  + locationSettings.mlsOnlineState + "\n"
-            + "locationSettings.mlsEnabled = "      + locationSettings.mlsEnabled + "\n"
+            + "locationSettings.locationEnabled = "   + locationSettings.locationEnabled + "\n"
+            + "locationSettings.locationMode = "      + locationSettings.locationMode + "\n"
+            + "locationSettings.hereState = "         + locationSettings.hereState + "\n"
+            + "locationSettings.mlsOnlineState = "    + locationSettings.mlsOnlineState + "\n"
+            + "locationSettings.mlsEnabled = "        + locationSettings.mlsEnabled + "\n"
           )
           %(cfg)s
           console.log("\n=====\n"
             + "NEW\n"
-            + "locationSettings.locationEnabled = " + locationSettings.locationEnabled + "\n"
-            + "locationSettings.locationMode = "    + locationSettings.locationMode + "\n"
-            + "locationSettings.hereState = "       + locationSettings.hereState + "\n"
-            + "locationSettings.mlsOnlineState = "  + locationSettings.mlsOnlineState + "\n"
-            + "locationSettings.mlsEnabled = "      + locationSettings.mlsEnabled + "\n"
+            + "locationSettings.locationEnabled = "   + locationSettings.locationEnabled + "\n"
+            + "locationSettings.locationMode = "      + locationSettings.locationMode + "\n"
+            + "locationSettings.hereState = "         + locationSettings.hereState + "\n"
+            + "locationSettings.mlsOnlineState = "    + locationSettings.mlsOnlineState + "\n"
+            + "locationSettings.mlsEnabled = "        + locationSettings.mlsEnabled + "\n"
           )
         }
       }
