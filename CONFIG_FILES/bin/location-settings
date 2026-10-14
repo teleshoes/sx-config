@@ -25,6 +25,12 @@ CONFIG_ARGS = {
   "deviceOnly":           "locationSettings.locationMode = LocationConfiguration.DeviceOnlyMode",
   "custom":               "locationSettings.locationMode = LocationConfiguration.CustomMode",
 
+  "hybrisEnabled":        "locationSettings.hybrisEnabled = true",
+  "hybrisDisabled":       "locationSettings.hybrisEnabled = false",
+
+  "hybrisOnlineEnabled":  "locationSettings.hybrisOnlineState = 2",
+  "hybrisOnlineDisabled": "locationSettings.hybrisOnlineState = 1",
+
   "hereOn":               "locationSettings.hereState = 2",
   "hereOff":              "locationSettings.hereState = 1",
   "hereNotAccepted":      "locationSettings.hereState = 0",
@@ -87,6 +93,8 @@ def main():
             + "locationSettings.hereState = "         + locationSettings.hereState + "\n"
             + "locationSettings.mlsOnlineState = "    + locationSettings.mlsOnlineState + "\n"
             + "locationSettings.mlsEnabled = "        + locationSettings.mlsEnabled + "\n"
+            + "locationSettings.hybrisEnabled = "     + locationSettings.hybrisEnabled + "\n"
+            + "locationSettings.hybrisOnlineState = " + locationSettings.hybrisOnlineState + "\n"
           )
           %(cfg)s
           console.log("\n=====\n"
@@ -96,6 +104,8 @@ def main():
             + "locationSettings.hereState = "         + locationSettings.hereState + "\n"
             + "locationSettings.mlsOnlineState = "    + locationSettings.mlsOnlineState + "\n"
             + "locationSettings.mlsEnabled = "        + locationSettings.mlsEnabled + "\n"
+            + "locationSettings.hybrisEnabled = "     + locationSettings.hybrisEnabled + "\n"
+            + "locationSettings.hybrisOnlineState = " + locationSettings.hybrisOnlineState + "\n"
           )
         }
       }
