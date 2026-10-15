@@ -37,6 +37,7 @@ my @MODULES_ARR = (
     File::ReadBackwards
     GIS::Distance
     Math::Polygon
+    YAML::PP
   )],
   xxh => [qw(
     IPC::Run
