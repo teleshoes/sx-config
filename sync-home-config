@@ -25,6 +25,7 @@ my @HOME_RSYNC_INCLUDES = qw(
   wifi-auto.conf
 
   .config/gehomesdk.config
+  .config/gpsinfo-tool/***
   .config/ha.conf
   .config/midea.conf
   .config/predictit-markets.conf
