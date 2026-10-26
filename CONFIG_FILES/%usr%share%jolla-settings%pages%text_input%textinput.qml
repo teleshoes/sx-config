@@ -259,6 +259,12 @@ Page {
                     value: enabledPhysicalLayoutModel.getLayoutIndex(currentPhysicalLayoutConfig.value)
                 }
             }
+
+            // FUTO Keyboard: keep its settings entry last on this page.
+            Loader {
+                width: parent.width
+                source: "/usr/share/jolla-settings/pages/futo-keyboard-sailfish/FutoTextInputSettings.qml"
+            }
         }
 
         VerticalScrollDecorator {}
