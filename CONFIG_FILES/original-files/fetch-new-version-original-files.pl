@@ -39,9 +39,11 @@ sub main(@){
   system "rsync -avP --no-owner root\@$host:$backupDir/ $DIR/$version/";
 
   print "\n\n";
-  my @files = glob "$DIR/$version/*";
+  my @files = `find '$DIR/$version' -not -type d`;
+  chomp foreach @files;
+
   for my $file(@files){
-    if($file !~ /^$DIR\/$version\/(%[^\/]+)$/){
+    if($file !~ /^$DIR\/$version\/(%.+)$/){
       die "ERROR: malformed file returned from glob\n$file\n";
     }
     my $fileName = $1;
@@ -50,6 +52,9 @@ sub main(@){
       print "deleting symlink $file\n";
       system "rm -f $file";
       next;
+    }
+    if(not -f $file){
+      die "ERROR: $file is not a file\n";
     }
 
     my @altVersions =
