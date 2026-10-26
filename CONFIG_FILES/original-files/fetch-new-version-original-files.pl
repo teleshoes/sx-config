@@ -46,6 +46,12 @@ sub main(@){
     }
     my $fileName = $1;
 
+    if(-l $file){
+      print "deleting symlink $file\n";
+      system "rm -f $file";
+      next;
+    }
+
     my @altVersions =
       reverse
       sort
