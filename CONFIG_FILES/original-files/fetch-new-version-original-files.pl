@@ -87,6 +87,8 @@ sub main(@){
       }
     }
   }
+
+  system "find '$DIR/$version' -depth -type d -empty -delete";
 }
 
 sub md5sum($){
