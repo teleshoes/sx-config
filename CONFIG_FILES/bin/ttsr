@@ -158,6 +158,8 @@ sub runCheckpointTTS($$$){
   my $hr = `hrmon --get`;
   chomp $hr;
 
+  my $timeFmt = `date +%H:%M`;
+
   my $text = undef;
   if($$checkpoint{priority} eq "LOW"){
     # skip entirely
@@ -165,6 +167,7 @@ sub runCheckpointTTS($$$){
     $text = ""
       . " , check $$checkpoint{checkpointName}"
       . " , heart $hr"
+      . " , time  $timeFmt"
       . " , speed $$checkpoint{checkpointSpeed}"
     ;
   }elsif($$checkpoint{priority} eq "HIGH"){
@@ -173,6 +176,7 @@ sub runCheckpointTTS($$$){
       . " . , . $$checkpoint{checkpointName}"
       . " , $$checkpoint{distKM} kay"
       . " , $$checkpoint{distMI} miles"
+      . " , current time is $fimeFmt"
       . " , check $$checkpoint{checkpointSpeed} miles prower"
       . " , total $$checkpoint{totalSpeed} miles prower"
       . " , heart is $hr"
