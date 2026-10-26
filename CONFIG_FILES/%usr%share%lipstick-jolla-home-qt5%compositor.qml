@@ -1270,7 +1270,10 @@ Compositor {
                         topAcceptMargin: appLayerItem.peekFilter.topAcceptMargin
                     }
 
+                    // A call stays mapped while the display is blanked, otherwise the
+                    // surface is hidden and only returns after the device is unlocked.
                     windowVisible: (peekLayer.exposed && peekLayer.visible) || root.incomingAlarm
+                                   || callWindow
                     onAboutToShowWindow: incomingAlarmTimer.stop()
                     onTransitioningChanged: {
                         incomingAlarmTimer.stop()
@@ -1876,14 +1879,16 @@ Compositor {
 
     onDisplayAboutToBeOn: {
         _displayOn = true
-        if (lipstickSettings.blankingPolicy == "call" || lipstickSettings.blankingPolicy == "alarm") {
+        if (lipstickSettings.blankingPolicy == "call" || lipstickSettings.blankingPolicy == "alarm"
+                || alarmLayerItem.callWindow) {
             prepareToShowAlarm()
         }
     }
 
     onDisplayAboutToBeOff: {
         _displayWokenUp = false
-        if (lipstickSettings.blankingPolicy == "call" || lipstickSettings.blankingPolicy == "alarm") {
+        if (lipstickSettings.blankingPolicy == "call" || lipstickSettings.blankingPolicy == "alarm"
+                || alarmLayerItem.callWindow) {
             currentAlarm = true
         }
     }
@@ -1898,7 +1903,8 @@ Compositor {
         topMenuLayerItem.active = false
 
         if ((lipstickSettings.lockscreenVisible || cameraLayerItem.active)
-                && !Desktop.startupWizardRunning) {
+                && !Desktop.startupWizardRunning
+                && !alarmLayerItem.callWindow) {
             setCurrentWindow(lockScreenLayerItem.window)
         }
     }
