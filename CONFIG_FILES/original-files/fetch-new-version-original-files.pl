@@ -67,6 +67,20 @@ sub main(@){
         system "rm -f $file";
       }
     }
+
+    my $curModCfgFile = "$DIR/../$fileName";
+    if(not -f $curModCfgFile and $fileName =~ /^%usr%local%bin%(.*)$/){
+      $curModCfgFile = "$DIR/../bin/$1";
+    }
+
+    if(-f $file && -f $curModCfgFile){
+      my $newMd5 = md5sum $file;
+      my $curModCfgMd5 = md5sum $curModCfgFile;
+      if($curModCfgMd5 eq $newMd5){
+        print "deleting $file\n dupe of already-edited $curModCfgFile\n";
+        system "rm -f $file";
+      }
+    }
   }
 }
 
