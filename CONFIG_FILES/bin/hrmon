@@ -47,8 +47,8 @@ my $USAGE = "Usage:
   $EXEC --get | get
     print either the heartrate if its very recent, or 'waiting', or 'off'
       -get the <STATUS> as in: `$EXEC --status`
-      -get the <HR_ELAPSED_TIME_S> and HEARTRATE as in: `$EXEC --last`
-      -get the <BATTERY_LEVEL> as in: `$EXEC --battery`
+      -get the <HR_ELAPSED_TIME_S> and HEARTRATE as in: `$EXEC --last --cur`
+      -get the <BATTERY_LEVEL> as in: `$EXEC --battery --cur`
       -if STATUS is 'off':
         -print 'off'
       -if STATUS is 'on' and HR_ELAPSED_TIME_S >= ${ELAPSED_TIME_THRESHOLD_SECONDS}s:
