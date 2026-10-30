@@ -6,7 +6,7 @@ use File::Basename qw(basename);
 
 sub detectMAC();
 sub getLogFiles();
-sub getLastLogEntry($);
+sub getLastLogEntry($$);
 sub formatRelativeTime($);
 sub readProc(@);
 sub stopHrmon();
@@ -90,20 +90,25 @@ my $USAGE = "Usage:
         -run: screen-daemon hrmon --status
       -print '<STATUS>'
 
-  $EXEC --last | last
+  $EXEC --last | last [-c|--cur]
     search for latest log line '$LOG_FIELD_HEART_RATE'
-      -same as: $EXEC --last-log-field '$LOG_FIELD_HEART_RATE'
+      -same as: $EXEC --last-log-field [--cur] '$LOG_FIELD_HEART_RATE'
 
-  $EXEC --bat | --battery | bat | battery
+  $EXEC --bat | --battery | bat | battery [-c|--cur]
     search for latest log line '$LOG_FIELD_BATTERY_LEVEL'
-      -same as: $EXEC --last-log-field '$LOG_FIELD_BATTERY_LEVEL'
+      -same as: $EXEC --last-log-field [--cur] '$LOG_FIELD_BATTERY_LEVEL'
 
-  $EXEC --last-log-entry LOG_FIELD
-    -get all log files at:
-      $LOG_DIR/*.log*
-    -search for the string <LOG_FIELD>
-    -use xzgrep to select the latest file (last sorted by filename) that matches
-    -select the last line that matches
+  $EXEC [OPTS] --last-log-entry [-c|--cur] LOG_FIELD
+    -select <LOG_FILE>s from $LOG_DIR
+      -if --cur is given:
+        -use only the single latest log file, sorted lexicographically by filename
+        -as in: `ls $LOG_DIR/*.log* | sort | tail -1`
+      -otherwise:
+        -use all log files
+        -as in: `ls $LOG_DIR/*.log*`
+    -search <LOG_FILE>s for any lines that contain the string '<LOG_FIELD>'
+      -(e.g.: '$LOG_FIELD_HEART_RATE' or '$LOG_FIELD_BATTERY_LEVEL')
+    -select the last (most recent) line that matches
     -if no line in any file matches:
       -print 'none'
     -otherwise, ensure selected line is formatted:
@@ -145,6 +150,7 @@ my $CMD_ROTATE_LOGS = "rotate-logs";
 sub main(@){
   my $cmd = $CMD_ENSURE_ATTACH;
   my $logField = undef;
+  my $isCurLogFileOnly = 0;
   while(@_ > 0){
     my $arg = shift @_;
     if($arg =~ /^(-h|--help)$/){
@@ -173,6 +179,9 @@ sub main(@){
       $logField = shift @_;
     }elsif($arg =~ /^(--get|get|-g|g)$/){
       $cmd = $CMD_GET;
+      $isCurLogFileOnly = 1;
+    }elsif($arg =~ /^(-c|--cur)$/){
+      $isCurLogFileOnly = 1;
     }elsif($arg =~ /^(--rotate-logs|rotate-logs|logs)$/){
       $cmd = $CMD_ROTATE_LOGS;
     }else{
@@ -209,7 +218,7 @@ sub main(@){
   }elsif($cmd eq $CMD_STATUS){
     run "screen-daemon", "hrmon", "--status";
   }elsif($cmd eq $CMD_LAST){
-    my ($hr, $epoch) = getLastLogEntry($logField);
+    my ($hr, $epoch) = getLastLogEntry($isCurLogFileOnly, $logField);
     if(not defined $hr){
       print "none\n";
     }else{
@@ -220,11 +229,11 @@ sub main(@){
     if($status =~ /^off$/){
       print "off\n";
     }elsif($status =~ /^on$/){
-      my ($hr, $epoch) = getLastLogEntry($LOG_FIELD_HEART_RATE);
+      my ($hr, $epoch) = getLastLogEntry($isCurLogFileOnly, $LOG_FIELD_HEART_RATE);
       my $diff = time - $epoch;
       $diff = 0-$diff if $diff < 0; #allow 'recent' future values, just in case
       if($diff < $ELAPSED_TIME_THRESHOLD_SECONDS){
-        my ($bat, $batEpoch) = getLastLogEntry($LOG_FIELD_BATTERY_LEVEL);
+        my ($bat, $batEpoch) = getLastLogEntry($isCurLogFileOnly, $LOG_FIELD_BATTERY_LEVEL);
         if(defined $bat and $bat >= $WARN_BATTERY_THRESHOLD){
           print "$hr\n";
         }else{
@@ -297,10 +306,14 @@ sub getLogFiles(){
   return reverse sort grep {-f $_} glob "$LOG_DIR/*.log*";
 }
 
-sub getLastLogEntry($){
-  my ($logField) = @_;
+sub getLastLogEntry($$){
+  my ($isCurLogFileOnly, $logField) = @_;
   my $foundLine = undef;
   my $foundLogFile = undef;
+  my @logFiles = getLogFiles();
+  if($isCurLogFileOnly and @logFiles > 1){
+    @logFiles = (shift @logFiles);
+  }
   for my $logFile(getLogFiles()){
     my $line;
     if($logFile =~ /\.log$/){
