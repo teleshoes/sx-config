@@ -27,6 +27,11 @@ SettingsToggle {
       setPulseVol(targetVol);
     }
 
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     Component.onCompleted: retrievePulseVol();
 
     onVisibleChanged: {
@@ -36,15 +41,35 @@ SettingsToggle {
     }
 
     function retrievePulseVol() {
-      var vol = readProc(["sh", "-c", "/usr/local/bin/pulse-vol -g"]);
-      console.log(vol)
-      vol = vol.replace(/(\n|\r)+$/, '');
-      pulseVol = parseInt(vol, 10);
+      var cmdStr = "/usr/local/bin/pulse-vol -g"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setCurPulseVolStr(val);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+        }
+      });
+    }
+
+    function setCurPulseVolStr(curVolStr){
+      console.log("pulse vol: " + curVolStr)
+      curVolStr = curVolStr.replace(/(\n|\r)+$/, '');
+      pulseVol = parseInt(curVolStr, 10);
     }
 
     function setPulseVol(targetVol) {
-      readProc(["sh", "-c", "/usr/local/bin/pulse-vol " + targetVol]);
-      retrievePulseVol();
+      var cmdStr = "/usr/local/bin/pulse-vol " + targetVol
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+          retrievePulseVol();
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
 
     menu: ContextMenu {
@@ -72,15 +97,5 @@ SettingsToggle {
             text: "pv50"
             onClicked: { setPulseVol(50) }
         }
-    }
-
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
     }
 }
