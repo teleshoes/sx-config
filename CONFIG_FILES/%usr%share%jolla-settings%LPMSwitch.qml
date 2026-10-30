@@ -18,6 +18,11 @@ SettingsToggle {
       setLpmEnabled(!lpmEnabled);
     }
 
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     Component.onCompleted: retrieveLpmEnabled();
 
     onVisibleChanged: {
@@ -27,7 +32,19 @@ SettingsToggle {
     }
 
     function retrieveLpmEnabled() {
-      var lpmStr = readProc(["sh", "-c", "lock --is-lpm-enabled"]);
+      var cmdStr = "lock --is-lpm-enabled"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setCurState(val);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+        }
+      });
+    }
+
+    function setCurState(lpmStr){
       if(!lpmStr){
         lpmStr = "";
       }
@@ -42,22 +59,19 @@ SettingsToggle {
 
     function setLpmEnabled(isEnabled) {
       busy = true;
-      if(isEnabled){
-        readProc(["sh", "-c", "lock --lpm-enable"]);
-      }else{
-        readProc(["sh", "-c", "lock --lpm-disable"]);
-      }
-      retrieveLpmEnabled()
-      busy = false;
-    }
-
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+      var lockArg = isEnabled ? "--lpm-enable" : "--lpm-disable"
+      var cmdStr = "lock " + lockArg
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr)
+          retrieveLpmEnabled();
+          busy = false;
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+          busy = false;
+        }
+      });
     }
 }
