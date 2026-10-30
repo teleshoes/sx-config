@@ -302,7 +302,19 @@ sub getLastLogEntry($){
   my $foundLine = undef;
   my $foundLogFile = undef;
   for my $logFile(getLogFiles()){
-    my $line = readProc "sh", "-c", "tac '$logFile' | xzgrep -m 1 '$logField'";
+    my $line;
+    if($logFile =~ /\.log$/){
+      $line = readProc "sh", "-c", "tac '$logFile' | grep -m 1 '$logField'";
+    }elsif($logFile =~ /\.bz2$/){
+      $line = readProc "sh", "-c", "bzip2 -c -d '$logFile' | tac | grep -m 1 '$logField'";
+    }elsif($logFile =~ /\.xz$/){
+      $line = readProc "sh", "-c", "xz -c -d '$logFile' | tac | grep -m 1 '$logField'";
+    }elsif($logFile =~ /\.gz$/){
+      $line = readProc "sh", "-c", "gzip -c -d '$logFile' | tac | grep -m 1 '$logField'";
+    }else{
+      die "ERROR: unsupported log file format $logFile\n";
+    }
+
     if($line =~ /$logField/){
       $foundLine = $line;
       $foundLogFile = $logFile;
