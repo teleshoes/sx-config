@@ -8,6 +8,11 @@ SettingsToggle {
     icon.source: "image://theme/icon-m-diagnostic"
     checked: false
 
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     ListModel {
         id: fixNameModel
     }
@@ -31,7 +36,22 @@ SettingsToggle {
     }
 
     function buildFixNameMenu(){
-        var fixNames = getFixNames()
+      var cmdStr = "/usr/local/bin/fix --csv"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setFixNamesCsv(val);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+        }
+      });
+    }
+
+    function setFixNamesCsv(csvStr){
+        console.log("fix names csv: " + csvStr)
+        var fixNames = csvStr.trim().split(",")
+
         fixNameModel.clear()
         for (var i = 0; i < fixNames.length; i++) {
             var fixName = fixNames[i]
@@ -39,24 +59,20 @@ SettingsToggle {
         }
     }
 
-    function getFixNames(){
-        var csv = readProc(["sh", "-c", "/usr/local/bin/fix --csv"])
-        console.log("fix names: " + csv)
-        return csv.trim().split(",")
-    }
-
     function runFix(fixName) {
       console.log("FIX: " + fixName)
-      readProc(["sh", "-c", "/usr/local/bin/fix --daemon " + fixName])
+      runProc("/usr/local/bin/fix --daemon " + fixName)
     }
 
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+    function runProc(cmdStr) {
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
+
 }
