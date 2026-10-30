@@ -17,6 +17,11 @@ SettingsToggle {
     checked: hrmonState != "off" && hrmonState != "error"
     busy: false
 
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     onToggled: {
       if(hrmonState == "off"){
         setHrmonEnabled(true);
@@ -45,7 +50,19 @@ SettingsToggle {
     }
 
     function retrieveHrmonState() {
-      var curState = readProc(["sh", "-c", "udo /usr/local/bin/hrmon -g"]);
+      var cmdStr = "udo /usr/local/bin/hrmon -g"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setCurState(val);
+        },
+        on_error: function(e) {
+          console.log("ERROR: 'hrmon -g' failed", e);
+          setCurState("error");
+        }
+      });
+    }
+
+    function setCurState(curState){
       curState = curState.replace(/(\n|\r)+$/, '');
       console.log(curState);
 
@@ -66,17 +83,16 @@ SettingsToggle {
 
     function setHrmonEnabled(isEnabled) {
       var hrmonArg = isEnabled ? "--start" : "--stop"
-      readProc(["sh", "-c", "udo /usr/local/bin/hrmon " + hrmonArg]);
-      retrieveHrmonState();
-    }
-
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+      var cmdStr = "udo /usr/local/bin/hrmon " + hrmonArg
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: hrmon " + hrmonArg)
+          retrieveHrmonState();
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + "'hrmon " + hrmonArg + "' failed", e);
+          setCurState("error");
+        }
+      });
     }
 }
