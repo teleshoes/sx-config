@@ -56,7 +56,7 @@ SettingsToggle {
           setCurState(val);
         },
         on_error: function(e) {
-          console.log("ERROR: 'hrmon -g' failed", e);
+          console.log("ERROR: " + cmdStr + " failed", e);
           setCurState("error");
         }
       });
@@ -64,7 +64,8 @@ SettingsToggle {
 
     function setCurState(curState){
       curState = curState.replace(/(\n|\r)+$/, '');
-      console.log(curState);
+
+      console.log("hrmon cur state: " + curState);
 
       var ptrn = /^(off|waiting|[0-9]+!?)$/;
       var match = curState.match(ptrn);
@@ -86,11 +87,11 @@ SettingsToggle {
       var cmdStr = "udo /usr/local/bin/hrmon " + hrmonArg
       readProcActor.send(cmdStr, {
         on_reply: function(val) {
-          console.log("OK: hrmon " + hrmonArg)
+          console.log("OK: " + cmdStr);
           retrieveHrmonState();
         },
         on_error: function(e) {
-          console.log("ERROR: " + "'hrmon " + hrmonArg + "' failed", e);
+          console.log("ERROR: " + cmdStr + " failed", e);
           setCurState("error");
         }
       });
