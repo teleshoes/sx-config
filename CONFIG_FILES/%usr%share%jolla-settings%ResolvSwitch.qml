@@ -9,12 +9,17 @@ SettingsToggle {
     icon.source: "image://theme/icon-m-downloads"
     showOnOffLabel: false
     onToggled: {
-      readProc(["sudo", "resolv", "--cycle"])
+      runProc("sudo resolv --cycle")
       updateResolvConfName();
     }
     property var resolvConfName: "?"
     checked: false
     busy: false
+
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
 
     Component.onCompleted: updateResolvConfName();
 
@@ -25,18 +30,31 @@ SettingsToggle {
     }
 
     function updateResolvConfName() {
-      var confName = readProc(["cat", "/etc/resolv.conf.confname"])
+      var cmdStr = "cat /etc/resolv.conf.confname"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setCurResolvConfName(val);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+        }
+      });
+    }
+
+    function setCurResolvConfName(confName){
       confName = confName.replace(/(\n|\r)+$/, '');
       resolvConfName = confName
     }
 
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+    function runProc(cmdStr) {
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
 }
