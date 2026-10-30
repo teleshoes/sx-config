@@ -14,6 +14,11 @@ SettingsToggle {
     checked: false
     busy: false
 
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     onToggled: {
     }
 
@@ -26,23 +31,46 @@ SettingsToggle {
     }
 
     function retrieveCamLensState() {
-      var state = readProc(["sh", "-c", "/usr/local/bin/cam -g"]);
-      console.log("cam: " + state)
-      state = state.replace(/(\n|\r)+$/, '');
-      camLensState = state
+      var cmdStr = "/usr/local/bin/cam -g"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setCurState(val);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+        }
+      });
+    }
+
+    function setCurState(curState){
+      console.log("cam: " + curState)
+      curState = curState.replace(/(\n|\r)+$/, '');
+      camLensState = curState
     }
 
     function setCamLensState(state) {
       if(state == "single"){
-        readProc(["sh", "-c", "/usr/local/bin/cam --single"]);
+        runProc("/usr/local/bin/cam --single");
       }else{
-        readProc(["sh", "-c", "/usr/local/bin/cam --multi"]);
+        runProc("/usr/local/bin/cam --multi");
       }
       retrieveCamLensState();
     }
 
     function killCam() {
-      readProc(["sh", "-c", "/usr/local/bin/cam --kill"]);
+      runProc("/usr/local/bin/cam --kill");
+    }
+
+    function runProc(cmdStr) {
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
 
     menu: ContextMenu {
@@ -58,15 +86,5 @@ SettingsToggle {
             text: "kill"
             onClicked: { killCam() }
         }
-    }
-
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
     }
 }
