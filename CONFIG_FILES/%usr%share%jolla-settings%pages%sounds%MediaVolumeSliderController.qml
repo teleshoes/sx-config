@@ -16,34 +16,35 @@ Item {
     property int maxVolumeStep: 100 /* set onVisible */
 
     property bool initializing
+
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     onVisibleChanged: {
         if(visible){
-            initialize()
+            updateSliderValue()
         }
-    }
-    function initialize() {
-        root.initializing = true
-        slider.animateValue = false
-
-        slider.color = "#009955"
-        root.updateSliderValue()
-
-        root.initializing = false
-        slider.animateValue = true
     }
 
     function updateSliderValue() {
-        var vol = getVolume()
-        var volStep = vol[0]
-        var maxVolStep = vol[1]
-
-        slider.value = volStep
-        maxVolumeStep = maxVolStep
+      var cmdStr = "/usr/local/bin/vol --read"
+      initializing = true
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setSliderVolStr(val);
+          initializing = false
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          initializing = false
+        }
+      });
     }
 
-    function getVolume() {
-      var volOut = readProc(["/usr/local/bin/vol", "--read"])
-      var stepArr = volOut.split("/")
+    function setSliderVolStr(volStr){
+      var stepArr = volStr.split("/")
       var volStep = 0
       var maxVolStep = 0
       if(stepArr.length == 2){
@@ -51,10 +52,14 @@ Item {
         maxVolStep = Math.floor(stepArr[1])
       }
 
-      return [volStep, maxVolStep]
+      slider.color = "#009955"
+
+      slider.value = volStep
+      maxVolumeStep = maxVolStep
     }
+
     function setVolume(volStep) {
-      readProc(["/usr/local/bin/vol", "--set", volStep])
+      runProc("/usr/local/bin/vol --set " + volStep)
     }
 
     state: "default"
@@ -63,6 +68,7 @@ Item {
         name: "default"
 
         PropertyChanges {
+            id: sliderPropertyChanges
             target: slider
             height: slider.implicitHeight + valueLabel.height + Theme.paddingSmall
             label: "Media volume"
@@ -100,13 +106,14 @@ Item {
         Behavior on scale { NumberAnimation { duration: 80 } }
     }
 
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+    function runProc(cmdStr) {
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
 }
