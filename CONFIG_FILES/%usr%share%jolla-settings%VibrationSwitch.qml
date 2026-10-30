@@ -21,6 +21,11 @@ SettingsToggle {
       setNgfdActive(!ngfdActive);
     }
 
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     Component.onCompleted: retrieveNgfdStatus();
 
     onVisibleChanged: {
@@ -30,7 +35,19 @@ SettingsToggle {
     }
 
     function retrieveNgfdStatus() {
-      var activeStr = readProc(["sh", "-c", "systemctl --user is-active ngfd"]);
+      var cmdStr = "systemctl --user is-active ngfd"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setCurNgfdStatus(val);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+        }
+      });
+    }
+
+    function setCurNgfdStatus(activeStr){
       if(!activeStr){
         activeStr = "";
       }
@@ -46,23 +63,24 @@ SettingsToggle {
     function setNgfdActive(isActive) {
       busy = true;
       if(isActive){
-        readProc(["sh", "-c", "systemctl --user restart ngfd"]);
+        runProc("systemctl --user restart ngfd");
         soundSettings.touchscreenToneLevel = 1
       }else{
-        readProc(["sh", "-c", "systemctl --user stop ngfd"]);
+        runProc("systemctl --user stop ngfd");
         soundSettings.touchscreenToneLevel = 0
       }
       retrieveNgfdStatus()
       busy = false;
     }
 
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+    function runProc(cmdStr) {
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
 }
