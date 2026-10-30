@@ -9,12 +9,27 @@ SettingsToggle {
     icon.source: "image://theme/icon-m-media-radio"
     showOnOffLabel: false
     onToggled: {
-      readProc(["sudo", "volte", "--toggle"])
-      updateVolteStatus();
+      busy = true
+      var cmdStr = "udo sudo volte --toggle"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          updateVolteStatus();
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+          busy = false
+        }
+      });
     }
     property var volteStatus: "?"
     checked: false
     busy: false
+
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
 
     Component.onCompleted: updateVolteStatus();
 
@@ -25,18 +40,33 @@ SettingsToggle {
     }
 
     function updateVolteStatus() {
-      var status = readProc(["volte", "--summary"])
+      var cmdStr = "volte --summary"
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          setCurState(val);
+          busy = false;
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+          setCurState("error");
+          busy = false;
+        }
+      });
+    }
+
+    function setCurState(status){
       status = status.replace(/(\n|\r)+$/, '');
       volteStatus = status
     }
 
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+    function runProc(cmdStr) {
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
 }
