@@ -33,6 +33,11 @@ SettingsToggle {
 
     checked: displaySettings.orientationLock !== "dynamic"
 
+    CutesActor {
+      id: readProcActor
+      source: "file:///usr/share/cutes/read_proc_actor.js"
+    }
+
     onToggled: {
         var nowMillis = Date.now();
         var dblClick = nowMillis - lastToggledMillis < 800 ? true : false;
@@ -80,7 +85,7 @@ SettingsToggle {
         forceOrientation.value = checked;
     }
     function updateAndroidOrientation(){
-        readProc(["sudo", "ad", "orient", displaySettings.orientationLock])
+        runProc("sudo ad orient " + displaySettings.orientationLock)
     }
 
     menu: ContextMenu {
@@ -128,13 +133,14 @@ SettingsToggle {
 
     DisplaySettings { id: displaySettings }
 
-    function readProc(cmdArr) {
-      var cmdExec = cmdArr[0];
-      var cmdArgs = cmdArr.slice(1);
-
-      var proc = cutes.require('subprocess').process();
-      var res = proc.popen_sync(cmdExec, cmdArgs);
-      res.wait(-1);
-      return res.stdout().toString();
+    function runProc(cmdStr) {
+      readProcActor.send(cmdStr, {
+        on_reply: function(val) {
+          console.log("OK: " + cmdStr);
+        },
+        on_error: function(e) {
+          console.log("ERROR: " + cmdStr + " failed", e);
+        }
+      });
     }
 }
