@@ -88,6 +88,9 @@ my $USAGE = "Usage:
   $EXEC [OPTS] -g | --get
     same as: $EXEC OPTS --get-configs
 
+  $EXEC [OPTS] -a
+    same as: $EXEC OPTS --apply-conf
+
   $EXEC [OPTS] -e | --get-events
     -fetch all timed event <COOKIE>s
       -if --application is given, limit to APPLICATION
@@ -367,7 +370,7 @@ sub main(@){
       $action = $ACTION_SET_CONFIG_EVENT_STATUS;
       $$opts{title} = shift @_;
       $$opts{configEventStatus} = $CONFIG_EVENT_STATUS_TOGGLE;
-    }elsif($arg =~ /^(--apply-conf|--apply-config)$/){
+    }elsif($arg =~ /^(-a|--apply-conf|--apply-config)$/){
       $action = $ACTION_APPLY_CONFIG;
     }elsif($arg =~ /^(--alarm)$/){
       $$opts{isAlarm} = 1;
