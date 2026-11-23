@@ -113,8 +113,8 @@ my $USAGE = "Usage:
       rm -f ~/.config/timed/events.data* /var/lib/timed/shared_events/events.data*
     -start timed as in: systemctl --user start time
 
-  $EXEC [OPTS] -a|--add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --cmd=COMMAND
-  $EXEC [OPTS] -a|--add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --alarm
+  $EXEC [OPTS] --add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --cmd=COMMAND
+  $EXEC [OPTS] --add [ONCE | SCHED_ARG SCHED_ARG ..] --title=TITLE --alarm
     -select application
       -if --application is given, use APPLICATION
       -if --cmd is given, use $APPLICATION_TIMED_CMD
@@ -348,7 +348,7 @@ sub main(@){
       $action = $ACTION_CLEAR_EVENTS;
     }elsif($arg =~ /^(--reset)$/){
       $action = $ACTION_RESET_TIMED;
-    }elsif($arg =~ /^(-a|--add)$/){
+    }elsif($arg =~ /^(--add)$/){
       $action = $ACTION_ADD_EVENT;
     }elsif($arg =~ /^--get-configs$/){
       $action = $ACTION_GET_CONFIGS;
