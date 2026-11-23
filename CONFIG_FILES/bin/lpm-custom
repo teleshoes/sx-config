@@ -77,6 +77,11 @@ sub main(@){
     $contents .= $msg;
   }
 
+  my $vol = `vol -r`;
+  chomp $vol;
+
+  $contents .= sprintf "%${leftColLen}s|%${rightColLen}s", "", $vol;
+
   writeFile($FILE_CUSTOM_TEXT, $contents);
 
   system $EXEC_UDO, $EXEC_LOCK, "--lpm-refresh";
