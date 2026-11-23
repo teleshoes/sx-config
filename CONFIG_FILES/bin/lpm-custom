@@ -54,10 +54,13 @@ sub main(@){
     }
   }
 
+  my $rightColLen = 5;
+  my $leftColLen = $MAX_LINE_LEN - $rightColLen - 1;
+
   my $contents = "";
 
-  my $email = getEmailFmt($MAX_LINE_LEN - 6);
-  my $bat = getBatteryFmt(5);
+  my $email = getEmailFmt($leftColLen);
+  my $bat = getBatteryFmt($rightColLen);
 
   $contents .= "$email|$bat\n";
 
