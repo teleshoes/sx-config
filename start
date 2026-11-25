@@ -180,7 +180,8 @@ pubkeys
 #MANUAL SETTINGS FOR NOW:
 # -hotspot
 # -tmobile-digits:
-#   -it works when installed from aurora store
+#    2.8.7 just works with jp2 microg, no config
+#    2.8.8 storage is broken for attachments
 # -sgcam apply xml (xml copied as part of setup-camera)
 # -bluetooth
 #   -for car:
