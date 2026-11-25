@@ -105,6 +105,7 @@ ipmagic sx sudo location-settings on custom gpsEnabled mlsOfflineEnabled mlsOnli
 
 ./setup-usbmoded
 
+#maybe have to enable NFC in settings
 ./setup-vpn
 
 ./install-cpan
