@@ -132,10 +132,7 @@ ipmagic sx okboard-toggle --init-default
 ./setup-libs
 
 #aliendalvik:
-#  TODO: move these files out of config-files and into setup-android or something
-#  for now, just do:
-#    ipmagic sx -u root rm -rf /opt/alien/data/data/com.androidemu.nes/
-#    ipmagic sx -u root rm -rf /opt/alien/data/data/com.explusalpha.Snes9x/
+#  (no init necessary)
 
 #waydroid
 #  chum install waydroid + waydroid-runner
