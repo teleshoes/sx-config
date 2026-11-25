@@ -44,6 +44,10 @@ my @MODULES_ARR = (
     Crypt::xxHash
   )],
 );
+
+my $CPANM_CMD_PREFIX_BY_GROUP = {
+};
+
 my %MODULES = @MODULES_ARR;
 my @GROUP_NAMES = map {$MODULES_ARR[$_]} grep {$_ % 2 == 0} (0..$#MODULES_ARR);
 my $GROUP_NAME_REGEX = join "|", @GROUP_NAMES;
@@ -87,8 +91,13 @@ sub main(@){
     die "ERROR: unknown group\n" if not defined $MODULES{$group};
     my @modules = @{$MODULES{$group}};
 
+    my $cmdPrefix = $$CPANM_CMD_PREFIX_BY_GROUP{$group};
+    my $cpanmCmd = defined $cmdPrefix ? "$cmdPrefix cpanm" : "cpanm";
+
+    my @cpanmArgs = ("--notest", "--nointeractive");
+
     print "\n##### installing $group\n#####   @modules\n";
-    ipmagicRun $IPMAGIC_NAME, $ROOT_USER, "cpanm --notest --nointeractive @modules";
+    ipmagicRun $IPMAGIC_NAME, $ROOT_USER, "$cpanmCmd @cpanmArgs @modules";
     print "\n\n";
   }
 
