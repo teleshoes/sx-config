@@ -182,6 +182,7 @@ pubkeys
 # -tmobile-digits:
 #    2.8.7 just works with jp2 microg, no config
 #    2.8.8 storage is broken for attachments
+#    -disable full screen notifications in `ad settings => apps => digits => Notifications`
 # -sgcam apply xml (xml copied as part of setup-camera)
 # -bluetooth
 #   -for car:
