@@ -180,13 +180,6 @@ pubkeys
 #MANUAL SETTINGS FOR NOW:
 # -hotspot
 # -tmobile-digits:
-#   -in microg-settings:
-#     -ensure self-check
-#       -signature spoofing is enabled in setup-dconf (must restart aliendalvik after)
-#       -all perms should handled by setup-aliendalvik, except battery-opt
-#     -log into Google Account
-#     -enable device-registration (digits definitely runs checkin)
-#     -enable cloud-messaging (digits definitely uses GCM)
 #   -it works when installed from aurora store
 # -sgcam apply xml (xml copied as part of setup-camera)
 # -bluetooth
